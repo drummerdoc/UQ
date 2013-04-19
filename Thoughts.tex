@@ -22,7 +22,7 @@
 %\usepackage{lastpage}
 %\usepackage{fancyhdr}
 
-
+\usepackage[version=3]{mhchem} 
 % you can use this command to skip chunks of your document
 % just put the command around the chunk like this
 % \comment{ ...the chunk... }
@@ -133,6 +133,63 @@ Objectives:
 \end{itemize}
  
 \subsection*{Point defect formation in thin-film photovoltaics:}
+A key design need for high efficiency photovoltaic devices, e.g. those
+based on CZTS absorbers, is the ability to control the carrier
+concentration to achieve n+ and p+ doping resulting from point
+defects. The creation of the various types of defects (intrinsic ionic
+and electronic defects) can be described by a set of kinetic reaction
+equations. For example, an abstract metal-sulfide system could be
+described by simplistic system expressing an oxidation reaction, the
+Schottky disorder and creation of anion vacancies:
+
+\ce{ \tfrac{1}{2} S2 -> S_s^x + V_m^{''} + 2 h^+ }
+
+\ce{ NULL -> V_m^{''}+ V_s^{$\cdot \cdot$} }
+
+\ce{ NULL -> e^' + h^{$\cdot$} }
+
+\ce{ S_s^x -> \tfrac{1}{2} S2 + V_s^{$\cdot \cdot$} + 2 e^- }
+
+Near first-principles calculations such as electronic structure
+calculations based on density functional theory can provide enthalpy
+differences for the formation of these various point defects.
+Neglecting the entropic contribution to the Gibbs energy, this
+information is sufficient to determine equilibrium concentrations that
+can be used to coarsely estimate the variation of the material
+characteristics with the key parameters. For the system above, the
+$S_2$ partial pressure is a key variable that when varied leads to a
+Kroger-Vink diagram with the classic form shown in Figure~\ref{fig:kv}
+where the crossover point between electron/hole concentrations is at
+the stoichiometric pressure. \begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{KV.pdf}
+  \caption{Kroger-Vink diagram for generic M-S system}
+  \label{fig:kv}
+\end{figure}
+Even for this simplistic system, time-varying histories of the
+non-metal pressure and temperature during crystal growth can be
+expected to access quasi-equilbrium states. Additional parameters in
+the Arrhenius forms for the kinetic rate expressions are required to
+determine a time-dependent solution capable of predicting these states
+with associated uncertainty. Complicating measurements that can be
+used to estimate these parameters, diffusion of the non-metal species
+($S_2$ above) into the film may be rate-limiting. Further, measurement
+of the concentration of arbitrary point defects is difficult and must
+be inferred from more easily observed characteristics. For realistic
+systems, involving 10s to 100s of such kinetic expressions, many such
+states with desirable properties may exist. Such states may be of
+interest in two forms: firstly, they may useful for design of PV
+systems, and secondly, they may have measurable characteristics that
+allow us to reduce the uncertainty associated with one or more rates,
+thereby allowing other states to be found that are useful for actual
+devices.
+
+In contrast to well-studied combustion chemical kinetics, where a
+relatively (if still insufficient) quantity of experimental datapoints
+have been acquired ti validate reaction mechanisms, point-defect systems are relatively poorly
+understood. Many more experiments are necessary to converge on a
+reasonable representation of the appropriate rates. 
+
 
 FLESH OUT FROM RAY'S NOTES
 
