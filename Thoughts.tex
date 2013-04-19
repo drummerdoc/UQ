@@ -1,0 +1,235 @@
+\documentclass[11pt]{article}
+% RFP specifically says to use 11 point type and 1 inch margins
+\usepackage{graphicx}
+\usepackage{epsf,color}
+\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+0pt \advance \topmargin by -\headheight \advance \topmargin by
+-\headsep \textheight 9.0in
+
+%\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+%0pt \advance \topmargin by -\headheight \advance \topmargin by
+%-\headsep \textheight 8.9in
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{dcolumn}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[compact]{titlesec}
+
+%\usepackage[plain]{fullpage}
+\usepackage{amsfonts}
+%\usepackage{lastpage}
+%\usepackage{fancyhdr}
+
+
+% you can use this command to skip chunks of your document
+% just put the command around the chunk like this
+% \comment{ ...the chunk... }
+\newcommand{\comment}[1]{}
+
+%\newcommand{\MarginPar}[1]{\hspace{1sp}\marginpar{\tiny\sffamily\raggedright\hspace{1sp}#1}}
+\setlength{\marginparwidth}{0.75in}
+\newcommand{\MarginPar}[1]{\marginpar{%
+\vskip-\baselineskip %raise the marginpar a bit
+\raggedright\tiny\sffamily
+\hrule\smallskip{\color{red}#1}\par\smallskip\hrule}}
+
+%\renewcommand{\baselinestretch}{1.05} % = 1.0 Single space; = 2.0 Double
+\renewcommand{\baselinestretch}{1.0} % = 1.0 Single space; = 2.0 Double
+
+%\renewcommand{\refname}{Literature Cited}
+%------------------------
+
+%\pagestyle{empty}  % No page numbers
+%\textfloatsep 0mm
+%\abovecaptionskip 1mm
+
+\begin{document}
+
+%\pagestyle{plain}
+%\pagenumbering{roman}
+\begin{center}
+{\Large{\textbf{Project Thooughts}}}
+
+\vskip\baselineskip
+{\large{J. Bell, M. Day, J. Goodman, P. Graf, R. Grout, M. Morzfeld, G. Pau}}
+\end{center}
+
+Below is a summary of some discussion with Ray Grout and some ideas of Matti Morzfeld
+
+\section{Attempted coherent project summary}
+
+In a number of important problem areas, simulations require inputs describing the physical system
+that contain significant uncertainty.  
+Systems described by multicomponent reacting flows, for example, rely on models for the chemical kinetics and
+transport properties.
+Examples of this type include combustion, catalysis, thin-film photovoltaics and geochemistry; however,
+the same basic paradigm in more broadly applicable.  The goal of this project is to develop a
+mathematical framework for this class of problems that will allow us to (1) use available data to restrict
+uncertainty in the description of the system, (2) estimate the impact of the improved characterization
+on predictive capabitility and (3) identify which of the remaining uncertainties have the most impact
+on the uncertainty of the predictions.
+
+One important feature of the class of problems we want to consider is that there is a hierarchy
+of experimental data that provides information about the underlying processes.  As one progresses
+through this hierarchy, the problem becomes more complex and our ability to simulate it is reduced but
+the data is closer to the target application.  An important aspect of the problem is the need to pass
+information through the hierachy.  Another important feature of the problem class we plan to consider
+is that the underlying dynamics, particularly further up the hierarchy, is chaotic.  Reactions in a turbulent
+flow are a prototypical example of this phenomena.
+Within the chaotic regime, we need to be able to extract metrics based on identification of characteristic
+features rather than more traditional quantities of interest.
+
+The class of problems we want to consider are non-linear and exhibit non-Gaussian statistics.
+Consequently, we plan to focus our approach on Monte Carlo sampling techniques.
+Monte Carlo sampling is well suited for parallel computer architectures because the computationally
+expensive calculations (e.g. forward or adjoint/backward model runs) can be executed independently;
+the necessary communication happens only via scalar quantities, so that very little data must be moved
+across nodes.
+The core problem with Monte Carlo techniques is the catastrophic scaling properties as a function of the
+dimension of the probability space.  In particular, as the dimension of the space of parameters increases,
+the number of simulations needed to obtain useful imformation explodes, making brute force Monte Carlo
+infeasible for large-scale problems.
+Central our approach is the development of smart sampling technologies to dramatically improve
+the performance of Monte Carlo approaches.  Examples of these new approaches is the implicit sampling
+\MarginPar{Help needed here}
+methodology developed at LBNL 
+and affine sampling approaches developed at NYU, both of which show significant improvement
+in Monte Carlo performance.
+
+To address the hierarchical nature of experimental data, we will adopt a Bayesian framework.  Starting
+with an initial prior, as we move through the hierarchy, we will view the posterior distribution at
+one level of the hierarchy as defining the prior for the next level of complexity.  By adopting this
+approach, we can balance computation across the hierarchy, reducing the number of simulations needed
+as the complexity of the simulation increases.   
+
+As noted above, one aspect of the problem class we plan to consider is that as the problem becomes more
+complex, the underlying dynamics becomes chaotic.  In this case, the available experimental data
+represents samples the attractor.  We cannot hope to obtain a detailed match to that data; rather, we want
+to extract features characteristic of the data (attractor) and compare those to analogous computational
+features.  Our goal will be to use statistical machine learning algorithms to identify and classify
+features. 
+\MarginPar{Help needed here}
+
+NEED SOMETHING ABOUT ROLE OF REDUCED ORDER MODELS.  I THINK ONE USE OF REDUCED ORDER
+MODELING IS TO GUIDE THE SMART SAMPLING APPROACHES IN MONTE CARLO.  ALSO SHOULD BE
+USEFUL IN SCALE BRIDGING BUT THAT IS MORE TENUOUS IN MY HEAD.
+
+Examples:
+
+\subsection*{Turbulence/Chemistry Interaction example:}
+
+Inputs: Chemical kinetics and transport parameters with initial priors
+ 
+Hierarchical data sources (experiments): 0d ignition, 1d laminar flames, shock-tube experiments
+2D laminar flame DNS, 3D turbulent flames
+
+Objectives:
+\begin{itemize}
+\item Use available data to reduce uncertainty in kinetics and transport
+\item Estimate the impact of the improved characterization on predictive capabitility for turbulent flames
+\item Identify which of the remaining uncertainties have the most impact on the uncertainty of the predictions
+\end{itemize}
+ 
+\subsection*{Point defect formation in thin-film photovoltaics:}
+
+FLESH OUT FROM RAY'S NOTES
+
+\subsection*{Missing issues / concerns}
+
+\begin{enumerate}
+\item Need to flesh out more examples
+\item How should we address the extreme-scale computing aspects of this
+\item Fix general flakiness and flesh out places where help is needed
+\end{enumerate}
+
+\newpage
+
+\section*{Matti's raw notes}
+
+
+\begin{itemize}
+\item Essentially all problems are non-linear and exhibit non-Gaussian statistics and, therefore, Monte Carlo sampling will be at the core of modern and next generation UQ techniques
+\item Monte Carlo sampling is well suited for parallel computer architectures because the computationally expensive calculations (e.g. forward or adjoint/backward model runs) can be executed independently; the necessary communication happens only via scalar quantities, so that very little data must be moved across nodes
+\item Due to a catastrophic scaling of the number of Monte Carlo simulations required with the number of dimensions of the underlying probability space, brute force Monte Carlo is not feasible for large-scale problems, even on exascale machines
+\item New sampling techniques, developed at LBNL have shown promise in UQ in engineering problems (O(10) dimensions, e.g. in robotics, tracking of satellites) and in small scale geophysical inverse problems  (and their UQ, O(500) dimensions). The geophysical inverse problems are large enough such that traditional Monte Carlo is hopeless (on current and future machines).
+\item We have experience with new sampling techniques for UQ, inverse problems and target tracking
+\item The "technology" is ready for the next step: explore applicability to large/extreme scale problems, in particular (i) use of extreme scale minimization techniques (derivative free minimization, adjoint calculations, limited memory quasi-Newton methods); (ii) minimizing communication between cores/nodes and data movement/storage during sampling and updating; (iii) integration with large (extreme) scale simulation codes; (iv) a study of the scaling of the algorithm with the number of cores
+\item Result: first large scale UQ system with smart Monte Carlo sampling and without Gaussianity or linearity assumptions
+\item UQ  capabilities: UQ without Gaussianity or linearity assumptions; integration of experimental data and mathematical model/numerical codes; accurate tracking of uncertainty (e.g. covariances of errors); forecasting under uncertainty.
+
+\end{itemize}
+
+
+\section*{Ray's raw notes}
+
+Thematic elements:
+
+Manifold discovery / slow attractors
+
+Link input parameters to changes in slow attractor
+
+Identify observables based on characteristics of slow attractor that are related to changes in input parameters, specifically those we wish to investigate
+
+Design framework so that each experiment conducted narrows the distribution of the priors to provide a strong probability of finding a change in attractors or measurable difference in output. 
+
+Searching for transformation between distribution of inputs and distribution of outputs. 
+
+Quantify the utility of an experiment by the degree of reduction in uncertainty
+
+Use guided search based on priors to restrict the search space
+
+Turbulence/Chemistry Interaction example:
+
+
+Inputs: Chemical kinetics parameters, geometry, initial conditions
+
+Traditional outputs: net overall burning rate in turbulent flame at device conditions
+
+Candidates for optimal observable: reaction rate of each of n species, creation/destruction rates, vector indicating participation in each possible reaction pathway, vector indicating species participation.
+(These are based on physical insight -- is it necessary to presuppose the candidates for observables?)
+ 
+Data sources (experiments) hierarchy: 0d ignition simulation, 1d laminar flame simulation, library of 1d laminar flame experiments at conditions that perturb expected chemistry, ODT based laminar flame solution, 2D turbulent flame DNS, 3D turbulent flame DNS, shock tube ignition delay time parametric study.
+
+Objective: Determine which chemical kinetics parameters to study further; design experiments with appropriate observables to objectively compare different kinetic mechanisms; design experiments to assess the impact of changing fuels (and hence mechanisms).
+
+Point defect formation application:
+Inputs: Potential kinetic mechanism; estimated activation energies based on DFT calculations; process conditions:
+
+Observables: Quasi-equilibrium concentration of electrons in conduction band. 
+
+Candidates for optimal observable: Individual point defect concentrations. 
+
+Experimental hierarchy: Deterministic calculation of 0D equilibrium state, parametric in environmental conditions; experimental film growth with parametric variation of surface pressure, T (shifts relative rate of reactions); film growth in light/dark (may enable/disable defect formation mechanism); deterministic computation coupled to 1D transport; stochastic sampling of defect formation rates (using kinetic rates as transition probabilities).
+
+Outcome: Determine process conditions that increase the probability of a favorable point defect configuration. Find the metastable states /attractors; assess these for favorable properties; engineer process likely to produce them. 
+
+Other application areas:
+\begin{itemize}
+\item Anything with a reaction/kinetic network with uncertain parameters
+\item Quantifying ``usefulness'' of expensive experiments
+\item Kinetics of biological biomass deconstruction
+\item Cosmology
+\item OPV degradation rate modeling
+\item Groundwater decontamination modelling 
+\end{itemize}
+
+Requisite features of application area:
+\begin{itemize}
+\item Model that can relate input parameters to observables with a hierarchy of fidelity
+\item Targeted for kinetic reaction networks (conceivably this could be relaxed)
+\item Dynamic / chaotic system with an underlying attractive manifold 
+\item Finite number of attractors that can be described by continuous characteristics
+\end{itemize}
+
+
+
+%\newpage
+
+%\bibliographystyle{plain}
+
+%\bibliography{} 
+
+
+\end{document}
