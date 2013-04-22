@@ -75,7 +75,7 @@ One important feature of the class of problems we want to consider is that there
 of experimental data that provides information about the underlying processes.  As one progresses
 through this hierarchy, the problem becomes more complex and our ability to simulate it is reduced but
 the data is closer to the target application.  An important aspect of the problem is the need to pass
-information through the hierachy.  Another important feature of the problem class we plan to consider
+information through the hierarchy.  Another important feature of the problem class we plan to consider
 is that the underlying dynamics, particularly further up the hierarchy, is chaotic.  Reactions in a turbulent
 flow are a prototypical example of this phenomena.
 Within the chaotic regime, we need to be able to extract metrics based on identification of characteristic
@@ -91,30 +91,30 @@ The core problem with Monte Carlo techniques is the catastrophic scaling propert
 dimension of the probability space.  In particular, as the dimension of the space of parameters increases,
 the number of simulations needed to obtain useful imformation explodes, making brute force Monte Carlo
 infeasible for large-scale problems.
-Central our approach is the development of smart sampling technologies to dramatically improve
+Central to our approach is the development of smart sampling technologies to dramatically improve
 the performance of Monte Carlo approaches.  Examples of these new approaches is the implicit sampling
 \MarginPar{Help needed here}
 methodology developed at LBNL 
 and affine sampling approaches developed at NYU, both of which show significant improvement
-in Monte Carlo performance.
+in Monte Carlo performance.  These sampling approaches typically involve solving non-convex optimization problems for which the global minimum can be more efficiently determined using stochastic optimization algorithms that utilize reduced order models~\cite{Regis:2007,Wild:2011uh}. 
 
 To address the hierarchical nature of experimental data, we will adopt a Bayesian framework.  Starting
-with an initial prior, as we move through the hierarchy, we will view the posterior distribution at
+with an initial prior, as we move through the hierarchy of experiments and the associated models, we will view the posterior distribution at
 one level of the hierarchy as defining the prior for the next level of complexity.  By adopting this
 approach, we can balance computation across the hierarchy, reducing the number of simulations needed
 as the complexity of the simulation increases.   
 
-As noted above, one aspect of the problem class we plan to consider is that as the problem becomes more
+To more efficiently determine the appropriate attractors to be used at each level, reduced order models will be used to quantify the sensitivities of the attractors prior to a full Monte Carlo simulation using the full forward model.  After posterior distribution of the inputs are determined, the uncertainties of the attractors can also be efficiently quantified using reduced order models~\cite{Marrel:2009cp,Pau:2013vq}.  We note that appropriate reduced order model need to be selected for the model at each level of the hierarchy, ranging from model reduction approaches for models with smooth solution manifolds to statistical approaches for complex models.  As noted above as well, one aspect of the problem class we plan to consider is that as the problem becomes more
 complex, the underlying dynamics becomes chaotic.  In this case, the available experimental data
-represents samples the attractor.  We cannot hope to obtain a detailed match to that data; rather, we want
+ samples the attractor.  We cannot hope to obtain a detailed match to that data; rather, we want
 to extract features characteristic of the data (attractor) and compare those to analogous computational
-features.  Our goal will be to use statistical machine learning algorithms to identify and classify
+features.  Our goal will be to use statistical reduced order models or machine learning algorithms to identify and classify
 features. 
-\MarginPar{Help needed here}
 
-NEED SOMETHING ABOUT ROLE OF REDUCED ORDER MODELS.  I THINK ONE USE OF REDUCED ORDER
-MODELING IS TO GUIDE THE SMART SAMPLING APPROACHES IN MONTE CARLO.  ALSO SHOULD BE
-USEFUL IN SCALE BRIDGING BUT THAT IS MORE TENUOUS IN MY HEAD.
+
+%NEED SOMETHING ABOUT ROLE OF REDUCED ORDER MODELS.  I THINK ONE USE OF REDUCED ORDER
+%MODELING IS TO GUIDE THE SMART SAMPLING APPROACHES IN MONTE CARLO.  ALSO SHOULD BE
+%USEFUL IN SCALE BRIDGING BUT THAT IS MORE TENUOUS IN MY HEAD.
 
 Examples:
 
@@ -281,12 +281,12 @@ Requisite features of application area:
 \end{itemize}
 
 
-
 %\newpage
 
-%\bibliographystyle{plain}
+\bibliographystyle{plain}
 
-%\bibliography{} 
+\bibliography{george_rom.bib} 
+
 
 
 \end{document}
