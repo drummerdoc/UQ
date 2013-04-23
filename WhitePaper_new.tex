@@ -90,13 +90,13 @@ of experiments of increasing scale and complexity to restrict
 uncertainty in the description of the system, (2) estimate the impact of the improved characterization
 on predictive capability and (3) identify which of the remaining uncertainties have the most impact
 on the uncertainty of predictions.
-%\emph{Moreover, the UQ tools that we will produce based on our general framework will be designed to be efficient on future computer architecures.}
+%\emph{Moreover, the UQ tools that we will produce based on our general framework will be designed to be efficient on future computer architectures.}
 
  
 
 
 \subsection*{Approach}
-We propose a UQ framework based on a Bayesian approach implementated via Monte Carlo (MC).
+We propose a UQ framework based on a Bayesian approach implemented via Monte Carlo (MC).
 The Bayesian approach provides full insight into propagation of uncertainty between different levels of the UQ hierarchy
 and allows for predictions that are equipped with tight uncertainty bounds.
 The computational implementation will rely on MC sampling so that unphysical assumptions,
@@ -110,7 +110,7 @@ that is well suited for future (exascale) machines, making UQ possible for reali
 A core problem with current MC techniques is that they rely on prior sampling, which is problematic because,
 from a Bayesian perspective, high-probability events with respect to the prior are likely to have low
 probability with respect to the posterior. In short, the scaling of the number of prior samples with the number
-of dimensons of the problem is so poor that MC sampling is infeasible even for moderate scale problems;
+of dimensions of the problem is so poor that MC sampling is infeasible even for moderate scale problems;
 it is expected that large scale applications are still out of reach even when the number of samples can be
 increased dramatically by extreme-scale computing.
 
@@ -118,7 +118,7 @@ To address this problem we will use, improve and develop smart sampling technolo
 One possibility here is the implicit sampling methodology developed at LBNL.
 The central idea is to avoid prior sampling by finding a probability distribution that approximates the
 relationship between parameters and data; the search for a suitable approximate distribution is implemented
-via solution of a minimzation problem.
+via solution of a minimization problem.
 When feasible we can use adjoint codes coupled to BFGS-type algorithms to solve the minimization problem
 using a parallel optimizer such as TAO from Argonne.
 However, when adjoint codes are unavailable, derivative free optimization methods will be required.
@@ -163,7 +163,7 @@ the major factors contributing to uncertainty and identifies what additional dat
 impact the fidelity of predictions.
 
 To evaluate the methodology we will examine test cases within each of our target application areas.  In particular,
-we will consider thermodiffusive instabilites in turbulent hydrogen flames, robustness of Li-ion batteries under abusive conditions
+we will consider thermodiffusive instabilities in turbulent hydrogen flames, robustness of Li-ion batteries under abusive conditions
 and the formation of point defects in new photovoltaic materials.  In each case, we will focus on how uncertainties in the 
 model parameters influence predictive capability and how we can reduce uncertainty using a hierarchy of experimental data.
 \end{document}
@@ -183,7 +183,7 @@ Hierarchical data sources (experiments): 0d ignition, 1d laminar flames, shock-t
 Objectives:
 \begin{itemize}
 \item Use available data to reduce uncertainty in kinetics and transport
-\item Estimate the impact of the improved characterization on predictive capabitility for turbulent flames
+\item Estimate the impact of the improved characterization on predictive capability for turbulent flames
 \item Identify which of the remaining uncertainties have the most impact on the uncertainty of the predictions
 \end{itemize}
  
@@ -223,7 +223,7 @@ the stoichiometric pressure. \begin{figure}[h!]
 \end{figure}
 Even for this simplistic system, time-varying histories of the
 non-metal pressure and temperature during crystal growth can be
-expected to access quasi-equilbrium states. Additional parameters in
+expected to access quasi-equilibrium states. Additional parameters in
 the Arrhenius forms for the kinetic rate expressions are required to
 determine a time-dependent solution capable of predicting these states
 with associated uncertainty. Complicating measurements that can be
@@ -240,7 +240,7 @@ thereby allowing other states to be found that are useful for actual
 devices.
 
 In contrast to well-studied combustion chemical kinetics, where a
-relatively (if still insufficient) quantity of experimental datapoints
+relatively (if still insufficient) quantity of experimental data points
 have been acquired ti validate reaction mechanisms, point-defect systems are relatively poorly
 understood. Many more experiments are necessary to converge on a
 reasonable representation of the appropriate rates. 
