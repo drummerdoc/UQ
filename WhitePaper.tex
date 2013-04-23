@@ -89,7 +89,7 @@ The goal of this project is to develop a
 mathematical framework for this class of problems that will allow us to (1) use available data from a hierarchy
 of experiments of increase scale and complexity to restrict
 uncertainty in the description of the system, (2) estimate the impact of the improved characterization
-on predictive capabitility and (3) identify which of the remaining uncertainties have the most impact
+on predictive capability and (3) identify which of the remaining uncertainties have the most impact
 on the uncertainty of the predictions.
 
 \subsection*{Approach}
@@ -102,7 +102,7 @@ the necessary communication happens only via scalar quantities, so that very lit
 across nodes.
 The core problem with Monte Carlo techniques is the catastrophic scaling properties as a function of the
 dimension of the probability space.  In particular, as the dimension of the space of parameters increases,
-the number of simulations needed to obtain useful imformation explodes, making brute force Monte Carlo
+the number of simulations needed to obtain useful information explodes, making brute force Monte Carlo
 infeasible for large-scale problems.
 Essentially, from a Bayesian perspective, high-probability events with respect to the prior are likely
 to have low probability with respect to the data so that an enormous number of samples are needed to
@@ -115,7 +115,7 @@ Implicit sampling was originally developed for data assimilation in which observ
 to guide the temporal evolution of a system.  The key idea in this methodology is to find a simple distribution
 that approximates the underlying relationship between parameters and data that can be used to
 effectively sample the target distribution.  Finding a suitable approximate distribution requires
-the solution of a minimzation problem.
+the solution of a minimization problem.
 
 For the optimization problem, one approach would utilize adjoint codes to compute derivatives.
 One could then use a BFGS-type algorithm that does not require explicit Hessian computations to
@@ -129,7 +129,7 @@ surrogate methods.  In such a method, some number of simulations are utilized to
 a computational model of the simulation; this model is then 
 used for some number of optimization steps;  further refinement of the model goes hand in hand
 with its use for seeking the optimum.
-There are a number of research question surrounding the interplay between this type of optimization
+There are a number of research questions surrounding the interplay between this type of optimization
 strategy and the sampling strategy that need to be addressed.
 
 Another key issue in developing an effective sampling procedure is dealing with model degeneracy.
@@ -161,9 +161,12 @@ the selection of an appropriate reduced order model at each level of the hierarc
 structure of the system at this level,
 ranging from model reduction approaches for models with smooth solution manifolds to statistical
 approaches for complex models.
-Given an appropriate reduced order model, after we have completed a suite of samples across the hierarchy
-we can then use the reduced order models to perform an uncertainty quantification analysis across
-the hierarchy.  This analysis not only defines the predictive capability of the models, it also identifies
+Given a hierarchy of reduced order models, this proposal will address how we can perform an integrated uncertainty quantification analysis 
+across the hierarchy, taking into accounts different levels of scale and fidelity.
+%Given an appropriate reduced order model, after we have completed a suite of samples across the hierarchy
+%we can then use the reduced order models to perform an uncertainty quantification analysis across
+%the hierarchy.  
+This analysis not only defines the predictive capability of the models, it also identifies
 the major factors contributing to uncertainty and identifies what additional data would most significantly
 impact the fidelity of predictions.
 
@@ -184,7 +187,7 @@ Hierarchical data sources (experiments): 0d ignition, 1d laminar flames, shock-t
 Objectives:
 \begin{itemize}
 \item Use available data to reduce uncertainty in kinetics and transport
-\item Estimate the impact of the improved characterization on predictive capabitility for turbulent flames
+\item Estimate the impact of the improved characterization on predictive capability for turbulent flames
 \item Identify which of the remaining uncertainties have the most impact on the uncertainty of the predictions
 \end{itemize}
  
