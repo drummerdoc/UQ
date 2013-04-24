@@ -60,7 +60,7 @@ Senior/Key Personnel: M. Day, J. Goodman, P. Graf, R. Grout, M. Morzfeld, G. Pau
 \subsection*{Background}
 
 Many important DOE applications rely on simulation to predict the behavior of complex physical systems.
-%\MarginPar{wanted to maintain homage to exascale}
+\MarginPar{wanted to maintain homage to exascale}
 However, the fidelity of these simulations depends on uncertain parameters describing the underlying physical system
 obtained from 
 complex and noisy experiments whose reliability is hard to determine. 
@@ -87,7 +87,7 @@ For the class of problems we are targeting, there is typically a
 hierarchy
 of experiments of increasing complexity that provide information about the underlying processes.
 Rather than attempt to estimate parameters directly from a single complex experiment, we 
-%\MarginPar{wanted to have more of a spanning across a hierarchy of data of increasing complexity}
+\MarginPar{wanted to have more of a spanning across a hierarchy of data of increasing complexity}
 will obtain parameter estimates across the entire hierarchy of experiments.
 As experimental complexity increases the fraction of the state that can be sampled
 by measurement is reduced and the cost of simulations increases; requiring that we pass
@@ -97,7 +97,7 @@ Furthermore, as complexity increases,
 the combination of rich physics and relative data sparsity suggests that we will not be
 able to exactly match the experimental dynamics computationally.
 We must develop estimation methods that are robust to model errors as well as noisy observations
-using metrics based on identification of characteristic features that are more general than
+uings metrics based on identification of characteristic features that are more general than
 traditional quantities of interest.
 
 The goal of this project is to develop a
@@ -132,11 +132,11 @@ that is well suited for future (exascale) machines, making UQ possible for reali
 %it is expected that large scale applications are still out of reach even when the number of samples can be
 %increased dramatically by extreme-scale computing.
 The key issue with a Bayesian UQ approach is that current sampling techniques
-are not robustly effective for complex, high-dimensional problems.
+are not robustly effective for complex, high-diemnsional problems.
 Standard particle filter methods break down in high dimensions because high-probability events 
 with respect to the prior are likely to have low probability with respect to the posterior. 
 Metropolis and heat bath algorithms suffer on problems that are poorly conditioned.
-One of the central themes of this project will be to develop new smart sampling technologies 
+One of the central themes of this project will be to develop new smart tampling technologies 
 to address these issues.
 One possibility here is the implicit sampling methodology developed at LBNL.
 The central idea is to avoid prior sampling by finding a probability distribution that approximates the
@@ -144,11 +144,11 @@ relationship between parameters and data; the search for a suitable approximate 
 via solution of a minimization problem.
 When available we can use adjoint codes coupled to BFGS-type algorithms to solve the minimization problem
 using a parallel optimizer such as TAO from Argonne.
-%\MarginPar{JG doubts this will work and notes a need to for derivative information to guide sampling. JBB
-%doubts we can perform adjoint simulations for 3 turbulent simulations.  Only way out JB can think of
-%is based on discussion with George about combining coarse simulation with a statistical surrogate to
-%build an estimate of finer response . . . Unless someone has a brilliant idea here i suggest we leave this
-%for the preproposal and thing of how to address it in real proposal}
+\MarginPar{JG doubts this will work and notes a need to for derivative information to guide sampling. JBB
+doubts we can perform adjoint simulations for 3 turbulent simulations.  Only way out JB can think of
+is based on discussion with George about combining coarse simulation with a statistical surrogate to
+build an estimate of finer response . . . Unless someone has a brilliant idea here i suggest we leave this
+for the preproposal and thing of how to address it in real proposal}
 However, when adjoint codes are unavailable, derivative free optimization methods will be required.
 The most interesting and likely most successful type of approach here is a surrogate method,
 where a small number of forward simulations are utilized to generate a simplified model of the simulation.
