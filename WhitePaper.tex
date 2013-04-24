@@ -65,9 +65,9 @@ However, the fidelity of these simulations depends on uncertain parameters descr
 obtained from 
 complex and noisy experiments whose reliability is hard to determine. 
 Our ability to effectively use extreme scale computing will depend critically on our ability to reduce the
-uncertainty in this data and assess the impact of that uncertainty on predictive capability.
+uncertainty in these data and assess the impact of that uncertainty on predictive capability.
 Here, we will focus on combustion modeling, battery simulation and design of high-efficiency photovoltaic
-devices as motivating examples; however, the methodology will be broadly applicable to a
+devices as motivating examples.  However, the methodology will be broadly applicable to a
 range of problems in chemical and materials science, systems biology, subsurface flow and climate to name a
 few.
 %Most simulations that are important for DOE applications rely on parameters and models that are
@@ -86,12 +86,13 @@ few.
 For the class of problems we are targeting, there is typically a 
 hierarchy
 of experiments of increasing complexity that provide information about the underlying processes.
-Rather than attempt to estimate parameters directly from a single complex experiment, we 
+As experimental complexity increases the fraction of the state that can be sampled
+by measurement is reduced and the cost of simulations increases.
+Rather than attempting to estimate parameters directly from a single complex experiment, we 
 %\MarginPar{wanted to have more of a spanning across a hierarchy of data of increasing complexity}
 will obtain parameter estimates across the entire hierarchy of experiments.
-As experimental complexity increases the fraction of the state that can be sampled
-by measurement is reduced and the cost of simulations increases; requiring that we pass
-information through the hierarchy in a way that allows us to effectively use data from all levels
+Thus, we need an approach that allows us to pass
+information through the hierarchy in a way that effectively uses data from all levels
 to improve overall predictive properties.
 Furthermore, as complexity increases,
 the combination of rich physics and relative data sparsity suggests that we will not be
@@ -140,7 +141,7 @@ One of the central themes of this project will be to develop new smart sampling 
 to address these issues.
 One possibility here is the implicit sampling methodology developed at LBNL.
 The central idea is to avoid prior sampling by finding a probability distribution that approximates the
-relationship between parameters and data; the search for a suitable approximate distribution is implemented
+relationship between parameters and data.  The search for a suitable approximate distribution is implemented
 via solution of a minimization problem.
 When available we can use adjoint codes coupled to BFGS-type algorithms to solve the minimization problem
 using a parallel optimizer such as TAO from Argonne.
@@ -149,13 +150,13 @@ using a parallel optimizer such as TAO from Argonne.
 %is based on discussion with George about combining coarse simulation with a statistical surrogate to
 %build an estimate of finer response . . . Unless someone has a brilliant idea here i suggest we leave this
 %for the preproposal and thing of how to address it in real proposal}
-However, when adjoint codes are unavailable, derivative free optimization methods will be required.
+However, when adjoint codes are not available, derivative free optimization methods will be required.
 The most interesting and likely most successful type of approach here is a surrogate method,
 where a small number of forward simulations are utilized to generate a simplified model of the simulation.
 This model is then used in the optimization and its further refinement goes hand in hand with its use
 in seeking the minimum.
 Many research questions surround the interplay between optimization and
-and sampling, particularly with approximate surrogate models.
+sampling, particularly with approximate surrogate models.
 
 Another key problem that has to be addressed for effective sampling is dealing with model degeneracy.
 A model has an approximate degeneracy if many different parameter sets are nearly as good at explaining the data.
@@ -183,7 +184,7 @@ For this purpose, the selection of an appropriate reduced order model at each le
 structure of the system at this level, ranging from model reduction approaches for models with smooth solution manifolds
 to statistical approaches for complex models.
 Given a hierarchy of reduced order models, this proposal will address how we can perform an integrated UQ analysis 
-across the hierarchy, taking into accounts different levels of scale and fidelity.
+across the hierarchy, taking into account different levels of scale and fidelity.
 %Given an appropriate reduced order model, after we have completed a suite of samples across the hierarchy
 %we can then use the reduced order models to perform an uncertainty quantification analysis across
 %the hierarchy.  
