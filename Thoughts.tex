@@ -35,6 +35,9 @@
 \raggedright\tiny\sffamily
 \hrule\smallskip{\color{red}#1}\par\smallskip\hrule}}
 
+\definecolor{drkgrn}{rgb}{0.043,0.341,0.2274}
+\newcommand{\remrg}[1]{ {\it \color{drkgrn} \{#1 -RG\}}}
+
 %\renewcommand{\baselinestretch}{1.05} % = 1.0 Single space; = 2.0 Double
 \renewcommand{\baselinestretch}{1.0} % = 1.0 Single space; = 2.0 Double
 
@@ -64,8 +67,11 @@ In a number of important problem areas, simulations require inputs describing th
 that contain significant uncertainty.  
 Systems described by multicomponent reacting flows, for example, rely on models for the chemical kinetics and
 transport properties.
-Examples of this type include combustion, catalysis, thin-film photovoltaics and geochemistry; however,
-the same basic paradigm in more broadly applicable.  The goal of this project is to develop a
+
+Examples of this type include combustion, catalysis, thin-film
+photovoltaics, geochemistry, systems biology, Li-ion and alternative
+chemsitry batteries and wind energy; however,
+the same basic paradigm is more broadly applicable.  The goal of this project is to develop a
 mathematical framework for this class of problems that will allow us to (1) use available data to restrict
 uncertainty in the description of the system, (2) estimate the impact of the improved characterization
 on predictive capabitility and (3) identify which of the remaining uncertainties have the most impact
@@ -75,7 +81,7 @@ One important feature of the class of problems we want to consider is that there
 of experimental data that provides information about the underlying processes.  As one progresses
 through this hierarchy, the problem becomes more complex and our ability to simulate it is reduced but
 the data is closer to the target application.  An important aspect of the problem is the need to pass
-information through the hierarchy.  Another important feature of the problem class we plan to consider
+information through the hierachy.  Another important feature of the problem class we plan to consider
 is that the underlying dynamics, particularly further up the hierarchy, is chaotic.  Reactions in a turbulent
 flow are a prototypical example of this phenomena.
 Within the chaotic regime, we need to be able to extract metrics based on identification of characteristic
@@ -100,16 +106,28 @@ in Monte Carlo performance.  These sampling approaches typically involve solving
 
 To address the hierarchical nature of experimental data, we will adopt a Bayesian framework.  Starting
 with an initial prior, as we move through the hierarchy of experiments and the associated models, we will view the posterior distribution at
-one level of the hierarchy as defining the prior for the next level of complexity.  By adopting this
+one level of the hierarchy as defining the prior for the next level of complexity. \remrg{John said something the other day (with apologies for the misquote) that seems to fit here: ``We should view this as constraining the 
+  input priors by the results of the simulation, and the constrained priors become the input to the next level of the hierarchy ''} \remrg{Each data point assimilated seems to require a comparison between a simulation and an experiment, but I think we should make clear that the `experiment' could be a simulation of
+  greater realism/fidellity, especially in the first context of ROM mentioned below.}  By adopting this
 approach, we can balance computation across the hierarchy, reducing the number of simulations needed
-as the complexity of the simulation increases.   
+as the complexity of the simulation increases.   \remrg{and also ensure that the more expensive simulations
+  are carefully chosen to (most?)  effectively constrain the input
+  priors} 
 
 To more efficiently determine the appropriate attractors to be used at each level, reduced order models will be used to quantify the sensitivities of the attractors prior to a full Monte Carlo simulation using the full forward model.  After posterior distribution of the inputs are determined, the uncertainties of the attractors can also be efficiently quantified using reduced order models~\cite{Marrel:2009cp,Pau:2013vq}.  We note that appropriate reduced order model need to be selected for the model at each level of the hierarchy, ranging from model reduction approaches for models with smooth solution manifolds to statistical approaches for complex models.  As noted above as well, one aspect of the problem class we plan to consider is that as the problem becomes more
 complex, the underlying dynamics becomes chaotic.  In this case, the available experimental data
  samples the attractor.  We cannot hope to obtain a detailed match to that data; rather, we want
 to extract features characteristic of the data (attractor) and compare those to analogous computational
 features.  Our goal will be to use statistical reduced order models or machine learning algorithms to identify and classify
-features. 
+features. \remrg{Reduced order modelling appears in
+  this framework in two contexts: (1) where we are assessing the
+  accuracy of a given reduced order model, possibly intended as a
+  surrogate for more costly models in an application context and (2)
+  where the ROM is utilized as a surrogate for optimization. In
+  practice, we will use ROM developed as domain application tools in
+  the second context, while also providing a method for rigorously
+  assessing their accuracy.}
+
 
 
 %NEED SOMETHING ABOUT ROLE OF REDUCED ORDER MODELS.  I THINK ONE USE OF REDUCED ORDER
@@ -133,65 +151,56 @@ Objectives:
 \end{itemize}
  
 \subsection*{Point defect formation in thin-film photovoltaics:}
-A key design need for high efficiency photovoltaic devices, e.g. those
-based on CZTS absorbers, is the ability to control the carrier
-concentration to achieve n+ and p+ doping resulting from point
-defects. The creation of the various types of defects (intrinsic ionic
-and electronic defects) can be described by a set of kinetic reaction
-equations. For example, an abstract metal-sulfide system could be
-described by simplistic system expressing an oxidation reaction, the
-Schottky disorder and creation of anion vacancies:
+A key design need for high efficiency photovoltaic devices based on newer materials 
+%, e.g. those based on CZTS absorbers, 
+is the ability to control the carrier concentration to achieve n+ and
+p+ doping resulting from point defects. The creation of various types
+of defects (intrinsic ionic and electronic defects) can be described
+by a set of kinetic reaction equations. For example, an abstract
+metal-sulfide system could be described by a simplistic system of four
+reactions expressing an oxidation reaction, the Schottky disorder and
+creation of anion vacancies, where the cofficients in models for the
+rates of these processes might come from either experiment or detailed
+calculations of the energy barriers. 
+%%
+%%\begin{eqnarray*}
+%%\ce{ \tfrac{1}{2} S2 -> S_s^x + V_m^{''} + 2 h^+ } \\
+%%\ce{ NULL -> V_m^{''}+ V_s^{$\cdot \cdot$} } \\
+%%\ce{ NULL -> e^' + h^{$\cdot$} } \\
+%%\ce{ S_s^x -> \tfrac{1}{2} S2 + V_s^{$\cdot \cdot$} + 2 e^- } \\
+%%\end{eqnarray*}
+%%
+%Near first-principles calculations such as electronic structure
+%calculations based on density functional theory can provide enthalpy
+%differences for the formation of these various point defects.
+%
+%Neglecting the entropic contribution to the Gibbs energy, this
+%Equilibrium concentrations that can be used to coarsely estimate the
+%variation of the material characteristics with the key parameters can
+%be calculated based on enthalpy differences for each reaction that in
+%turn can be estimated via DFT computations; for time dependent
+%simulations, further constants are required for the kinetic rate
+%expressions.
+For the such a system, the ambient $S_2$ partial pressure is a key
+parameter that when varied results in states with varied sensitivity
+of the measurable quantities (electron/hole concentration) to the
+parameter. In this simplistic case we can see by inspection that
+reducing the uncertainty in the kinetic constants is best achieved by
+experiments targeting this regime of high sensitivity, but in the more
+general case a more rigorous framework such as proposed here is
+beneficial. Further complicating matters time-dependent histories of
+the external conditions during crystal growth can be expected to
+access quasi-equilibrium states. For realistic systems, involving 10s
+to 100s of such kinetic expressions, many such states with desirable
+properties may exist.  As in the combustion example, a hierarchy of
+simulations with varying physical realism can be performed, e.g.,
+diffusion of the non-metal species ($S_2$ above) into the film can be
+included and may be rate-limiting.  Direct measurement of the
+concentration of arbitrary point defects is difficult and must be
+inferred from more easily observed characteristics, leading a model
+for the observation process $h(x)$ that may be quite complicated and
+the result of a non-trivial simulation.
 
-\ce{ \tfrac{1}{2} S2 -> S_s^x + V_m^{''} + 2 h^+ }
-
-\ce{ NULL -> V_m^{''}+ V_s^{$\cdot \cdot$} }
-
-\ce{ NULL -> e^' + h^{$\cdot$} }
-
-\ce{ S_s^x -> \tfrac{1}{2} S2 + V_s^{$\cdot \cdot$} + 2 e^- }
-
-Near first-principles calculations such as electronic structure
-calculations based on density functional theory can provide enthalpy
-differences for the formation of these various point defects.
-Neglecting the entropic contribution to the Gibbs energy, this
-information is sufficient to determine equilibrium concentrations that
-can be used to coarsely estimate the variation of the material
-characteristics with the key parameters. For the system above, the
-$S_2$ partial pressure is a key variable that when varied leads to a
-Kroger-Vink diagram with the classic form shown in Figure~\ref{fig:kv}
-where the crossover point between electron/hole concentrations is at
-the stoichiometric pressure. \begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.8\textwidth]{KV.pdf}
-  \caption{Kroger-Vink diagram for generic M-S system}
-  \label{fig:kv}
-\end{figure}
-Even for this simplistic system, time-varying histories of the
-non-metal pressure and temperature during crystal growth can be
-expected to access quasi-equilbrium states. Additional parameters in
-the Arrhenius forms for the kinetic rate expressions are required to
-determine a time-dependent solution capable of predicting these states
-with associated uncertainty. Complicating measurements that can be
-used to estimate these parameters, diffusion of the non-metal species
-($S_2$ above) into the film may be rate-limiting. Further, measurement
-of the concentration of arbitrary point defects is difficult and must
-be inferred from more easily observed characteristics. For realistic
-systems, involving 10s to 100s of such kinetic expressions, many such
-states with desirable properties may exist. Such states may be of
-interest in two forms: firstly, they may useful for design of PV
-systems, and secondly, they may have measurable characteristics that
-allow us to reduce the uncertainty associated with one or more rates,
-thereby allowing other states to be found that are useful for actual
-devices.
-
-In contrast to well-studied combustion chemical kinetics, where a
-relatively (if still insufficient) quantity of experimental datapoints
-have been acquired ti validate reaction mechanisms, point-defect systems are relatively poorly
-understood. Many more experiments are necessary to converge on a
-reasonable representation of the appropriate rates. 
-
-
-FLESH OUT FROM RAY'S NOTES
 
 \subsection*{Missing issues / concerns}
 

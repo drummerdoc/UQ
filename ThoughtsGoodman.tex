@@ -1,0 +1,121 @@
+\documentclass[11pt]{article}
+% RFP specifically says to use 11 point type and 1 inch margins
+\usepackage{graphicx}
+\usepackage{epsf,color}
+\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+0pt \advance \topmargin by -\headheight \advance \topmargin by
+-\headsep \textheight 9.0in
+
+%\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+%0pt \advance \topmargin by -\headheight \advance \topmargin by
+%-\headsep \textheight 8.9in
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{dcolumn}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[compact]{titlesec}
+
+%\usepackage[plain]{fullpage}
+\usepackage{amsfonts}
+%\usepackage{lastpage}
+%\usepackage{fancyhdr}
+
+\usepackage[version=3]{mhchem} 
+% you can use this command to skip chunks of your document
+% just put the command around the chunk like this
+% \comment{ ...the chunk... }
+\newcommand{\comment}[1]{}
+
+%\newcommand{\MarginPar}[1]{\hspace{1sp}\marginpar{\tiny\sffamily\raggedright\hspace{1sp}#1}}
+\setlength{\marginparwidth}{0.75in}
+\newcommand{\MarginPar}[1]{\marginpar{%
+\vskip-\baselineskip %raise the marginpar a bit
+\raggedright\tiny\sffamily
+\hrule\smallskip{\color{red}#1}\par\smallskip\hrule}}
+
+%\renewcommand{\baselinestretch}{1.05} % = 1.0 Single space; = 2.0 Double
+\renewcommand{\baselinestretch}{1.0} % = 1.0 Single space; = 2.0 Double
+
+%\renewcommand{\refname}{Literature Cited}
+%------------------------
+
+%\pagestyle{empty}  % No page numbers
+%\textfloatsep 0mm
+%\abovecaptionskip 1mm
+
+\begin{document}
+
+%\pagestyle{plain}
+%\pagenumbering{roman}
+\begin{center}
+{\Large{\textbf{Project Thooughts}}}
+
+\vskip\baselineskip
+{\large{J. Bell, M. Day, J. Goodman, P. Graf, R. Grout, M. Morzfeld, G. Pau}}
+\end{center}
+
+This is some text that can be copied and pasted.  
+Clearly, I'm the sous chef, not the idea guy.
+
+\section{Monte Carlo Technique}
+
+A central part of this effort will be developments in computational stochastics needed to 
+carry out the science.
+Bayesian uncertainty quantification is easy to formulate as a problem in posterior sampling.
+But some of those sampling problems are impossible given current sampling techniques.
+This applies in three related situations that new sampling ideas may address
+\begin{enumerate}
+\item Particle filtering with some low noise observations
+\item Highly ill conditioned posterior distributions with approximate degeneracies in the parameters
+\item Problems with a range of length and time scales, such as arise in stochastic PDE
+\end{enumerate}
+We will use and extend existing software and algorithms to address these issues, using some of the
+following.
+
+Implicit sampling is a technique for particle filtering problems in which some low noise observations
+highly constrain the random variables to be sampled at each time step.
+In these cases, a Gaussian type approximation of the desired distribution allows proposals that
+are much closer to the target distribution than a simple Bayesian prior.
+One step in this is the optimization problem to find the maximum likelihood point.
+We're G-d. (Actually, Chorin and collaborators)
+
+A model has an approximate degeneracy if many different parameter sets are nearly as good at explaining
+the data.
+For example, if there are multiple reaction pathways, the sum of the reaction rates may be much
+better estimated than the individual rates.
+In such cases, isotropic sampling algorithms such as single variable heat bath (Gibbs sampler) or
+isotropic Metropolis walk will be slow.
+We're G-d on this too.
+
+Probability distributions defined by field theories and stochastic PDE have fluctuations on a wide
+range of length scales.
+There are multi-scale sampling algorithms (Swendsen Wang, Chorin's ``chainless'', Goodman Sokal, etc.)
+that address this.
+Much work remains to be done to make these more general.
+The posterior distributions that arise in the fluid/reaction rate identification problem of combustion
+(section 1?) is a perfect test problem to test and develop these ideas further.
+The next generation discretization algorithms for stochastic PDE developed by Bell et.al. represent 
+new challenges for multi-scale sampling.
+
+
+
+\section{Effect of incorrect models}
+
+It is important to use statistical methods that are robust in the inevitable situation where the
+exact model is not in the family being fit.
+The power law/exponential formulas for reaction rates are only modeling approximations, though they
+may be very accurate.
+In chaotic systems especially, even small modeling errors may make an accurate global fit impossible.
+One approach is to include noise in the dynamics, so that the posterior distribution does not require
+the dynamical equations to be satisfied exactly.
+We will conduct computational experiments to study this problem, then use the results to 
+choose appropriate noise levels for our physical models.
+
+
+
+
+
+
+\end{document}
