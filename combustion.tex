@@ -1,0 +1,153 @@
+\documentclass[11pt]{article}
+% RFP specifically says to use 11 point type and 1 inch margins
+\usepackage{graphicx}
+\usepackage{epsf,color}
+\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+0pt \advance \topmargin by -\headheight \advance \topmargin by
+-\headsep \textheight 9.0in
+
+%\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+%0pt \advance \topmargin by -\headheight \advance \topmargin by
+%-\headsep \textheight 8.9in
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{dcolumn}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[compact]{titlesec}
+
+%\usepackage[plain]{fullpage}
+\usepackage{amsfonts}
+%\usepackage{lastpage}
+%\usepackage{fancyhdr}
+
+\usepackage[version=3]{mhchem} 
+% you can use this command to skip chunks of your document
+% just put the command around the chunk like this
+% \comment{ ...the chunk... }
+\newcommand{\comment}[1]{}
+
+%\newcommand{\MarginPar}[1]{\hspace{1sp}\marginpar{\tiny\sffamily\raggedright\hspace{1sp}#1}}
+\setlength{\marginparwidth}{0.75in}
+\newcommand{\MarginPar}[1]{\marginpar{%
+\vskip-\baselineskip %raise the marginpar a bit
+\raggedright\tiny\sffamily
+\hrule\smallskip{\color{red}#1}\par\smallskip\hrule}}
+
+\definecolor{drkgrn}{rgb}{0.043,0.341,0.2274}
+\newcommand{\remrg}[1]{ {\it \color{drkgrn} \{#1 -RG\}}}
+
+%\renewcommand{\baselinestretch}{1.05} % = 1.0 Single space; = 2.0 Double
+\renewcommand{\baselinestretch}{1.0} % = 1.0 Single space; = 2.0 Double
+
+%\renewcommand{\refname}{Literature Cited}
+%------------------------
+
+%\pagestyle{empty}  % No page numbers
+%\textfloatsep 0mm
+%\abovecaptionskip 1mm
+
+\begin{document}
+
+%\pagestyle{plain}
+%\pagenumbering{roman}
+
+\subsection*{Turbulence/Chemistry Interaction example:}
+
+The goal here is to flesh out what I think we want to target in combustion
+and some of the issues we probably need to address in the proposal.
+
+Th basic idea is the simulation of a given fuel relies on parameters
+desribing chemistry, transport and thermodynamics.
+For the moment we can view the kinetics as given by (approximated using)
+Arrhenius kinetics.
+In theory at least, the chemical kinetics community has some notion of parameters
+in these models and some notion of bounds or confidence in some form that we can
+interpret as a prior.
+
+The question we would like to answer is how confident are we in the computed statistical
+properties of a turbulent flame simulation and to what extent are the simulations consistent
+with experimental data.  I believe that a direct attack on this problem is largely infeasible.
+
+There are several factors that make this infeasible.  First is simply the raw computational
+expense of doing the simulations.  Something like PCE is computationally intractable.  We
+also cannot hope to do a sufficiently large ensemble to generate meaningful statistics.
+The other issue relates to the structure of the problem.  A reasonable cartoon for a 
+turbulent flame experiment is that is corresponds to a stationary chaotic dynamical system.
+What the experimentalist is capturing some level snapshots of what the attractor looks like.
+We cannot hope to have a complete picture of the flame at a given time.  We can only
+have some characterization of selected features.  The available data is at best limited;
+however, the hope is that it carries some information about the underlying physical system.
+
+A way to get around this is to note that one has not simply a single turbulent flame
+experiment but a wide range of different types of experiments for the same physical
+system of increasing complexity.  
+Hierarchical data sources (experiments): 0d ignition, 1d laminar flames, shock-tube experiments
+a variety of 2D laminar flames, and 3D turbulent flames.
+One could potentially augment this with other types of non-reacting flow experiments that focus
+on transport properties. 
+Each of these experiments reveal information about the system (some are used by kineticists already)
+The idea would be to use experimental data across the entire hierarchy of experiments to reduce
+uncertainty in parameters and estimate bounds on how those uncertainties impact predictive capability.
+The approach would need to reflect the notion that as we move up the hierarchy, we are
+getting closer to the target application but the simulations become
+increasingly costly and the data become increasingly sparse.
+
+Objectives would be to:
+\begin{itemize}
+\item Use available data to reduce uncertainty in kinetics and transport
+\item Estimate the impact of the improved characterization on predictive capabitility for turbulent flames
+\item Identify which of the remaining uncertainties have the most impact on the uncertainty of the predictions
+\end{itemize}
+
+There are a number of pitfalls here.  Several we have alluded to in the white paper but it is useful to rehash those 
+in a bit more detail.
+
+Model degeneracy:  Kinetics looks like a bunch of interacted-connected reaction pathways that compete in the oxidation
+process.  Some of the steps along some of those pathways correspond to fast reactions.  These fast reactions may not
+be observable in the data. If other steps along the pathway are rate-limiting, the rate-limiting steps may ``shield'' 
+fast reactions.
+
+Computational complexity:  At the upper end of the experimental hierarchy, the simulations are potentially very expensive.
+Computing an adjoint will become increasingly difficult. The fancier the numerics is that
+is used for the modeling, the worse this becomes.  Is the concensus that without an adjoint, we cannot do
+much.  My understanding of implicit sampling is that the sampling uses the approximate Hessian that comes out
+of a BFGS optimization program.  That means that it is using even more derivative information than the gradient.
+
+Data metrics:  As noted above, for more complex experiments,
+we are looking at features of data from an experiment.  That raises two auxiliary
+issues.  One is how do we robustly extract feacture from data.
+Also, the adjoint formalism (at least as far as I understand it) wants the observable
+to be a differentiable function of the input.  
+This two factors raise issues about how the algorithms that identify features interact with
+the rest of the framework.
+
+Experiments:  For many of the experiments in combustion, what is measured is not a direct probe of a particular quantity.
+For example, a laser sheet tuned to measure mole fraction of NO does not directly measure that quantity.  The observed
+laser intensity is related to the desired quantify in an indirect way.  Basically, what happens is the laser kicks an
+electron into an outer shell in the NO. NO may emit a photon recorded on a CCD or it can lose the energy by collision
+with another molecule (referred to as quenching).  Quenching requires knowledge of the full state, which isn't available.
+Experimentalists typically make something up but that is not the right thing to do.  What one must do is model
+what the raw data.  We need to include a model for the laser diagnostic as part of the process and consider
+uncertainties in that model as part of the process.
+
+Reduced order models:  The idea above is that one moves up the hierarchy.  However, as we refine the distributions
+of parameters, we would like to be able to predict the impact on uncertainty of predictions for models we have looked
+at earlier.  One possiblity here is to use some type of reduced order modeling to reduce the computational work
+associated with making that assessment. Such things might be useful in other places as well. For example, they might
+be useful in guiding sampling, etc.  These types of ideas are used in the kinetics community and I believe George
+has used them for subsurface flow modeling but I am not sure what they can do here.  
+
+There are also some flaws with the combustion example.  As currently stated, there is a hierarchy of experiments
+of increasing complexiy but the problem as stated above is not truly multiscale.  Everything given here is governed
+by multicomponent Navier Stokes equations (low Mach number versions are fine I believe). One can avoid that by
+going to a more fundamental chemical level or by introducing a turbulence model at the more complex end.  
+I have avoided both of those because I don't know anything about the first and the second is a tar ball.
+Hopefully one on the other examples is more multiscale in the sense of different levels of physical description.
+I think much of the thought processes above will be applicable except we will need to add a model for how
+descriptions translate across scales (with its own uncertainty).
+Two potential flaws are that the kinetics area has received a lot of attention
+and the dimensionality of quite high, particularly if one includes transport.
+
+\end{document}
