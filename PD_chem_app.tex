@@ -65,15 +65,15 @@ formation to achieve effective n+ and p+ doping. Unlike traditional
 these newer materials (such as CZTS) are self doped by intrinsic
 defects including vacancies, antisite and interstitial defects
 \cite{JiangY13}. The creation of such defects during thin film
-deposition can be modelled by a set of kinetic rate equations that
-incorporate static enthalpy differences obtained from electronic
-structure calculations \cite{ref} in a `point-defect chemistry'
-paradigm. For example, an abstract metal-sulfide system could be
-described by a simplistic system of four reactions expressing an
-oxidation reaction, the Schottky disorder and creation of anion
-vacancies. Systems of practical interest (e.g., CZTS, CIGS, etc.) are
-far more complicated and involve 10s-100s of possible defect formation
-relations. 
+deposition can be modelled by a set of rate equations that incorporate
+static enthalpy differences obtained from electronic structure
+calculations and kinetic parameters that must be inferred through
+indirect experimental measurements. For example, an abstract
+metal-sulfide system could be described by a simplistic system of four
+reactions expressing an oxidation reaction, the Schottky disorder and
+creation of anion vacancies. Systems of practical interest (e.g.,
+CZTS, CIGS, etc.) are far more complicated and involve 10s-100s of
+possible defect formation relations.
 
 \begin{eqnarray*}
 \ce{ \tfrac{1}{2} S2 -> S_s^x + V_m^{''} + 2 h^+ } \\
@@ -89,35 +89,46 @@ by the Arrhenius form:
   k_\alpha e^{-(E_a)_\alpha/(RT)}
 \end{equation}
 
-As in the combustion example, a hierarchy of simulations with varying
-physical realism can be performed, e.g., diffusion of the non-metal
+There is also a transport component here: diffusion of the non-metal
 species ($S_2$ above) into the film can be included and may be
-rate-limiting There are multiple levels of fidelity that can be
-sought to create a computational model based on the above ideas.
+rate-limiting. Even in the 0-D case, for the M-S example system, the
+ambient $S_2$ partial pressure is a key parameter that when varied
+results in equilibrium states with different doping (performance)
+characteristics.  Time-dependent histories of the external conditions
+during crystal growth can be expected to access quasi-equilibrium
+states. Many of these quasi-stable may exist and can have desirable
+properties. By varying process conditions, different pathways through
+the state space can be generated that may lead to one of many
+different quasi-equilibrium conditions.
+
+A variety of simulation/experiment pairs are desirable to increase
+sensitivity to the various parameters separately; 
+
+
 \begin{itemize}
-\item At the most simplistic, the raw energy differences across each
-  reaction can be used to solve for equilibrium concentrations in an
-  homogenous (0-D) configuration.
+\item Equilibrium concentrations in an homogenous (0-D) configuration
+  are insensitive to the pre-exponential factors and useful to focus
+  on the activation energies ($(E_a)_\alpha$). To match the
+  assumptions in such a model, the experimental measurements are
+  performed for very thin films under constant boundary conditions to
+  minimize spatial gradients. 
 \item Alternatively, a time-dependent solution can be sought. This
-  adds complexity to the model and input parameters: it requires kinetic
-  rate pre-exponential factors but can also handle time-dependent
-  boundary conditions and arrive a quasi-equilibrium states depending
-  on the initial conditions.
-\item Model fidelity can also be improved by increasing spatial
-  dimension; 1-D models admit transport limited solutions, and 2/3-D
-  models allow additional interactions with grain and phase
-  boundaries. A simple 1-D gradient transport model is to approximates the
-  diffusion rate by a Fickian process characterized by $D_j$ for the
-  $j^\mathrm{th}$ species. 
+  adds complexity to the model and input parameters: it requires
+  kinetic rates as inputs but can also handle time-dependent boundary
+  conditions and arrive a quasi-equilibrium states depending on the
+  initial conditions. These experiments are useful to to emphasize the
+  pre-exponential factors.
+\item Finally, adding increasing spatial dimension, i.e., normal to
+  the surface allows concentration gradients to be captured and the
+  comparison to focus also on transport properties. 
 \end{itemize}
 
-Even in the 0-D case, for the M-S For the such a system, the ambient
-$S_2$ partial pressure is a key parameter that when varied results in
-equilibrium states with different doping (performance)
-characteristics. Time-dependent histories of the external conditions
-during crystal growth can be expected to access quasi-equilibrium
-states. For realistic systems, involving 10s to 100s of such kinetic
-expressions, many such states with desirable properties may exist.
+While the solution of the multi-dimensional problem involves the
+influence from all of the parameters under consideration, alone it has
+minimal selectivity to the individual parameters. By performing a
+collection of experiments emphasizing the different aspects of the
+problem we can improve distinguishability to build up our improved
+estimates of the inputs. 
 
 \begin{figure}[h]
   \centering
@@ -130,26 +141,16 @@ Direct measurement of the concentration of arbitrary point defects is
 difficult and must be inferred from more easily observed
 characteristics, leading a model for the observation process $h(x)$
 that may be quite complicated and the result of a non-trivial
-simulation. Complicating comparison to simulations, although
-experiments can be designed to match the assumptions a (necessarily)
-incomplete model as closely as possible, this is not necessarily
-possible. For instance, a slow deposition rate and carefully
-controlled boundary conditions result in an approximately steady 0-D
-situation, yet concentration gradients through the film normal to the
-surface can still appear from finite-rate transport. 
-
-\remrg{This seems to be an interesting challenge --- how to separate
-  incomplete model from uncertain parameters / measurements}
+simulation. 
 
 \remrg{The experimental process parameters could be
   thought of as either an uncertain input, albeit not one we're
   trying to constrain, or as an observable. At first glance the latter
   seems more appropriate.}
 
-
 \begin{table}[h]
   \centering
-  \begin{tabular}{l l l l}
+  \begin{tabular}{l l l l l}
     Level in hierarchy & Model inputs & Observables & Processes
     addressed \\
     \hline
@@ -166,12 +167,6 @@ surface can still appear from finite-rate transport.
     & & $e^-(t_\infty)$ & \\
 
     \hline
-    1-D, steady & $(E_a)_\alpha$ &  $p_{S_2}(t_0)$ & Equilibrium
-    concentrations \\
-     & $D_j$ & $T(t_0)$ & Finite rate transport \\
-    & & $h^+(t_\infty)$ & \\
-    & & $e^-(t_\infty)$ & \\
-    \hline
     1-D, unsteady & $(E_a)_\alpha$& $p_{S_2}(t)$ & Time dependent
     bcs \\
     & $k_\alpha$ & $T(t)$ & Quasi-equilibrium states \\
@@ -181,9 +176,7 @@ surface can still appear from finite-rate transport.
      & & &    to finite rate transport \\
   \end{tabular}
   \caption{Inputs, observables and physical processes included in
-    possible PD simulation hierarchy. An alternate direction would
-    incorporate various complexities of reaction networks. Increasing spatial dimension
-    further adds additional physics such as interaction with dislocations, grain/phase boundaries}
+    possible PD simulation hierarchy. }
   \label{tab:pdh}
 \end{table}
 
