@@ -64,16 +64,27 @@ formation to achieve effective n+ and p+ doping. Unlike traditional
 (e.g., $Si$) materials where dopant atoms are purposefully introduced,
 these newer materials (such as CZTS) are self doped by intrinsic
 defects including vacancies, antisite and interstitial defects
-\cite{JiangY13}. The creation of such defects during thin film
-deposition can be modelled by a set of rate equations that incorporate
-static enthalpy differences obtained from electronic structure
-calculations and kinetic parameters that must be inferred through
-indirect experimental measurements. For example, an abstract
-metal-sulfide system could be described by a simplistic system of four
-reactions expressing an oxidation reaction, the Schottky disorder and
-creation of anion vacancies. Systems of practical interest (e.g.,
-CZTS, CIGS, etc.) are far more complicated and involve 10s-100s of
-possible defect formation relations.
+\cite{JiangY13}.
+
+{\it First principles calculations have suggested that there is a
+  theoretical configuration for such materials as CZTS and CIGS that
+  leads to a combination of carrier concentrations, mobility and
+  minority carrier lifetime that would provide exceptional device
+  performance. However, the question of how to control process
+  conditions during film deposition to arrive at such a configuration
+  remains open. Modelling the kinetics of point defect formation
+  through pseudo-reactions results in a system of differential
+  equations that are tightly coupled and indicate the resulting
+  properties have a non-trivial relationship to the intrinsic
+  defects.  Electronic structure calculations can provide an estimate
+  fo the energy difference when defects are formed but the kinetic
+  parameters (energy barriers) are the result of indirect measurements.}
+
+For example, an abstract metal-sulfide system could be described by a
+simplistic system of four reactions expressing an oxidation reaction,
+the Schottky disorder and creation of anion vacancies. Systems of
+practical interest (e.g., CZTS, CIGS, etc.) are far more complicated
+and involve 10s-100s of possible defect formation relations.
 
 \begin{eqnarray*}
 \ce{ \tfrac{1}{2} S2 -> S_s^x + V_m^{''} + 2 h^+ } \\
@@ -99,33 +110,45 @@ during crystal growth can be expected to access quasi-equilibrium
 states. Many of these quasi-stable may exist and can have desirable
 properties. By varying process conditions, different pathways through
 the state space can be generated that may lead to one of many
-different quasi-equilibrium conditions.
+different quasi-equilibrium conditions. It is desirable from a
+development perspective to be able to computationally search for
+processing conditions (ambient metal pressure, temperature temporal
+variations) that lead to favorable configurations, but to do so the
+many parameters appear in the model equations must be refined. 
 
-A variety of simulation/experiment pairs are desirable to increase
-sensitivity to the various parameters separately; 
-
+Direct measurement of the concentration of arbitrary point defects is
+difficult and must be inferred from more easily observed
+characteristics, leading a model for the observation process $h(x)$
+that may be quite complicated and the result of a non-trivial
+simulation.  For example, majority carrier concentration, electron or
+hole mobility, capacitance can be measured, but these are all
+indicators of the final point defect configuration that results from
+the process rather than measures of the individual formation
+rates. With significantly more effort, the dependence of the film
+conductivity on temperature provides an indirect measure of the
+activation energy for carrier concentration: this is related to the
+kinetic parmeters of the governing defect concentration(s).  A variety
+of simulation/experiment pairs are desirable to increase sensitivity
+to the various parameters separately:
 
 \begin{itemize}
 \item Equilibrium concentrations in an homogenous (0-D) configuration
-  are insensitive to the pre-exponential factors and useful to focus
-  on the activation energies ($(E_a)_\alpha$). To match the
-  assumptions in such a model, the experimental measurements are
-  performed for very thin films under constant boundary conditions to
-  minimize spatial gradients. 
+  are insensitive to the kinetic parmeters and useful to focus
+  on the enthalpy differences across the pseudo-reactions. 
 \item Alternatively, a time-dependent solution can be sought. This
   adds complexity to the model and input parameters: it requires
   kinetic rates as inputs but can also handle time-dependent boundary
   conditions and arrive a quasi-equilibrium states depending on the
   initial conditions. These experiments are useful to to emphasize the
-  pre-exponential factors.
+kinetic parameters (energy barriers). 
 \item Finally, adding increasing spatial dimension, i.e., normal to
   the surface allows concentration gradients to be captured and the
   comparison to focus also on transport properties. 
 \end{itemize}
 
 While the solution of the multi-dimensional problem involves the
-influence from all of the parameters under consideration, alone it has
-minimal selectivity to the individual parameters. By performing a
+influence from all of the parameters under consideration, alone it is
+is less selective to the individual parameters. By performing a
 collection of experiments emphasizing the different aspects of the
 problem we can improve distinguishability to build up our improved
 estimates of the inputs. 
@@ -137,48 +160,43 @@ estimates of the inputs.
   \label{fig:film}
 \end{figure}
 
-Direct measurement of the concentration of arbitrary point defects is
-difficult and must be inferred from more easily observed
-characteristics, leading a model for the observation process $h(x)$
-that may be quite complicated and the result of a non-trivial
-simulation. 
 
 \remrg{The experimental process parameters could be
   thought of as either an uncertain input, albeit not one we're
   trying to constrain, or as an observable. At first glance the latter
   seems more appropriate.}
 
-\begin{table}[h]
-  \centering
-  \begin{tabular}{l l l l l}
-    Level in hierarchy & Model inputs & Observables & Processes
-    addressed \\
-    \hline
-    0-D, steady & $(E_a)_\alpha$  & $p_{S_2}(t_0)$ & Equilibrium
-    concentrations \\
-    & & $T(t_0)$ & \\
-    & & $h^+(t_\infty)$ & \\
-    & & $e^-(t_\infty)$ & \\
-    \hline
-    0-D, unsteady & $(E_a)_\alpha$& $p_{S_2}(t)$ & Time dependent
-    bcs \\
-    & $k_\alpha$ & $T(t)$ & Quasi-equilibrium states \\
-    & & $h^+(t_\infty)$ & Dependence on ICs \\
-    & & $e^-(t_\infty)$ & \\
-
-    \hline
-    1-D, unsteady & $(E_a)_\alpha$& $p_{S_2}(t)$ & Time dependent
-    bcs \\
-    & $k_\alpha$ & $T(t)$ & Quasi-equilibrium states \\
-     & $D_j$ &$h^+(t_\infty)$ &  Dependence on ICs \\
-     & & $e^-(t_\infty)$ & Finite rate transport \\
-     & && Time dependent bcs coupled \\
-     & & &    to finite rate transport \\
-  \end{tabular}
-  \caption{Inputs, observables and physical processes included in
-    possible PD simulation hierarchy. }
-  \label{tab:pdh}
-\end{table}
+%\begin{table}[h]
+%  \centering
+%  \begin{tabular}{l l l l l}
+%    Level in hierarchy & Model inputs & Observables & Processes
+%    addressed \\
+%    \hline
+%    0-D, steady & $(E_a)_\alpha$  & $p_{S_2}(t_0)$ & Equilibrium
+%    concentrations \\
+%    & & $T(t_0)$ & \\
+%    & & $h^+(t_\infty)$ & \\
+%    & & $e^-(t_\infty)$ & \\
+%    \hline
+%    0-D, unsteady & $(E_a)_\alpha$& $p_{S_2}(t)$ & Time dependent
+%    bcs \\
+%    & $k_\alpha$ & $T(t)$ & Quasi-equilibrium states \\
+%    & & $h^+(t_\infty)$ & Dependence on ICs \\
+%    & & $e^-(t_\infty)$ & \\
+%
+%    \hline
+%    1-D, unsteady & $(E_a)_\alpha$& $p_{S_2}(t)$ & Time dependent
+%    bcs \\
+%    & $k_\alpha$ & $T(t)$ & Quasi-equilibrium states \\
+%     & $D_j$ &$h^+(t_\infty)$ &  Dependence on ICs \\
+%     & & $e^-(t_\infty)$ & Finite rate transport \\
+%     & && Time dependent bcs coupled \\
+%     & & &    to finite rate transport \\
+%  \end{tabular}
+%  \caption{Inputs, observables and physical processes included in
+%    possible PD simulation hierarchy. }
+%  \label{tab:pdh}
+%\end{table}
 
 
 \bibliographystyle{plain}
