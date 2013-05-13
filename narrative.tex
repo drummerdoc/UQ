@@ -1,0 +1,330 @@
+\documentclass[11pt]{article}
+% RFP specifically says to use 11 point type and 1 inch margins
+\usepackage{graphicx}
+\usepackage{epsf,color}
+\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+0pt \advance \topmargin by -\headheight \advance \topmargin by
+-\headsep \textheight 9.0in
+
+%\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+%0pt \advance \topmargin by -\headheight \advance \topmargin by
+%-\headsep \textheight 8.9in
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{dcolumn}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[compact]{titlesec}
+
+%\usepackage[plain]{fullpage}
+\usepackage{amsfonts}
+%\usepackage{lastpage}
+%\usepackage{fancyhdr}
+
+%\usepackage[version=3]{mhchem} 
+% you can use this command to skip chunks of your document
+% just put the command around the chunk like this
+% \comment{ ...the chunk... }
+\newcommand{\comment}[1]{}
+
+%\newcommand{\MarginPar}[1]{\hspace{1sp}\marginpar{\tiny\sffamily\raggedright\hspace{1sp}#1}}
+\setlength{\marginparwidth}{0.75in}
+\newcommand{\MarginPar}[1]{\marginpar{%
+\vskip-\baselineskip %raise the marginpar a bit
+\raggedright\tiny\sffamily
+\hrule\smallskip{\color{red}#1}\par\smallskip\hrule}}
+
+%\renewcommand{\baselinestretch}{1.05} % = 1.0 Single space; = 2.0 Double
+\renewcommand{\baselinestretch}{1.0} % = 1.0 Single space; = 2.0 Double
+
+%\renewcommand{\refname}{Literature Cited}
+%------------------------
+
+%\pagestyle{empty}  % No page numbers
+%\textfloatsep 0mm
+%\abovecaptionskip 1mm
+
+\begin{document}
+
+%\pagestyle{plain}
+%\pagenumbering{roman}
+\begin{center}
+{\large{\textbf{A Hierarchical Approach to Uncertainty Quantification}}}
+\end{center}
+
+\subsection*{Background / Introduction}
+
+Many important DOE applications rely on simulation to predict the behavior of complex physical systems.
+However, the fidelity of these simulations depends on uncertain parameters describing the underlying physical system
+obtained from collection of
+complex and noisy experiments whose reliability is hard to determine. 
+Our ability to effectively use extreme scale computing will depend critically on our ability to reduce the
+uncertainty in these data and assess the impact of that uncertainty on predictive capability.
+Here, we will focus on combustion modeling, battery simulation and design of high-efficiency photovoltaic
+devices as motivating examples.
+\MarginPar{a bit more detail here?}
+However, the methodology will be broadly applicable to a
+range of problems in chemical and materials science, systems biology, subsurface flow and climate to name a
+few.
+
+An important aspect of the class of problems we plan to consider is that 
+the system is not probed using a single experiment.  Instead,
+there is typically a hierarchy
+of experiments of increasing complexity that provide information about the underlying processes
+that lead up to the desired target application.
+As experimental complexity increases the fraction of the state that can be sampled
+by measurement is reduced and the cost of simulations increases.
+Rather than attempting to estimate parameters directly from a single complex experiment, we 
+will obtain parameter estimates across the entire hierarchy of experiments.
+Thus, we need an approach that allows us to pass
+information through the hierarchy in a way that effectively uses data from all levels
+to improve overall predictive properties.
+Furthermore, as complexity increases,
+the combination of rich physics and relative data sparsity suggests that we will not be
+able to exactly match the experimental dynamics computationally.
+We must develop estimation methods that are robust to model errors as well as noisy observations
+using metrics based on identification of characteristic features that are more general than
+traditional quantities of interest.
+
+The goal of this project is to develop a
+mathematical framework for this class of problems that
+will utilize data from a hierarchy of experiments of increasing complexity to reduce
+uncertainty of simulations, estimate impact of the improved characteristic on predictive capability
+and identify significant remaining sources of uncertainty.
+intertwine parameter estimation and simulation into an integrated activity.
+Out approach is based on novel sampling approaches within a Bayesian UQ framework.
+The Bayesian approach avoids the need for additional approximations and simplifying assumptions 
+required by some current UQ techniques.
+It combines modeling and sampling in a way that provides full insight into the propagation of 
+uncertainty.
+The posterior distribution contains all information about remaining uncertainties that is implied
+by the data -- which aspects are tightly bounded and which are less precise.
+In addition, some MC sampling methods are well suited to massively parallel computer architectures because
+the computationally expensive calculations
+(e.g. forward or adjoint model runs) can be executed independently.
+Using MC sampling as the computational backbone will lead to a numerically sound implementation of a rigorous UQ theory
+that is well suited for future (exascale) machines, making UQ possible for realistic applications.
+
+The key issue with a Bayesian UQ approach is that current sampling techniques
+are not robustly effective for complex, high-dimensional problems.
+Standard particle filter methods break down in high dimensions because high-probability events 
+with respect to the prior are likely to have low probability with respect to the posterior. 
+Metropolis and heat bath algorithms suffer on problems that are poorly conditioned.
+\MarginPar{Turn this into literature review?}
+
+\subsection*{Proposed Research}
+
+To frame the discussion of the proposed research we need to first provide some specific detail
+about the target applications.
+Simulating the combustion of a given fuel relies on parameters
+describing chemistry, transport and thermodynamics.
+Her we will assume that the multicomponent reacting Navier Stokes equations with Arrhenius
+kinetics and a molecular transport model provide a good approximation to the dynamics.
+The target question we would like to answer is how confident are we in the computed statistical
+properties of a turbulent flame simulation and to what extent are the simulations consistent
+with experimental data.
+However, a direct attach on this problem is infeasible.
+The computational complexity is sufficiently high and the available data is suffciently
+sparse that very little can be determined by directly pursuing the final target.
+A way to get around this is to note that one has not simply a single turbulent flame
+experiment but a wide range of different types of experiments for the same physical
+system of increasing complexity.  
+\MarginPar{something about the type of data somewhere in here}
+Hierarchical data sources (experiments): 0d ignition, 1d laminar flames, shock-tube experiments
+a variety of 2D laminar flames, and 3D turbulent flames.
+One could potentially augment this with other types of non-reacting flow experiments that focus
+on transport properties. 
+Each of these experiments reveal information about the system (some are used by kineticists already)
+The idea would be to use experimental data across the entire hierarchy of experiments to reduce
+uncertainty in parameters and estimate bounds on how those uncertainties impact predictive capability.
+
+Our approach needs to reflect the notion that as we move up the hierarchy, we are
+getting closer to the target application but the simulations become
+increasingly costly and the data become increasingly sparse.
+The approach als need to  respect the structure of the problem.
+A reasonable cartoon for a 
+turbulent flame experiment is that is corresponds to a stationary chaotic dynamical system.
+What the experimentalist is capturing some level snapshots of what the attractor looks like.
+We cannot hope to have a complete picture of the flame at a given time.  We can only
+have some characterization of selected features.  The available data is at best limited;
+however, the hope is that it carries some information about the underlying physical system.
+
+DISCUSSION OF OTHER PROBLEMS -- NEED EQUATIONS HERE I SUSPECT
+
+The three application areas share a number of commonalities.
+Each has a hierarchy of experiments that are used to probe the system.
+All involve reaction and diffusion processes in fluids.
+One characteristic of reaction diffusion processes is that some aspects of the system
+may not be observable from the available data. For example, in a reaction chain the slowest
+reactions dominate the response so that fast reactions are not effectively probed.
+Furthermore, they all of the applications.
+have a potentially complex relation between what is measured and quantity of interest,
+even for relatively simple experiments. 
+Planar laser induced fluorescence diagnostics in combustion, for example, 
+measure photon emissions from excited states that have complex relation to the underlying
+composition.
+Furthermore, for the more complex experiments, the
+quantities of interest are statistical / feature based
+particularly at higher levels of the hierarchy.
+\MarginPar{from discussion of 5/13 this my be too hard}
+
+In spite of the differences, the target application areas have a number
+of distinct features.
+Combustion is more well understood but with mathematical models are perhaps on firmer ground
+and numerical models are perhaps more sophisticated
+However, models potentially have more parameters than the other two areas
+Models for photovoltaics are less well established.
+For this type of problem 
+model inconsistency is a more likely issue in this context.
+Batteries are similar to photovoltaics
+in that the models are less sophisticated. However battery problems introduc a 
+new element, namely that the problem is multiscale.
+In this case we need to devise mechanisms to communicate information
+between different types of models at different scales.
+
+The central theme of this project will be to develop new smart sampling technologies 
+to address these issues.
+The types of methods we plan to consider fall into two distinct types:  particle filter approaches
+and Markov chain Monte Carlo (MCMC).
+Both of these approaches aim to reduce the computational work associated with naive Monte Carlo approaches.
+Although they use different strategies, they both seek to avoid simply sampling the prior and evaluating
+the posterior probability of the resulting sample. 
+MCMC algorithms use the trajectory of the simulation in space and time to define the state for a Markov
+process that samples the underlying Gibbs distribution of the problem.  Evolution of this Markov process
+effectively samples the state space of the system.  The need to represent the full state of the system
+make MCMC at memory intensive task.
+Particle filters, which arise in the context of data assimilation,
+fit into a framework of more traditional Monte Carlo algorithms.  Here the goal is to use
+derivative / sensitivity information to guide the selection of samples to reduce the number of samples
+needed to effectively sample the distribution.
+Compared to MCMC, the filtering approach is less memory intensive but more compute intensive, thus representing
+a tradeoff between memory and computation.
+We need to understand these tradeoffs to determine which approach will be most effective for a given
+experiment.  We anticipate that one approach is not optimal across a hierarchy of experiments, rather
+that different approaches will be prefered based on specific problem characteristics.  Intuitively,
+we would expect MCMC to be more a more attractive option for relatively simple problems and particle
+filter to be a better choice as problem complexity increases. Quantifying those relationships
+and understanding how to transition between approaches are important research quesions.
+Furthermore, neither of these approaches is new; however, substantial development is needed to meet the requirements
+of the realistic applications we are considering.
+
+The particle filter methodology we plan to develop is based on the implicit sampling methodology developed at LBNL.
+The central idea is to avoid prior sampling by finding a probability distribution that approximates the
+relationship between parameters and data.
+\MarginPar{need equations to introduce the sampling thing and how it works}
+The search for a suitable approximate distribution is implemented
+via solution of a minimization problem.
+When available we can use adjoint codes coupled to BFGS-type algorithms to solve the minimization problem
+using a parallel optimizer such as TAO from Argonne.
+%\MarginPar{JG doubts this will work and notes a need to for derivative information to guide sampling. JBB
+%doubts we can perform adjoint simulations for 3 turbulent simulations.  Only way out JB can think of
+%is based on discussion with George about combining coarse simulation with a statistical surrogate to
+%build an estimate of finer response . . . Unless someone has a brilliant idea here i suggest we leave this
+%for the preproposal and thing of how to address it in real proposal}
+\MarginPar{need to decide if there is something viable here. Another alternative that merits consideration
+is using the adjoint of a simpler model for the optimization.}
+However, when adjoint codes are not available, derivative free optimization methods will be required.
+The most interesting and likely most successful type of approach here is a surrogate method,
+where a small number of forward simulations are utilized to generate a simplified model of the simulation.
+This model is then used in the optimization and its further refinement goes hand in hand with its use
+in seeking the minimum.
+Many research questions surround the interplay between optimization and
+sampling, particularly with approximate surrogate models.
+
+In the data assimilation context in which particle filters originated, the algorithm move through a temporal
+sequence of data updating the overall state estimation.  Here we need to modify the methodology to 
+transition from one experiment to the next as we move through the hierarchy.  There are two key research questions
+here.  The first is how do we develop a representation of the posterior distribution from one experiment to
+define an operational prior for the next experiment.  More precisely, we need to represent the prior
+in a form that can be used in the optimization needed to define the initial particles for the next stage.
+Another issue is quantifying whether or not moving through the hierarchy of experiments form simplest to most
+complex introduces any bias in the parameter estimates.  If this strategy introduces bias, what modifications
+are needed to reduce that bias.
+
+To reduce computational expense, we can consider performing the optimization using a simpler
+model of the system.
+\MarginPar{need to articulate research questions in more detail and discuss all the ones i'm not thinking about}
+We also need to have a precise characterization of how errors introduced by a simplified model
+impact the overall behavior of the algorithm.
+
+Although MCMC approaches are considerably more cost effective than naive sampling approaches, they can
+exhibit a critical slowing down phenomenon for poortly conditioned problems.  The length of time that
+one needs to simulate the Markov process to obtain good results depends on the autocorrelation time
+of the underlying process. When the correlation time is long, the system must be run for extended periods
+of time to obtain a good statistical characterization.
+There are several approaches to dealing with this problem.
+\MarginPar{Jonathan, can you describe them.  Need to set up a mathematical notation to talk about MCMC as well}
+
+Another key problem that has to be addressed for effective sampling is dealing with model degeneracy.
+A model has an approximate degeneracy if many different parameter sets are nearly as good at explaining the data.
+For example, if there are multiple reaction pathways in a kinetic description,
+certain combinations of reaction rates may be much better
+estimated than the individual rates.
+In such cases, isotropic sampling algorithms such as single variable heat bath (Gibbs sampler) or isotropic
+Metropolis walk will be slow. We plan to use the affine sampling approaches developed at NYU to address issues of model degeneracy.
+
+Finally, it is important to use statistical methods that are robust in the inevitable situation where the exact model is not in
+the family being fit.
+For example, the power law/exponential formulas for reaction rates are only modeling approximations, though they can be
+very accurate.
+In chaotic systems especially, even small modeling errors can make an accurate global fit impossible.
+One approach is to include noise in the dynamics, so that the posterior distribution does not require the
+dynamical equations to be satisfied exactly.
+We will conduct computational experiments to study this problem, then use the results to 
+choose appropriate noise levels for our physical models.
+By combining what is known about the error levels in both model and data, we can also estimate upper and lower bounds
+of the predictive skills of the resulting stochastic models.
+
+MULTISCALE CHARACTER OF BATTERY PROBLEM
+
+ROLE OF REDUCED ORDER MODELS
+
+OTHER RESEARCH ISSUES
+
+STUFF FROM WHITE PAER THAT I HAVEN'T EDITED YET
+
+As noted above, reduced order models can be used to construct surrogates as part of a derivative free optimization strategy
+to guide the sampling procedure. However, our goal is to also use reduced order models for an {\it {a posteriori}} UQ analysis.
+For this purpose, the selection of an appropriate reduced order model at each level of the hierarchy depends on the
+structure of the system at this level, ranging from model reduction approaches for models with smooth solution manifolds
+to statistical approaches for complex models.
+Given a hierarchy of reduced order models, this proposal will address how we can perform an integrated UQ analysis 
+across the hierarchy, taking into account different levels of scale and fidelity.
+%Given an appropriate reduced order model, after we have completed a suite of samples across the hierarchy
+%we can then use the reduced order models to perform an uncertainty quantification analysis across
+%the hierarchy.  
+This analysis not only defines the predictive capability of the models, it also identifies
+the major factors contributing to uncertainty and identifies what additional data would most significantly
+impact the fidelity of predictions.
+
+To evaluate the methodology we will examine test cases within each of our target application areas.  In particular,
+we will consider thermodiffusive instabilities in turbulent hydrogen flames, robustness of Li-ion batteries under abusive conditions
+and the formation of point defects in new photovoltaic materials.  In each case, we will focus on how uncertainties in the 
+model parameters influence predictive capability and how we can reduce uncertainty using a hierarchy of experimental data.
+
+
+\subsection*{Timetable of Activities}
+
+\subsection*{Project Objectives}
+
+The goal of this project is to develop a mathematical framework  
+based on novel sampling methods that
+intertwines parameter estimation and simulation 
+to estimate uncertainty and improve prediction for target systems.
+Specifically, we want to
+(1) use available data from a hierarchy
+of experiments of increasing scale and complexity to restrict
+uncertainty in the description of the system, (2) estimate the impact of the improved characterization
+on predictive capability and (3) identify which of the remaining uncertainties have the most impact
+on the uncertainty of predictions.
+We will demonstrate the use of the framework for prototype problems in combustion,
+novel photovoltaic material and lithium-ion batteries.
+
+
+\bibliographystyle{plain}
+
+\bibliography{george_rom.bib} 
+
+
+\end{document}
