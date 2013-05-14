@@ -262,19 +262,30 @@ For example, if there are multiple reaction pathways in a kinetic description,
 certain combinations of reaction rates may be much better
 estimated than the individual rates.
 In such cases, isotropic sampling algorithms such as single variable heat bath (Gibbs sampler) or isotropic
-Metropolis walk will be slow. We plan to use the affine sampling approaches developed at NYU to address issues of model degeneracy.
+Metropolis walk will be slow.
+In the context of MCMC, we plan to use the affine sampling approaches developed at NYU to address issues of model degeneracy.
+\MarginPar{what does this look like for particle filters?  guess is that optimization slows down.  answer regularized by prior?}
 
 Finally, it is important to use statistical methods that are robust in the inevitable situation where the exact model is not in
 the family being fit.
-For example, the power law/exponential formulas for reaction rates are only modeling approximations, though they can be
+Models are only approximations to reality.
+The Arrhenius form for reaction rates are only modeling approximations, though they can be
 very accurate.
-In chaotic systems especially, even small modeling errors can make an accurate global fit impossible.
+Similarly, typical models for species diffusion in combustion are only approximations, even at the continuum level,
+to a full transport model, which is, in itself, an approximation to the underlying molecular processes.
+Dven small modeling errors can make an accurate global fit impossible, particularly in chaotic systems.
+A more serious structural issue arises in the case of batteries and photovoltaic models where the models
+are extremely less mature.  In these areas we are likely to encounter structural models where key physical
+processes are missing from the description.
 One approach is to include noise in the dynamics, so that the posterior distribution does not require the
 dynamical equations to be satisfied exactly.
 We will conduct computational experiments to study this problem, then use the results to 
 choose appropriate noise levels for our physical models.
 By combining what is known about the error levels in both model and data, we can also estimate upper and lower bounds
 of the predictive skills of the resulting stochastic models.
+\MarginPar{can be develop criteria to assess if something is missing form model}
+
+USING SIMPLIFIED MODELS SEEMS TO RAISE A SIMILAR SET OF ISSUES
 
 MULTISCALE CHARACTER OF BATTERY PROBLEM
 
