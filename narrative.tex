@@ -57,7 +57,7 @@
 
 Many important DOE applications rely on simulation to predict the behavior of complex physical systems.
 However, the fidelity of these simulations depends on uncertain parameters describing the underlying physical system
-obtained from collection of
+obtained from a collection of
 complex and noisy experiments whose reliability is hard to determine. 
 Our ability to effectively use extreme scale computing will depend critically on our ability to reduce the
 uncertainty in these data and assess the impact of that uncertainty on predictive capability.
@@ -90,26 +90,19 @@ traditional quantities of interest.
 The goal of this project is to develop a
 mathematical framework for this class of problems that
 will utilize data from a hierarchy of experiments of increasing complexity to reduce
-uncertainty of simulations, estimate impact of the improved characteristic on predictive capability
+uncertainty of simulations, estimate the impact of the improved characteristic on predictive capability
 and identify significant remaining sources of uncertainty.
-intertwine parameter estimation and simulation into an integrated activity.
-Out approach is based on novel sampling approaches within a Bayesian UQ framework.
-The Bayesian approach avoids the need for additional approximations and simplifying assumptions 
-required by some current UQ techniques.
-It combines modeling and sampling in a way that provides full insight into the propagation of 
-uncertainty.
-The posterior distribution contains all information about remaining uncertainties that is implied
-by the data -- which aspects are tightly bounded and which are less precise.
-In addition, some MC sampling methods are well suited to massively parallel computer architectures because
-the computationally expensive calculations
-(e.g. forward or adjoint model runs) can be executed independently.
+%intertwine parameter estimation and simulation into an integrated activity.
+Our approach is based on novel Monte Carlo (MC) sampling approaches within a Bayesian UQ framework.  \MarginPar{Matti: I wanted to bring up what the posterior is and moved the nonlinearity part, because we respect the nonlinearity by doing sampling rather than linearizations as in Kalman filters/least squares. }
+The Bayesian approach combines modeling and sampling in a way that provides full insight into the propagation of 
+uncertainty. The result is a complete characterization of the posterior probability density function (pdf) which contains all information about remaining uncertainties that is implied by the data -- which aspects are tightly bounded and which are less precise. An implementation of the Bayesian approach via MC sampling respects the strong nonlinearities in the target applications and avoids the need for additional approximations and simplifying assumptions 
+required by some current UQ techniques. In addition, some MC sampling methods are well suited to massively parallel computer architectures because \MarginPar{Matti: is this correct? Exascale requires little communication, which is why I thought we could bring this up?}
+the computationally expensive calculations, e.g. forward or adjoint model runs, can be executed independently and the communication between cores for each independent run is small.
 Using MC sampling as the computational backbone will lead to a numerically sound implementation of a rigorous UQ theory
 that is well suited for future (exascale) machines, making UQ possible for realistic applications.
 
-The key issue with a Bayesian UQ approach is that current sampling techniques
-are not robustly effective for complex, high-dimensional problems.
-Standard particle filter methods break down in high dimensions because high-probability events 
-with respect to the prior are likely to have low probability with respect to the posterior. 
+As we move through the hierarchy of experiments, different MC sampling techniques can be used since the Bayesian approach is conceptually independent of its implementation. In particular, we plan to consider using both particle filter (importance sampling) methods and Markov chain Monte Carlo (MCMC).\MarginPar{Matti: started review for sampling} The key issue with both is that many  of their current implementations are not robustly effective for complex, high-dimensional problems. In particular, standard particle filters first obtain samples of the prior and then evaluate their probability with respect to the posterior by attaching weights to each sample based on its distance to the data \cite{Doucet2001,GordonSIR}. The weighted particles form an empirical estimate of the posterior pdf. Difficulties arise if the prior and posterior density approach being mutually singular, i.e. if high-probability events with respect to the prior are likely to have low probability with respect to the posterior. This is the interesting case, which corresponds to the situation where one can learn from the data, rather than simply confirming the prior. However, in this case many of the samples have a low weight so that the empirical estimate they constitute is poor (it can be a single and often unlikely point). This can happen in a single dimension, however it was shown rigorously for linear problems that the number of particles required scales catastrophically with the dimension of the problem \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach inapplicable to realistic problems. A number of methods have been invented to ameliorate this problem, most of which amount to finding a proposal density that  generates samples that are more compatible with the data \cite{Doucet,OptimalImportanceFunction,liuchen1995,Brad}. For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation \cite{vanLeeuwen}. A different approach is to construct a map that transforms the prior measure into the posterior measure, i.e. to construct a map that transforms prior samples into posterior samples \cite{Moselhy2013}. The construction of such a map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps). The errors of these approximations are, at this time, not well understood. We plan to base the particle filtering methods on the implicit sampling methodology developed at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013}. The central idea here is to first search for the regions of high probability with respect to the posterior. This search can be implemented by numerical optimization. Once the high probability region is located, samples that lie within this region can be generated by solving simple algebraic equations. Although the optimization is computationally expensive, implicit sampling was shown to outperform standard MC importance sampling in small geophysical models \cite{Morzfeld2011,Morzfeld2012,Atkins2013}.  However, for the realistic applications we are considering, substantial development is needed, especially with respect to efficient use of massively parallel computer architectures. 
+
 Metropolis and heat bath algorithms suffer on problems that are poorly conditioned.
 \MarginPar{Turn this into literature review?}
 
@@ -119,13 +112,13 @@ To frame the discussion of the proposed research we need to first provide some s
 about the target applications.
 Simulating the combustion of a given fuel relies on parameters
 describing chemistry, transport and thermodynamics.
-Her we will assume that the multicomponent reacting Navier Stokes equations with Arrhenius
+Here we will assume that the multicomponent reacting Navier Stokes equations with Arrhenius
 kinetics and a molecular transport model provide a good approximation to the dynamics.
 The target question we would like to answer is how confident are we in the computed statistical
 properties of a turbulent flame simulation and to what extent are the simulations consistent
 with experimental data.
-However, a direct attach on this problem is infeasible.
-The computational complexity is sufficiently high and the available data is suffciently
+However, a direct attack on this problem is infeasible.
+The computational complexity is sufficiently high and the available data is sufficiently
 sparse that very little can be determined by directly pursuing the final target.
 A way to get around this is to note that one has not simply a single turbulent flame
 experiment but a wide range of different types of experiments for the same physical
@@ -142,13 +135,13 @@ uncertainty in parameters and estimate bounds on how those uncertainties impact 
 Our approach needs to reflect the notion that as we move up the hierarchy, we are
 getting closer to the target application but the simulations become
 increasingly costly and the data become increasingly sparse.
-The approach als need to  respect the structure of the problem.
+The approach also needs to  respect the structure of the problem.
 A reasonable cartoon for a 
 turbulent flame experiment is that is corresponds to a stationary chaotic dynamical system.
-What the experimentalist is capturing some level snapshots of what the attractor looks like.
+What the experimentalist is capturing are some level snapshots of what the attractor looks like.
 We cannot hope to have a complete picture of the flame at a given time.  We can only
 have some characterization of selected features.  The available data is at best limited;
-however, the hope is that it carries some information about the underlying physical system.
+however, the hope is that it carries some information about the underlying physical system. \MarginPar{Matti: is this a research problem? I am not aware of anybody doing "qualitative assimilation". Should we expand this?}
 
 DISCUSSION OF OTHER PROBLEMS -- NEED EQUATIONS HERE I SUSPECT
 
@@ -158,7 +151,7 @@ All involve reaction and diffusion processes in fluids.
 One characteristic of reaction diffusion processes is that some aspects of the system
 may not be observable from the available data. For example, in a reaction chain the slowest
 reactions dominate the response so that fast reactions are not effectively probed.
-Furthermore, they all of the applications.
+Furthermore, all of the applications.
 have a potentially complex relation between what is measured and quantity of interest,
 even for relatively simple experiments. 
 Planar laser induced fluorescence diagnostics in combustion, for example, 
@@ -167,7 +160,7 @@ composition.
 Furthermore, for the more complex experiments, the
 quantities of interest are statistical / feature based
 particularly at higher levels of the hierarchy.
-\MarginPar{from discussion of 5/13 this my be too hard}
+\MarginPar{from discussion of 5/13 this my be too hard. Matti: see above. What do we do about this?}
 
 In spite of the differences, the target application areas have a number
 of distinct features.
@@ -186,37 +179,66 @@ between different types of models at different scales.
 The central theme of this project will be to develop new smart sampling technologies 
 to address these issues.
 The types of methods we plan to consider fall into two distinct types:  particle filter approaches
-and Markov chain Monte Carlo (MCMC).
-Both of these approaches aim to reduce the computational work associated with naive Monte Carlo approaches.
+and MCMC.
+Both of these approaches aim to reduce the computational work associated with naive MC approaches.
 Although they use different strategies, they both seek to avoid simply sampling the prior and evaluating
 the posterior probability of the resulting sample. 
 MCMC algorithms use the trajectory of the simulation in space and time to define the state for a Markov
 process that samples the underlying Gibbs distribution of the problem.  Evolution of this Markov process
 effectively samples the state space of the system.  The need to represent the full state of the system
-make MCMC at memory intensive task.
+make MCMC a memory intensive task.
 Particle filters, which arise in the context of data assimilation,
 fit into a framework of more traditional Monte Carlo algorithms.  Here the goal is to use
 derivative / sensitivity information to guide the selection of samples to reduce the number of samples
 needed to effectively sample the distribution.
-Compared to MCMC, the filtering approach is less memory intensive but more compute intensive, thus representing
+Compared to MCMC, the filtering approach is less memory intensive but more computationall intensive, thus representing
 a tradeoff between memory and computation.
 We need to understand these tradeoffs to determine which approach will be most effective for a given
 experiment.  We anticipate that one approach is not optimal across a hierarchy of experiments, rather
-that different approaches will be prefered based on specific problem characteristics.  Intuitively,
-we would expect MCMC to be more a more attractive option for relatively simple problems and particle
+that different approaches will be preferred based on specific problem characteristics.  Intuitively,
+we would expect MCMC to be a more attractive option for relatively simple problems and a particle
 filter to be a better choice as problem complexity increases. Quantifying those relationships
-and understanding how to transition between approaches are important research quesions.
+and understanding how to transition between approaches are important research questions.
 Furthermore, neither of these approaches is new; however, substantial development is needed to meet the requirements
 of the realistic applications we are considering.
 
 The particle filter methodology we plan to develop is based on the implicit sampling methodology developed at LBNL.
-The central idea is to avoid prior sampling by finding a probability distribution that approximates the
+The central idea is to avoid prior sampling by finding a probability distribution that better approximates the
 relationship between parameters and data.
-\MarginPar{need equations to introduce the sampling thing and how it works}
-The search for a suitable approximate distribution is implemented
-via solution of a minimization problem.
-When available we can use adjoint codes coupled to BFGS-type algorithms to solve the minimization problem
-using a parallel optimizer such as TAO from Argonne.
+\MarginPar{need equations to introduce the sampling thing and how it works. Matti: I started doing that}
+
+Specifically, suppose we have  a  model of the physical process under consideration (e.g. a discretization of multicomponent reactive Navier Stokes) that maps the state at time $t=0$, $x_0$, to the state at time $t=T$, $x_T$, and suppose that this model includes a number of parameters $\theta$. We assume the initial conditions are known precisely. To respect that the parameters are uncertain, we model these as random variables, e.g. a Gaussian random variable with mean $\mu$ and covariance matrix $\Sigma_0$. We assume that $\mu$ and $\Sigma$ are known from prior investigations. Denoting the model as $M$, we have
+\begin{equation}
+	x_T = M(x_0,\theta, T).
+\end{equation}
+The data, $y$, is a function of $x_T$ and we assume that the measurements are perturbed by noise, which, for simplicity, we assume to be Gaussian:
+\begin{equation}
+	y = h(x_T)+v,
+\end{equation}
+where $v$ is a Gaussian random variable with mean $0$ and covariance matrix $\Sigma$. Since $x_T$ is a function of $x_0$, $T$ and $\theta$, we may also write
+\begin{equation}
+\label{eq:IS_data}
+	y = H(x_0,T,\theta)+v,
+\end{equation}
+where $H$ is the function which is obtained by first running the model up to time $T$ followed by applying $h$ to the state $x_T$.  We are interested in the information we can extract from the data about the parameters $\theta$ and therefore consider the random variable $\theta|y$, which is characterized by its probability density function (pdf) $p(\theta|y)$. Using Bayes' rule, we find that
+\begin{equation}
+	p(\theta|y) \propto p(\theta)p(y|x_0,T,\theta),
+\end{equation}
+where  $p(\theta) = \mathcal{N}(\mu,\Sigma_0)$ is the ``prior'' and $p(y|x_0,T,\theta)$ is the ``likelihood'', which can be read off of the data equation (\ref{eq:IS_data}), $p(y|x_0,T,\theta)\sim \mathcal{N}(H(x_0,\theta),\Sigma)$.
+The pdf $p(\theta|y)$  is called the ``posterior'' and we wish to approximate it with implicit sampling. 
+
+The general procedure is as follows. Define a function by
+\begin{equation}
+	F(\theta)= -\log \left(p(\theta)p(y|x_0,T,\theta)\right).
+\end{equation}
+Note that $F$ is a function of the parameters only (initial conditions and $T$ are assumed to be known) and that the minimizer of $F$ is the mode of the posterior. Thus, the high probability region of the posterior is the neighborhood of the minimizer of $F$ and we can identify this region via numerical minimization of $F$. To find samples in this region we solve (repeatedly) the algebraic equations
+\begin{equation}
+	F(\theta)-\phi = \frac{1}{2}\xi^T\xi,
+\end{equation}
+where $\phi = \min F$ and $\xi$ is a Gaussian reference variable with mean zero and unit variance, i.e. the equations have a random right hand side (RHS). Note that the RHS is small with a high probability ($\xi$ has mean zero), which implies that the left hand side is also small with a high probability and, therefore, the solution is close to the minimizer of $F$ which is the mode of the posterior. Thus, the solutions of these equations (for different realizations of $\xi$) are in the neighborhood of the mode of the posterior, i.e. almost all samples are compatible with the data. Generating samples with low probability with respect to the data (as in standard MC sampling) is avoided by the minimization step. 
+
+While the general method of attack is clear, many research questions arise when applying this sampling technique to the target applications. The minimization is the computational bottleneck of this method and its efficient implementation is crucial for the success of the method. Moreover, the minimization algorithm will likely depend on where we are in the hierarchy of experiments. One of our specific research topics will be to address efficient minimization at each level of the hierarchy, especially in view of massively parallel computer architectures. For example, we can consider coupling adjoint codes for gradient computations of $F$ to BFGS-type algorithms using a parallel optimizer such as TAO from Argonne. At high levels of the hierarchy, adjoint codes may be out of reach or too costly and time consuming to construct. In these cases, derivative free optimization methods must be considered. Another possibility is to use simplified models for the minimization. For example, we can borrow ideas from multi-grid and run the minimizations on a coarse grid, while doing e.g. forecasting on the fine grid. Alternatively, we can use a surrogate method, where a small number of forward simulations are used to generate a simplified model of the simulation. This model is then used in the optimization and its further refinement goes hand in hand with its use in seeking the minimum. Many research questions surround the interplay between optimization and sampling, particularly with approximate surrogate models. For example, we can use numerical experiments to find a characterization of how errors introduced by a simplified model impact the overall behavior of the algorithm and what must be known about the errors of the simplified model to obtain such a characterization. 
+
 %\MarginPar{JG doubts this will work and notes a need to for derivative information to guide sampling. JBB
 %doubts we can perform adjoint simulations for 3 turbulent simulations.  Only way out JB can think of
 %is based on discussion with George about combining coarse simulation with a statistical surrogate to
@@ -224,32 +246,22 @@ using a parallel optimizer such as TAO from Argonne.
 %for the preproposal and thing of how to address it in real proposal}
 \MarginPar{need to decide if there is something viable here. Another alternative that merits consideration
 is using the adjoint of a simpler model for the optimization.}
-However, when adjoint codes are not available, derivative free optimization methods will be required.
-The most interesting and likely most successful type of approach here is a surrogate method,
-where a small number of forward simulations are utilized to generate a simplified model of the simulation.
-This model is then used in the optimization and its further refinement goes hand in hand with its use
-in seeking the minimum.
-Many research questions surround the interplay between optimization and
-sampling, particularly with approximate surrogate models.
 
-In the data assimilation context in which particle filters originated, the algorithm move through a temporal
-sequence of data updating the overall state estimation.  Here we need to modify the methodology to 
-transition from one experiment to the next as we move through the hierarchy.  There are two key research questions
-here.  The first is how do we develop a representation of the posterior distribution from one experiment to
-define an operational prior for the next experiment.  More precisely, we need to represent the prior
-in a form that can be used in the optimization needed to define the initial particles for the next stage.
-Another issue is quantifying whether or not moving through the hierarchy of experiments form simplest to most
-complex introduces any bias in the parameter estimates.  If this strategy introduces bias, what modifications
-are needed to reduce that bias.
+A characteristic of our target applications is that there is a hierarchy of experiments. How to use this characteristic for successful and efficient sampling is another research question we will address. In the data assimilation context in which particle filters originated, the algorithms move through a temporal sequence of data and sequentially update the state/parameters as data becomes available. The update rule come from repeated applications of Bayes' rule which ultimately lead to a recursive formulation of the posterior. Here we need to modify the methodology to transition from one experiment to the next as we move through the hierarchy of experiments, i.e. we need to find the update rule for moving up in the hierarchy. For example, we can construct priors at a higher level of the hierarchy from posteriors at lower levels. For implicit sampling this amounts to finding a representation of the posterior at a lower level that can be as a prior in the optimization at the next stage. Moreover, the theory and numerics can be intertwined here because the models obtained (as posteriors) at lower levels of the hierarchy may help with speeding up the minimizations required at higher levels of the hierarchy (see discussion of reduced order modeling, surrogates and minimization above).  Another central issue is determining whether or not moving through the hierarchy of experiments from the simplest to the most complex introduces bias in the parameter estimates. If this bias is found to be significant, strategies must be developed to reduce that bias. 
 
-To reduce computational expense, we can consider performing the optimization using a simpler
-model of the system.
-\MarginPar{need to articulate research questions in more detail and discuss all the ones i'm not thinking about}
-We also need to have a precise characterization of how errors introduced by a simplified model
-impact the overall behavior of the algorithm.
+Another research question is how to use implicit sampling for multi-scale problems, in our case battery simulations as a target application. The situation is similar to how to use implicit sampling across a hierarchy of experiments (see above). Specifically, we will address how information can be propagated efficiently across different scales. In addition to a suitable formulation of priors at each scale (based on posteriors of the other scales), we need to find a model of how the various scales are connected. We anticipate that such a model is crucial for efficient multi-scale sampling.
 
+\MarginPar{need to articulate research questions in more detail and discuss all the ones i'm not thinking about. Matti: I tried to address this above.}
+
+
+
+
+
+
+ 
+\newpage
 Although MCMC approaches are considerably more cost effective than naive sampling approaches, they can
-exhibit a critical slowing down phenomenon for poortly conditioned problems.  The length of time that
+exhibit a critical slowing down phenomenon for poorly conditioned problems.  The length of time that
 one needs to simulate the Markov process to obtain good results depends on the autocorrelation time
 of the underlying process. When the correlation time is long, the system must be run for extended periods
 of time to obtain a good statistical characterization.
@@ -345,6 +357,5 @@ novel photovoltaic material and lithium-ion batteries.
 \bibliographystyle{plain}
 
 \bibliography{george_rom.bib} 
-
 
 \end{document}
