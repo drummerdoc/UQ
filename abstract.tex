@@ -1,0 +1,131 @@
+\documentclass[11pt]{article}
+% RFP specifically says to use 11 point type and 1 inch margins
+\usepackage{graphicx}
+\usepackage{epsf,color}
+\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+0pt \advance \topmargin by -\headheight \advance \topmargin by
+-\headsep \textheight 9.0in
+
+%\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+%0pt \advance \topmargin by -\headheight \advance \topmargin by
+%-\headsep \textheight 8.9in
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{dcolumn}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[compact]{titlesec}
+
+%\usepackage[plain]{fullpage}
+\usepackage{amsfonts}
+%\usepackage{lastpage}
+%\usepackage{fancyhdr}
+
+%\usepackage[version=3]{mhchem} 
+% you can use this command to skip chunks of your document
+% just put the command around the chunk like this
+% \comment{ ...the chunk... }
+\newcommand{\comment}[1]{}
+
+%\newcommand{\MarginPar}[1]{\hspace{1sp}\marginpar{\tiny\sffamily\raggedright\hspace{1sp}#1}}
+\setlength{\marginparwidth}{0.75in}
+\newcommand{\MarginPar}[1]{\marginpar{%
+\vskip-\baselineskip %raise the marginpar a bit
+\raggedright\tiny\sffamily
+\hrule\smallskip{\color{red}#1}\par\smallskip\hrule}}
+
+%\renewcommand{\baselinestretch}{1.05} % = 1.0 Single space; = 2.0 Double
+\renewcommand{\baselinestretch}{1.0} % = 1.0 Single space; = 2.0 Double
+
+%\renewcommand{\refname}{Literature Cited}
+%------------------------
+
+\pagestyle{empty}  % No page numbers
+%\textfloatsep 0mm
+%\abovecaptionskip 1mm
+
+\begin{document}
+
+%\pagestyle{plain}
+%\pagenumbering{roman}
+\begin{center}
+{\large{\textbf{Project Summary}}}
+\end{center}
+
+\noindent
+{\textbf{Project title:}}  A Hierarchical Approach to Uncertainty Quantification \\
+{\textbf{Participating Institutions:}}  LBNL, NREL, CIMS-NYU \\
+{\textbf{Lead PI:}}  J. Bell (LBNL) \\
+{\textbf{Senior/Key Personnel:}} M. Day (LBNL), J. Goodman (NYU), P. Graf (NREL),
+R. Grout (NREL), M. Morzfeld (LBNL), G. Pau (LBNL)
+
+\vskip\baselineskip
+
+Many important DOE applications rely on simulation to predict the behavior of complex physical systems.
+%\MarginPar{wanted to maintain homage to exascale}
+However, the fidelity of these simulations depends on uncertain parameters describing the underlying physical system
+obtained from a variety of
+complex and noisy experiments whose reliability is hard to determine. 
+Our ability to effectively use extreme scale computing will depend critically on our ability to reduce the
+uncertainty in these data and assess the impact of that uncertainty on predictive capability.
+%Here, we will focus on combustion modeling, battery simulation and design of high-efficiency photovoltaic
+%devices as motivating examples.  However, the methodology will be broadly applicable to a
+%range of problems in chemical and materials science, systems biology, subsurface flow and climate to name a
+%few.
+%For the class of problems we are targeting, there is typically a 
+%hierarchy
+%of experiments of increasing complexity that provide information about the underlying processes.
+%As experimental complexity increases the fraction of the state that can be sampled
+%by measurement is reduced and the cost of simulations increases.
+%Rather than attempting to estimate parameters directly from a single complex experiment, we 
+%will obtain parameter estimates across the entire hierarchy of experiments.
+Our goal here is to use information from a hierarchy of experiments of increasing complexity
+to quantify the distribution of parameters that is consistent with a suite of experimental data.
+Thus, we need an approach that allows us to pass
+information through the hierarchy in a way that effectively uses data from all levels
+to improve overall predictive properties.
+Furthermore, as complexity increases,
+the combination of rich physics and relative data sparsity suggests that we will not be
+able to exactly match the experimental dynamics computationally.
+We must develop estimation methods that are robust to model errors as well as noisy observations
+using metrics based on identification of characteristic features that are more general than
+traditional quantities of interest.
+
+Our approach will be based on novel Monte Carlo sampling techniques within a Bayesian UQ framework.
+The Bayesian approach avoids the need for additional approximations and simplifying assumptions 
+required by some current UQ techniques.
+It combines modeling and sampling in a way that provides full insight into the propagation of 
+uncertainty.
+The posterior distribution contains all information about remaining uncertainties that is implied
+by the data -- which aspects are tightly bounded and which are less precise.
+In addition, some MC sampling methods are well suited to massively parallel computer architectures because
+the computationally expensive calculations
+(e.g. forward or adjoint model runs) can be executed independently.
+Using MC sampling as the computational backbone will lead to a numerically sound implementation of a rigorous UQ theory
+that is well suited for future (exascale) machines, making UQ possible for realistic applications.
+
+Current sampling techniques
+are not robustly effective for complex, high-dimensional problems.
+Here we will develop new approaches based on implicit sampling methodologies and novel
+Markov chain Monte Carlo (MCMC) approahces the address this issue.  In implicit sampling, we solve
+an optimization problem to identify regions of high probablity with respect to the posterior
+distribution to guide the sampling procedure.
+For MCMC, we will use techniques based on parallel marginalization to reduce correlation time in the
+sampling process and affine sampling techniques and multigrid MCMC approaches to improve the
+overall efficiency of the sampling procedure.
+To further improve computational efficiency, we will employ reduced order modeling to represent
+the relationship between models of different fidelity and models at different scales.
+
+The combination of these techniques will allow us to develop a rigorous mathematical framework  
+for UQ suitable for extreme-scale sicence.
+Specific goals are to
+(1) use available data from a hierarchy
+of experiments of increasing scale and complexity to restrict
+uncertainty in the description of the system, (2) estimate the impact of the improved characterization
+on predictive capability and (3) identify which of the remaining uncertainties have the most impact
+on the uncertainty of predictions.
+We will demonstrate the use of the framework for prototype problems in combustion,
+novel photovoltaic material and lithium-ion batteries.
+
+\end{document}
