@@ -93,7 +93,7 @@ will utilize data from a hierarchy of experiments of increasing complexity to re
 uncertainty of simulations, estimate the impact of the improved characteristic on predictive capability
 and identify significant remaining sources of uncertainty.
 %intertwine parameter estimation and simulation into an integrated activity.
-Our approach is based on novel Monte Carlo (MC) sampling approaches within a Bayesian UQ framework. 
+Our approach is based on novel Monte Carlo (MC) sampling approaches within a Bayesian uncertainty quantification (UQ) framework. 
 \MarginPar{Matti: I wanted to bring up what the posterior is and moved the nonlinearity part, because we respect the nonlinearity by doing sampling rather than linearizations as in Kalman filters/least squares. }
 The Bayesian approach combines modeling and sampling in a way that provides full insight into the propagation of 
 uncertainty.
@@ -114,7 +114,7 @@ The weighted particles form an empirical estimate of the posterior.
 Difficulties arise if the prior and posterior approach being mutually singular, i.e. if high-probability events with respect to the prior are likely to have low probability with respect to the posterior.
 This is the interesting case, which corresponds to the situation where one can learn from the data, rather than simply confirming the prior.
 However, in this case many of the samples have a low weight so that the empirical estimate they constitute is poor (it can be a single and often unlikely point).
-This can happen in a single dimension, however it was shown rigorously for linear problems that the number of particles required scales catastrophically with the dimension of the problem \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach inapplicable to realistic problems.
+This can happen in a single dimension, however it was shown rigorously for linear problems that the number of particles required scales catastrophically with the dimension of the problem \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach infeasible for our target applications.
 A number of methods have been invented to ameliorate this problem, most of which amount to finding a proposal density that  generates samples that are more compatible with the data \cite{Doucet,OptimalImportanceFunction,liuchen1995,Brad}.
 For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation \cite{vanLeeuwen}.
 A different approach is to construct a map that transforms the prior measure into the posterior measure, i.e. to construct a map that transforms prior samples into posterior samples \cite{Moselhy2013}.
@@ -128,17 +128,14 @@ JONATHAN:  SHORT LITERATURE REVIEW OF MCMC AND SHORTCOMINGS OF EXISTING APPROACH
 The presence of a hierarchy of computational models that correspond to the hierarchy of experiments can be further exploited to improve efficiency of these sampling techniques.
 Approaches that involve multi-resolution models include importance sampling based on posterior distribution generated using coarser (thus cheaper) models~\cite{Higdon:2002vx,Christen:2005wp,Efendiev:2007uw,Bal:2013tp} and metropolis coupled chain~\cite{Higdon:2002vx}.
 To further improve the match between the coarse and fine posterior distributions, Bal et. al.~\cite{Bal:2013tp} used a zero-mean Gaussian model to approximate the discretization error~\cite{Kaipio:2007ux}.
-However, since our simpler models may involve simplification of physics or reduction of spatial dimensions, a more accurate approach to approximate the modeling error is needed.
+However, since our simpler models may involve significant simplifications of the physics or reduction of spatial dimensions, a more accurate approach to approximate the modeling errors is needed.
 We intend to examine how we can use reduced order modeling techniques to model this error accurately.
 In particular, Gaussian process regression~\cite{Rasmussen:2006vz} is expected to fit within the statistical framework that we will describe.
 We note that reduced order models can also be directly used as the simpler model~\cite{BuiThanh:2012tx}.
-For implicit sampling, reduced order models have the potential of reducing the cost of the required optimizations, either through the use of the simpler models in the optimizations or  via more direct optimization algorithms that utilize reduced order models~\cite{Regis:2007,Wild:2011uh}.
+\MarginPar{Implicit sampling has not been brought up. Can this be moved to after IS was introduced?}
+For implicit sampling, reduced order models have the potential of reducing the cost of the required optimizations, either through the use of the simpler models in the optimizations or  via more direct optimization algorithms that utilize reduced order models~\cite{Regis:2007,Wild:2011uh}. 
 
-Another important aspect of uncertainty quantification is forward uncertainty propagation, including uncertainty quantification of prediction made using computational models and sensitivity analysis used in decision making and experimental design.
-Existing research shows that the use of multilevel Monte Carlo approach can improve the convergence rate for a series of convergent models~\cite{Giles:2008gc}. 
-However, theoretical framework for a heterogeneous set of models are lacking. 
-Another approach is to use as efficient surrogates for fine-scale models in these analyses~\cite{Challenor:2012uv, Ratto:2012tf}. 
-Large number of techniques are available and a research question is how reduced order models can be most accurately used in a hierarchical framework. 
+We will also address forward UQ, including UQ of predictions made with the posterior computational models as well as sensitivity analysis used in decision making and experimental design. While multilevel Monte Carlo can improve the convergence rate for a series of convergent models~\cite{Giles:2008gc},  a theoretical framework for a heterogeneous set of models is lacking. Alternatively one can use surrogates for fine-scale models in the (posterior) forward  analyses~\cite{Challenor:2012uv, Ratto:2012tf} and we will investigate how these reduced order models can be accurately and efficiently used in a hierarchical framework. 
 
 % Although efficiency Monte Carlo of sampling techniques has been significantly improved in recent years, many problems are still computationally intractable, even with the computational gain achieved through high-performance computing efforts (Wang et al., 2011). One feasible solution is to use reduced-order models (ROMs), or emulators, as efficient surrogates for fine-scale models in these analyses (Challenor, 2012; Ratto et al., 2012).  
 
@@ -251,7 +248,7 @@ interstitial defect can combine to heal the crystal.
 \begin{itemize}
   \item Firstly, the surface process by which metal flux from the vapor
   stream are added to the crystal. This is process dependent, although
-  well established models are available. \marginpar{at least CVD is,
+  well established models are available. \MarginPar{at least CVD is,
     although co-evaporation is more common}
 
 \item Secondly, the formation and interactions of the point defects
@@ -310,12 +307,12 @@ deterministic treatment.
 \item The importance of grain boundaries for transport requires a model for
 grain nucleation and growth that is notoriously difficult to capture
 deterministically; stochastic models have been much more successful \cite{Koptelov84}.
-\marginpar{L. Petzold  has literature on how to connect such components}
+\MarginPar{L. Petzold  has literature on how to connect such components}
 
 \end{itemize}
 
 Collecting these physics, a reasonable stochastic PDE governing the
-number density of a point defect, $\phi$ as a function of space-time
+number density of a point defect $\phi$ as a function of space-time
 within the film can be written as:
 \begin{equation}
   \label{eq:3}
@@ -323,8 +320,8 @@ within the film can be written as:
 \end{equation}
 where $s^\phi$ is the net rate of formation/destruction of the defect
 due to the system of reactions describing the point defect chemistry
-and interaction, the second term on the rhs is a deterministic
-transport contribution, and the final term on the rhs represents
+and interaction, the second term on the right hand side (RHS) is a deterministic
+transport contribution, and the final term on the RHS represents
 stochastic transport that is active only in the vicinity of a grain
 boundary. 
 
@@ -374,8 +371,8 @@ to the various parameters separately:
   trying to constrain, or as an observable. At first glance the latter
   seems more appropriate.}
 
-Our third application area is concerns lithium-ion batteries.
-``Simulation of lithium-ion battery models requires simultaneous evaluation of concentration and potential fields, in both solid as well as liquid phases. In addition, the porous nature of the battery electrodes leads to highly nonlinear and heterogeneous electrochemical reaction kinetics." \cite{Subramanian:2009}
+Our third application area concerns lithium-ion batteries.
+``Simulation of lithium-ion battery models requires simultaneous evaluation of concentration and potential fields, in both solid as well as liquid phases. In addition, the porous nature of the battery electrodes leads to highly nonlinear and heterogeneous electrochemical reaction kinetics''. \cite{Subramanian:2009}
 Furthermore, 
 the highly structured nature of battery systems means we deal with coupled systems, rather
 than one system presumed to govern the full device.   
@@ -412,7 +409,7 @@ quantities of interest are statistical / feature based
 particularly at higher levels of the hierarchy.
 \MarginPar{from discussion of 5/13 this my be too hard. Matti: see above. What do we do about this?}
 
-In spite of the differences, the target application areas have a number
+In spite of the commonalities, the target application areas have a number
 of distinct features.
 Combustion is more well understood but with mathematical models are perhaps on firmer ground
 and numerical models are perhaps more sophisticated
@@ -495,14 +492,17 @@ Note that $F$ is a function of the uncertain parameters and that the minimizer o
 \label{eq:IS_sampling_eq}
 	F(\theta)-\phi = \frac{1}{2}\xi^T\xi,
 \end{equation}
-where $\phi = \min F$ and $\xi$ is a Gaussian reference variable with mean zero and unit variance, i.e. the equations have a random right hand side (RHS). Note that the RHS is small with a high probability ($\xi$ has mean zero), which implies that the left hand side is also small with a high probability and, therefore, the solution is close to the minimizer of $F$ which is the mode of the posterior. Thus, the solutions of these equations (for different realizations of $\xi$) are in the neighborhood of the mode of the posterior, i.e. almost all samples are compatible with the data. Generating samples with low probability with respect to the data (as in standard MC sampling) is avoided by the minimization step. 
-
+where $\phi = \min F$ and $\xi$ is a Gaussian reference variable with mean zero and unit variance, i.e. the equations have a random RHS. Note that the RHS is small with a high probability ($\xi$ has mean zero), which implies that the left hand side is also small with a high probability and, therefore, the solution is close to the minimizer of $F$ which is the mode of the posterior. Thus, the solutions of these equations (for different realizations of $\xi$) are in the neighborhood of the mode of the posterior, i.e. almost all samples are compatible with the data. Generating samples with low probability with respect to the data (as in standard MC sampling) is avoided by the minimization step. In summary, implicit sampling amounts to the following two steps:
+\begin{enumerate}
+	\item Minimize the function $F$ to identify relevant regions of the parameter space
+	\item Find samples in this region by solving the random algebraic equations (\ref{eq:IS_sampling_eq})
+\end{enumerate}
 \MarginPar{(Peter): I would suggest we put here  a simplified "pseudocode" algorithm, 
 or just step by step enumeration of the essential steps of the algorithm, by way of summary.}
 
 While the general method of attack is clear, many research questions arise when applying this sampling technique to the target applications. A characteristic of all our target applications is that there is a hierarchy of experiments. How to use this characteristic for successful and efficient sampling is a major research question we will address. In the data assimilation context in which particle filters originated, the algorithms move through a temporal sequence of data and sequentially update the state/parameters as data becomes available. The update rule comes from repeated applications of Bayes' rule and ultimately leads to a recursive formulation of the posterior. Here we need to modify the methodology to transition from one experiment to the next as we move through the hierarchy of experiments, i.e. we need to find the update rule for moving up in the hierarchy. For example, we can construct priors at a higher level of the hierarchy from posteriors at lower levels. For implicit sampling this amounts to finding a representation of the posterior at a lower level that can serve as a prior in the optimization at the next stage. Moreover, the theory and numerics can be intertwined here because the models obtained (as posteriors) at lower levels of the hierarchy may help with speeding up the minimizations required at higher levels of the hierarchy (see below for more detail).  Another central issue is determining whether or not moving through the hierarchy of experiments from the simplest to the most complex introduces bias in the parameter estimates. If this bias is found to be significant, strategies must be developed to reduce that bias. 
 
-Another central research question is how to use implicit sampling for multi-scale problems, specifically battery simulations as a target application. The situation is similar to how to use implicit sampling across a hierarchy of experiments (see above). Specifically, we will address how information can be propagated efficiently across different scales. Suppose we have two scales $x_1$ and $x_2$, and one data set $y_1$. We are interested in approximating the pdf $p(x^0, x^1|y^1)$ which, by Bayes' rule and assuming that the data $y_1$ depends only on the scale $x^1$, factorizes such that
+Another central research question is how to use implicit sampling for multi-scale problems, specifically battery simulations as a target application. The situation is similar to how to use implicit sampling across a hierarchy of experiments. Specifically, we will address how information can be propagated efficiently across different scales. Suppose we have two scales $x_1$ and $x_2$, and one data set $y_1$. We are interested in approximating the pdf $p(x^0, x^1|y^1)$ which, by Bayes' rule and assuming that the data $y_1$ depends only on the scale $x^1$, factorizes such that
 \begin{equation}
 	p(x^0, x^1|y^1) \propto p(y^1|x^1) p(x^1|x^0) p(x^0).
 \end{equation}
@@ -547,18 +547,16 @@ In such cases, isotropic sampling algorithms such as single variable heat bath (
 Metropolis walk will be slow.
 In the context of MCMC, we plan to use the affine sampling approaches developed at NYU to address issues of model degeneracy.
 \MarginPar{what does this look like for particle filters?  guess is that optimization slows down.  answer regularized by prior? Matti: I attempt to make a connection to sampling here, but I might be totally wrong. Please check. We could also use this as the bridge to MCMC, because I  think that tackling degeneracy with IS is hard.}
-Model degeneracy can lead to difficulties with implicit sampling, since it corresponds to a ``valley'' in  the function $F$, which slows down the convergence of the required optimization. Moreover, a good approximation of the degeneracy requires  the valley being populating with samples which will increase the number of samples one needs to generate. The computational expense of implicit sampling will thus increase significantly and we plan to switch to MCMC sampling to address sampling degeneracy. Moreover, we will investigate how to link MCMC to implicit sampling to speed up exploration of model degeneracies.
+Model degeneracy can lead to difficulties with implicit sampling, since it corresponds to a ``valley'' in  the function $F$, which slows down the convergence of the required optimization. Moreover, a good approximation of the degeneracy requires  the valley being populated with samples which will increase the number of samples one needs to generate. The computational expense of implicit sampling will thus increase and we will investigate how to link MCMC to implicit sampling to speed up exploration of model degeneracies.
 
 Finally, it is important to use statistical methods that are robust in the inevitable situation where the exact model is not in
 the family being fit.
 Models are only approximations to reality.
-The Arrhenius form for reaction rates are only modeling approximations, though they can be
-very accurate.
-Similarly, typical models for species diffusion in combustion are only approximations, even at the continuum level,
+For example, the Arrhenius form for reaction rates are only modeling approximations, though they can be very accurate. Similarly, typical models for species diffusion in combustion are only approximations, even at the continuum level,
 to a full transport model, which is, in itself, an approximation to the underlying molecular processes.
-Dven small modeling errors can make an accurate global fit impossible, particularly in chaotic systems.
+Even small modeling errors can make an accurate global fit impossible, particularly in chaotic systems.
 A more serious structural issue arises in the case of batteries and photovoltaic models where the models
-are extremely less mature.  In these areas we are likely to encounter structural models where key physical
+are not yet mature.  In these areas we are likely to encounter structural models where key physical
 processes are missing from the description.
 One approach is to include noise in the dynamics, so that the posterior distribution does not require the
 dynamical equations to be satisfied exactly.
@@ -593,7 +591,7 @@ Then we can write (\ref{eq:IS_data}) as
 \begin{equation}
 y(\theta) = H^S(\theta) + (H^C(\theta) - H^S(\theta)) + v.
 \end{equation}
-Gaussian process regression can then be used to model  $(H^C - H^S)$ as $\mathcal{N}(m_{\rm GPR}(\theta;\bar{\theta}),\Sigma_{\rm GPR}(\theta;\bar{\theta}))$, where $\bar{\theta}$ are sample points used to construct the Gaussian process regression model.  We note that both $m_{\rm GPR}$ and $\Sigma_{\rm GPR}$ depend on $\theta$ and as such is capable of modeling the nonlinearity in the difference.  The rest of the formulation used for implicit sampling can be then be used without modifications.  Appropriate models for $m_{\rm GPR}$ and $\Sigma_{\rm GPR}$ and their construction procedures that efficiently utilize exascale computers are research questions that need to be answered. 
+Gaussian process regression can then be used to model  $(H^C - H^S)$ as $\mathcal{N}(m_{\rm GPR}(\theta;\bar{\theta}),\Sigma_{\rm GPR}(\theta;\bar{\theta}))$, where $\bar{\theta}$ are sample points used to construct the Gaussian process regression model.  We note that both $m_{\rm GPR}$ and $\Sigma_{\rm GPR}$ depend on $\theta$ and as such is capable of modeling the nonlinearity in the difference.  Application of implicit sampling (see above) to this  formulation seems feasible, however appropriate models for $m_{\rm GPR}$ and $\Sigma_{\rm GPR}$ and their construction procedures that efficiently utilize exascale computers are research questions that need to be answered. 
 
 %\MarginPar{JG doubts this will work and notes a need to for derivative information to guide sampling. JBB
 %doubts we can perform adjoint simulations for 3 turbulent simulations.  Only way out JB can think of
@@ -605,16 +603,16 @@ is using the adjoint of a simpler model for the optimization.}
 
 Several other practical issues will be addressed.
 \MarginPar{Not sure of best ordering of topics from here to the end}
-For example, we may have more than one data set at time $T$, i.e. we have data at $T_1,T_2,\dots,T_m$, where $m$ may be large.
+For example, we may have access to more than one data set at time $T$, i.e. we have data at $T_1,T_2,\dots,T_m$, where $m$ may be large.
 There are two options for using these data for estimation: (\emph{i}) we can extend the above formalism to include all $m$ data sets and estimate the parameters using all the data (off-line estimation); or (\emph{ii}) we can estimate the parameters using a batch of $k_1$ data sets and then refine this estimate using the remaining data in batches of $k_n$ sets, i.e. we can move through the data sequentially (on-line estimation).
 Theoretically, off-line estimation seems more attractive, since more data should lead to more accurate estimates because it avoids bias (e.g. the maximum likelihood estimator is asymptotically unbiased as the number of data goes to infinity). However in practice one often finds an ``optimal'' number of data sets per estimation sweep (i.e. an optimal $k$), the reason being (at least in part) that the exact model is not in the family being fit (even at high levels of  accuracy).
 This is well known and cleverly used in numerical weather prediction and we plan to investigate the optimal number of data sets per estimation sweep for our target applications.
 
 \MarginPar{Matti: not sure this is necessary.
 Perhaps this is too specific/confusing?}
-Recall that we used Gaussian assumptions for the prior and likelihood in the presentation above, however these assumptions can be relaxed.
+Recall that we used Gaussian assumptions for the prior and likelihood in the summary of implicit sampling above, however these assumptions can be relaxed.
 For example, a Gaussian prior is not meaningful if the parameter is known to be positive. Similarly, we have chosen a Gaussian ``reference variable'' $\xi$, but other choices are also possible.
-We plan to investigate the interplay between priors, likelihood functions and the reference variable and will determine good choices for reference variables for each target application and at each level of the hierarchy.
+We plan to investigate the interplay between priors, likelihood functions and the reference variable in implicit sampling and will determine good choices for reference variables for each target application and at each level of the hierarchy.
 Similarly, there are various methods for solving the algebraic equations of implicit sampling (\ref{eq:IS_sampling_eq}). For example, if information about the curvature of $F$ is available, e.g. from BFGS-type optimizations, we can use linear maps based on the Hessian of $F$. In other situations, e.g. derivative free optimization or optimization using surrogates, this information may not be available.
 We plan to investigate optimal choices for solving the algebraic equations for each target application and at each level of the hierarchy.
 
