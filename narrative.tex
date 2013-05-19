@@ -122,7 +122,38 @@ The advantage of this method is that posterior samples are easy to generate once
 However, the construction of the map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps).
 We expect that we will need to compute a map at each level of the hierarchy and, thus, expect that this approach is computationally too expensive for our target applications. Moreover, the errors of the approximations involved in finding the map are, at this time, not well understood. 
 
-JONATHAN:  SHORT LITERATURE REVIEW OF MCMC AND SHORTCOMINGS OF EXISTING APPROACHES
+Monte Carlo technique is one focus of this proposal.
+The posterior distributions that are the basis of Bayesian UQ can be very hard to sample.
+There is a weak analogy to the problem of solving large systems of linear of nonlinear equations.
+For equation solving there are generic methods such as Gaussian elimination, Gauss Seidel iteration,
+Newton's method, etc.
+But these generic methods are unable to solve extreme scale problems that arise from simulating
+complex physics in 3D.
+These require specialized multi-scale algorithms, such as multigrid, that take into account the
+physical nature of slowly relaxing modes.
+This analogy fails to capture the extra difficulty, which is that sampling problems do not some with
+something like {\em residuals} that can be evaluated to confirm convergence.
+There is no way to test a-posteriori that a sampler has converged to the correct distribution.
+The correctness must be built in to the sampler.
+
+Standard MCMC (Markov chain Monte Carlo) samplers can become very slow when the distribution being
+sampled is ill conditioned.
+Ill conditioning in problems of moderate dimension can come from approximate degeneracy: Very
+different combinations of parameters fit the data nearly as well.
+Several approaches are emerging to address this, including multi-stage adaptive samplers and
+affine invariant ensemble samplers.
+High dimensional problems that come from discretizing field theories or stochastic PDEs
+can be ill conditioned because of the range of modes at different length scales.
+Hamiltonian samplers have proven better than direct local Metropolis or heat bath methods, but
+they still can be slow.
+More sophisticated truly multi-scale samplers include Swendsen Wang and multigrid methods.
+Unfortunately, none of these methods at present is nearly as general, say, as multigrid for
+solving discretizations of PDEs.
+Some promising developments include ``chainless'' approximate methods, and
+{\em parallel marginalization}.
+We will look for multiscale sampling methods that are effective for problems that come from PDE
+with noise under partial observation.
+
 
 \MarginPar{George: started review of ROM in UQ.  Will add more on uncertainty quantification of prediction and sensitivity analysis}
 The presence of a hierarchy of computational models that correspond to the hierarchy of experiments can be further exploited to improve efficiency of these sampling techniques.
