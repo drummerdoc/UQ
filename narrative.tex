@@ -297,9 +297,9 @@ interstitial defect can combine to heal the crystal.
 
 \begin{eqnarray*}
 \ce{ \tfrac{1}{2} S2 -> S_s^x + V_m^{''} + 2 h^+ } \\
-\ce{ NULL -> V_m^{''}+ V_s^{$\cdot \cdot$} } \\
-\ce{ NULL -> e^' + h^{$\cdot$} } \\
-\ce{ S_s^x -> \tfrac{1}{2} S2 + V_s^{$\cdot \cdot$} + 2 e^- }.
+\ce{ NULL -> V_m^{''}+ V_s^{\cdot \cdot} } \\
+\ce{ NULL -> e^ '+ h^{\cdot} } \\
+\ce{ S_s^x -> \tfrac{1}{2} S2 + V_s^{\cdot \cdot} + 2 e^- }.
 \end{eqnarray*}
 \MarginPar{need to define terms}
 
@@ -548,8 +548,7 @@ For example, $\theta$ can be a Gaussian random variable with mean $\mu$ and cova
 We further assume that the initial conditions $x_0$ are known precisely.
 This assumption is reasonable in some applications, e.g. in combustion, where the initial conditions are well known, at least at some levels of the hierarchy.
 In other cases, the initial conditions are parameterized by a relatively small number of (uncertain) parameters, e.g. in battery simulation, where the initial conditions are characterized by the initial voltage of the macroscopic cell.
-In these cases, we lump the uncertainty of $x_0$ into the random vector $\theta$, i.e. we allow for $x_0 =x_0(\theta)$ but do not highlight this (possible) dependency in what follows.
-\MarginPar{Matti: is this correct?} Denoting the model as $M$, we have
+In these cases, we lump the uncertainty of $x_0$ into the random vector $\theta$, i.e. we allow for $x_0 =x_0(\theta)$ but do not highlight this (possible) dependency in what follows. Denoting the model as $M$, we have
 \begin{equation}
 	x_T = M(x_0,\theta, T).
 \end{equation}
@@ -585,88 +584,23 @@ There are various methods for solving the algebraic equations of implicit sampli
 	\item Minimize the function $F$ to identify relevant regions of the parameter space
 	\item Find samples in this region by solving the random algebraic equations (\ref{eq:IS_sampling_eq})
 \end{enumerate}
-\MarginPar{(Peter): I would suggest we put here  a simplified "pseudocode" algorithm, 
-or just step by step enumeration of the essential steps of the algorithm, by way of summary.}
 
 While the general method of attack is clear, many research questions arise when applying this sampling technique to the target applications. A characteristic of all our target applications is that there is a hierarchy of experiments. How to use this characteristic for successful and efficient sampling is a major research question we will address. In the data assimilation context in which particle filters originated, the algorithms move through a temporal sequence of data and sequentially update the state/parameters as data becomes available. The update rule comes from repeated applications of Bayes' rule and ultimately leads to a recursive formulation of the posterior. Here we need to modify the methodology to transition from one experiment to the next as we move through the hierarchy of experiments, i.e. we need to find the update rule for moving up in the hierarchy. For example, we can construct priors at a higher level of the hierarchy from posteriors at lower levels. For implicit sampling this amounts to finding a representation of the posterior at a lower level that can serve as a prior in the optimization at the next stage. Moreover, the theory and numerics can be intertwined here because the models obtained (as posteriors) at lower levels of the hierarchy may help with speeding up the minimizations required at higher levels of the hierarchy (see below for more detail).  Another central issue is determining whether or not moving through the hierarchy of experiments from the simplest to the most complex introduces bias in the parameter estimates. If this bias is found to be significant, strategies must be developed to reduce that bias. 
 
-Another central research question is how to use implicit sampling for multi-scale problems, specifically battery simulations as a target application. The situation is similar to how to use implicit sampling across a hierarchy of experiments. Specifically, we will address how information can be propagated efficiently across different scales. Suppose we have two scales $x_1$ and $x_2$, and one data set $y_1$. We are interested in approximating the pdf $p(x^0, x^1|y^1)$ which, by Bayes' rule and assuming that the data $y_1$ depends only on the scale $x^1$, factorizes such that
+Another central research question is how to use implicit sampling for multi-scale problems. Specifically, we will address how information can be propagated efficiently across different scales. For example, in battery simulation, we are interested in the fluctuation of pressure with time since it can critically affect performance, degradation, and safety of batteries. This ``macro scale'' (here: millimeters) pressure is the manifestation of many effects at the ``mesoscale'' (here: microns): conversion of electrolyte to the gas phase; the sponge like nature of the porous electrode; elastic properties of the binder (the binder is the ``glue'' that holds the particles in their porous structure); the porosity and toruosity of the separater. The pressure is the sum of these effects combined across the whole cell and can be measured via detailed signals from transducers. In addition, we have data of mesoscale phenomena such as stress, strain, swelling, and other mechanical properties. Our goal is to
+incorporate all available data to form an estimate of the pressure and the mesoscale state, described in terms of layer thicknesses (substrate, epoxy layer, current collector, active material, entire electrode), volume fractions (particles, binder, pores), porosity, tortuosity, particle sizes and distributions (see, e.g., \cite{Sethuraman2012334}) and other parameters governing the makeup and morphology of the heterogeneous
+electrode. By using Bayes' rule we can factorize the conditional pdf of the cell-level pressure and electrode-level stress and strain, given both
+cell and electrode level data:
 \begin{equation}
-	p(x^0, x^1|y^1) \propto p(y^1|x^1) p(x^1|x^0) p(x^0).
+\label{eq:MultiScalePDF}
+	p(x^1, x^2|y^1,y^2) \propto p(y^1|x^1) p(y^2|x^2) p(x^2|x^1)p(x^1),
 \end{equation}
-This is the update rule for going from scale $0$ to $1$. As more scales and more data become available, extending this formalism gives
-\begin{eqnarray}
-	p(x^0,x^1,x^2 | y^1,y^2) & \propto  & p(y^2 | x^2) p(x^2|x^1) p(x^0,x^1 | y^1) \\
-	  & \propto & p(y^2 | x^2)  p(y^1|x^1)    p(x^2|x^1)p(x^1|x^0) p(x^0)
-\end{eqnarray}
-the update rule that connects the scale $x^2$ with the data $y^2$ and the information we have about the scales $x^0$ and $x^1$ given the data $y^1$.
-What is required for successful updating between scales 
-(i.e., two types of terms we have factored $p$ into) are observation models
-of the form $p(y^{n}|x^{n})$ that connect the data at each scale with the model at that scale as well as ``scale coupling'' models of the form $p(x^{n+1}|x^n)$.
-There are two main research topics here. For one, we need to investigate the validity of the assumptions that (\emph{i}) the scale coupling models are ``Markovian'', i.e. they couple only two subsequent scales; and (\emph{ii}) that the observation models at each scale only depends on the state at that scale.
-In addition, we need to investigate implementation issues, e.g. how will the coupling between scales affect the required optimizations and subsequent solves of~(\ref{eq:IS_sampling_eq}).
-\MarginPar{Peter: can you check that this makes sense?}
+where we use the indices to distinguish scales, i.e. $x^1,y^1$ correspond to the mesoscale state and data, $x^2,y^2$ to the macro scale state and data. Here, the first two terms come from a model of how the data is connected to the state (at each scale); the third term describes how the various mesocsale quantities affect pressure and the last term is the prior for the mesoscale parameters. The above equation demonstrates how both the data and physical models are being incorporated and combined across scales. By switching the indices, we can use this formalism to push information from macro- to mesoscales, which may be important since macro-scale measurements are typically more reliable than meso-scale measurements. In this case, the physical models ($p(x^2|x^1)$) acts as constraint (what $x^1$ is compatible with $x^2$?) rather than as a prediction (what is $x^2$, given $x^1$?) because of the many-to-one relation between mesoscale parameters and macroscopic pressure. 
 
-%%%%%%%%%%% Peter added this
-Here we present a specific example of the formulation of multicsale implicit sampling in battery simulation.
-The fluctuation of pressure with time can critically affect performance, degradation, and safety of batteries.
-We label the scales at which to model battery processes
-somewhat arbitrarily as ``micro" (roughly, nanometers), ``meso" (microns), and ``macro" (millimeters).  
-Referring to the above general formulation of multi-scale implicit sampling,  let the state/parameters
-at these scales be denoted $x^0$, $x^1$, and $x^2$, respectively.
-  The macroscale state variable $x^2$ of interest is pressure.  We can measure it via data $y^2$ which consists
-of detailed signals from transducers.  
-%For purposes of this discussion, we can assume the ``observation model" 
-%$y^2 = h(x^2) + \textrm{ noise}$ is perfect, so $y^2 \equiv $x^2$   
-  Macroscale pressure is in fact the manifestation of many effects at the mesoscale: conversion of electrolyte
-to the gas phase; the sponge like nature of the porous electrode; elastic properties of the binder (the binder
-is the "glue" that holds the particles in their porous structure); the porosity and toruosity of the separater.  The pressure is the sum of all these effects combined across the whole cell.  Let $x^1$ represent the state,
-described at the mesoscale in terms of such quantities as layer thicknesses (substrate, epoxy layer,
-current collector, active material, entire electrode), volume fractions (particles, binder, pores), 
-porosity, tortuosity, particle sizes and distributions  
-(see, e.g., \cite{Sethuraman2012334}) and other parameters governing the makeup and morphology of the heterogeneous
-electrode.
-Let $y^1$ be data
-gathered regarding mesoscale phenomena such as stress, strain, swelling, and other mechanical properties.  
-Our goal is to
-incorporate all available data, i.e. both $y^1$ (measuring electrode properties: stress, strain, etc.) and $y^2$ (measuring cell properties: pressure), into the estimate of
-$$
-	p(x^2,x^1 | y^2,y^1) \propto p(y^2|x^2) p(x^2|x^1) p(x^1),
-$$
-the conditional expection of cell-level pressure and electrode-level stress and strain, given both
-cell and electrode level data.
-The first term on the right hand side represents our observation model of "pressure".
-The second term come from a physical or statistical model of how the various mesocsale quantities 
-affect pressure.  The last term is our guess at what the mesoscale parameters really will be.
-From this equation we can see how both the data (first term) and physical model (second term) are being
-incorporated.  
-
-To sample from this distribution by implicit sampling, we will follow the steps outlined above, specifically:
-\begin{itemize} \itemsep -0.2em
-\item form $F = -\log( p)$
-\item minimize it, get $\sigma_F$, or even (from a population based algorithm) $\{\sigma^i_F\}_{i=1}^{Npop}$
-\item sample from it by repeating:\\
- -- sample $\xi$ from Gaussian\\
- -- solve $F-\sigma_F = \xi^T \xi$. \\
-\end{itemize}
-With these samples in hand we can calculate any desired statistics of the macroscale pressure. 
-What have we accomplished?  We have demonstrated a formulation that allows physics-based models (e.g., 
-how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements. 
-Conversely, we have demonstrated how the physics-based model can ``learn" from the macroscale measurements.
+We plan on to develop a multi-scale version of implicit sampling to approximate the pdf (\ref{eq:MultiScalePDF}). Two main research topics here are: (\emph{i}) we need to investigate the validity of the assumptions that lead to a factorization of the pdf, in particular we need to verify that the scale coupling models are (nearly) ``Markovian'', i.e. they couple only two subsequent scales, and that the observation models at each scale only depend on the state at that scale; (\emph{ii}), we need to investigate implementation issues, e.g. how will the coupling between scales affect the required optimizations and subsequent solves of~(\ref{eq:IS_sampling_eq}). A successful and efficient solution of this multi scale problem allows physics-based models (e.g. how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements, or, conversely, the physics-based model can ``learn" from the macro-scale measurements.
 \MarginPar{emphasize that this could be extreme scale science}
-
-Interestingly, we can also reverse the formulation.  \emph{This is perhaps more of interest, in fact, because
-macroscale pressure measurements are \textbf{more} reliable than meso- and micro-scale measurements.}  By applying
-the formalism from scale $2$ \emph{to} scale $1$, we have 
-$$
-	p(x^1,x^2 | y^1,y^2) \propto p(y^1|x^1) p(x^1|x^2) p(x^2).
-$$
-In this case the physics model is used to compute $p(x^1|x^2)$.  Because of the presumed (in this case)
-many-to-one relation between mesoscale parameters and macroscopice pressure, this term acts as  constraint (what $x^1$ is compatible with $x^2$?) than a prediction (what is $x^2$, given $x^1$?).
-
 OTHER STUFF THAT COULD BE RELEVANT HERE, SPACE AND INTEREST PERMITTING: (1) COUPLING QUANTUM CALCULATIONS; IMPLEMENTATION (SPECIFICALLY, THIS IS ``PARAMETER ONLY" PROBLEM, SO DERIVATIVE FREE OPTIMIZATION COULD BE APPLIED (?), LEADING TO
 DISCUSSION OF HOW TO DO THATÉ)
-%%%%%%%%%%% end of "Peter added this"
 
 Further extensions of the implicit sampling formalism are required for the combustion applications, where the observation function $h$ itself can be uncertain.
 For example, laser diagnostic measurements depend on the system state but there are parameters describing the laser interaction (so-called quenching coefficients) that have uncertainties as well.
