@@ -82,10 +82,10 @@ electrolyte (convection diffusion), electrode (mechanical constitutive equations
   
 %``Simulation of lithium-ion battery models requires simultaneous evaluation of concentration and potential fields, %in both solid as well as liquid phases. In addition, the porous nature of the battery electrodes leads to highly %nonlinear and heterogeneous electrochemical reaction kinetics." \cite{Subramanian:2009}
 
-Representative examples of battery models include \cite{ex1}, in which a fully resolved 3D electrode simulated using a combination
+Representative examples of battery models include \cite{Less:2012}, in which a fully resolved 3D electrode simulated using a combination
 of convection-diffusion and Butler-Volmer equations. This model uses approximately 25 parameters derived by the authors from experiment.
-Another example is \cite{ex2}, which simulates a 3D electrode, including the constitutive relations that are first steps toward
-incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{ex3}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
+Another example is \cite{Garcia2005}, which simulates a 3D electrode, including the constitutive relations that are first steps toward
+incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{Kim-etal:2011}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
 
 The current paradigm for virtually all battery simulations (including those above)
  is the use of effective parameters derived from single-scale experiments
@@ -96,21 +96,22 @@ combine modeling and data \emph{across a hierarchy of experiments}
 to reduce uncertainty in the underlying physics parameters and improve predictive capability.
 
 The hope for such a program rests on the fact that hierarchies of experiments exist addressing virtually all aspects 
-of the heterogeneous battery system (TO BE NEATENED/FINISHED (E.G. MORE REFS)):\\
-\textbf{diffusivities}: (microscale) single-crystal measurements, molecular diffusivity  \cite{Chung:2011}; (mesoscale) in-situ/single particle measurements \cite{Cui:2012};  (macroscale) GITT/PITT (Routinely carried out using composite electrodes) \cite{Wen01121979}\\
+of the heterogeneous battery system:\\
+\textbf{diffusivities}: (microscale) single-crystal measurements, molecular diffusivity  \cite{Chung:2011}; (mesoscale) in-situ/single particle measurements \cite{Cui:2012};  (macroscale) galvanostatic intermittent titration technique (GITT) and potentiostatic intermittent titration technique (PITT) (routinely carried out using composite electrodes) \cite{Wen01121979}\\
 %Multi-scale measurements hel p resolve disputes in transport mechanism
-\textbf{rate constants}: (microscale) reactive TEM  (PNNL) ; (mesoscale) Aurbach and others;  
-(macroscale) electrochemical impedence spectroscopy (only ``effective reactivities" are of interest to the macro-models) \\
+\textbf{rate constants}: (microscale) reactive transmission electron microscopy (TEM) \cite{Gu2012}; (mesoscale) electrolytic
+solution design \cite{Aurbach2004};  
+(macroscale) electrochemical impedence spectroscopy (EIS) \cite{Meyers2000} (only ``effective reactivities" are of interest to the macro-models)  \\
 %Multi-scale measurements help eliminate multiple “optima”
 \textbf{open circuit potentials, entropy measurements, decomposition potentials}:  
-(microscale) composition versus lattice structure (e.g., XRD Ceder, Ohzuku);
-(mesoscale) ECQM???;
+(microscale) composition versus lattice structure (XRD) \cite{Ceder2009,Ohzuku1995};
+(mesoscale) electrochemical quartz crystal microbalance (ECQM) \cite{Buttry1992};
 (macroscale) C/50 discharge\\
 %“Voltage fade”???, non-stoichiometric “phases”???, hysteresis!!!, decompn. potentials fairly well documented
 \textbf{conductivities (electronic, ionic)}:  
-(microscale) quantum transport;
-(mesoscale) Measure properties of individual components and use mixing rules (effective medium theory);
-(macroscale) Measure effective conductivities \\
+(microscale) quantum transport, lithiation mechanisms \cite{Ceder2009};
+(mesoscale) measure properties of individual components and use mixing rules (effective medium theory \cite{Stroud1975});
+(macroscale) measure effective conductivities \\
 %Not strictly multiscale; need to think about this more
 \textbf{mechanical properties}: 
 (microscale) in-situ TEM \cite{Wang:2012};
@@ -129,6 +130,7 @@ pressure trends known to correlate with battery degradation (e.g.,
 capacity fade) and safety (e.g., thermal runaway, a.k.a. fire) issues.
 
 \subsection{Formulation of multi-scale implicit sampling for modeling pressure in battery systems}
+Here we present a specific example of the formulation of multiscale implicit sampling in battery simulation.
 The fluctuation of pressure with time can critically affect performance, degradation, and safety of batteries.
 We label the scales at which to model battery processes
 somewhat arbitrarily as ``micro" (roughly, nanometers), ``meso" (microns), and ``macro" (millimeters).  
