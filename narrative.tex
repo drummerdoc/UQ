@@ -404,25 +404,79 @@ to the various parameters separately:
   seems more appropriate.}
 
 Our third application area concerns lithium-ion batteries.
-``Simulation of lithium-ion battery models requires simultaneous evaluation of concentration and potential fields, in both solid as well as liquid phases. In addition, the porous nature of the battery electrodes leads to highly nonlinear and heterogeneous electrochemical reaction kinetics''. \cite{Subramanian:2009}
-Furthermore, 
-the highly structured nature of battery systems means we deal with coupled systems, rather
+A recent DOE Basic Energy Sciences (BES) workshop report states: 
+``Revolutionary breakthroughs in Electrical Energy Storage have been singled out as perhaps the most crucial need
+for this nation's secure energy future''  (\cite{ees_rpt}, p. xii).
+The promise of electric-drive vehicles (EDVs) can only be met if batteries having both high energy density and increased safety 
+and reliability are developed.  Current solutions, including exploding laptops and expensive electric vehicles that burst into 
+flame and/or can only travel 100 miles before requiring a full night to recharge, are inadequate for widespread adoption.
+Lithium ion batteries (LIBs) present a truly multiscale system, with important macroscopic behavior
+(e.g., catastrophic failure such as fire) determined by intricate microscale
+interactions (e.g., as a result of dendritic growth on lithium particles in
+one location deep inside the battery pack). 
+%It is extremely difficult, where
+%possible at all, to examine the mechanisms involved---especially, to
+%elucidate the microscopic origin of macroscopic phenomenon---experimentally.
+The highly structured, heterogeneous nature of battery systems implies we must model a coupled multiphysics system, rather
 than one system presumed to govern the full device.   
-Thus, we must deal with models that are inherently multiscale as well as multiphysics.
-A plethora of multi-scale multi-physics formulations exist.  Here we focus on 
-Multi-Scale Multi-Domain (MSMD) \cite{Kim-etal:2011} model developed at NREL.  Canonically there are
-three levels in this model, represented graphically by Figure (\ref{figure:batterymsmdhier}).
-Every volume element in the cell domain has a full electrode
-domain simulation in it.
-Every volume element in electrode domain has a particle domain model in it.  The geometry allows us
-to use 1D models for both the electrode and particle domains, at least for studies to date.
-But in principle all three domains are 
-3D.
-The corresponding equations are given explicitly in Figure (\ref{figure:batterymsmdeqns}).  The communication down in scale is by boundary
-conditions for the lower scale's governing equations; the communication up is by supplying source terms for the upper scale's
-equations. 
+In theory one can enumerate at least 6 levels of detail that are tied together in some way: 
+atomistic (quantum), atomistic (MD), particles, electrode, cell, pack.  The problem certainly represents a potential
+extreme scale computation, as relevant phenomena over 10 orders of magnitude must be resolved and coupled
+in some way.
 
-PETER NEED TO EDIT  / FINISH THIS
+HERE, SPACE PERMITTING, I WOULD QUICKLY ENUMERATE THE FORMS OF THE EQUATIONS ENCOUNTERED AT THE VARIOUS SCALES:
+quantum (Schroedinger), MD (Newton's law), particle (diffusion + Butler-Vollmer to model interface kinetics), 
+electrolyte (convection diffusion), electrode (mechanical constitutive equations), cell (diffusion, thermal transport).
+  
+%``Simulation of lithium-ion battery models requires simultaneous evaluation of concentration and potential fields, %in both solid as well as liquid phases. In addition, the porous nature of the battery electrodes leads to highly %nonlinear and heterogeneous electrochemical reaction kinetics." \cite{Subramanian:2009}
+
+Representative examples of battery models include \cite{ex1}, in which a fully resolved 3D electrode simulated using a combination
+of convection-diffusion and Butler-Volmer equations. This model uses approximately 25 parameters derived by the authors from experiment.
+Another example is \cite{ex2}, which simulates a 3D electrode, including the constitutive relations that are first steps toward
+incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{ex3}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
+
+The current paradigm for virtually all battery simulations (including those above)
+ is the use of effective parameters derived from single-scale experiments
+used as fixed values in single-scale simulations.  However, this is problematic: first, we do not propogate uncertainty in 
+these parameters through the model; second, we miss the chance to use information \emph{across scales} to optimally understand
+the system.  Our proposed work specifically addresses this shortcoming in the current paradigm by offering the means to 
+combine modeling and data \emph{across a hierarchy of experiments}
+to reduce uncertainty in the underlying physics parameters and improve predictive capability.
+
+The hope for such a program rests on the fact that hierarchies of experiments exist addressing virtually all aspects 
+of the heterogeneous battery system (TO BE NEATENED/FINISHED (E.G. MORE REFS)):\\
+\textbf{diffusivities}: (microscale) single-crystal measurements, molecular diffusivity  \cite{Chung:2011}; (mesoscale) in-situ/single particle measurements \cite{Cui:2012};  (macroscale) GITT/PITT (Routinely carried out using composite electrodes) \cite{Wen01121979}\\
+%Multi-scale measurements hel p resolve disputes in transport mechanism
+\textbf{rate constants}: (microscale) reactive TEM  (PNNL) ; (mesoscale) Aurbach and others;  
+(macroscale) electrochemical impedence spectroscopy (only ``effective reactivities" are of interest to the macro-models) \\
+%Multi-scale measurements help eliminate multiple “optima”
+\textbf{open circuit potentials, entropy measurements, decomposition potentials}:  
+(microscale) composition versus lattice structure (e.g., XRD Ceder, Ohzuku);
+(mesoscale) ECQM???;
+(macroscale) C/50 discharge\\
+%“Voltage fade”???, non-stoichiometric “phases”???, hysteresis!!!, decompn. potentials fairly well documented
+\textbf{conductivities (electronic, ionic)}:  
+(microscale) quantum transport;
+(mesoscale) Measure properties of individual components and use mixing rules (effective medium theory);
+(macroscale) Measure effective conductivities \\
+%Not strictly multiscale; need to think about this more
+\textbf{mechanical properties}: 
+(microscale) in-situ TEM \cite{Wang:2012};
+(mesoscale) single particle and in situ electrode level \cite{Qi:2010,Verbrugge:1999};
+(macroscale) pressure transducers  \\
+%Rational design across scales
+
+We propose to use the multiscale implicit sampling and other frameworks developed under this proposal to
+address the origin and effects of pressure fluctuations in batteries for electric drive vehicles.  Specifically, we intend to
+use macroscopic experiments,
+% microscopic calculations (quantum),
+micro-(particle level) and meso-scale (electrode level) experiments to
+understand the small scale---especially mesoscale (because this is where the
+battery designer has the most degrees of freedom)---origin of macroscale
+pressure trends known to correlate with battery degradation (e.g.,
+capacity fade) and safety (e.g., thermal runaway, a.k.a. fire) issues.
+
+
 
 The three application areas share a number of commonalities.
 Each has a hierarchy of experiments that are used to probe the system.
@@ -552,6 +606,67 @@ of the form $p(y^{n}|x^{n})$ that connect the data at each scale with the model 
 There are two main research topics here. For one, we need to investigate the validity of the assumptions that (\emph{i}) the scale coupling models are ``Markovian'', i.e. they couple only two subsequent scales; and (\emph{ii}) that the observation models at each scale only depends on the state at that scale.
 In addition, we need to investigate implementation issues, e.g. how will the coupling between scales affect the required optimizations and subsequent solves of~(\ref{eq:IS_sampling_eq}).
 \MarginPar{Peter: can you check that this makes sense?}
+
+%%%%%%%%%%% Peter added this
+Here we present a specific example of the formulation of multicsale implicit sampling in battery simulation.
+The fluctuation of pressure with time can critically affect performance, degradation, and safety of batteries.
+We label the scales at which to model battery processes
+somewhat arbitrarily as ``micro" (roughly, nanometers), ``meso" (microns), and ``macro" (millimeters).  
+Referring to the above general formulation of multi-scale implicit sampling,  let the state/parameters
+at these scales be denoted $x^0$, $x^1$, and $x^2$, respectively.
+  The macroscale state variable $x^2$ of interest is pressure.  We can measure it via data $y^2$ which consists
+of detailed signals from transducers.  
+%For purposes of this discussion, we can assume the ``observation model" 
+%$y^2 = h(x^2) + \textrm{ noise}$ is perfect, so $y^2 \equiv $x^2$   
+  Macroscale pressure is in fact the manifestation of many effects at the mesoscale: conversion of electrolyte
+to the gas phase; the sponge like nature of the porous electrode; elastic properties of the binder (the binder
+is the "glue" that holds the particles in their porous structure); the porosity and toruosity of the separater.  The pressure is the sum of all these effects combined across the whole cell.  Let $x^1$ represent the state,
+described at the mesoscale in terms of such quantities as layer thicknesses (substrate, epoxy layer,
+current collector, active material, entire electrode), volume fractions (particles, binder, pores), 
+porosity, tortuosity, particle sizes and distributions  
+(see, e.g., \cite{Sethuraman2012334}) and other parameters governing the makeup and morphology of the heterogeneous
+electrode.
+Let $y^1$ be data
+gathered regarding mesoscale phenomena such as stress, strain, swelling, and other mechanical properties.  
+Our goal is to
+incorporate all available data, i.e. both $y^1$ (measuring electrode properties: stress, strain, etc.) and $y^2$ (measuring cell properties: pressure), into the estimate of
+$$
+	p(x^2,x^1 | y^2,y^1) \propto p(y^2|x^2) p(x^2|x^1) p(x^1),
+$$
+the conditional expection of cell-level pressure and electrode-level stress and strain, given both
+cell and electrode level data.
+The first term on the right hand side represents our observation model of "pressure".
+The second term come from a physical or statistical model of how the various mesocsale quantities 
+affect pressure.  The last term is our guess at what the mesoscale parameters really will be.
+From this equation we can see how both the data (first term) and physical model (second term) are being
+incorporated.  
+
+To sample from this distribution by implicit sampling, we will follow the steps outlined above, specifically:
+\begin{itemize} \itemsep -0.2em
+\item form $F = -\log( p)$
+\item minimize it, get $\sigma_F$, or even (from a population based algorithm) $\{\sigma^i_F\}_{i=1}^{Npop}$
+\item sample from it by repeating:\\
+ -- sample $\xi$ from Gaussian\\
+ -- solve $F-\sigma_F = \xi^T \xi$. \\
+\end{itemize}
+With these samples in hand we can calculate any desired statistics of the macroscale pressure. 
+What have we accomplished?  We have demonstrated a formulation that allows physics-based models (e.g., 
+how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements. 
+Conversely, we have demonstrated how the physics-based model can ``learn" from the macroscale measurements.
+\MarginPar{emphasize that this could be extreme scale science}
+
+Interestingly, we can also reverse the formulation.  \emph{This is perhaps more of interest, in fact, because
+macroscale pressure measurements are \textbf{more} reliable than meso- and micro-scale measurements.}  By applying
+the formalism from scale $2$ \emph{to} scale $1$, we have 
+$$
+	p(x^1,x^2 | y^1,y^2) \propto p(y^1|x^1) p(x^1|x^2) p(x^2).
+$$
+In this case the physics model is used to compute $p(x^1|x^2)$.  Because of the presumed (in this case)
+many-to-one relation between mesoscale parameters and macroscopice pressure, this term acts as  constraint (what $x^1$ is compatible with $x^2$?) than a prediction (what is $x^2$, given $x^1$?).
+
+OTHER STUFF THAT COULD BE RELEVANT HERE, SPACE AND INTEREST PERMITTING: (1) COUPLING QUANTUM CALCULATIONS; IMPLEMENTATION (SPECIFICALLY, THIS IS ``PARAMETER ONLY" PROBLEM, SO DERIVATIVE FREE OPTIMIZATION COULD BE APPLIED (?), LEADING TO
+DISCUSSION OF HOW TO DO THAT…)
+%%%%%%%%%%% end of "Peter added this"
 
 Further extensions of the implicit sampling formalism are required for the combustion applications, where the observation function $h$ itself can be uncertain.
 For example, laser diagnostic measurements depend on the system state but there are parameters describing the laser interaction (so-called quenching coefficients) that have uncertainties as well.
