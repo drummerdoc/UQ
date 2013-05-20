@@ -523,7 +523,9 @@ Note that $F$ is a function of the uncertain parameters and that the minimizer o
 \label{eq:IS_sampling_eq}
 	F(\theta)-\phi = \frac{1}{2}\xi^T\xi,
 \end{equation}
-where $\phi = \min F$ and $\xi$ is a Gaussian reference variable with mean zero and unit variance, i.e. the equations have a random RHS. Note that the RHS is small with a high probability ($\xi$ has mean zero), which implies that the left hand side is also small with a high probability and, therefore, the solution is close to the minimizer of $F$ which is the mode of the posterior. Thus, the solutions of these equations (for different realizations of $\xi$) are in the neighborhood of the mode of the posterior, i.e. almost all samples are compatible with the data. Generating samples with low probability with respect to the data (as in standard MC sampling) is avoided by the minimization step. In summary, implicit sampling amounts to the following two steps:
+where $\phi = \min F$ and $\xi$ is a Gaussian reference variable with mean zero and unit variance, i.e. the equations have a random RHS. Note that the RHS is small with a high probability ($\xi$ has mean zero), which implies that the left hand side is also small with a high probability and, therefore, the solution is close to the minimizer of $F$ which is the mode of the posterior. Thus, the solutions of these equations (for different realizations of $\xi$) are in the neighborhood of the mode of the posterior, i.e. almost all samples are compatible with the data. Generating samples with low probability with respect to the data (as in standard MC sampling) is avoided by the minimization step. 
+
+There are various methods for solving the algebraic equations of implicit sampling (\ref{eq:IS_sampling_eq}) \cite{chorin2010,Morzfeld2011}. For example, if information about the curvature of $F$ is available, e.g. from BFGS-type optimizations, we can use linear maps based on the Hessian of $F$. In other situations, e.g. derivative free optimization or optimization using surrogates, this information may not be available. In this situation we can use the random map approach, where one chooses a direction at random, and then computes a solution of (\ref{eq:IS_sampling_eq}) in this direction. With this random map approach, only a single equation in a single variable needs to be solved (regardless of the number of parameters being estimated). We plan to research into optimal choices for solving the algebraic equations for each target application. In summary, implicit sampling amounts to the following two steps:
 \begin{enumerate}
 	\item Minimize the function $F$ to identify relevant regions of the parameter space
 	\item Find samples in this region by solving the random algebraic equations (\ref{eq:IS_sampling_eq})
@@ -644,9 +646,6 @@ Perhaps this is too specific/confusing?}
 Recall that we used Gaussian assumptions for the prior and likelihood in the summary of implicit sampling above, however these assumptions can be relaxed.
 For example, a Gaussian prior is not meaningful if the parameter is known to be positive. Similarly, we have chosen a Gaussian ``reference variable'' $\xi$, but other choices are also possible.
 We plan to investigate the interplay between priors, likelihood functions and the reference variable in implicit sampling and will determine good choices for reference variables for each target application and at each level of the hierarchy.
-Similarly, there are various methods for solving the algebraic equations of implicit sampling (\ref{eq:IS_sampling_eq}). For example, if information about the curvature of $F$ is available, e.g. from BFGS-type optimizations, we can use linear maps based on the Hessian of $F$. In other situations, e.g. derivative free optimization or optimization using surrogates, this information may not be available.
-We plan to investigate optimal choices for solving the algebraic equations for each target application and at each level of the hierarchy.
-
 
 \MarginPar{need to articulate research questions in more detail and discuss all the ones i'm not thinking about. Matti: I tried to address this above.}
 
