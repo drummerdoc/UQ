@@ -666,18 +666,12 @@ Gaussian process regression can then be used to model  $(H^C - H^S)$ as $\mathca
 \MarginPar{need to decide if there is something viable here. Another alternative that merits consideration
 is using the adjoint of a simpler model for the optimization.}
 
-Several other practical issues will be addressed.
+Several other practical issues with implicit sampling will be addressed.
 \MarginPar{Not sure of best ordering of topics from here to the end}
 For example, we may have access to more than one data set at time $T$, i.e. we have data at $T_1,T_2,\dots,T_m$, where $m$ may be large.
-There are two options for using these data for estimation: (\emph{i}) we can extend the above formalism to include all $m$ data sets and estimate the parameters using all the data (off-line estimation); or (\emph{ii}) we can estimate the parameters using a batch of $k_1$ data sets and then refine this estimate using the remaining data in batches of $k_n$ sets, i.e. we can move through the data sequentially (on-line estimation).
+There are two options for using these data for estimation: (\emph{i}) we can extend the implicit sampling formalism to include all $m$ data sets and estimate the parameters using all the data (off-line estimation); or (\emph{ii}) we can estimate the parameters using a batch of $k_1$ data sets and then refine this estimate using the remaining data in batches of $k_n$ sets, i.e. we can move through the data sequentially (on-line estimation).
 Theoretically, off-line estimation seems more attractive, since more data should lead to more accurate estimates because it avoids bias (e.g. the maximum likelihood estimator is asymptotically unbiased as the number of data goes to infinity). However in practice one often finds an ``optimal'' number of data sets per estimation sweep (i.e. an optimal $k$), the reason being (at least in part) that the exact model is not in the family being fit (even at high levels of  accuracy).
-This is well known and cleverly used in numerical weather prediction and we plan to investigate the optimal number of data sets per estimation sweep for our target applications.
-
-\MarginPar{Matti: not sure this is necessary.
-Perhaps this is too specific/confusing?}
-Recall that we used Gaussian assumptions for the prior and likelihood in the summary of implicit sampling above, however these assumptions can be relaxed.
-For example, a Gaussian prior is not meaningful if the parameter is known to be positive. Similarly, we have chosen a Gaussian ``reference variable'' $\xi$, but other choices are also possible.
-We plan to investigate the interplay between priors, likelihood functions and the reference variable in implicit sampling and will determine good choices for reference variables for each target application and at each level of the hierarchy.
+This is well known and cleverly used in numerical weather prediction and we plan to investigate the optimal number of data sets per estimation sweep for our target applications. In addition we can relax the Gaussian assumptions for the prior and likelihood in implicit sampling. For example, a Gaussian prior is not meaningful if the parameter is known to be positive. Similarly, we have chosen a Gaussian ``reference variable'' $\xi$, but other choices are also possible. We plan to investigate the interplay between priors, likelihood functions and the reference variable in implicit sampling and will determine good choices for reference variables for each target application and at each level of the hierarchy.
 
 \MarginPar{need to articulate research questions in more detail and discuss all the ones i'm not thinking about. Matti: I tried to address this above.}
 
