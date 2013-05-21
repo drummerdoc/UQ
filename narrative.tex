@@ -102,22 +102,22 @@ The result is a complete characterization of the posterior probability density f
 From a practical perspective, an implementation of the Bayesian UQ approach via MC sampling
 is attractive because it respects the strong nonlinearities in the target applications
 and avoids the need for simplifying assumptions/approximations required by some current UQ techniques.
-Moreover, some MC sampling methods are well suited to massively parallel computer
+Moreover, some MC sampling methods are well suited for massively parallel computer
 architectures because the computationally expensive calculations,
 e.g. forward or adjoint model runs, can be executed independently and
 the communication between cores for each independent run is small.
 Using MC sampling as the computational backbone will lead to a numerically sound
 implementation of a rigorous UQ theory that is well suited for extreme scale machines, making UQ possible for realistic applications.
 
-However, the posterior distributions that are the basis of Bayesian UQ can be very hard to sample. A key issue is that many current MC techniques are not robustly effective for complex, high-dimensional problems. There is a weak analogy to the problem of solving large systems of linear of nonlinear equations.
+MC sampling techniques approximate the posterior distributions that are the basis of Bayesian UQ by a set of samples. However, computing these sample cab be very hard. A key issue is that many current MC techniques are not robustly effective for complex, high-dimensional problems. There is a weak analogy to the problem of solving large systems of linear or nonlinear equations.
 For equation solving there are generic methods such as Gaussian elimination, Gauss Seidel iteration,
 Newton's method, etc.
 But these generic methods are unable to solve extreme scale problems that arise from simulating
 complex physics in 3D.
 These require specialized multi-scale algorithms, such as multigrid, that take into account the
 physical nature of slowly relaxing modes.
-This analogy fails to capture the extra difficulty, which is that sampling problems do not come with
-something like {\em residuals} that can be evaluated to confirm convergence.
+What this analogy fails to capture is an extra difficulty in sampling: these problems do not come with 
+something like {\em residuals} that can be evaluated to confirm convergence of the algorithms.
 There is no way to test a-posteriori that a sampler has converged to the correct distribution.
 The correctness must be built in to the sampler.
 
@@ -145,7 +145,7 @@ The weighted particles form an empirical estimate of the posterior.
 Difficulties arise if the prior and posterior approach being mutually singular, i.e. if high-probability events with respect to the prior are likely to have low probability with respect to the posterior.
 This is the interesting case, which corresponds to the situation where one can learn from the data, rather than simply confirming the prior.
 However, in this case many of the samples have a low weight so that the empirical estimate they constitute is poor (it can be a single and often unlikely point).
-This can happen in a when estimating a single parameter, however it was shown rigorously for linear problems that the number of particles required scales catastrophically with the number of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach infeasible for our target applications.
+This can happen when estimating a single parameter, however it was shown rigorously for linear problems that the number of particles required scales catastrophically with the number of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach infeasible for our target applications.
 A number of methods have been invented to ameliorate this problem, most of which amount to finding a proposal density that  generates samples that are more compatible with the data \cite{Doucet,OptimalImportanceFunction,liuchen1995,Brad}.
 For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation \cite{vanLeeuwen}.
 A different approach is to construct a map that transforms the prior measure into the posterior measure, i.e. to construct a map that transforms prior samples into posterior samples \cite{Moselhy2013}. 
