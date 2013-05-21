@@ -1,0 +1,717 @@
+\documentclass[11pt]{article}
+% RFP specifically says to use 11 point type and 1 inch margins
+\usepackage{graphicx}
+\usepackage{epsf,color}
+\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+0pt \advance \topmargin by -\headheight \advance \topmargin by
+-\headsep \textheight 9.0in
+
+%\textwidth=6.5in\oddsidemargin=0in \evensidemargin=0in \topmargin
+%0pt \advance \topmargin by -\headheight \advance \topmargin by
+%-\headsep \textheight 8.9in
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{dcolumn}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage[compact]{titlesec}
+
+%\usepackage[plain]{fullpage}
+\usepackage{amsfonts}
+%\usepackage{lastpage}
+%\usepackage{fancyhdr}
+
+\usepackage[version=3]{mhchem} 
+% you can use this command to skip chunks of your document
+% just put the command around the chunk like this
+% \comment{ ...the chunk... }
+\newcommand{\comment}[1]{}
+
+%\newcommand{\MarginPar}[1]{\hspace{1sp}\marginpar{\tiny\sffamily\raggedright\hspace{1sp}#1}}
+\setlength{\marginparwidth}{0.75in}
+\newcommand{\MarginPar}[1]{\marginpar{%
+\vskip-\baselineskip %raise the marginpar a bit
+\raggedright\tiny\sffamily
+\hrule\smallskip{\color{red}#1}\par\smallskip\hrule}}
+
+%\renewcommand{\baselinestretch}{1.05} % = 1.0 Single space; = 2.0 Double
+\renewcommand{\baselinestretch}{1.0} % = 1.0 Single space; = 2.0 Double
+
+%\renewcommand{\refname}{Literature Cited}
+%------------------------
+
+%\pagestyle{empty}  % No page numbers
+%\textfloatsep 0mm
+%\abovecaptionskip 1mm
+
+\begin{document}
+
+%\pagestyle{plain}
+%\pagenumbering{roman}
+\begin{center}
+{\large{\textbf{A Hierarchical Approach to Uncertainty Quantification}}}
+\end{center}
+
+\subsection*{Background / Introduction}
+
+Many important DOE applications rely on simulation to predict the behavior of complex physical systems.
+However, the fidelity of these simulations depends on uncertain parameters describing the underlying physical system
+obtained from a collection of
+complex and noisy experiments whose reliability is hard to determine. 
+Our ability to effectively use extreme scale computing will depend critically on our ability to reduce the
+uncertainty in these data and assess the impact of that uncertainty on predictive capability.
+Here, we will focus on combustion modeling, battery simulation and design of high-efficiency photovoltaic
+devices as motivating examples.
+\MarginPar{a bit more detail here?}
+However, the methodology will be broadly applicable to a
+range of problems in chemical and materials science, systems biology, subsurface flow and climate to name a
+few.
+
+An important aspect of the class of problems we plan to consider is that 
+the system is not probed using a single experiment.  Instead,
+there is typically a hierarchy
+of experiments of increasing complexity that provide information about the underlying processes
+that lead up to the desired target application.
+As experimental complexity increases the fraction of the state that can be sampled
+by measurement is reduced and the cost of simulations increases.
+Rather than attempting to estimate parameters directly from a single complex experiment, we 
+will obtain parameter estimates across the entire hierarchy of experiments.
+Thus, we need an approach that allows us to pass
+information through the hierarchy in a way that effectively uses data from all levels
+to improve overall predictive properties.
+Furthermore, as complexity increases,
+the combination of rich physics and relative data sparsity suggests that we will not be
+able to exactly match the experimental dynamics computationally.
+We must develop estimation methods that are robust to model errors as well as noisy observations
+using metrics based on identification of characteristic features that are more general than
+traditional quantities of interest.
+
+The goal of this project is to develop a
+mathematical framework for this class of problems that
+will utilize data from a hierarchy of experiments of increasing complexity to reduce
+uncertainty of simulations, estimate the impact of the improved characteristic on predictive capability
+and identify significant remaining sources of uncertainty.
+%intertwine parameter estimation and simulation into an integrated activity.
+Our approach is based on novel Monte Carlo (MC) sampling approaches within a Bayesian uncertainty quantification (UQ) framework. 
+The Bayesian approach combines modeling and sampling in a way that provides full insight into the propagation of 
+uncertainty.
+The result is a complete characterization of the posterior probability density function (pdf) which contains all information about remaining uncertainties that is implied by the data -- which aspects are tightly bounded and which are less precise.
+
+Monte Carlo technique is one focus of this proposal. From a practical perspective, an implementation of the Bayesian UQ approach via MC sampling is attractive because it respects the strong nonlinearities in the target applications and avoids the need for simplifying assumptions/approximations required by some current UQ techniques. Moreover, some MC sampling methods are well suited to massively parallel computer architectures because the computationally expensive calculations, e.g. forward or adjoint model runs, can be executed independently and the communication between cores for each independent run is small. Using MC sampling as the computational backbone will lead to a numerically sound implementation of a rigorous UQ theory that is well suited for extreme scale machines, making UQ possible for realistic applications.
+
+However, the posterior distributions that are the basis of Bayesian UQ can be very hard to sample. A key issue is that many current MC techniques are not robustly effective for complex, high-dimensional problems. There is a weak analogy to the problem of solving large systems of linear of nonlinear equations.
+For equation solving there are generic methods such as Gaussian elimination, Gauss Seidel iteration,
+Newton's method, etc.
+But these generic methods are unable to solve extreme scale problems that arise from simulating
+complex physics in 3D.
+These require specialized multi-scale algorithms, such as multigrid, that take into account the
+physical nature of slowly relaxing modes.
+This analogy fails to capture the extra difficulty, which is that sampling problems do not come with
+something like {\em residuals} that can be evaluated to confirm convergence.
+There is no way to test a-posteriori that a sampler has converged to the correct distribution.
+The correctness must be built in to the sampler.
+
+Standard MCMC (Markov chain Monte Carlo) samplers can become very slow when the distribution being
+sampled is ill conditioned.
+Ill conditioning in problems of moderate dimension can come from approximate degeneracy: Very
+different combinations of parameters fit the data nearly as well.
+Several approaches are emerging to address this, including multi-stage adaptive samplers and
+affine invariant ensemble samplers.
+High dimensional problems that come from discretizing field theories or stochastic PDEs
+can be ill conditioned because of the range of modes at different length scales.
+Hamiltonian samplers have proven better than direct local Metropolis or heat bath methods, but
+they still can be slow.
+More sophisticated truly multi-scale samplers include Swendsen Wang and multigrid methods.
+Unfortunately, none of these methods at present is nearly as general, say, as multigrid for
+solving discretizations of PDEs.
+Some promising developments include ``chainless'' approximate methods, and
+{\em parallel marginalization}.
+We will look for multiscale sampling methods that are effective for problems that come from PDE
+with noise under partial observation.
+
+We can consider different MC sampling techniques (the Bayesian approach is conceptually independent of its implementation) and we plan to investigate which sampling method is applicable at the various levels of the hierarchy. In particular, we will consider particle filters (importance sampling) as an alternative to MCMC. Standard particle filters first obtain samples of the prior and then evaluate their probability with respect to the posterior by attaching weights to each sample based on its distance to the data \cite{Doucet2001,GordonSIR}.
+The weighted particles form an empirical estimate of the posterior.
+Difficulties arise if the prior and posterior approach being mutually singular, i.e. if high-probability events with respect to the prior are likely to have low probability with respect to the posterior.
+This is the interesting case, which corresponds to the situation where one can learn from the data, rather than simply confirming the prior.
+However, in this case many of the samples have a low weight so that the empirical estimate they constitute is poor (it can be a single and often unlikely point).
+This can happen in a when estimating a single parameter, however it was shown rigorously for linear problems that the number of particles required scales catastrophically with the number of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach infeasible for our target applications.
+A number of methods have been invented to ameliorate this problem, most of which amount to finding a proposal density that  generates samples that are more compatible with the data \cite{Doucet,OptimalImportanceFunction,liuchen1995,Brad}.
+For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation \cite{vanLeeuwen}.
+A different approach is to construct a map that transforms the prior measure into the posterior measure, i.e. to construct a map that transforms prior samples into posterior samples \cite{Moselhy2013}. 
+The advantage of this method is that posterior samples are easy to generate once the map is found.
+However, the construction of the map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps).
+We expect that we will need to compute a map at each level of the hierarchy and, thus, expect that this approach is computationally too expensive for our target applications. Moreover, the errors of the approximations involved in finding the map are, at this time, not well understood. We plan to base our particle filtering methods on the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013}, which avoids some of the pitfalls of standard sampling by concentrating the computational power on localizing the regions of high probability in the parameter space (see below for details of this method).
+
+
+\MarginPar{George: Rewrote ROM}
+Both MCMC and importance sampling approximate the posterior distribution of the targeted parameters by a (large) number of samples. With marginal additional costs, these samples can further be fruitfully used to create reduced order models (ROMs) that can be used to improve efficiency at the various stages of the MC algorithms.  ROMs are inexpensive surrogates for expensive computer simulations that aim to preserve the input-output relations in the numerical models.  In this proposal, the term is used in an encompassing sense to refer to model reduction approaches, response surface approaches and machine learning techniques. Model reduction approaches, such as the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr} directly approximate the PDEs using a parametrically-induced approximation space.  However, these techniques can be difficult to apply to complex, multiscale models.  Alternatively, response surface and machine learning techniques
+such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz}, artificial neural network~\cite{Cybenko:1992vo} and polynomial chaos expansion~\cite{Oladyshkin:2012ur} are simpler to use.  But the functional relations between the outputs and parameters of interest encoded within the numerical models are lost, and must be indirectly captured through large number of training data.  A research question is how we can combine the various approaches to achieve the desired efficiency and accuracy within a MC algorithm. 
+
+There are several areas in which ROMs can play a role in a MC algorithm.   For example, coarse resolution (thus computationally cheap) models have been used to generate  samples  during the importance sampling stage~\cite{Higdon:2002vx,Christen:2005wp,Efendiev:2007uw,Bal:2013tp} or coupled with fine resolution models through the metropolis coupled chain~\cite{Higdon:2002vx}. To further improve the match between the coarse and fine posterior distributions, Bal et. al.~\cite{Bal:2013tp} used a zero-mean Gaussian model to approximate the discretization error~\cite{Kaipio:2007ux}. However, since our simpler models may involve significant simplifications of the physics or reduction of spatial dimensions, ROM may be needed to more accurately model the structural variations of the difference between the models.  ROMs can also be used directly as an efficient surrogate in forward UQ~\cite{Challenor:2012uv, Ratto:2012tf} for example in predicting catastrophic events and obtaining global sensitivity analyses indices that converges slowly with number of samples.   In this proposal, we will look into how ROMs can further improve the efficiency of the importance sampling approach that we will use in this proposal.  In addition, we will determine how ROM can be used within our hierarchical framework to efficiently obtain an accurate prediction pin forward UQ.
+
+%We intend to examine how we can use reduced order modeling techniques to model this error accurately.
+%In particular, Gaussian process regression~\cite{Rasmussen:2006vz} is expected to fit within the statistical framework that we will describe.
+%We note that reduced order models can also be directly used as the simpler model~\cite{BuiThanh:2012tx}.
+%\MarginPar{Implicit sampling has not been brought up. Can this be moved to after IS was introduced?}
+%For implicit sampling, reduced order models have the potential of reducing the cost of the required optimizations, either through the use of the simpler models in the optimizations or  via more direct optimization algorithms that utilize reduced order models~\cite{Regis:2007,Wild:2011uh}. 
+
+
+%We will also address forward UQ, including UQ of predictions made with the posterior computational models as well as sensitivity analysis used in decision making and experimental design. While multilevel Monte Carlo can improve the convergence rate for a series of convergent models~\cite{Giles:2008gc},  a theoretical framework for a heterogeneous set of models is lacking. Alternatively one can use surrogates for fine-scale models in the (posterior) forward  analyses~\cite{Challenor:2012uv, Ratto:2012tf} and we will investigate how these reduced order models can be accurately and efficiently used in a hierarchical framework. 
+
+% Although efficiency Monte Carlo of sampling techniques has been significantly improved in recent years, many problems are still computationally intractable, even with the computational gain achieved through high-performance computing efforts (Wang et al., 2011). One feasible solution is to use reduced-order models (ROMs), or emulators, as efficient surrogates for fine-scale models in these analyses (Challenor, 2012; Ratto et al., 2012).  
+
+MARC: BRIEF MENTION OF LITERATURE OF REACTION DIFFUSION EQUATIONS WITH OTHER APPROACHES (PCE, ETC.) AND WHY NOT RIGHT NOTION
+
+\subsection*{Proposed Research}
+
+To frame the discussion of the proposed research we need to first provide some specific detail
+about the target applications.
+Simulating the combustion of a given fuel relies on parameters
+describing chemistry, transport and thermodynamics.
+Here we will assume that the multicomponent reacting Navier Stokes equations with Arrhenius
+kinetics and a molecular transport model provide a good approximation to the dynamics.
+The target question we would like to answer is how confident are we in the computed statistical
+properties of a turbulent flame simulation and to what extent are the simulations consistent
+with experimental data.
+However, a direct attack on this problem is infeasible.
+The computational complexity is sufficiently high and the available data is sufficiently
+sparse that very little can be determined by directly pursuing the final target.
+A way to get around this is to note that one has not simply a single turbulent flame
+experiment but a wide range of different types of experiments for the same physical
+system of increasing complexity.  
+\MarginPar{something about the type of data somewhere in here}
+Hierarchical data sources (experiments): 0d ignition, 1d laminar flames, shock-tube experiments
+a variety of 2D laminar flames, and 3D turbulent flames.
+One could potentially augment this with other types of non-reacting flow experiments that focus
+on transport properties. 
+Each of these experiments reveal information about the system (some are used by kineticists already).
+The idea would be to use experimental data across the entire hierarchy of experiments to reduce
+uncertainty in parameters and estimate bounds on how those uncertainties impact predictive capability.
+
+Our approach needs to reflect the notion that as we move up the hierarchy, we are
+getting closer to the target application but the simulations become
+increasingly costly and the data become increasingly sparse.
+The approach also needs to  respect the structure of the problem.
+A reasonable cartoon for a 
+turbulent flame experiment is that it corresponds to a stationary chaotic dynamical system.
+What the experimentalist is capturing are some level snapshots of what the attractor looks like.
+We cannot hope to have a complete picture of the flame at a given time.  We can only
+have some characterization of selected features.  The available data is at best limited;
+however, the hope is that it carries some information about the underlying physical system.
+
+Our second target application 
+is the formation of point defects in thin-film photovoltaic
+materials. 
+\MarginPar{inserted ray's stuff on pd.  needs considerable cleanup here}
+Thin film photovoltaic (PV) devices have attracted research attention
+as a way to dramatically reduced the cost of solar panels. These
+materials compete with traditional crystalline silicone based on
+efficiency but use far less ($\mathcal{O}(1\%)$, \cite{find})
+material. Leading thin film technologies include absorbers based on
+cadmium telluride (CdTe), CIGS, and CZTS \cite{JiangY13}. In contrast
+to the exotic elements in CdTe and CIGS, CZTS ($Cu_2ZnSnS_4$) is
+comprised of relatively abundant and benign constituents. However,
+despite considerable attention CZTS development is still not mature
+relative to CdTe technology. The performance is sensitive to the
+fabrication process: leading demonstrations for CZTS successful
+fabrication processes include depositing the film on a substrate via
+solution-processing (11\% conversion efficiency) \cite{Todorov13},
+co-evaporation (9.15\% efficiency \cite{Repins12})) and vacuum
+process (8.4\% efficiency, \cite{Shin11}). Despite theoretical
+efficiencies exceeding 30\%, developing optimum processing conditions
+that realize the potential remain elusive.
+The challenge here is
+refine estimates of the model parameters
+sufficiently to be able to predict the time-varying process
+from of measurements of bulk
+properties that result from uncertain and time-varying process
+conditions.
+
+Unlike crystalline silicone that is explicitly doped with
+phosphorous or boron to create n-type or p-type semiconductors, CZTS
+is `self-doped' through point defects in the kesterite
+crystal. Creation of these defects (vacancies, antisite and
+interstitial) , particularly the $Cu_{Zn}$ antisite defect for
+p-type doping in CZTS, results in an increase in carrier
+concentration and semiconductor behavior \cite{JiangY13}.  However,
+other defects have been identified as reducing carrier lifetime
+through providing recombination centers. Further, a system such as
+CZTS has a complicated phase diagram with a narrow region where the
+CZTS phase is present. The effects of the secondary phase presence
+on device performance is throughly described in, e.g.,
+\cite{Flammersberger}, but are largely detrimental to device
+performance. Grain boundaries between phases also alter the driving
+force for point defect migration. \cite{Kolluri12} looked into
+transport of delocalized defects at interfacial grain boundaries for
+CuNb and found that it can be modelled as a complication on
+localized defect migration and successfully treated based on
+transition state theory with temperature dependent
+prefactor. Whether in the pure crystal or at a phase boundary, point
+defects in close proximity can interact, e.g., a vacancy and
+interstitial defect can combine to heal the crystal. 
+
+  From an analysis perspective, assembling a comprehensive model
+  requires treatment multiple physical processes with poorly
+  understood parameters. In the remainder of this section, we will
+  provide an overview of the building blocks of such a model. Two
+  approaches are available: detailed electronic structure calculations
+  \footnote{Walsh, A., Chen, S., Wei, S.-H. and Gong, X.-G. (2012),
+    Kesterite Thin-Film Solar Cells: Advances in Materials Modelling
+    of Cu2ZnSnS4. Adv. Energy Mater., 2: 400‚Äì409. doi:
+    10.1002/aenm.201100630} provide a wealth of information indicating
+  the important physical processes and configuration effects, but are
+  unable to connect back to processing through long term dynamics. An
+  alternate approach is to utilize continuum descriptions of
+  point-defect formation and interaction; however, many of the
+  parameters in such a description are difficult to identify,
+  underscoring our interest in this approach.
+
+\begin{itemize}
+  \item Firstly, the surface process by which metal flux from the vapor
+  stream are added to the crystal. This is process dependent, although
+  well established models are available. \MarginPar{at least CVD is,
+    although co-evaporation is more common}
+
+\item Secondly, the formation and interactions of the point defects
+  within the film can be expressed in terms of continuum point defect
+  concentration/number densities. Static electronic structure
+  calculations can estimate the enthalpy difference when a given point
+  defect is formed, but these calculation are of little practical use
+  to compute the dynamics of the system. Instead, `pseudo-reactions'
+  based on Arrhenius form are written. For example, a simple model of a
+  MS system (a realistic description of the full CZTS system includes
+  many more relations) can be described by a simplistic system of four
+  reactions expressing an oxidation reaction, the Schottky disorder
+  and creation of anion vacancies:
+
+\begin{eqnarray*}
+\ce{ \tfrac{1}{2} S2 -> S_s^x + V_m^{''} + 2 h^+ } \\
+\ce{ NULL -> V_m^{''}+ V_s^{\cdot \cdot} } \\
+\ce{ NULL -> e^ '+ h^{\cdot} } \\
+\ce{ S_s^x -> \tfrac{1}{2} S2 + V_s^{\cdot \cdot} + 2 e^- }.
+\end{eqnarray*}
+\MarginPar{need to define terms}
+
+Where the rate of the $\alpha^{\mathrm{th}}$ reaction is approximated
+by the Arrhenius form and the law of mass-action based on defect
+number densities:
+\begin{equation}
+  \label{eq:1}
+  k_\alpha e^{-(E_a)_\alpha/(RT)}.
+\end{equation}
+
+Solution of this system yields the $e$ and $h$ carrier
+concentrations that are used to assess device performance based on the
+partial pressures resulting from the metal fluxes. However, the
+activation energy and pre-exponential factor are difficult to
+estimate. Using the enthalpy difference across the reaction --- that
+can be estimated from electronic structure calculations, although the
+energy barrier is not so easily attainable --- provides
+the correct equilibrium solution, but tells us little about the
+dynamics. Thus we have only the coarsest estimate of the parameters
+available as priors.
+
+\item The reactions above involve gas-phase species concentrations that must
+be determined from the metal flux at the film surface. Diffusion of
+these gasses into the film can be treated with a gradient-based
+(Fickian) approximation. 
+
+\item Transport of the point defects within the crystal occurs by in two
+regimes. Solid state diffusion is frequently approximated using a
+Fickian treatment, however for point defects this is insufficient to
+account for their migration along grain boundaries, where, as
+suggested earlier, the transport mechanism changes and becomes
+delocalized. Higher probability of the defect moving along the grain
+boundary can be captured by a stochastic model more naturally than a
+deterministic treatment. 
+
+\item The importance of grain boundaries for transport requires a model for
+grain nucleation and growth that is notoriously difficult to capture
+deterministically; stochastic models have been much more successful \cite{Koptelov84}.
+\MarginPar{L. Petzold  has literature on how to connect such components}
+
+\end{itemize}
+
+Collecting these physics, a reasonable stochastic PDE governing the
+number density of a point defect $\phi$ as a function of space-time
+within the film can be written as:
+\begin{equation}
+  \label{eq:3}
+  \phi_t = S^\phi - D \phi_{xx}  + T^\phi,
+\end{equation}
+where $s^\phi$ is the net rate of formation/destruction of the defect
+due to the system of reactions describing the point defect chemistry
+and interaction, the second term on the right hand side (RHS) is a deterministic
+transport contribution, and the final term on the RHS represents
+stochastic transport that is active only in the vicinity of a grain
+boundary. 
+
+Auxiliary simulations are necessary to provide the boundary
+conditions; e.g., \cite{cigs-parallel-simulation} and a model for
+grain growth. The latter, following seeding from stochastic processes
+dependent on the local elemental composition can be treated with a
+moving front method. 
+
+This problem has several aspects that differentiate it from the other
+applications that we would like to highlight: 
+\begin{itemize}
+\item It is has an inherently stochastic nature
+\item It exhibits very large uncertainty in relatively few parameters
+\item It is somewhat less well studied than the combustion system,
+  leading to a significant opportunity for model insufficiency ---
+  providing an opportunity to test the robustness of mechanisms to
+  detect when model is inconsistent with data)
+\end{itemize}
+
+\MarginPar{Workflow: cf. experiments to pin down uncertainty in kinetic
+parameters, transport probabilities, etc. Then search for processing
+pathway that provides optimum result given remaining uncertainty in
+parameters. Can we use similar sampling ideas for the final
+  optimization step?}
+
+\emph{Measurements: carrier concentration; resistance; conductivity;
+  changes\ldots}
+
+Direct measurement of the concentration of arbitrary point defects is
+difficult and must be inferred from more easily observed
+characteristics, leading a model for the observation process $h(x)$
+that may be quite complicated and the result of a non-trivial
+simulation.  For example, majority carrier concentration, electron or
+hole mobility, capacitance can be measured, but these are all
+indicators of the final point defect configuration that results from
+the process rather than measures of the individual formation
+rates. With significantly more effort, the dependence of the film
+conductivity on temperature provides an indirect measure of the
+activation energy for carrier concentration: this is related to the
+kinetic parmeters of the governing defect concentration(s).  A variety
+of simulation/experiment pairs are desirable to increase sensitivity
+to the various parameters separately:
+
+\MarginPar{The experimental process parameters could be
+  thought of as either an uncertain input, albeit not one we're
+  trying to constrain, or as an observable. At first glance the latter
+  seems more appropriate.}
+
+Our third application area concerns lithium-ion batteries.
+A recent DOE Basic Energy Sciences (BES) workshop report states: 
+``Revolutionary breakthroughs in Electrical Energy Storage have been singled out as perhaps the most crucial need
+for this nation's secure energy future''  (\cite{ees_rpt}, p. xii).
+The promise of electric-drive vehicles (EDVs) can only be met if batteries having both high energy density and increased safety 
+and reliability are developed.  Current solutions, including exploding laptops and expensive electric vehicles that burst into 
+flame and/or can only travel 100 miles before requiring a full night to recharge, are inadequate for widespread adoption.
+Lithium ion batteries (LIBs) present a truly multiscale system, with important macroscopic behavior
+(e.g., catastrophic failure such as fire) determined by intricate microscale
+interactions (e.g., as a result of dendritic growth on lithium particles in
+one location deep inside the battery pack). 
+%It is extremely difficult, where
+%possible at all, to examine the mechanisms involved---especially, to
+%elucidate the microscopic origin of macroscopic phenomenon---experimentally.
+The highly structured, heterogeneous nature of battery systems implies we must model a coupled multiphysics system, rather
+than one system presumed to govern the full device.   
+In theory one can enumerate at least 6 levels of detail that are tied together in some way: 
+atomistic (quantum), atomistic (MD), particles, electrode, cell, pack.  The problem certainly represents a potential
+extreme scale computation, as relevant phenomena over 10 orders of magnitude must be resolved and coupled
+in some way.
+
+HERE, SPACE PERMITTING, I WOULD QUICKLY ENUMERATE THE FORMS OF THE EQUATIONS ENCOUNTERED AT THE VARIOUS SCALES:
+quantum (Schroedinger), MD (Newton's law), particle (diffusion + Butler-Vollmer to model interface kinetics), 
+electrolyte (convection diffusion), electrode (mechanical constitutive equations), cell (diffusion, thermal transport).
+  
+%``Simulation of lithium-ion battery models requires simultaneous evaluation of concentration and potential fields, %in both solid as well as liquid phases. In addition, the porous nature of the battery electrodes leads to highly %nonlinear and heterogeneous electrochemical reaction kinetics." \cite{Subramanian:2009}
+
+Representative examples of battery models include \cite{ex1}, in which a fully resolved 3D electrode simulated using a combination
+of convection-diffusion and Butler-Volmer equations. This model uses approximately 25 parameters derived by the authors from experiment.
+Another example is \cite{ex2}, which simulates a 3D electrode, including the constitutive relations that are first steps toward
+incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{ex3}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
+
+The current paradigm for virtually all battery simulations (including those above)
+ is the use of effective parameters derived from single-scale experiments
+used as fixed values in single-scale simulations.  However, this is problematic: first, we do not propogate uncertainty in 
+these parameters through the model; second, we miss the chance to use information \emph{across scales} to optimally understand
+the system.  Our proposed work specifically addresses this shortcoming in the current paradigm by offering the means to 
+combine modeling and data \emph{across a hierarchy of experiments}
+to reduce uncertainty in the underlying physics parameters and improve predictive capability.
+
+The hope for such a program rests on the fact that hierarchies of experiments exist addressing virtually all aspects 
+of the heterogeneous battery system (TO BE NEATENED/FINISHED (E.G. MORE REFS)):\\
+\textbf{diffusivities}: (microscale) single-crystal measurements, molecular diffusivity  \cite{Chung:2011}; (mesoscale) in-situ/single particle measurements \cite{Cui:2012};  (macroscale) GITT/PITT (Routinely carried out using composite electrodes) \cite{Wen01121979}\\
+%Multi-scale measurements hel p resolve disputes in transport mechanism
+\textbf{rate constants}: (microscale) reactive TEM  (PNNL) ; (mesoscale) Aurbach and others;  
+(macroscale) electrochemical impedence spectroscopy (only ``effective reactivities" are of interest to the macro-models) \\
+%Multi-scale measurements help eliminate multiple “optima”
+\textbf{open circuit potentials, entropy measurements, decomposition potentials}:  
+(microscale) composition versus lattice structure (e.g., XRD Ceder, Ohzuku);
+(mesoscale) ECQM???;
+(macroscale) C/50 discharge\\
+%“Voltage fade”???, non-stoichiometric “phases”???, hysteresis!!!, decompn. potentials fairly well documented
+\textbf{conductivities (electronic, ionic)}:  
+(microscale) quantum transport;
+(mesoscale) Measure properties of individual components and use mixing rules (effective medium theory);
+(macroscale) Measure effective conductivities \\
+%Not strictly multiscale; need to think about this more
+\textbf{mechanical properties}: 
+(microscale) in-situ TEM \cite{Wang:2012};
+(mesoscale) single particle and in situ electrode level \cite{Qi:2010,Verbrugge:1999};
+(macroscale) pressure transducers  \\
+%Rational design across scales
+
+We propose to use the multiscale implicit sampling and other frameworks developed under this proposal to
+address the origin and effects of pressure fluctuations in batteries for electric drive vehicles.  Specifically, we intend to
+use macroscopic experiments,
+% microscopic calculations (quantum),
+micro-(particle level) and meso-scale (electrode level) experiments to
+understand the small scale---especially mesoscale (because this is where the
+battery designer has the most degrees of freedom)---origin of macroscale
+pressure trends known to correlate with battery degradation (e.g.,
+capacity fade) and safety (e.g., thermal runaway, a.k.a. fire) issues.
+
+
+
+The three application areas share a number of commonalities.
+Each has a hierarchy of experiments that are used to probe the system.
+All involve reaction and diffusion processes in fluids.
+One characteristic of reaction diffusion processes is that some aspects of the system
+may not be observable from the available data. For example, in a reaction chain the slowest
+reactions dominate the response so that fast reactions are not effectively probed.
+Furthermore, all of the applications.
+have a potentially complex relation between what is measured and quantity of interest,
+even for relatively simple experiments. 
+Planar laser induced fluorescence diagnostics in combustion, for example, 
+measure photon emissions from excited states that have complex relation to the underlying
+composition.
+Furthermore, for the more complex experiments, the
+quantities of interest are statistical / feature based
+particularly at higher levels of the hierarchy.
+
+In spite of the commonalities, the target application areas have a number
+of distinct features.
+Combustion is more well understood but with mathematical models are perhaps on firmer ground
+and numerical models are perhaps more sophisticated
+However, models potentially have more parameters than the other two areas.
+Models for photovoltaics are less well established.
+For this type of problem 
+model inconsistency is a more likely issue in this context.
+Batteries are similar to photovoltaics
+in that the models are less sophisticated. However battery problems introduce a 
+new element, namely that the problem is multiscale.
+In this case we need to devise mechanisms to communicate information
+between different types of models at different scales.
+
+The central theme of this project will be to develop new smart sampling technologies 
+to address these issues.
+The types of methods we plan to consider fall into two distinct types:  particle filter approaches
+and MCMC.
+Both of these approaches aim to reduce the computational work associated with naive MC approaches.
+Although they use different strategies, they both seek to avoid simply sampling the prior and evaluating
+the posterior probability of the resulting sample. 
+MCMC algorithms use the trajectory of the simulation in space and time to define the state for a Markov
+process that samples the underlying Gibbs distribution of the problem.  Evolution of this Markov process
+effectively samples the state space of the system.  The need to represent the full state of the system
+make MCMC a memory intensive task.
+Particle filters, which arise in the context of data assimilation,
+fit into a framework of more traditional Monte Carlo algorithms.  Here the goal is to use
+derivative / sensitivity information to guide the selection of samples to reduce the number of samples
+needed to effectively sample the distribution.
+Compared to MCMC, the filtering approach is less memory intensive but more computationally intensive, thus representing
+a tradeoff between memory and computation.
+We need to understand these tradeoffs to determine which approach will be most effective for a given
+experiment.  We anticipate that one approach is not optimal across a hierarchy of experiments, rather
+that different approaches will be preferred based on specific problem characteristics.  Intuitively,
+we would expect MCMC to be a more attractive option for relatively simple problems and a particle
+filter to be a better choice as problem complexity increases. Quantifying those relationships
+and understanding how to transition between approaches are important research questions.
+Furthermore, neither of these approaches is new; however, substantial development is needed to meet the requirements
+of the realistic applications we are considering.
+
+We plan to develop particle filtering methods based on the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013}.
+The central idea here is to first search for the regions of high probability with respect to the posterior.
+This search can be implemented by numerical optimization.
+Once the high probability region is located, samples that lie within this region can be generated by solving simple algebraic equations.
+Although the optimization is computationally expensive, implicit sampling was shown to outperform standard MC importance sampling in small geophysical models \cite{Morzfeld2011,Morzfeld2012,Atkins2013}. 
+However, for the realistic applications we are considering, substantial development is needed, especially with respect to efficient use of massively parallel computer architectures. 
+
+Specifically, suppose we have  a  model of the physical process under consideration (e.g. a discretization of multicomponent reactive Navier Stokes) that maps the state at time $t=0$, $x_0$, to the state at time $t=T$, $x_T$, and suppose that this model includes a number of parameters $\theta$.
+We respect the uncertainty of the model by making the parameters random variables.
+For example, $\theta$ can be a Gaussian random variable with mean $\mu$ and covariance matrix $\Sigma_0$. We assume that $\mu$ and $\Sigma$ are known from prior investigations.
+We further assume that the initial conditions $x_0$ are known precisely.
+This assumption is reasonable in some applications, e.g. in combustion, where the initial conditions are well known, at least at some levels of the hierarchy.
+In other cases, the initial conditions are parameterized by a relatively small number of (uncertain) parameters, e.g. in battery simulation, where the initial conditions are characterized by the initial voltage of the macroscopic cell.
+In these cases, we lump the uncertainty of $x_0$ into the random vector $\theta$, i.e. we allow for $x_0 =x_0(\theta)$ but do not highlight this (possible) dependency in what follows. Denoting the model as $M$, we have
+\begin{equation}
+	x_T = M(x_0,\theta, T).
+\end{equation}
+The data, $y$, is a function of $x_T$ and we assume that the measurements are perturbed by noise, which, for simplicity, we assume to be Gaussian:
+\begin{equation}
+	y = h(x_T)+v,
+\end{equation}
+where $v$ is a Gaussian random variable with mean $0$ and covariance matrix $\Sigma$. Since $x_T$ is a function of $x_0$, $T$ and $\theta$, we may also write
+\begin{equation}
+\label{eq:IS_data}
+	y = H(x_0,T,\theta)+v,
+\end{equation}
+where $H$ is the function which is obtained by first running the model up to time $T$ followed by applying $h$ to the state $x_T$.  We are interested in the information we can extract from the data about the parameters $\theta$ and therefore consider the random variable $\theta|y$, which is characterized by its pdf $p(\theta|y)$. Using Bayes' rule, we find that
+\begin{equation}
+	p(\theta|y) \propto p(\theta)p(y|x_0,T,\theta),
+\end{equation}
+where  $p(\theta) = \mathcal{N}(\mu,\Sigma_0)$ is the ``prior'' and $p(y|x_0,T,\theta)$ is the ``likelihood'', which can be read off of the data equation (\ref{eq:IS_data}), $p(y|x_0,T,\theta)\sim \mathcal{N}(H(x_0,\theta),\Sigma)$.
+The pdf $p(\theta|y)$  is called the ``posterior'' and we wish to approximate it with implicit sampling. 
+
+The general procedure is as follows. Define a function by
+\begin{equation}
+	F(\theta)= -\log \left(p(\theta)p(y|x_0,T,\theta)\right).
+\end{equation}
+Note that $F$ is a function of the uncertain parameters and that the minimizer of $F$ is the mode of the posterior. Thus, the high probability region of the posterior is the neighborhood of the minimizer of $F$ and we can identify this region via numerical minimization of $F$. To find samples in this region we solve (repeatedly) the algebraic equations
+\begin{equation}
+\label{eq:IS_sampling_eq}
+	F(\theta)-\phi = \frac{1}{2}\xi^T\xi,
+\end{equation}
+where $\phi = \min F$ and $\xi$ is a Gaussian reference variable with mean zero and unit variance, i.e. the equations have a random RHS. Note that the RHS is small with a high probability ($\xi$ has mean zero), which implies that the left hand side is also small with a high probability and, therefore, the solution is close to the minimizer of $F$ which is the mode of the posterior. Thus, the solutions of these equations (for different realizations of $\xi$) are in the neighborhood of the mode of the posterior, i.e. almost all samples are compatible with the data. Generating samples with low probability with respect to the data (as in standard MC sampling) is avoided by the minimization step. 
+
+There are various methods for solving the algebraic equations of implicit sampling (\ref{eq:IS_sampling_eq}) \cite{chorin2010,Morzfeld2011}. For example, if information about the curvature of $F$ is available, e.g. from BFGS-type optimizations, we can use linear maps based on the Hessian of $F$. In other situations, e.g. derivative free optimization or optimization using surrogates, this information may not be available. In this situation we can use the random map approach, where one chooses a direction at random, and then computes a solution of (\ref{eq:IS_sampling_eq}) in this direction. With this random map approach, only a single equation in a single variable needs to be solved (regardless of the number of parameters being estimated). We plan to research into optimal choices for solving the algebraic equations for each target application. In summary, implicit sampling amounts to the following two steps:
+\begin{enumerate}
+	\item Minimize the function $F$ to identify relevant regions of the parameter space
+	\item Find samples in this region by solving the random algebraic equations (\ref{eq:IS_sampling_eq})
+\end{enumerate}
+
+While the general method of attack is clear, many research questions arise when applying this sampling technique to the target applications. A characteristic of all our target applications is that there is a hierarchy of experiments. How to use this characteristic for successful and efficient sampling is a major research question we will address. In the data assimilation context in which particle filters originated, the algorithms move through a temporal sequence of data and sequentially update the state/parameters as data becomes available. The update rule comes from repeated applications of Bayes' rule and ultimately leads to a recursive formulation of the posterior. Here we need to modify the methodology to transition from one experiment to the next as we move through the hierarchy of experiments, i.e. we need to find the update rule for moving up in the hierarchy. For example, we can construct priors at a higher level of the hierarchy from posteriors at lower levels. For implicit sampling this amounts to finding a representation of the posterior at a lower level that can serve as a prior in the optimization at the next stage. Moreover, the theory and numerics can be intertwined here because the models obtained (as posteriors) at lower levels of the hierarchy may help with speeding up the minimizations required at higher levels of the hierarchy (see below for more detail).  Another central issue is determining whether or not moving through the hierarchy of experiments from the simplest to the most complex introduces bias in the parameter estimates. If this bias is found to be significant, strategies must be developed to reduce that bias. 
+
+Another feature of all three target applications is a complex relation between the data and the parameters being estimated. For example, laser diagnostic measurements depend on the system state but there are parameters describing the laser interaction (so-called quenching coefficients) that have uncertainties as well, i.e. the observation function $h$ itself can be uncertain. We plan on extending the implicit formalism to estimate uncertainties in the measurement mechanisms. Moreover, at high levels of the hierarchy in turbulent combustion, we are interested in finding parameters that generate features one observes in the data which are insensitive to details of the state trajectory. In fact, we want to avoid trying to estimate a trajectory that is a point-wise fit to the trajectory given by a measurement because it is a hopeless task. On an abstract level, this corresponds to the problem of translating qualitative behavior observed in the data into quantitative information about parameters (by using sampling techniques) and, to the best of our knowledge, this fundamental problem has not been addressed before. We anticipate that tackling this problem will require a careful re-evaluation and perhaps re-definition of the observation function $h$ and we plan to take first steps towards a methodological and quantitative assimilation of data features. 
+
+Another central research question is how to use implicit sampling for multi-scale problems. Specifically, we will address how information can be propagated efficiently across different scales. For example, in battery simulation, we are interested in the fluctuation of pressure with time since it can critically affect performance, degradation, and safety of batteries. This ``macro scale'' (here: millimeters) pressure is the manifestation of many effects at the ``mesoscale'' (here: microns): conversion of electrolyte to the gas phase; the sponge like nature of the porous electrode; elastic properties of the binder (the binder is the ``glue'' that holds the particles in their porous structure); the porosity and toruosity of the separater. The pressure is the sum of these effects combined across the whole cell and can be measured via detailed signals from transducers. In addition, we have data of mesoscale phenomena such as stress, strain, swelling, and other mechanical properties. Our goal is to
+incorporate all available data to form an estimate of the pressure and the mesoscale state, described in terms of layer thicknesses (substrate, epoxy layer, current collector, active material, entire electrode), volume fractions (particles, binder, pores), porosity, tortuosity, particle sizes and distributions (see, e.g., \cite{Sethuraman2012334}) and other parameters governing the makeup and morphology of the heterogeneous
+electrode. By using Bayes' rule we can factorize the conditional pdf of the cell-level pressure and electrode-level stress and strain, given both
+cell and electrode level data:
+\begin{equation}
+\label{eq:MultiScalePDF}
+	p(x^1, x^2|y^1,y^2) \propto p(y^1|x^1) p(y^2|x^2) p(x^2|x^1)p(x^1),
+\end{equation}
+where we use the indices to distinguish scales, i.e. $x^1,y^1$ correspond to the mesoscale state and data, $x^2,y^2$ to the macro scale state and data. Here, the first two terms come from a model of how the data is connected to the state (at each scale); the third term describes how the various mesocsale quantities affect pressure and the last term is the prior for the mesoscale parameters. The above equation demonstrates how both the data and physical models are being incorporated and combined across scales. By switching the indices, we can use this formalism to push information from macro- to mesoscales, which may be important since macro-scale measurements are typically more reliable than meso-scale measurements. In this case, the physical models ($p(x^2|x^1)$) acts as constraint (what $x^1$ is compatible with $x^2$?) rather than as a prediction (what is $x^2$, given $x^1$?) because of the many-to-one relation between mesoscale parameters and macroscopic pressure. 
+
+We plan on to develop a multi-scale version of implicit sampling to approximate the pdf (\ref{eq:MultiScalePDF}). Two main research topics here are: (\emph{i}) we need to investigate the validity of the assumptions that lead to a factorization of the pdf, in particular we need to verify that the scale coupling models are (nearly) ``Markovian'', i.e. they couple only two subsequent scales, and that the observation models at each scale only depend on the state at that scale; (\emph{ii}), we need to investigate implementation issues, e.g. how will the coupling between scales affect the required optimizations and subsequent solves of~(\ref{eq:IS_sampling_eq}). A successful and efficient solution of this multi scale problem allows physics-based models (e.g. how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements, or, conversely, the physics-based model can ``learn" from the macro-scale measurements.
+\MarginPar{emphasize that this could be extreme scale science}
+OTHER STUFF THAT COULD BE RELEVANT HERE, SPACE AND INTEREST PERMITTING: (1) COUPLING QUANTUM CALCULATIONS; IMPLEMENTATION (SPECIFICALLY, THIS IS ``PARAMETER ONLY" PROBLEM, SO DERIVATIVE FREE OPTIMIZATION COULD BE APPLIED (?), LEADING TO
+DISCUSSION OF HOW TO DO THAT…)
+
+JONATHAN DISCUSS RESEARCH ISSUES WITH MCMC-- BELOW IS A FEABLE START BY JBB
+ 
+Although MCMC approaches are considerably more cost effective than naive sampling approaches, they can
+exhibit a critical slowing down phenomenon for poorly conditioned problems.  The length of time that
+one needs to simulate the Markov process to obtain good results depends on the autocorrelation time
+of the underlying process. When the correlation time is long, the system must be run for extended periods
+of time to obtain a good statistical characterization.
+There are several approaches to dealing with this problem.
+\MarginPar{Jonathan, can you describe them.  Need to set up a mathematical notation to talk about MCMC as well}
+
+Another key problem that has to be addressed for effective sampling is dealing with model degeneracy.
+A model has an approximate degeneracy if many different parameter sets are nearly as good at explaining the data.
+For example, if there are multiple reaction pathways in a kinetic description,
+certain combinations of reaction rates may be much better
+estimated than the individual rates.
+In such cases, isotropic sampling algorithms such as single variable heat bath (Gibbs sampler) or isotropic
+Metropolis walk will be slow.
+In the context of MCMC, we plan to use the affine sampling approaches developed at NYU to address issues of model degeneracy.
+\MarginPar{what does this look like for particle filters?  guess is that optimization slows down.  answer regularized by prior? Matti: I attempt to make a connection to sampling here, but I might be totally wrong. Please check. We could also use this as the bridge to MCMC, because I  think that tackling degeneracy with IS is hard.}
+Model degeneracy can lead to difficulties with implicit sampling, since it corresponds to a ``valley'' in  the function $F$, which slows down the convergence of the required optimization. Moreover, a good approximation of the degeneracy requires  the valley being populated with samples which will increase the number of samples one needs to generate. The computational expense of implicit sampling will thus increase and we will investigate how to link MCMC to implicit sampling to speed up exploration of model degeneracies.
+
+Finally, it is important to use statistical methods that are robust in the inevitable situation where the exact model is not in
+the family being fit.
+Models are only approximations to reality.
+For example, the Arrhenius form for reaction rates are only modeling approximations, though they can be very accurate. Similarly, typical models for species diffusion in combustion are only approximations, even at the continuum level,
+to a full transport model, which is, in itself, an approximation to the underlying molecular processes.
+Even small modeling errors can make an accurate global fit impossible, particularly in chaotic systems.
+A more serious structural issue arises in the case of batteries and photovoltaic models where the models
+are not yet mature.  In these areas we are likely to encounter structural models where key physical
+processes are missing from the description.
+One approach is to include noise in the dynamics, so that the posterior distribution does not require the
+dynamical equations to be satisfied exactly.
+We will conduct computational experiments to study this problem, then use the results to 
+choose appropriate noise levels for our physical models.
+By combining what is known about the error levels in both model and data, we can also estimate upper and lower bounds
+of the predictive skills of the resulting stochastic models.
+\MarginPar{can be develop criteria to assess if something is missing form model}
+
+There are also many implementation issues that to need be addressed, especially with respect to efficient scaling of the sampling algorithm on massively parallel computers.
+\MarginPar{transition of computational efficiency issue on extreme scale computers}
+The minimization is the computational bottleneck of implicit sampling and its efficient implementation is crucial for the success of the method.
+Moreover, the minimization algorithm will likely depend on where we are in the hierarchy of experiments.
+One of our specific research topics will be to address efficient minimization at each level of the hierarchy, especially in view of massively parallel computer architectures.
+For example, we can consider coupling adjoint codes for gradient computations of $F$ to BFGS-type algorithms using a parallel optimizer such as TAO from Argonne.
+At high levels of the hierarchy, adjoint codes may be out of reach or too costly and time consuming to construct.
+In these cases, derivative free optimization methods must be considered.
+Another possibility is to use simplified models for the minimization.
+For example, we can borrow ideas from multi-grid and run the minimizations on a coarse grid, while doing e.g. forecasting on the fine grid.
+Alternatively, we can use a surrogate method, where a small number of forward simulations are used to generate a simplified model of the simulation.
+This model is then used in the optimization and its further refinement goes hand in hand with its use in seeking the minimum.
+Many research questions surround the interplay between optimization and sampling, particularly with approximate surrogate models.
+For example, we can use numerical experiments to find a characterization of how errors introduced by a simplified model impact the overall behavior of the algorithm and what must be known about the errors of the simplified model to obtain such a characterization.  
+\MarginPar{George: The optimization algorithm is sequential.  It is going to be a bottleneck in a sampling algorithms where everything else can be embarrassingly parallelized on an exascale machine.  }
+
+However, developing reduced order models for complex numerical models is not an easy task and the required computational overhead may not be justifiable. 
+One feasible approach is to reduce the complexity of the response that reduced order models are required to emulate by modeling only the difference between the simple and the complex models. 
+A simple Gaussian model similar to $v$ is unlikely to be accurate since we expect structural differences between the models. 
+A promising approach that is consistent with~(\ref{eq:IS_data}) is Gaussian process regression. 
+Lets consider outputs from two different models, $H^S$ and $H^C$ where $H^C$ is deemed more accurate than $H^S$. 
+Then we can write (\ref{eq:IS_data}) as 
+\begin{equation}
+y(\theta) = H^S(\theta) + (H^C(\theta) - H^S(\theta)) + v.
+\end{equation}
+Gaussian process regression can then be used to model  $(H^C - H^S)$ as $\mathcal{N}(m_{\rm GPR}(\theta;\bar{\theta}),\Sigma_{\rm GPR}(\theta;\bar{\theta}))$, where $\bar{\theta}$ are sample points used to construct the Gaussian process regression model.  We note that both $m_{\rm GPR}$ and $\Sigma_{\rm GPR}$ depend on $\theta$ and as such is capable of modeling the nonlinearity in the difference.  Application of implicit sampling (see above) to this  formulation seems feasible, however appropriate models for $m_{\rm GPR}$ and $\Sigma_{\rm GPR}$ and their construction procedures that efficiently utilize exascale computers are research questions that need to be answered. 
+
+%\MarginPar{JG doubts this will work and notes a need to for derivative information to guide sampling. JBB
+%doubts we can perform adjoint simulations for 3 turbulent simulations.  Only way out JB can think of
+%is based on discussion with George about combining coarse simulation with a statistical surrogate to
+%build an estimate of finer response . . . Unless someone has a brilliant idea here i suggest we leave this
+%for the preproposal and thing of how to address it in real proposal}
+\MarginPar{need to decide if there is something viable here. Another alternative that merits consideration
+is using the adjoint of a simpler model for the optimization.}
+
+Several other practical issues with implicit sampling will be addressed.
+\MarginPar{Not sure of best ordering of topics from here to the end}
+For example, we may have access to more than one data set at time $T$, i.e. we have data at $T_1,T_2,\dots,T_m$, where $m$ may be large.
+There are two options for using these data for estimation: (\emph{i}) we can extend the implicit sampling formalism to include all $m$ data sets and estimate the parameters using all the data (off-line estimation); or (\emph{ii}) we can estimate the parameters using a batch of $k_1$ data sets and then refine this estimate using the remaining data in batches of $k_n$ sets, i.e. we can move through the data sequentially (on-line estimation).
+Theoretically, off-line estimation seems more attractive, since more data should lead to more accurate estimates because it avoids bias (e.g. the maximum likelihood estimator is asymptotically unbiased as the number of data goes to infinity). However in practice one often finds an ``optimal'' number of data sets per estimation sweep (i.e. an optimal $k$), the reason being (at least in part) that the exact model is not in the family being fit (even at high levels of  accuracy).
+This is well known and cleverly used in numerical weather prediction and we plan to investigate the optimal number of data sets per estimation sweep for our target applications. In addition we can relax the Gaussian assumptions for the prior and likelihood in implicit sampling. For example, a Gaussian prior is not meaningful if the parameter is known to be positive. Similarly, we have chosen a Gaussian ``reference variable'' $\xi$, but other choices are also possible. We plan to investigate the interplay between priors, likelihood functions and the reference variable in implicit sampling and will determine good choices for reference variables for each target application and at each level of the hierarchy.
+
+\MarginPar{need to articulate research questions in more detail and discuss all the ones i'm not thinking about. Matti: I tried to address this above.}
+
+One key element we need to investigate is how well our methodology deals with the
+complex relationship between the state of the system and the data.  We can investigate
+this issue by using synthetic experiments that transition from viewing the data
+as a simple projection of the state through increasing levels of complexity up to
+a computational model of the actual measurement.  From this type of experiment we can 
+analyze how different aspects of the measurement alter the information we can
+obtain from the measurement.  This type of analysis will also allows us to assess the
+role of noise in a highly nonlinear observations of the state.
+
+To evaluate the methodology we will examine test cases within each of our target application areas.  In particular,
+we will consider thermodiffusive instabilities in turbulent hydrogen flames, robustness of Li-ion batteries under abusive conditions
+and the formation of point defects in new photovoltaic materials.  In each case, we will focus on how uncertainties in the 
+model parameters influence predictive capability and how we can reduce uncertainty using a hierarchy of experimental data.
+
+
+\subsection*{Timetable of Activities}
+
+RESERVED 1/3 - 1/2 page for this
+
+\subsection*{Project Objectives}
+
+The goal of this project is to develop a mathematical framework  
+based on novel sampling methods that
+intertwines parameter estimation and simulation 
+to estimate uncertainty and improve prediction for target systems.
+Specifically, we want to
+(1) use available data from a hierarchy
+of experiments of increasing scale and complexity to restrict
+uncertainty in the description of the system, (2) estimate the impact of the improved characterization
+on predictive capability and (3) identify which of the remaining uncertainties have the most impact
+on the uncertainty of predictions.
+We will demonstrate the use of the framework for prototype problems in combustion,
+novel photovoltaic material and lithium-ion batteries.
+
+
+\bibliographystyle{plain}
+
+\bibliography{george_rom,pd,batteries2} 
+
+\end{document}
