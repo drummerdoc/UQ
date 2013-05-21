@@ -354,7 +354,7 @@ where the inner sum is taken over the $n$ first and second nearest neighbors of 
       \end{aligned}
       \right. 
 \end{equation}
-In the above, the energy between orientation indicies $J$ and mobility $M$ are experimentally derived parameters for each orientation pair that reflect, preferential growth along a particular misalignment direction.
+In the above, the energy between orientation indicies $J$ and mobility $M$ are experimentally derived parameters for each orientation pair that reflect, preferential growth along a particular misalignment direction. The state of the crystal is updated sequentially by choosing random locations and new orientations that are accepted based on the given probability. 
 
 
 %\remrg{The stochastic formulation appears to be calling out for MCMC. This aspect of the thin film photovoltaic application readily generalizes and is applicable to a broader range of materials problems, where the objective is to predict grain size after an annealing process to design materials with specific mechanical as well as electrical properties.}
@@ -375,16 +375,6 @@ In the above, the energy between orientation indicies $J$ and mobility $M$ are e
   possible, and then search for processing pathway that provides
   optimum result given remaining uncertainty in parameters.
 
-  Overall, this application has several aspects that differentiate it
-  from the others insofar as it has an inherently stochastic component
-  (in the transport at the grain boundaries and also, in the more
-  sophisticated models, in the reactions describing the surface
-  kinetics), it exhibits very large uncertainty in relatively few
-  parameters (the bounds on the kinetic constants are very wide) and,
-  as it is somewhat less well studied than the combustion system,
-  there is a significant opportunity for model insufficiency. The
-  final feature provides an opportunity to test the robustness of
-  mechanisms to detect when model is inconsistent with data.
 
 %%%%%%%%%%% batteries
 Our third application area concerns lithium-ion batteries. 
@@ -487,7 +477,8 @@ However, combustion models potentially have more parameters than the other two a
 Models for photovoltaics are less well established.
 For this type of problem 
 model inconsistency is a more likely issue in this context.
-Photovoltaic models are also stochastic.
+Aside from model inconsistency, the bounds on the input parameters are typically less well known and much wider than in the combustion context. 
+Photovoltaic models also have an inherently stochastic component in the transport at the grain boundaries and the grain growth models 
 Batteries are similar to photovoltaics
 in that the models are less sophisticated. However battery problems introduce a 
 new element, namely that the problem is inherently multiscale.
