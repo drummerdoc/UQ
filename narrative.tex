@@ -319,12 +319,45 @@ grain nucleation and growth. CZTS has a complicated phase diagram with
 a narrow region where the CZTS phase is present. The effects of the
 secondary phase presence on device performance is throughly described
 in, e.g., \cite{Flammersberger}, but are largely detrimental to device
-performance. Grain boundaries between phases also alter the driving
+performance, so the process of grain growth under annealing conditions is an important processing step.  Grain boundaries between phases also alter the driving
 force for point defect migration that is notoriously difficult to
 capture deterministically; stochastic models have been much more
-successful \cite{Koptelov84}. \marginpar{RG: I know nothing about
-  grain growth but imagine it could be treated with a moving front
-  method. I will look into.}
+successful \cite{Koptelov84}. Grain structure has been treated by numerous methods that attempt to capture the driving force for grain growth ( to first order, the reduction in grain energy captured by the curvature of the interface and interactions between the grain) including interface tracking and continuum descriptions. The latter, where grain boundaries are identified as misaligned orientations between adjacent points on a (typically cartesian) has been formulated as a deterministic \cite{FanGC97} or stochastic \cite{Rollett04} problems is conveniently compatible with the continuum representation of point defect kinetics.  In the deterministic treatment by Fan et al., a set of ODEs is written for a finite number $p$ of continuous orientation field variables at each grid point $\eta_1, \eta_2(x), \dots, \eta_p(x)$. The total free energy is then written in terms of the local free energy density $e_0$ and gradient energy coefficients $\kappa_i$:
+\begin{equation}
+  \label{eq:detgrainE}
+  E = \int_V e_0\left( \eta_1, \eta_2, \dots, \eta_p \right) + \sum_i^p \frac{\kappa_i}{2} \left( \nabla \eta_i \right)^2 dx.
+\end{equation}
+Fan et al. use a function form for the free energy density involving phenomenological parameters $\alpha, \beta, \gamma$:
+
+\begin{equation}
+  \label{eq:detgraine0}
+  e_0 = \sum_i^p \left( - \frac{\alpha}{2} \eta_i^2 + \frac{\beta}{4}\eta_i^4\right) + \gamma\sum_i^p \sum_{j\ne i}^p \eta_i^2\eta_j^2,
+\end{equation}
+
+and used the Ginzburg-Landau equations involving kinetic coefficients describing grain boundary mobility $M_i$ to evolve the orientation field variables:
+\begin{equation}
+  \label{eq:detgrainGL}
+  \frac{d \eta_i}{dt} = -L_i \frac{\delta E}{\delta \eta_i}= -L_i \left( \frac{\partial e_0}{\partial \eta_i} - \kappa_i \nabla^2\eta_i \right)
+\end{equation}
+
+In the stochastic formulation used by Rollett, each possible orientation is enumerated a priori into an orientation index. Each gridpoint is assigned an orientation index $S$, with grains corresponding to contiguous regions with constant S. The total system energy is defined as:
+\begin{equation}
+  \label{eq:mcgrainE}
+  E = \sum_j^N \sum_i^n J(S_i, S_j) (1-\delta_{S_iS_j})
+\end{equation}
+where the inner sum is taken over the $n$ first and second nearest neighbors of the $i^\mathrm{th}$ element and $J(S_i,S_j)$ is the energy of a unit of boundary between elements $i$ and $j$ with orientation indicies $S_i$ and $S_j$. The transition probability for a reorientation with energy difference $\Delta E$ and mobility $M$ beween indicies $S_i$ and $S_j$ is:
+\begin{equation}
+  \label{eq:mcgrainP}
+  P( S_i, S_j, \Delta E, T) = \left\{ \begin{aligned}
+      & \frac{J(S_i,S_j)}{J_\mathrm{max}} \frac{ M(S_i, S_j) }{M_\mathrm{max}}  \quad \Delta E \le 0 \\
+      & \frac{J(S_i,S_j)}{J_\mathrm{max}} \frac{ M(S_i, S_j) }{M_\mathrm{max}} \exp \left( \frac{-\Delta E}{TJ(S_i,S_j)}\right)  \quad \Delta E > 0 \\
+      \end{aligned}
+      \right. 
+\end{equation}
+In the above, the energy between orientation indicies $J$ and mobility $M$ are experimentally derived parameters for each orientation pair that reflect, preferential growth along a particular misalignment direction.
+
+
+%\remrg{The stochastic formulation appears to be calling out for MCMC. This aspect of the thin film photovoltaic application readily generalizes and is applicable to a broader range of materials problems, where the objective is to predict grain size after an annealing process to design materials with specific mechanical as well as electrical properties.}
 
 
   Solution of the combined system (point defect and carrier
