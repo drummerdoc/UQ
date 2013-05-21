@@ -377,15 +377,14 @@ In the above, the energy between orientation indicies $J$ and mobility $M$ are e
 
 
 %%%%%%%%%%% batteries
-\subsubsection*{Lithium-ion batteries}
-Our third application area concerns lithium-ion batteries. 
+Our third application area concerns lithium-ion batteries.
 A recent DOE Basic Energy Sciences (BES) workshop report states: 
 ``Revolutionary breakthroughs in Electrical Energy Storage have been singled out as perhaps the most crucial need
 for this nation's secure energy future''  (\cite{ees_rpt}, p. xii).
 The promise of electric-drive vehicles (EDVs) can only be met if batteries having both high energy density and increased safety 
 and reliability are developed.  Current solutions, including exploding laptops and expensive electric vehicles that burst into 
 flame and/or can only travel 100 miles before requiring a full night to recharge, are inadequate for widespread adoption.
-Lithium ion batteries (LIBs) present a truly multiscale system, with important macroscopic behavior
+Lithium ion batteries present a truly multiscale system, with important macroscopic behavior
 (e.g., catastrophic failure such as fire) determined by intricate microscale
 interactions (e.g., as a result of dendritic growth on lithium particles in
 one location deep inside the battery pack). 
@@ -395,17 +394,50 @@ one location deep inside the battery pack).
 The highly structured, heterogeneous nature of battery systems implies we must model a coupled multiphysics system, rather
 than one system presumed to govern the full device.   
 In theory one can enumerate at least 6 levels of detail that are tied together in some way: 
-atomistic (quantum), atomistic (MD), particles, electrode, cell, pack.  The problem certainly represents a potential
-extreme scale computation, as relevant phenomena over 10 orders of magnitude must be resolved and coupled
-in some way.
+atomistic (quantum), atomistic (MD), particles, electrode, cell, pack.   Some
+representative equations include:
 
-HERE, SPACE PERMITTING, I WOULD QUICKLY ENUMERATE THE FORMS OF THE EQUATIONS ENCOUNTERED AT THE VARIOUS SCALES:
-quantum (Schroedinger), MD (Newton's law), particle (diffusion + Butler-Vollmer to model interface kinetics), 
-electrolyte (convection diffusion), electrode (mechanical constitutive equations), cell (diffusion, thermal transport).
+%A representative sample of the types equations encountered at the various scales as is follows:\\
+\begin{itemize}\itemsep -0.0em
+\item
+atomistic, quantum:  (Schr\"{o}dinger) $ H \Psi = \epsilon \Psi$, where $H$ is the Hamiltonian operator, and 
+$\Psi$, $\epsilon$ are the wave functions and eigenvalues.
+\item
+atomistic, molecular dynamics: (Newton's law) $\frac{1}{m}\frac{d^2x}{dt^2} = -\frac{dU}{dt}$, where
+$x$, $m$ are atomic positions and masses, and $U$ is the potential energy.
+\item
+particle (solid) Li concentration $c_s$ (diffusion): $\frac{\partial c_s}{dt} = \nabla \cdot (D_s \nabla c_s)$, where
+$D_s$ is the diffusivity of Li in Li-hosting particles.
+\item
+particle-electrolyte interfacial kinetics (Butler-Volmer): $I = \exp(\alpha_a \eta) - \exp(\alpha_c \eta)$.  The overpotential $\eta = \eta(I)$ is a function of current, $I$, of Li across the interface, and $\alpha_a$, $\alpha_c$
+are anode and cathode charge transfer coefficients.  This equation can be derived under assumptions from more general chemical kinetic equations.
+\item
+electrolyte Li concentration $c_e$ (convection-reaction-diffusion): $\frac{\partial c_e}{dt} = \nabla \cdot (D_e \nabla c_e) + \nabla (v c_e) + R_{c_e}$, where $D_e$ is Li diffusivity in electrolyte, $v$ is the 
+convective velocity (a function of chemical potential), and $R_{c_e}$ is the reaction rate (solution of, e.g., Butler
+Volmer). 
+\item
+electrolyte electric potential (reaction-diffusion) $\frac{\partial \phi}{dt} = \nabla \cdot (D_{\phi} \nabla \phi)  + R_{\phi}$, where $D_{\phi}$ is charge diffusivity in electrolyte, $R_{\phi}$ is a volume averaged current
+density entering electrolyte.
+\item
+electrode stress field $\sigma$ (Hooke's law for chemically active solid) $\sigma_{ij} = C_{ijkl}^{Li} [\epsilon_{kl} - \beta_{kl}(c_e - c_{e_0})] $, where $C$, $\epsilon$, $\beta$ are stress/strain tensors and Vegard coefficient.
+\item
+electrode equilibrium stress $\sigma$ (constitutive equations) $\nabla \cdot \sigma = 0$ 
+\item
+cell/pack electric potential $\Phi$ (reaction-diffusion) $\frac{\partial \Phi}{dt} = \nabla \cdot (D_{\Phi} \nabla \Phi) + R_{\Phi}$,
+where $D_{\Phi}$ is charge diffusivity in cell/pack, $R_{\Phi}$ represents charge injection from electrode scale. 
+\item
+cell/pack temperature $T$ (thermal transport (diffusion)) $\frac{\partial T}{dt} = \nabla \cdot (D_T \nabla \Phi) + R_T$, where $R_T$ is heat flux from electrode scale.
+for 
+\end{itemize}
+Uncertainty quantification in this context represents an
+extreme scale challenge:
+each scale alone is a challenging 3D simulation in a heterogeneous domain;
+the difference in scale between the first and last set of equations represents approximately 8 orders of magnitude that must be resolved and coupled in some way;
+many such hierarchically coupled runs need to be executed to perform a UQ study.
   
 %``Simulation of lithium-ion battery models requires simultaneous evaluation of concentration and potential fields, %in both solid as well as liquid phases. In addition, the porous nature of the battery electrodes leads to highly %nonlinear and heterogeneous electrochemical reaction kinetics." \cite{Subramanian:2009}
 
-Representative examples of battery models include \cite{Less:2012}, in which a fully resolved 3D electrode is simulated using a combination
+Examples of battery models include \cite{Less:2012}, in which a fully resolved 3D electrode is simulated using a combination
 of convection-diffusion and Butler-Volmer equations. This model uses approximately 25 parameters derived by the authors from experiment.
 Another example is \cite{Garcia2005}, which simulates a 3D electrode, including the constitutive relations that are first steps toward
 incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{Kim-etal:2011}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
@@ -429,7 +461,7 @@ solution ``design" \cite{Aurbach2004};
 \textbf{open circuit potentials, entropy measurements, decomposition potentials}:  
 (microscale) composition versus lattice structure (XRD) \cite{Ceder2009,Ohzuku1995};
 (mesoscale) electrochemical quartz crystal microbalance (ECQM) \cite{Buttry1992};
-(macroscale) C/50 discharge\\
+(macroscale) C/50 discharge for free energy\\
 %“Voltage fade”???, non-stoichiometric “phases”???, hysteresis!!!, decompn. potentials fairly well documented
 \textbf{conductivities (electronic, ionic)}:  
 (microscale) quantum transport, lithiation mechanisms \cite{Ceder2009};
@@ -439,7 +471,7 @@ solution ``design" \cite{Aurbach2004};
 \textbf{mechanical properties}: 
 (microscale) in-situ TEM \cite{Wang:2012};
 (mesoscale) single particle and in situ electrode level strain\cite{Qi:2010,Verbrugge:1999};
-(macroscale) pressure transducers  \\
+(macroscale) pressure transducers 
 %Rational design across scales
 
 We propose to use the multiscale implicit sampling and other frameworks developed under this proposal to
