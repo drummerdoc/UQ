@@ -203,14 +203,14 @@ however, the hope is that it carries some information about the underlying physi
 Our second target application 
 is the formation of point defects in thin-film photovoltaic
 materials. 
-\MarginPar{inserted ray's stuff on pd.  needs considerable cleanup here}
+\MarginPar{RG: Rewrote this}
 Thin film photovoltaic (PV) devices have attracted research attention
 as a way to dramatically reduced the cost of solar panels. These
-materials compete with traditional crystalline silicone based on
-efficiency but use far less ($\mathcal{O}(1\%)$, \cite{find})
-material. Leading thin film technologies include absorbers based on
-cadmium telluride (CdTe), CIGS, and CZTS \cite{JiangY13}. In contrast
-to the exotic elements in CdTe and CIGS, CZTS ($Cu_2ZnSnS_4$) is
+materials compete with traditional crystalline silicon based on
+efficiency but use far less
+material \cite{JiangY13}. Leading thin film technologies include absorbers based on
+cadmium telluride (CdTe), Copper-Indium-Gallium-Selenide/Sulfide (CIGS) and $Cu_2ZnSnS_4$ (CZTS) \cite{JiangY13}. In contrast
+to the exotic elements in CdTe and CIGS, CZTS is
 comprised of relatively abundant and benign constituents. However,
 despite considerable attention CZTS development is still not mature
 relative to CdTe technology. The performance is sensitive to the
@@ -228,170 +228,112 @@ from of measurements of bulk
 properties that result from uncertain and time-varying process
 conditions.
 
-Unlike crystalline silicone that is explicitly doped with
-phosphorous or boron to create n-type or p-type semiconductors, CZTS
-is `self-doped' through point defects in the kesterite
-crystal. Creation of these defects (vacancies, antisite and
-interstitial) , particularly the $Cu_{Zn}$ antisite defect for
-p-type doping in CZTS, results in an increase in carrier
-concentration and semiconductor behavior \cite{JiangY13}.  However,
-other defects have been identified as reducing carrier lifetime
-through providing recombination centers. Further, a system such as
-CZTS has a complicated phase diagram with a narrow region where the
-CZTS phase is present. The effects of the secondary phase presence
-on device performance is throughly described in, e.g.,
-\cite{Flammersberger}, but are largely detrimental to device
-performance. Grain boundaries between phases also alter the driving
-force for point defect migration. \cite{Kolluri12} looked into
-transport of delocalized defects at interfacial grain boundaries for
-CuNb and found that it can be modelled as a complication on
-localized defect migration and successfully treated based on
-transition state theory with temperature dependent
-prefactor. Whether in the pure crystal or at a phase boundary, point
-defects in close proximity can interact, e.g., a vacancy and
-interstitial defect can combine to heal the crystal. 
+Unlike crystalline silicon that is explicitly doped with phosphorous
+or boron to create n-type or p-type semiconductors, CZTS is
+`self-doped' through point defects in the kesterite crystal. Creation
+of these defects (vacancies, antisite and interstitial) , particularly
+the $Cu_{Zn}$ antisite defect for p-type doping in CZTS, results in an
+increase in carrier concentration and semiconductor behavior
+\cite{JiangY13}. The overall defect formation/destruction, movement
+through the crystal structure and along grain boundaries can be
+described by a set of coupled stochastic partial differential
+equations that treat the point defect concentrations as continuum
+quantities: \begin{equation}
+  \label{eq:pdpde}
+  \phi_j = S_j - D \frac{\partial^2 \phi_j}{\partial x^2}  + T_j,
+\end{equation}
+where $\phi_j$ represents the number density of $j^\mathrm{th}$ defect or election/hole (carrier) concentration.
 
-  From an analysis perspective, assembling a comprehensive model
-  requires treatment multiple physical processes with poorly
-  understood parameters. In the remainder of this section, we will
-  provide an overview of the building blocks of such a model. Two
-  approaches are available: detailed electronic structure calculations
-  \footnote{Walsh, A., Chen, S., Wei, S.-H. and Gong, X.-G. (2012),
-    Kesterite Thin-Film Solar Cells: Advances in Materials Modelling
-    of Cu2ZnSnS4. Adv. Energy Mater., 2: 400–409. doi:
-    10.1002/aenm.201100630} provide a wealth of information indicating
-  the important physical processes and configuration effects, but are
-  unable to connect back to processing through long term dynamics. An
-  alternate approach is to utilize continuum descriptions of
-  point-defect formation and interaction; however, many of the
-  parameters in such a description are difficult to identify,
-  underscoring our interest in this approach.
+The source term $S_j$ is local rate of change due to pseudo-reactions
+that govern the creation/destruction and interaction of point
+defects. For example, a simple model of a metal-X system  can
+be described by a simplistic system of four reactions. 
 
-\begin{itemize}
-  \item Firstly, the surface process by which metal flux from the vapor
-  stream are added to the crystal. This is process dependent, although
-  well established models are available. \MarginPar{at least CVD is,
-    although co-evaporation is more common}
-
-\item Secondly, the formation and interactions of the point defects
-  within the film can be expressed in terms of continuum point defect
-  concentration/number densities. Static electronic structure
-  calculations can estimate the enthalpy difference when a given point
-  defect is formed, but these calculation are of little practical use
-  to compute the dynamics of the system. Instead, `pseudo-reactions'
-  based on Arrhenius form are written. For example, a simple model of a
-  MS system (a realistic description of the full CZTS system includes
-  many more relations) can be described by a simplistic system of four
-  reactions expressing an oxidation reaction, the Schottky disorder
-  and creation of anion vacancies:
-
-\begin{eqnarray*}
-\ce{ \tfrac{1}{2} S2 -> S_s^x + V_m^{''} + 2 h^+ } \\
-\ce{ NULL -> V_m^{''}+ V_s^{\cdot \cdot} } \\
+\begin{eqnarray}
+\ce{ \tfrac{1}{2} X_2 -> X_x + V_m^{''} + 2 h^+ } \\
+\ce{ NULL -> V_m^{''}+ V_x^{\cdot \cdot} } \\
 \ce{ NULL -> e^ '+ h^{\cdot} } \\
-\ce{ S_s^x -> \tfrac{1}{2} S2 + V_s^{\cdot \cdot} + 2 e^- }.
-\end{eqnarray*}
-\MarginPar{need to define terms}
+\ce{ X_x -> \tfrac{1}{2} X2 + V_x^{\cdot \cdot} + 2 e^- }.
+\label{eq:pdrxns}
+\end{eqnarray}
 
-Where the rate of the $\alpha^{\mathrm{th}}$ reaction is approximated
-by the Arrhenius form and the law of mass-action based on defect
-number densities:
-\begin{equation}
-  \label{eq:1}
-  k_\alpha e^{-(E_a)_\alpha/(RT)}.
-\end{equation}
+In the above set, $X_2$ is a non-metal gas phase that is interacting
+with the crystal at the interface. The first reaction represents the
+addition of an X atom to the lattice producing cation vacancies
+($V_m^{''}$); the last reaction represents an X ion in the lattice
+dissociating into an X atom that leaves the lattice and two elections,
+leaving behind an anion vacancy ($V_x^{\cdot \cdot}$). The second and
+third reactions represent creation and elimination of vacancies
+(``Schottky defects'') and creation/elimination of electron/hole pairs
+(``electronic defects'') \cite{Tilley}. The equilibrium concentration
+of these defects are non-zero because the free energy of the crystal
+is lowered in the presence of such defects; in a more complicated
+system such as CZTS many more defects are possible. Electronic
+structure calculations \cite{Walsh12} provide a wealth of information
+indicating the important physical processes and configuration effects,
+but are unable to capture the long time-horizon dynamics necessary to
+couple the processing conditions to the concentrations. The rates of
+the reactions in Equation \ref{eq:pdrxns} are given by Arrhenius forms
+($\omega_\alpha = k_\alpha e^{-(E_a)_\alpha/(RT)}$) and then assembled
+into the source terms $S_j$ based on a linear combination given by the
+coefficients for the $j^\mathrm{th}$ species in the
+$\alpha^\mathrm{th}$ reaction.
 
-Solution of this system yields the $e$ and $h$ carrier
-concentrations that are used to assess device performance based on the
-partial pressures resulting from the metal fluxes. However, the
-activation energy and pre-exponential factor are difficult to
-estimate. Using the enthalpy difference across the reaction --- that
-can be estimated from electronic structure calculations, although the
-energy barrier is not so easily attainable --- provides
-the correct equilibrium solution, but tells us little about the
-dynamics. Thus we have only the coarsest estimate of the parameters
-available as priors.
-
-\item The reactions above involve gas-phase species concentrations that must
-be determined from the metal flux at the film surface. Diffusion of
-these gasses into the film can be treated with a gradient-based
-(Fickian) approximation. 
-
-\item Transport of the point defects within the crystal occurs by in two
+Transport of the point defects within the crystal occurs by in two
 regimes. Solid state diffusion is frequently approximated using a
-Fickian treatment, however for point defects this is insufficient to
-account for their migration along grain boundaries, where, as
-suggested earlier, the transport mechanism changes and becomes
-delocalized. Higher probability of the defect moving along the grain
-boundary can be captured by a stochastic model more naturally than a
-deterministic treatment. 
+Fickian treatment (2nd term on rhs of Equation \ref{eq:pdpde}),
+however for point defects this is insufficient to account for their
+migration along grain boundaries, where, as suggested earlier, the
+transport mechanism changes and becomes delocalized. Higher
+probability of the defect moving along the grain boundary can be
+captured by a stochastic model more naturally than a deterministic
+treatment; the final term on the RHS represents stochastic transport
+that is active only in the vicinity of a grain boundary. Kolluri and
+Demkowicz \cite{Kolluri12} looked into transport of delocalized
+defects at interfacial grain boundaries for CuNb and found that it can
+be modelled as a complication on localized defect migration and
+successfully treated based on transition state theory with a
+temperature dependent pre-factor.
 
-\item The importance of grain boundaries for transport requires a model for
-grain nucleation and growth that is notoriously difficult to capture
-deterministically; stochastic models have been much more successful \cite{Koptelov84}.
-\MarginPar{L. Petzold  has literature on how to connect such components}
+The importance of grain boundaries for transport requires a model for
+grain nucleation and growth. CZTS has a complicated phase diagram with
+a narrow region where the CZTS phase is present. The effects of the
+secondary phase presence on device performance is throughly described
+in, e.g., \cite{Flammersberger}, but are largely detrimental to device
+performance. Grain boundaries between phases also alter the driving
+force for point defect migration that is notoriously difficult to
+capture deterministically; stochastic models have been much more
+successful \cite{Koptelov84}. \marginpar{RG: I know nothing about
+  grain growth but imagine it could be treated with a moving front
+  method. I will look into.}
 
-\end{itemize}
 
-Collecting these physics, a reasonable stochastic PDE governing the
-number density of a point defect $\phi$ as a function of space-time
-within the film can be written as:
-\begin{equation}
-  \label{eq:3}
-  \phi_t = S^\phi - D \phi_{xx}  + T^\phi,
-\end{equation}
-where $s^\phi$ is the net rate of formation/destruction of the defect
-due to the system of reactions describing the point defect chemistry
-and interaction, the second term on the right hand side (RHS) is a deterministic
-transport contribution, and the final term on the RHS represents
-stochastic transport that is active only in the vicinity of a grain
-boundary. 
+  Solution of the combined system (point defect and carrier
+  concentrations augmented by grain growth models) yields the $e$ and
+  $h$ carrier concentrations that are used to assess device
+  performance. Point defects are generally not directly measurable;
+  instead, they are inferred from measurements of carrier
+  concentration (via resistance, conductivity). The temperature
+  sensitivity of such measurements can be used in combination with
+  either a selection of conditions where a particular type of defect
+  governs the response (not general) or in combination with the
+  solution of the full system as outlined above. A desirable workflow
+  for this application is to use the experiments available to narrow
+  the uncertainty in the kinetic and transport parameters as far as
+  possible, and then search for processing pathway that provides
+  optimum result given remaining uncertainty in parameters.
 
-Auxiliary simulations are necessary to provide the boundary
-conditions; e.g., \cite{cigs-parallel-simulation} and a model for
-grain growth. The latter, following seeding from stochastic processes
-dependent on the local elemental composition can be treated with a
-moving front method. 
+  Overall, this application has several aspects that differentiate it
+  from the others insofar as it has an inherently stochastic component
+  (in the transport at the grain boundaries and also, in the more
+  sophisticated models, in the reactions describing the surface
+  kinetics), it exhibits very large uncertainty in relatively few
+  parameters (the bounds on the kinetic constants are very wide) and,
+  as it is somewhat less well studied than the combustion system,
+  there is a significant opportunity for model insufficiency. The
+  final feature provides an opportunity to test the robustness of
+  mechanisms to detect when model is inconsistent with data.
 
-This problem has several aspects that differentiate it from the other
-applications that we would like to highlight: 
-\begin{itemize}
-\item It is has an inherently stochastic nature
-\item It exhibits very large uncertainty in relatively few parameters
-\item It is somewhat less well studied than the combustion system,
-  leading to a significant opportunity for model insufficiency ---
-  providing an opportunity to test the robustness of mechanisms to
-  detect when model is inconsistent with data)
-\end{itemize}
-
-\MarginPar{Workflow: cf. experiments to pin down uncertainty in kinetic
-parameters, transport probabilities, etc. Then search for processing
-pathway that provides optimum result given remaining uncertainty in
-parameters. Can we use similar sampling ideas for the final
-  optimization step?}
-
-\emph{Measurements: carrier concentration; resistance; conductivity;
-  changes\ldots}
-
-Direct measurement of the concentration of arbitrary point defects is
-difficult and must be inferred from more easily observed
-characteristics, leading a model for the observation process $h(x)$
-that may be quite complicated and the result of a non-trivial
-simulation.  For example, majority carrier concentration, electron or
-hole mobility, capacitance can be measured, but these are all
-indicators of the final point defect configuration that results from
-the process rather than measures of the individual formation
-rates. With significantly more effort, the dependence of the film
-conductivity on temperature provides an indirect measure of the
-activation energy for carrier concentration: this is related to the
-kinetic parmeters of the governing defect concentration(s).  A variety
-of simulation/experiment pairs are desirable to increase sensitivity
-to the various parameters separately:
-
-\MarginPar{The experimental process parameters could be
-  thought of as either an uncertain input, albeit not one we're
-  trying to constrain, or as an observable. At first glance the latter
-  seems more appropriate.}
 
 Our third application area concerns lithium-ion batteries.
 A recent DOE Basic Energy Sciences (BES) workshop report states: 
