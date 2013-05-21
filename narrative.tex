@@ -259,7 +259,7 @@ equations that treat the point defect concentrations as continuum
 quantities:
 \begin{equation}
   \label{eq:pdpde}
-  \phi_j = S_j - D \frac{\partial^2 \phi_j}{\partial x^2}  + T_j,
+  \frac{\partial \phi_j}{\partial t}  = S_j + \nabla \cdot  D_j \nabla \phi_j  + T_j,
 \end{equation}
 where $\phi_j$ represents the number density of $j^\mathrm{th}$ defect or election/hole (carrier) concentration.
 
@@ -300,7 +300,7 @@ $\alpha^\mathrm{th}$ reaction.
 
 Transport of the point defects within the crystal occurs by in two
 regimes. Solid state diffusion is frequently approximated using a
-Fickian treatment (2nd term on rhs of Equation \ref{eq:pdpde}),
+Fickian treatment (2nd term on rhs of Equation \ref{eq:pdpde} with defect-dependent mobility $D_j$),
 however for point defects this is insufficient to account for their
 migration along grain boundaries, where, as suggested earlier, the
 transport mechanism changes and becomes delocalized. Higher
