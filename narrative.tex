@@ -333,24 +333,25 @@ The importance of grain boundaries occuring between the pure phase and one of th
 grain nucleation and growth. 
 Furthermore, the effects of 
 secondary phase presence on device performance are largely detrimental to device
-performance \cite{Flammersberger} and annealing conditions is an important processing step.  Grain structure has been treated by numerous methods that attempt to capture the driving force for grain growth ( to first order, the reduction in grain energy captured by the curvature of the interface and interactions between the grain) including interface tracking and continuum descriptions. The latter, where grain boundaries are identified as misaligned orientations between adjacent points on a (typically cartesian) has been formulated as a deterministic \cite{FanGC97} or stochastic \cite{Rollett04} problems and is conveniently compatible with the continuum representation of point defect kinetics.  In the deterministic treatment by Fan et al., a set of ODEs is written for a finite number $p$ of continuous orientation field variables at each grid point $\eta_1, \eta_2(x), \dots, \eta_p(x)$. The total free energy is then written in terms of the local free energy density $e_0$ and gradient energy coefficients $\kappa_i$:
-\MarginPar{JBB:  may need to shorten this.  Can we credibly attack this complexity}
-\begin{equation}
-  \label{eq:detgrainE}
-  E = \int_V e_0\left( \eta_1, \eta_2, \dots, \eta_p \right) + \sum_i^p \frac{\kappa_i}{2} \left( \nabla \eta_i \right)^2 dx.
-\end{equation}
-Fan et al. use a function form for the free energy density involving phenomenological parameters $\alpha, \beta, \gamma$:
-
-\begin{equation}
-  \label{eq:detgraine0}
-  e_0 = \sum_i^p \left( - \frac{\alpha}{2} \eta_i^2 + \frac{\beta}{4}\eta_i^4\right) + \gamma\sum_i^p \sum_{j\ne i}^p \eta_i^2\eta_j^2,
-\end{equation}
-and used the Ginzburg-Landau equations involving kinetic coefficients describing grain boundary mobility $M_i$ to evolve the orientation field variables:
-\MarginPar{JBB what is $L_i$}
-\begin{equation}
-  \label{eq:detgrainGL}
-  \frac{d \eta_i}{dt} = -L_i \frac{\delta E}{\delta \eta_i}= -L_i \left( \frac{\partial e_0}{\partial \eta_i} - \kappa_i \nabla^2\eta_i \right)
-\end{equation}
+performance \cite{Flammersberger} and annealing conditions is an important processing step.  Grain structure has been treated by numerous methods that attempt to capture the driving force for grain growth ( to first order, the reduction in grain energy captured by the curvature of the interface and interactions between the grain) including interface tracking and continuum descriptions. The latter, where grain boundaries are identified as misaligned orientations between adjacent points on a (typically cartesian) has been formulated as a deterministic \cite{FanGC97} or stochastic \cite{Rollett04} problems and is conveniently compatible with the continuum representation of point defect kinetics.  Both formulations involve numerous phenomenological parameters with associated uncertainties. 
+%In the deterministic treatment by Fan et al., a set of ODEs is written for a finite number $p$ of continuous orientation field variables at each grid point $\eta_1, \eta_2(x), \dots, \eta_p(x)$. The total free energy is then written in terms of the local free energy density $e_0$ and gradient energy coefficients $\kappa_i$:
+%\MarginPar{JBB:  may need to shorten this.  Can we credibly attack this complexity}
+%\begin{equation}
+%  \label{eq:detgrainE}
+%  E = \int_V e_0\left( \eta_1, \eta_2, \dots, \eta_p \right) + \sum_i^p \frac{\kappa_i}{2} \left( \nabla \eta_i \right)^2 dx.
+%\end{equation}
+%Fan et al. use a function form for the free energy density involving phenomenological parameters $\alpha, \beta, \gamma$:
+%
+%\begin{equation}
+%  \label{eq:detgraine0}
+%  e_0 = \sum_i^p \left( - \frac{\alpha}{2} \eta_i^2 + \frac{\beta}{4}\eta_i^4\right) + \gamma\sum_i^p \sum_{j\ne i}^p \eta_i^2\eta_j^2,
+%\end{equation}
+%and used the Ginzburg-Landau equations involving kinetic coefficients describing grain boundary mobility $M_i$ to evolve the orientation field variables:
+%\MarginPar{JBB what is $L_i$}
+%\begin{equation}
+%  \label{eq:detgrainGL}
+%  \frac{d \eta_i}{dt} = -L_i \frac{\delta E}{\delta \eta_i}= -L_i \left( \frac{\partial e_0}{\partial \eta_i} - \kappa_i \nabla^2\eta_i \right)
+%\end{equation}
 
 In the stochastic formulation used by Rollett, each possible orientation is enumerated a priori into an orientation index. Each gridpoint is assigned an orientation index $S$, with grains corresponding to contiguous regions with constant S. The total system energy is defined as:
 \begin{equation}
