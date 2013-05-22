@@ -420,7 +420,7 @@ Volmer).
 electrolyte electric potential (reaction-diffusion) $\frac{\partial \phi}{dt} = \nabla \cdot (D_{\phi} \nabla \phi)  + R_{\phi}$, where $D_{\phi}$ is charge diffusivity in electrolyte, $R_{\phi}$ is a volume averaged current
 density entering electrolyte.
 \item
-electrode stress field $\sigma$ (Hooke's law for chemically active solid) $\sigma_{ij} = C_{ijkl}^{Li} [\epsilon_{kl} - \beta_{kl}(c_e - c_{e_0})] $, where $C$, $\epsilon$, $\beta$ are stress/strain tensors and Vegard coefficient.
+electrode stress field $\sigma$ (Hooke's law for chemically active solid) $\sigma_{ij} = C_{ijkl}^{Li} [\epsilon_{kl} - \beta_{kl}(c_e - c_{e_0})] $, where $C$, $\epsilon$, $\beta$ are stress/strain tensors and Vegard coefficients.
 \item
 electrode equilibrium stress $\sigma$ (constitutive equations) $\nabla \cdot \sigma = 0$ 
 \item
@@ -428,11 +428,10 @@ cell/pack electric potential $\Phi$ (reaction-diffusion) $\frac{\partial \Phi}{d
 where $D_{\Phi}$ is charge diffusivity in cell/pack, $R_{\Phi}$ represents charge injection from electrode scale. 
 \item
 cell/pack temperature $T$ (thermal transport (diffusion)) $\frac{\partial T}{dt} = \nabla \cdot (D_T \nabla \Phi) + R_T$, where $R_T$ is heat flux from electrode scale.
-for 
 \end{itemize}
 Uncertainty quantification in this context represents an
 extreme scale challenge:
-each scale alone is a challenging 3D simulation in a heterogeneous domain;
+each scale alone is a 3D simulation in a heterogeneous domain;
 the difference in scale between the first and last set of equations represents approximately 8 orders of magnitude that must be resolved and coupled in some way;
 many such hierarchically coupled runs need to be executed to perform a UQ study.
   
