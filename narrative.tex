@@ -109,7 +109,11 @@ the communication between cores for each independent run is small.
 Using MC sampling as the computational backbone will lead to a numerically sound
 implementation of a rigorous UQ theory that is well suited for extreme scale machines, making UQ possible for realistic applications.
 
+<<<<<<< HEAD
 MC sampling techniques approximate the posterior distributions that are the basis of Bayesian UQ by a set of samples. However, computing these samples can be very hard. A key issue is that many current MC techniques are not robustly effective for complex, high-dimensional problems. There is a weak analogy to the problem of solving large systems of linear or nonlinear equations.
+=======
+MC sampling techniques approximate the posterior distributions that are the basis of Bayesian UQ by a set of samples. However, computing these sample can be very hard. A key issue is that many current MC techniques are not robustly effective for complex, high-dimensional problems. There is a weak analogy to the problem of solving large systems of linear or nonlinear equations.
+>>>>>>> d383171136bb229b308757b865a633205d518fc5
 For equation solving there are generic methods such as Gaussian elimination, Gauss Seidel iteration,
 Newton's method, etc.
 But these generic methods are unable to solve extreme scale problems that arise from simulating
@@ -142,20 +146,32 @@ with noise under partial observation.
 
 We can consider different MC sampling techniques (the Bayesian approach is conceptually independent of its implementation) and we plan to investigate which sampling method is applicable at the various levels of the hierarchy. In particular, we will consider particle filters (importance sampling) as an alternative to MCMC. Standard particle filters first obtain samples of the prior and then evaluate their probability with respect to the posterior by attaching weights to each sample based on its distance to the data \cite{Doucet2001,GordonSIR}.
 The weighted particles form an empirical estimate of the posterior.
-Difficulties arise if the prior and posterior approach being mutually singular, i.e. if high-probability events with respect to the prior are likely to have low probability with respect to the posterior.
-This is the interesting case, which corresponds to the situation where one can learn from the data, rather than simply confirming the prior.
-However, in this case many of the samples have a low weight so that the empirical estimate they constitute is poor (it can be a single and often unlikely point).
-This can happen when estimating a single parameter, however it was shown rigorously for linear problems that the number of particles required scales catastrophically with the number of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach infeasible for our target applications.
+Difficulties arise if the prior and posterior approach are mutually singular, i.e. if high-probability events with respect to the prior have low probability with respect to the posterior.
+However, this is the interesting case, which corresponds to the situation where one can learn from the data, rather than simply confirming the prior.
+Under these conditions many of the samples have a low weight so that the empirical estimate they constitute is poor (it can be a single and often unlikely point).
+Although this can happen when estimating a single parameter, it was shown rigorously for linear problems that the number of particles required scales catastrophically with the number of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach infeasible for our target applications.
 A number of methods have been invented to ameliorate this problem, most of which amount to finding a proposal density that  generates samples that are more compatible with the data \cite{Doucet,OptimalImportanceFunction,liuchen1995,Brad}.
 For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation \cite{vanLeeuwen}.
-A different approach is to construct a map that transforms the prior measure into the posterior measure, i.e. to construct a map that transforms prior samples into posterior samples \cite{Moselhy2013}. 
-The advantage of this method is that posterior samples are easy to generate once the map is found.
-However, the construction of the map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps).
+A more general approach constructs a map that transforms the prior measure into the posterior measure
+%, i.e. to construct a map that transforms prior samples into posterior samples 
+\cite{Moselhy2013}.  If such a map could be constructed, efficient posterior samples are easy to generate.
+However, the construction of the map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps) that are not efficient.
 We expect that we will need to compute a map at each level of the hierarchy and, thus, expect that this approach is computationally too expensive for our target applications. Moreover, the errors of the approximations involved in finding the map are, at this time, not well understood. We plan to base our particle filtering methods on the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013}, which avoids some of the pitfalls of standard sampling by concentrating the computational power on localizing the regions of high probability in the parameter space (see below for details of this method).
 
 
+<<<<<<< HEAD
 \MarginPar{George: Rewrote ROM\\ Matti: I did another round of re-writing and hope I didn't make it worse}
 The posterior samples obtained from sampling (either MCMC or implicit sampling) can be used to construct reduced order models (ROMs), by which we mean inexpensive (to evaluate) surrogates for expensive computer simulations that preserve the input-output relations in the numerical models. In what follows, we will use the term ROM in an encompassing sense which can refer to model reduction approaches, response surface approaches and machine learning techniques. For example, in model reduction approaches, e.g. the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr}, one directly approximates the PDEs using a parametrically-induced approximation space. However, these techniques are difficult to apply to complex, multiscale models.  Response surface and machine learning techniques such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz}, artificial neural network~\cite{Cybenko:1992vo} and polynomial chaos expansion~\cite{Oladyshkin:2012ur} are simpler to use but the functional relations between the outputs and parameters of interest encoded within the numerical models are lost, and must be indirectly captured through a large number of training data. A research question we will address is how to combine ROMs with MC algorithms as we move through the hierarchy of experiments. For example, coarse resolution (thus computationally cheap) models can be used to generate samples during the importance sampling stage~\cite{Higdon:2002vx,Christen:2005wp,Efendiev:2007uw,Bal:2013tp} or coupled with fine resolution models through the metropolis coupled chain~\cite{Higdon:2002vx}. To improve the match between the coarse and fine posterior distributions, Bal et. al.~\cite{Bal:2013tp} used a zero-mean Gaussian model to approximate the discretization error~\cite{Kaipio:2007ux}. However, we expect that this simple approach will not be sufficient for our target applications since the simpler models we expect to encounter involve significant simplifications of the physics and / or reduction of spatial dimensions. We plan to use ROMs to model the structural variations of the difference between the models at the various levels of the hierarchy. In addition, we will address how to use ROMs within our hierarchical framework to obtain accurate and efficient forward UQ techniques ~\cite{Challenor:2012uv, Ratto:2012tf}, for example for predicting catastrophic events and obtaining global sensitivity analysis indices. 
+=======
+\MarginPar{George: Rewrote ROM}
+Both MCMC and importance sampling approximate the posterior distribution of the targeted parameters by a (large) number of samples. With marginal additional costs, these samples can further be fruitfully used to create reduced order models (ROMs) that can be used to improve efficiency at the various stages of the MC algorithms.  ROMs are inexpensive surrogates for expensive computer simulations that aim to preserve the input-output relations in the numerical models.  In this proposal, the term is used in an encompassing sense to refer to model reduction approaches, response surface approaches and machine learning techniques. Model reduction approaches, such as the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr} directly approximate the PDEs using a parametrically-induced approximation space.  However, these techniques can be difficult to apply to complex, multiscale models directly.  
+
+Response surface and machine learning techniques
+such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz}, artificial neural network (ANN)~\cite{Cybenko:1992vo} and polynomial chaos expansion (PCE)~\cite{Oladyshkin:2012ur} are simpler to use, but possess their own severe limitations.  PCE, in particular has been applied successfully to a limited class of flow problems (e.g. \cite{GhanemDham1998, LeMaitre2001}).  In PCE methods, the probability space of the parameters is decomposed into a finite set of univariate polynomials with local or global support, and coupled together through tensor products.  These bases functions are propagated through the model, either ``intrusively'' or ``unintrusively''.  Intrusive schemes utilize, e.g., a Galerkin projection to reformulate the governing equations into a system governing the PC mode strengths directly; unintrusive methods numerically evaluate the modes through deterministic or random sampling of the original model/code.  However, strong nonlinearity and complex unsteady dynamics present significant challenges for this approach \cite{Mathelin2004}.  The difficulties arise primarily from the high-order expansions necessary to capture the modes with sufficient accuracy.  In dynamic simulations, PCE usually requires a fast increasing expansion order to maintain a constant accuracy in time.  Specialized applications exist for oscillatory systems (e.g. vortex-shedding \cite{LucorKarniadakis2004,Xiu2002}), including phase-locked wavelet-based approaches \cite{WitteveenBijl2008}, but the general time-dependent problems of interest here remain computationally intractable for PCE.  GPR and ANN methods offer no relief, since much of the functional relationships between the outputs and parameters of interest encoded within the numerical models are lost, and must be indirectly captured through a prohibitively large set of training data.  
+
+There are several areas in which ROMs can play a role in a MC algorithm.   For example, coarse resolution (thus computationally cheap) models have been used to generate  samples  during the importance sampling stage~\cite{Higdon:2002vx,Christen:2005wp,Efendiev:2007uw,Bal:2013tp} or coupled with fine resolution models through the metropolis coupled chain~\cite{Higdon:2002vx}. To further improve the match between the coarse and fine posterior distributions, Bal et. al.~\cite{Bal:2013tp} used a zero-mean Gaussian model to approximate the discretization error~\cite{Kaipio:2007ux}. However, since our simpler models may involve significant simplifications of the physics or reduction of spatial dimensions, ROM may be needed to more accurately model the structural variations of the difference between the models.  ROMs can also be used directly as an efficient surrogate in forward UQ~\cite{Challenor:2012uv, Ratto:2012tf} for example in predicting catastrophic events and obtaining global sensitivity analyses indices that converges slowly with number of samples.   In this proposal, we will look into how ROMs can further improve the efficiency of the importance sampling approach that we will use.  In addition, we will determine how ROM can be used within our hierarchical framework to efficiently obtain an accurate predictions to pin the forward UQ.
+
+>>>>>>> d383171136bb229b308757b865a633205d518fc5
 %We intend to examine how we can use reduced order modeling techniques to model this error accurately.
 %In particular, Gaussian process regression~\cite{Rasmussen:2006vz} is expected to fit within the statistical framework that we will describe.
 %We note that reduced order models can also be directly used as the simpler model~\cite{BuiThanh:2012tx}.
@@ -166,8 +182,6 @@ The posterior samples obtained from sampling (either MCMC or implicit sampling) 
 %We will also address forward UQ, including UQ of predictions made with the posterior computational models as well as sensitivity analysis used in decision making and experimental design. While multilevel Monte Carlo can improve the convergence rate for a series of convergent models~\cite{Giles:2008gc},  a theoretical framework for a heterogeneous set of models is lacking. Alternatively one can use surrogates for fine-scale models in the (posterior) forward  analyses~\cite{Challenor:2012uv, Ratto:2012tf} and we will investigate how these reduced order models can be accurately and efficiently used in a hierarchical framework. 
 
 % Although efficiency Monte Carlo of sampling techniques has been significantly improved in recent years, many problems are still computationally intractable, even with the computational gain achieved through high-performance computing efforts (Wang et al., 2011). One feasible solution is to use reduced-order models (ROMs), or emulators, as efficient surrogates for fine-scale models in these analyses (Challenor, 2012; Ratto et al., 2012).  
-
-MARC: BRIEF MENTION OF LITERATURE OF REACTION DIFFUSION EQUATIONS WITH OTHER APPROACHES (PCE, ETC.) AND WHY NOT RIGHT NOTION
 
 \subsection*{Proposed Research}
 
@@ -205,7 +219,14 @@ Moreover, the approach needs to respect the structure of the problem.
 A reasonable cartoon for a 
 turbulent flame experiment is that it corresponds to a stationary chaotic dynamical system.
 What the experimentalist is capturing are some level snapshots of what the attractor looks like.
+<<<<<<< HEAD
 We cannot hope to have a complete picture of the flame at a given time, because available data is at best limited. For example, boundary conditions are only known statistically or we only have a qualitative characterization of selected features. However, the data carries some information about the underlying physical system and our goal is to extract this information from the limited data we have access to.
+=======
+We cannot hope to have a complete picture of the flame at a given time. Boundary conditions
+are only known statistically.  We only
+have some characterization of selected features.  The available data is at best limited;
+however, the hope is that it carries some information about the underlying physical system.
+>>>>>>> d383171136bb229b308757b865a633205d518fc5
 
 \subsubsection*{Thin-film photovoltaic materials}
 Our second target application 
@@ -308,12 +329,51 @@ grain nucleation and growth. CZTS has a complicated phase diagram with
 a narrow region where the CZTS phase is present. The effects of the
 secondary phase presence on device performance is throughly described
 in, e.g., \cite{Flammersberger}, but are largely detrimental to device
-performance. Grain boundaries between phases also alter the driving
+performance, so the process of grain growth under annealing conditions is an important processing step.  Grain boundaries between phases also alter the driving
 force for point defect migration that is notoriously difficult to
 capture deterministically; stochastic models have been much more
+<<<<<<< HEAD
 successful \cite{Koptelov84}. \MarginPar{RG: I know nothing about
   grain growth but imagine it could be treated with a moving front
   method. I will look into.}
+=======
+successful \cite{Koptelov84}. Grain structure has been treated by numerous methods that attempt to capture the driving force for grain growth ( to first order, the reduction in grain energy captured by the curvature of the interface and interactions between the grain) including interface tracking and continuum descriptions. The latter, where grain boundaries are identified as misaligned orientations between adjacent points on a (typically cartesian) has been formulated as a deterministic \cite{FanGC97} or stochastic \cite{Rollett04} problems is conveniently compatible with the continuum representation of point defect kinetics.  In the deterministic treatment by Fan et al., a set of ODEs is written for a finite number $p$ of continuous orientation field variables at each grid point $\eta_1, \eta_2(x), \dots, \eta_p(x)$. The total free energy is then written in terms of the local free energy density $e_0$ and gradient energy coefficients $\kappa_i$:
+\begin{equation}
+  \label{eq:detgrainE}
+  E = \int_V e_0\left( \eta_1, \eta_2, \dots, \eta_p \right) + \sum_i^p \frac{\kappa_i}{2} \left( \nabla \eta_i \right)^2 dx.
+\end{equation}
+Fan et al. use a function form for the free energy density involving phenomenological parameters $\alpha, \beta, \gamma$:
+
+\begin{equation}
+  \label{eq:detgraine0}
+  e_0 = \sum_i^p \left( - \frac{\alpha}{2} \eta_i^2 + \frac{\beta}{4}\eta_i^4\right) + \gamma\sum_i^p \sum_{j\ne i}^p \eta_i^2\eta_j^2,
+\end{equation}
+
+and used the Ginzburg-Landau equations involving kinetic coefficients describing grain boundary mobility $M_i$ to evolve the orientation field variables:
+\begin{equation}
+  \label{eq:detgrainGL}
+  \frac{d \eta_i}{dt} = -L_i \frac{\delta E}{\delta \eta_i}= -L_i \left( \frac{\partial e_0}{\partial \eta_i} - \kappa_i \nabla^2\eta_i \right)
+\end{equation}
+
+In the stochastic formulation used by Rollett, each possible orientation is enumerated a priori into an orientation index. Each gridpoint is assigned an orientation index $S$, with grains corresponding to contiguous regions with constant S. The total system energy is defined as:
+\begin{equation}
+  \label{eq:mcgrainE}
+  E = \sum_j^N \sum_i^n J(S_i, S_j) (1-\delta_{S_iS_j})
+\end{equation}
+where the inner sum is taken over the $n$ first and second nearest neighbors of the $i^\mathrm{th}$ element and $J(S_i,S_j)$ is the energy of a unit of boundary between elements $i$ and $j$ with orientation indicies $S_i$ and $S_j$. The transition probability for a reorientation with energy difference $\Delta E$ and mobility $M$ beween indicies $S_i$ and $S_j$ is:
+\begin{equation}
+  \label{eq:mcgrainP}
+  P( S_i, S_j, \Delta E, T) = \left\{ \begin{aligned}
+      & \frac{J(S_i,S_j)}{J_\mathrm{max}} \frac{ M(S_i, S_j) }{M_\mathrm{max}}  \quad \Delta E \le 0 \\
+      & \frac{J(S_i,S_j)}{J_\mathrm{max}} \frac{ M(S_i, S_j) }{M_\mathrm{max}} \exp \left( \frac{-\Delta E}{TJ(S_i,S_j)}\right)  \quad \Delta E > 0 \\
+      \end{aligned}
+      \right. 
+\end{equation}
+In the above, the energy between orientation indicies $J$ and mobility $M$ are experimentally derived parameters for each orientation pair that reflect, preferential growth along a particular misalignment direction. The state of the crystal is updated sequentially by choosing random locations and new orientations that are accepted based on the given probability. 
+
+
+%\remrg{The stochastic formulation appears to be calling out for MCMC. This aspect of the thin film photovoltaic application readily generalizes and is applicable to a broader range of materials problems, where the objective is to predict grain size after an annealing process to design materials with specific mechanical as well as electrical properties.}
+>>>>>>> d383171136bb229b308757b865a633205d518fc5
 
 
   Solution of the combined system (point defect and carrier
@@ -331,6 +391,7 @@ successful \cite{Koptelov84}. \MarginPar{RG: I know nothing about
   possible, and then search for processing pathway that provides
   optimum result given remaining uncertainty in parameters.
 
+<<<<<<< HEAD
   Overall, this application has several aspects that differentiate it
   from the others insofar as it has an inherently stochastic component
   (in the transport at the grain boundaries and also, in the more
@@ -345,13 +406,23 @@ successful \cite{Koptelov84}. \MarginPar{RG: I know nothing about
 %%%%%%%%%%% batteries
 \subsubsection*{Lithium-ion batteries}
 Our third application area concerns lithium-ion batteries. 
+=======
+
+%%%%%%%%%%% batteries
+\subsubsection*{Energy storage}
+Our third application area concerns lithium-ion batteries.
+>>>>>>> d383171136bb229b308757b865a633205d518fc5
 A recent DOE Basic Energy Sciences (BES) workshop report states: 
 ``Revolutionary breakthroughs in Electrical Energy Storage have been singled out as perhaps the most crucial need
 for this nation's secure energy future''  (\cite{ees_rpt}, p. xii).
 The promise of electric-drive vehicles (EDVs) can only be met if batteries having both high energy density and increased safety 
 and reliability are developed.  Current solutions, including exploding laptops and expensive electric vehicles that burst into 
 flame and/or can only travel 100 miles before requiring a full night to recharge, are inadequate for widespread adoption.
+<<<<<<< HEAD
 Lithium-ion batteries (LIBs) present a truly multiscale system, with important macroscopic behavior
+=======
+Lithium ion batteries present a truly multiscale system, with important macroscopic behavior
+>>>>>>> d383171136bb229b308757b865a633205d518fc5
 (e.g., catastrophic failure such as fire) determined by intricate microscale
 interactions (e.g., as a result of dendritic growth on lithium particles in
 one location deep inside the battery pack). 
@@ -361,17 +432,50 @@ one location deep inside the battery pack).
 The highly structured, heterogeneous nature of battery systems implies we must model a coupled multiphysics system, rather
 than one system presumed to govern the full device.   
 In theory one can enumerate at least 6 levels of detail that are tied together in some way: 
-atomistic (quantum), atomistic (MD), particles, electrode, cell, pack.  The problem certainly represents a potential
-extreme scale computation, as relevant phenomena over 10 orders of magnitude must be resolved and coupled
-in some way.
+atomistic (quantum), atomistic (MD), particles, electrode, cell, pack.   Some
+representative equations include:
 
-HERE, SPACE PERMITTING, I WOULD QUICKLY ENUMERATE THE FORMS OF THE EQUATIONS ENCOUNTERED AT THE VARIOUS SCALES:
-quantum (Schroedinger), MD (Newton's law), particle (diffusion + Butler-Vollmer to model interface kinetics), 
-electrolyte (convection diffusion), electrode (mechanical constitutive equations), cell (diffusion, thermal transport).
+%A representative sample of the types equations encountered at the various scales as is follows:\\
+\begin{itemize}\itemsep -0.0em
+\item
+atomistic, quantum:  (Schr\"{o}dinger) $ H \Psi = \epsilon \Psi$, where $H$ is the Hamiltonian operator, and 
+$\Psi$, $\epsilon$ are the wave functions and eigenvalues.
+\item
+atomistic, molecular dynamics: (Newton's law) $\frac{1}{m}\frac{d^2x}{dt^2} = -\frac{dU}{dt}$, where
+$x$, $m$ are atomic positions and masses, and $U$ is the potential energy.
+\item
+particle (solid) Li concentration $c_s$ (diffusion): $\frac{\partial c_s}{dt} = \nabla \cdot (D_s \nabla c_s)$, where
+$D_s$ is the diffusivity of Li in Li-hosting particles.
+\item
+particle-electrolyte interfacial kinetics (Butler-Volmer): $I = \exp(\alpha_a \eta) - \exp(\alpha_c \eta)$.  The overpotential $\eta = \eta(I)$ is a function of current, $I$, of Li across the interface, and $\alpha_a$, $\alpha_c$
+are anode and cathode charge transfer coefficients.  This equation can be derived under assumptions from more general chemical kinetic equations.
+\item
+electrolyte Li concentration $c_e$ (convection-reaction-diffusion): $\frac{\partial c_e}{dt} = \nabla \cdot (D_e \nabla c_e) + \nabla (v c_e) + R_{c_e}$, where $D_e$ is Li diffusivity in electrolyte, $v$ is the 
+convective velocity (a function of chemical potential), and $R_{c_e}$ is the reaction rate (solution of, e.g., Butler
+Volmer). 
+\item
+electrolyte electric potential (reaction-diffusion) $\frac{\partial \phi}{dt} = \nabla \cdot (D_{\phi} \nabla \phi)  + R_{\phi}$, where $D_{\phi}$ is charge diffusivity in electrolyte, $R_{\phi}$ is a volume averaged current
+density entering electrolyte.
+\item
+electrode stress field $\sigma$ (Hooke's law for chemically active solid) $\sigma_{ij} = C_{ijkl}^{Li} [\epsilon_{kl} - \beta_{kl}(c_e - c_{e_0})] $, where $C$, $\epsilon$, $\beta$ are stress/strain tensors and Vegard coefficient.
+\item
+electrode equilibrium stress $\sigma$ (constitutive equations) $\nabla \cdot \sigma = 0$ 
+\item
+cell/pack electric potential $\Phi$ (reaction-diffusion) $\frac{\partial \Phi}{dt} = \nabla \cdot (D_{\Phi} \nabla \Phi) + R_{\Phi}$,
+where $D_{\Phi}$ is charge diffusivity in cell/pack, $R_{\Phi}$ represents charge injection from electrode scale. 
+\item
+cell/pack temperature $T$ (thermal transport (diffusion)) $\frac{\partial T}{dt} = \nabla \cdot (D_T \nabla \Phi) + R_T$, where $R_T$ is heat flux from electrode scale.
+for 
+\end{itemize}
+Uncertainty quantification in this context represents an
+extreme scale challenge:
+each scale alone is a challenging 3D simulation in a heterogeneous domain;
+the difference in scale between the first and last set of equations represents approximately 8 orders of magnitude that must be resolved and coupled in some way;
+many such hierarchically coupled runs need to be executed to perform a UQ study.
   
 %``Simulation of lithium-ion battery models requires simultaneous evaluation of concentration and potential fields, %in both solid as well as liquid phases. In addition, the porous nature of the battery electrodes leads to highly %nonlinear and heterogeneous electrochemical reaction kinetics." \cite{Subramanian:2009}
 
-Representative examples of battery models include \cite{Less:2012}, in which a fully resolved 3D electrode is simulated using a combination
+Examples of battery models include \cite{Less:2012}, in which a fully resolved 3D electrode is simulated using a combination
 of convection-diffusion and Butler-Volmer equations. This model uses approximately 25 parameters derived by the authors from experiment.
 Another example is \cite{Garcia2005}, which simulates a 3D electrode, including the constitutive relations that are first steps toward
 incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{Kim-etal:2011}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
@@ -395,7 +499,7 @@ solution ``design" \cite{Aurbach2004};
 \textbf{open circuit potentials, entropy measurements, decomposition potentials}:  
 (microscale) composition versus lattice structure (XRD) \cite{Ceder2009,Ohzuku1995};
 (mesoscale) electrochemical quartz crystal microbalance (ECQM) \cite{Buttry1992};
-(macroscale) C/50 discharge\\
+(macroscale) C/50 discharge for free energy\\
 %“Voltage fade”???, non-stoichiometric “phases”???, hysteresis!!!, decompn. potentials fairly well documented
 \textbf{conductivities (electronic, ionic)}:  
 (microscale) quantum transport, lithiation mechanisms \cite{Ceder2009};
@@ -405,7 +509,7 @@ solution ``design" \cite{Aurbach2004};
 \textbf{mechanical properties}: 
 (microscale) in-situ TEM \cite{Wang:2012};
 (mesoscale) single particle and in situ electrode level strain\cite{Qi:2010,Verbrugge:1999};
-(macroscale) pressure transducers  \\
+(macroscale) pressure transducers 
 %Rational design across scales
 
 We propose to use the multiscale implicit sampling and other frameworks developed under this proposal to
@@ -444,7 +548,8 @@ However, combustion models potentially have more parameters than the other two a
 Models for photovoltaics are less well established.
 For this type of problem 
 model inconsistency is a more likely issue in this context.
-Photovoltaic models are also stochastic.
+Aside from model inconsistency, the bounds on the input parameters are typically less well known and much wider than in the combustion context. 
+Photovoltaic models also have an inherently stochastic component in the transport at the grain boundaries and the grain growth models 
 Batteries are similar to photovoltaics
 in that the models are less sophisticated. However battery problems introduce a 
 new element, namely that the problem is inherently multiscale.
@@ -647,21 +752,30 @@ f_{B,i}
 T, X)} \; .
 \label{eq:quench}
 \end{equation}
-The signal
+Thus the measured signal
 depends on the number density of
 the excitable molecules (number density $N_{\rm S}$
 times the Boltzmann fraction $f_{B,i}$), the Einstein coefficient
 $B_{i,k}$ for
 absorption $i \rightarrow k$, the spectral overlap fraction
-$g_{\lambda,i} (p, T, X)$ of the laser spectral profile and the NO
-absorption spectrum, and the fluorescence quantum yield
+$g_{\lambda,i} (p, T, X)$ of the laser profile, the
+absorption spectrum of species S, and the fluorescence quantum yield
 $A/(\sum A + Q)$, where $A$ and $Q$ are decay rates due to
 spontaneous emission and electronic quenching, respectively.
 Although
+<<<<<<< HEAD
 (\ref{eq:quench}) provides a quantitative relationship
 between NO number density and laser intensity, 
 the uncertainties in the various terms introduce additional sources of uncertainty
 into the measure function $h_e$.
+=======
+equation \ref{eq:quench} provides a quantitative relationship
+between the measured density of S and laser intensity, 
+the uncertainties in the various terms introduce additional sources of uncertainty
+into the measure function $h$.
+
+
+>>>>>>> d383171136bb229b308757b865a633205d518fc5
 We plan on extending the implicit formalism to estimate uncertainties in the measurement mechanisms.
 In addition, the actual measure quantity is
 an extremely complex function of the state.
