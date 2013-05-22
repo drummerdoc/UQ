@@ -282,7 +282,7 @@ that realize the potential remain elusive.
 The challenge here is to 
 refine estimates of the model parameters
 sufficiently to improve predictions of the process
-from of measurements of bulk
+from measurements of bulk
 properties that result from uncertain and time-varying process
 conditions.
 
@@ -339,7 +339,7 @@ $\alpha^\mathrm{th}$ reaction.
 
 Transport of the point defects within the crystal occurs in two
 regimes. Solid state diffusion is frequently approximated using a
-Fickian treatment (2nd term on right hand side (RHS) of Equation \ref{eq:pdpde} with defect-dependent mobility $D_j$),
+Fickian treatment (2nd term on right hand side (RHS) of Equation (\ref{eq:pdpde}) with defect-dependent mobility $D_j$),
 however for point defects this is insufficient to account for their
 migration along grain boundaries, where, as suggested earlier, the
 transport mechanism changes and becomes delocalized. Higher
@@ -599,7 +599,7 @@ Uncertainty of the model is expressed by making the parameters $\theta$ random v
 For example, $\theta$ can be a Gaussian with mean $\mu$ and covariance matrix $\Sigma_0$.
 For each experiment we 
 assume we have an approximation for $\mu$ and $\Sigma_0$ that are known from prior investigations.
-The initial conditions $x_0$ may be random as well, however we assume that we have a (prior) pdf to describe them.
+The initial conditions $x_0$ may be random as well, and we assume that we have a (prior) pdf to describe them.
 
 We are also given data, $y_i$, at various time points $t_i$ in the evolution.
 The data is assumed to be a function of $x_i$ and
@@ -762,7 +762,7 @@ Another key problem that has to be addressed is model degeneracy.
 A model has an approximate degeneracy if many different parameter sets are nearly as good at explaining the data.
 For example, if there are multiple reaction pathways in a kinetic description,
 certain combinations of reaction rates may be much better
-estimated than the individual rates. Model degeneracies can lead to difficulties with implicit sampling, since these corresponds to ``valleys'' in  the function $F$.
+estimated than the individual rates. Model degeneracies can lead to difficulties with implicit sampling, since these correspond to ``valleys'' in  the function $F$.
 The valleys slow down the convergence of the required optimizations and, more importantly, a good approximation of the degeneracy requires the valleys being populated with samples which will increase the number of samples one needs to generate.
 The computational expense of implicit sampling will thus increase.
 To fix these issues, we will investigate how to connect MCMC to implicit sampling to speed up exploration of model degeneracies.
@@ -771,7 +771,7 @@ We plan to use the affine sampling approaches developed at NYU to address issues
 The idea here is to use an ensemble of $N$ samplers instead of just one. 
 If $N$ is sufficiently large, an ensemble sampler can be constructed that is affine invariant; i.e., it leaves the ensemble
 random walk unchanged under affine transformation.  This property guarantees that the method will work well for problems that can
-be rescaled to be well condition with an affine transformation.
+be rescaled to be well conditioned with an affine transformation.
 \MarginPar{(matti): Jonathan, does this make sense?}
 
 It is inevitable that the exact model is not in the family being fit (even at the highest level of the hierarchy) and
@@ -829,7 +829,7 @@ Although
 equation \ref{eq:quench} provides a quantitative relationship
 between the measured density of S and laser intensity, 
 the uncertainties in the various terms introduce additional sources of uncertainty
-into the measure function $h$.
+into the measure function $h_e$.
 
 We plan on extending the implicit formalism to estimate uncertainties in the measurement mechanisms.
 In addition, the actual measure quantity is
@@ -909,8 +909,8 @@ and GPR can be used to model  $(H^C - H^S)$ as $\mathcal{N}(m_{\rm GPR}(\theta;\
 %\MarginPar{need to decide if there is something viable here. Another alternative that merits consideration
 %is using the adjoint of a simpler model for the optimization.}
 
-Several other practical issues with will be addressed with both implicit sampling and MCMC.
-For any given experiment, we may have access to data at more than one time and we may have than one type of data.
+Several other practical issues will be addressed with both implicit sampling and MCMC.
+For any given experiment, we may have access to data at more than one time and we may have more than one type of data.
 There are two options for using these data for estimation:
 (\emph{i}) we can extend the
 %implicit
