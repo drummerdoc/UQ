@@ -458,24 +458,24 @@ $x$, $m$ are atomic positions and masses, and $U$ is the potential energy.
 particle (solid) Li concentration $c_s$ (diffusion): $\frac{\partial c_s}{dt} = \nabla \cdot (D_s \nabla c_s)$, where
 $D_s$ is the diffusivity of Li in Li-hosting particles.
 \item
-particle-electrolyte interfacial kinetics (Butler-Volmer): $I = \exp(\alpha_a \eta) - \exp(\alpha_c \eta)$.  The overpotential $\eta = \eta(I)$ is a function of current, $I$, of Li across the interface, and $\alpha_a$, $\alpha_c$
-are anode and cathode charge transfer coefficients.  This equation can be derived under assumptions from more general chemical kinetic equations.
+particle-electrolyte interfacial kinetics, e.g., Butler-Volmer: $I = \exp(\alpha_a \eta(I)) - \exp(\alpha_c \eta(I))$.  The overpotential $\eta(I)$ is a function of Li current $I$ across the interface, and $\alpha_a$, $\alpha_c$
+are anode and cathode charge transfer coefficients.  This equation can be derived under certain assumptions from more general chemical kinetic equations.
 \item
 electrolyte Li concentration $c_e$ (convection-reaction-diffusion): $\frac{\partial c_e}{dt} = \nabla \cdot (D_e \nabla c_e) + \nabla (v c_e) + R_{c_e}$, where $D_e$ is Li diffusivity in electrolyte, $v$ is the 
-convective velocity (a function of chemical potential), and $R_{c_e}$ is the reaction rate (solution of, e.g., Butler
+convective velocity (a function of electric potential $\phi$), and $R_{c_e}$ is the reaction rate (solution of, e.g., Butler
 Volmer). 
 \item
-electrolyte electric potential (reaction-diffusion) $\frac{\partial \phi}{dt} = \nabla \cdot (D_{\phi} \nabla \phi)  + R_{\phi}$, where $D_{\phi}$ is charge diffusivity in electrolyte, $R_{\phi}$ is a volume averaged current
+electrolyte electric potential $\phi$ (reaction-diffusion): $\frac{\partial \phi}{dt} = \nabla \cdot (D_{\phi} \nabla \phi)  + R_{\phi}$, where $D_{\phi}$ is charge diffusivity in electrolyte, $R_{\phi}$ is a volume averaged current
 density entering electrolyte.
 \item
-electrode stress field $\sigma$ (Hooke's law for chemically active solid) $\sigma_{ij} = C_{ijkl}^{Li} [\epsilon_{kl} - \beta_{kl}(c_e - c_{e_0})] $, where $C$, $\epsilon$, $\beta$ are stress/strain tensors and Vegard coefficients.
+electrode stress field, $\sigma$, e.g., Hooke's law for chemically active solid: $\sigma_{ij} = C_{ijkl}^{Li} [\epsilon_{kl} - \beta_{kl}(c_e - c_{e_0})] $, where $c_{e_0}$ is equilibrium concentration, and $C$, $\epsilon$, $\beta$ are stress, strain, and Vegard coefficients.
 \item
-electrode equilibrium stress $\sigma$ (constitutive equations) $\nabla \cdot \sigma = 0$ 
+electrode equilibrium stress, $\sigma$ (constitutive equation): $\nabla \cdot \sigma = 0$ 
 \item
-cell/pack electric potential $\Phi$ (reaction-diffusion) $\frac{\partial \Phi}{dt} = \nabla \cdot (D_{\Phi} \nabla \Phi) + R_{\Phi}$,
+cell/pack electric potential $\Phi$ (reaction-diffusion): $\frac{\partial \Phi}{dt} = \nabla \cdot (D_{\Phi} \nabla \Phi) + R_{\Phi}$,
 where $D_{\Phi}$ is charge diffusivity in cell/pack, $R_{\Phi}$ represents charge injection from electrode scale. 
 \item
-cell/pack temperature $T$ (thermal transport (diffusion)) $\frac{\partial T}{dt} = \nabla \cdot (D_T \nabla \Phi) + R_T$, where $R_T$ is heat flux from electrode scale.
+cell/pack temperature $T$ (thermal transport): $\frac{\partial T}{dt} = \nabla \cdot (D_T \nabla \Phi) + R_T$, where $R_T$ is heat flux from electrode scale, $D_T$ is heat diffusivity.
 \end{itemize}
 Uncertainty quantification in this context represents an
 extreme scale challenge:
@@ -491,8 +491,7 @@ Another example is \cite{Garcia2005}, which simulates a 3D electrode, including 
 incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{Kim-etal:2011}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
 
 The current paradigm for virtually all battery simulations (including those above)
- is the use of effective parameters derived from single-scale experiments
-used as fixed values in single-scale simulations.  However, this is problematic: first, we do not propogate uncertainty in 
+ is the use as fixed values of effective parameters derived from single-scale experiments.  However, this is problematic: first, we do not propagate uncertainty in 
 these parameters through the model; second, we miss the chance to use information \emph{across scales} to optimally understand
 the system.  Our proposed work specifically addresses this shortcoming in the current paradigm by offering the means to 
 combine modeling and data \emph{across a hierarchy of experiments}
@@ -504,7 +503,8 @@ of the heterogeneous battery system.  For example, some representative propertie
 %Multi-scale measurements hel p resolve disputes in transport mechanism
 \textbf{rate constants}: (microscale) reactive transmission electron microscopy (TEM) \cite{Gu2012}; (mesoscale) electrolytic
 solution ``design" \cite{Aurbach2004};  
-(macroscale) electrochemical impedence spectroscopy (EIS) \cite{Meyers2000} (only ``effective reactivities" are of interest to the macro-models)  \\
+(macroscale) electrochemical impedence spectroscopy (EIS) \cite{Meyers2000} \\
+%(only ``effective reactivities" are of interest to the macro-models)  \\
 %Multi-scale measurements help eliminate multiple “optima”
 \textbf{open circuit potentials, entropy measurements, decomposition potentials}:  
 (microscale) composition versus lattice structure (XRD) \cite{Ceder2009,Ohzuku1995};
@@ -513,7 +513,7 @@ solution ``design" \cite{Aurbach2004};
 %“Voltage fade”???, non-stoichiometric “phases”???, hysteresis!!!, decompn. potentials fairly well documented
 \textbf{conductivities (electronic, ionic)}:  
 (microscale) quantum transport, lithiation mechanisms \cite{Ceder2009};
-(mesoscale) properties of individual components combined by ``mixing rules" (e.g., effective medium theory \cite{Stroud1975});
+(mesoscale) properties of individual components combined by porous media theory \cite{Stroud1975};
 (macroscale) directly measure effective conductivities \\
 %Not strictly multiscale; need to think about this more
 \textbf{mechanical properties}: 
