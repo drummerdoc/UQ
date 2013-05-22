@@ -643,7 +643,7 @@ therefore consider the random variable $\theta|y$, which is characterized by its
 \begin{equation}
 	p(\theta|y_T) \propto p(\theta)p(y_T|x_0,T,\theta),
 \end{equation}
-where  $p(\theta) = \mathcal{N}(\mu,\Sigma_0)$ is the ``prior'' and $p(y_T|x_0,T,\theta)$ is the ``likelihood'',
+where  $p(\theta) = \mathcal{N}(\mu_0,\Sigma_0)$ is the ``prior'' and $p(y_T|x_0,T,\theta)$ is the ``likelihood'',
 which can be read off of (\ref{eq:IS_data}), $p(y_T|x_0,T,\theta)\sim \mathcal{N}(H_e(x_0,\theta),\Sigma)$.
 The pdf $p(\theta|y_T)$  is called the ``posterior'' and we wish to approximate it with implicit sampling. 
 
@@ -659,19 +659,20 @@ Note that $F$ is a function of the uncertain parameters and that the minimizer o
 where $\phi = \min F$ and $\xi$ is a Gaussian reference variable with mean zero and unit variance, i.e. the equations have a random RHS.
 Note that the RHS is small with a high probability ($\xi$ has mean zero), which implies that the left hand side is also small with a high probability and, therefore, the solution is close to the minimizer of $F$ which is the mode of the posterior.
 Thus, the solutions of these equations (for different realizations of $\xi$) are in the neighborhood of the mode of the posterior, i.e. almost all samples are compatible with the data.
-Generating samples with low probability with respect to the data (as in standard MC sampling) is avoided by the minimization step. 
+Generating samples with low probability with respect to the data (as in standard MC sampling) is avoided by the minimization step. The weights of each sample are the Jacobian determinant of the mapping we choose to solve (\ref{eq:IS_sampling_eq})  
 
-There are various methods for solving the algebraic equations of implicit sampling (\ref{eq:IS_sampling_eq}) \cite{chorin2010,Morzfeld2011}.
-For example, if information about the curvature of $F$ is available, e.g. from BFGS-type optimization, we can use linear maps based on the Hessian of $F$.
-In other situations, e.g. derivative free optimization or optimization using surrogates, this information may not be available.
-In this situation we can use the random map approach, where one chooses a direction at random, and then computes a solution of (\ref{eq:IS_sampling_eq}) in this direction.
-With this random map approach, only a single equation in a single variable needs to be solved (regardless of the number of parameters being estimated). We plan to research into optimal choices for solving the algebraic equations for each target application. In summary, implicit sampling amounts to the following two steps:
+
+\MarginPar{JBB: Matti, it seems like we should say more about solving the random equations.\\ (matti): I added a few things. Is that enough?}
+There are various ways for solving the algebraic equations of implicit sampling (\ref{eq:IS_sampling_eq}) \cite{chorin2010,Morzfeld2011}. 
+For example, we can use information about the curvature of $F$, e.g. from BFGS-type optimization, for the construction of linear maps. Let $L$ be a square root of the Hessian of $F$ (e.g. Cholesky factor), then $\theta = \mu +L^{-1}\xi$, where $\mu$ is the minimizer of $F$, solves the quadratic equation $F_0-\phi=0.5\xi^T\xi$, where $F_0$ is the Taylor expansion of order $2$ of $F$. 
+The error we make by solving a quadratic equation instead of (\ref{eq:IS_sampling_eq}) can be accounted for in the weights (without introducing bias). This method can fail if there is sufficient skew in the posterior pdf, or if the information about the curvature of $F$ is incomplete/inacurate (e.g. when derivative free optimization schemes are used). In this case, we can use the ``random map'' approach and pick a direction $\eta$ at random by setting $\theta = \mu+\lambda \eta$, where $\eta$ is the random direction and $\lambda$ is a scalar parameter that defines the sample. We search for solutions in this direction by solving a single algerbraic equation in a single variable (we must solve (\ref{eq:IS_sampling_eq}) for $\lambda$), e.g. by Newton iteration. The weights, i.e. the Jacobian of the random map are straight forward to evaluate \cite{Morzfeld2011}. In summary, implicit sampling amounts to the following steps:
 \begin{enumerate}
 	\item Minimize the function $F$ to identify relevant regions of the parameter space
-	\item Find samples in this region by solving the random algebraic equations (\ref{eq:IS_sampling_eq})
+	\item Find samples in this region by solving the random algebraic equations (\ref{eq:IS_sampling_eq})\
+        \item Compute weight of the sample
 \end{enumerate}
-\MarginPar{JBB:  Matti, it seems like we should say more abou t solving the random equations}
 While the general method of attack is clear, many research questions arise when applying this sampling technique to the target applications (see below for detail).
+
 
 \MarginPar{Jonathan please fix}
 The other basic technique we plan to use is MCMC.
