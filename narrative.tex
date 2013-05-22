@@ -245,7 +245,7 @@ that realize the potential remain elusive.
 The challenge here is to 
 refine estimates of the model parameters
 sufficiently to improve predictions of the process
-from of measurements of bulk
+from measurements of bulk
 properties that result from uncertain and time-varying process
 conditions.
 
@@ -302,7 +302,7 @@ $\alpha^\mathrm{th}$ reaction.
 
 Transport of the point defects within the crystal occurs in two
 regimes. Solid state diffusion is frequently approximated using a
-Fickian treatment (2nd term on right hand side (RHS) of Equation \ref{eq:pdpde} with defect-dependent mobility $D_j$),
+Fickian treatment (2nd term on right hand side (RHS) of Equation (\ref{eq:pdpde}) with defect-dependent mobility $D_j$),
 however for point defects this is insufficient to account for their
 migration along grain boundaries, where, as suggested earlier, the
 transport mechanism changes and becomes delocalized. Higher
@@ -410,43 +410,52 @@ The highly structured, heterogeneous nature of battery systems implies we must m
 than one system presumed to govern the full device.   
 In theory one can enumerate at least 6 levels of detail that are tied together in some way: 
 atomistic (quantum), atomistic (MD), particles, electrode, cell, pack.   Some
-\MarginPar{JBB:  suggestions:  here we start with the smallest scale being a paricle.  Don't give 
-schroedinger or MC}
-representative equations include:
-
+%\MarginPar{JBB:  suggestions:  here we start with the smallest scale being a paricle.  Don't give 
+%schroedinger or MC}
+representative equations include:\\
 %A representative sample of the types equations encountered at the various scales as is follows:\\
+
+\noindent{Particle scale}
 \begin{itemize}\itemsep -0.0em
+%\item
+%atomistic, quantum:  (Schr\"{o}dinger) $ H \Psi = \epsilon \Psi$, where $H$ is the Hamiltonian operator, and 
+%$\Psi$, $\epsilon$ are the wave functions and eigenvalues.
+%\item
+%atomistic, molecular dynamics: (Newton's law) $\frac{1}{m}\frac{d^2x}{dt^2} = -\frac{dU}{dt}$, where
+%$x$, $m$ are atomic positions and masses, and $U$ is the potential energy.
 \item
-atomistic, quantum:  (Schr\"{o}dinger) $ H \Psi = \epsilon \Psi$, where $H$ is the Hamiltonian operator, and 
-$\Psi$, $\epsilon$ are the wave functions and eigenvalues.
-\item
-atomistic, molecular dynamics: (Newton's law) $\frac{1}{m}\frac{d^2x}{dt^2} = -\frac{dU}{dt}$, where
-$x$, $m$ are atomic positions and masses, and $U$ is the potential energy.
-\item
-particle (solid) Li concentration $c_s$ (diffusion): $\frac{\partial c_s}{dt} = \nabla \cdot (D_s \nabla c_s)$, where
+Li concentration $c_s$ (diffusion): $\frac{\partial c_s}{dt} = \nabla \cdot (D_s \nabla c_s)$, where
 $D_s$ is the diffusivity of Li in Li-hosting particles.
 \item
-particle-electrolyte interfacial kinetics (Butler-Volmer): $I = \exp(\alpha_a \eta) - \exp(\alpha_c \eta)$.  The overpotential $\eta = \eta(I)$ is a function of current, $I$, of Li across the interface, and $\alpha_a$, $\alpha_c$
-are anode and cathode charge transfer coefficients.  This equation can be derived under assumptions from more general chemical kinetic equations.
+particle-electrolyte interfacial kinetics, e.g., Butler-Volmer: $I = \exp(\alpha_a \eta(I)) - \exp(\alpha_c \eta(I))$.  The overpotential $\eta(I)$ is a function of Li current $I$ across the interface, and $\alpha_a$, $\alpha_c$
+are anode and cathode charge transfer coefficients.  This equation can be derived under certain assumptions from more general chemical kinetic equations.
+\end{itemize}
+
+\noindent{Electrode scale}
+\begin{itemize}\itemsep -0.0em
 \item
-electrolyte Li concentration $c_e$ (convection-reaction-diffusion): $\frac{\partial c_e}{dt} = \nabla \cdot (D_e \nabla c_e) + \nabla (v c_e) + R_{c_e}$, where $D_e$ is Li diffusivity in electrolyte, $v$ is the 
-convective velocity (a function of chemical potential), and $R_{c_e}$ is the reaction rate (solution of, e.g., Butler
+Li concentration $c_e$ (convection-reaction-diffusion): $\frac{\partial c_e}{dt} = \nabla \cdot (D_e \nabla c_e) + \nabla (v c_e) + R_{c_e}$, where $D_e$ is Li diffusivity in electrolyte, $v$ is the 
+convective velocity (a function of electric potential $\phi$), and $R_{c_e}$ is the reaction rate (solution of, e.g., Butler
 Volmer). 
 \item
-electrolyte electric potential (reaction-diffusion) $\frac{\partial \phi}{dt} = \nabla \cdot (D_{\phi} \nabla \phi)  + R_{\phi}$, where $D_{\phi}$ is charge diffusivity in electrolyte, $R_{\phi}$ is a volume averaged current
-density entering electrolyte.
+electric potential $\phi$ (reaction-diffusion): $\frac{\partial \phi}{dt} = \nabla \cdot (D_{\phi} \nabla \phi)  + R_{\phi}$, where $D_{\phi}$ is charge diffusivity in electrolyte, $R_{\phi}$ is a volume averaged current density entering electrolyte.
 \item
-electrode stress field $\sigma$ (Hooke's law for chemically active solid) $\sigma_{ij} = C_{ijkl}^{Li} [\epsilon_{kl} - \beta_{kl}(c_e - c_{e_0})] $, where $C$, $\epsilon$, $\beta$ are stress/strain tensors and Vegard coefficients.
+stress field, $\sigma$, e.g., Hooke's law for chemically active solid: $\sigma_{ij} = C_{ijkl}^{Li} [\epsilon_{kl} - \beta_{kl}(c_e - c_{e_0})] $, where $c_{e_0}$ is equilibrium concentration, and $C$, $\epsilon$, $\beta$ are stress, strain, and Vegard coefficients.
 \item
-electrode equilibrium stress $\sigma$ (constitutive equations) $\nabla \cdot \sigma = 0$ 
+equilibrium stress, $\sigma$ (constitutive equation): $\nabla \cdot \sigma = 0$ 
+\end{itemize}
+
+\noindent{Cell scale}
+\begin{itemize}\itemsep -0.0em
 \item
-cell/pack electric potential $\Phi$ (reaction-diffusion) $\frac{\partial \Phi}{dt} = \nabla \cdot (D_{\Phi} \nabla \Phi) + R_{\Phi}$,
+electric potential $\Phi$ (reaction-diffusion): $\frac{\partial \Phi}{dt} = \nabla \cdot (D_{\Phi} \nabla \Phi) + R_{\Phi}$,
 where $D_{\Phi}$ is charge diffusivity in cell/pack, $R_{\Phi}$ represents charge injection from electrode scale. 
 \item
-cell/pack temperature $T$ (thermal transport (diffusion)) $\frac{\partial T}{dt} = \nabla \cdot (D_T \nabla \Phi) + R_T$, where $R_T$ is heat flux from electrode scale.
+temperature $T$ (thermal transport): $\frac{\partial T}{dt} = \nabla \cdot (D_T \nabla \Phi) + R_T$, where $R_T$ is heat flux from electrode scale, $D_T$ is heat diffusivity.
 \end{itemize}
-\MarginPar{JBB:  i am not sure which equations correspond to which scale. can we say we solve 
-given systems at particle, given system at electrode and given system as cell}
+
+%\MarginPar{JBB:  i am not sure which equations correspond to which scale. can we say we solve 
+%given systems at particle, given system at electrode and given system as cell}
 Uncertainty quantification in this context represents an
 extreme scale challenge:
 each scale alone is a 3D simulation in a heterogeneous domain;
@@ -461,8 +470,7 @@ Another example is \cite{Garcia2005}, which simulates a 3D electrode, including 
 incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{Kim-etal:2011}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
 
 The current paradigm for virtually all battery simulations (including those above)
- is the use of effective parameters derived from single-scale experiments
-used as fixed values in single-scale simulations.  However, this is problematic: first, we do not propogate uncertainty in 
+ is the use as fixed values of effective parameters derived from single-scale experiments.  However, this is problematic: first, we do not propagate uncertainty in 
 these parameters through the model; second, we miss the chance to use information \emph{across scales} to optimally understand
 the system.  Our proposed work specifically addresses this shortcoming in the current paradigm by offering the means to 
 combine modeling and data \emph{across a hierarchy of experiments}
@@ -474,7 +482,8 @@ of the heterogeneous battery system.  For example, some representative propertie
 %Multi-scale measurements hel p resolve disputes in transport mechanism
 \textbf{rate constants}: (microscale) reactive transmission electron microscopy (TEM) \cite{Gu2012}; (mesoscale) electrolytic
 solution ``design" \cite{Aurbach2004};  
-(macroscale) electrochemical impedence spectroscopy (EIS) \cite{Meyers2000} (only ``effective reactivities" are of interest to the macro-models)  \\
+(macroscale) electrochemical impedence spectroscopy (EIS) \cite{Meyers2000} \\
+%(only ``effective reactivities" are of interest to the macro-models)  \\
 %Multi-scale measurements help eliminate multiple “optima”
 \textbf{open circuit potentials, entropy measurements, decomposition potentials}:  
 (microscale) composition versus lattice structure (XRD) \cite{Ceder2009,Ohzuku1995};
@@ -483,7 +492,7 @@ solution ``design" \cite{Aurbach2004};
 %“Voltage fade”???, non-stoichiometric “phases”???, hysteresis!!!, decompn. potentials fairly well documented
 \textbf{conductivities (electronic, ionic)}:  
 (microscale) quantum transport, lithiation mechanisms \cite{Ceder2009};
-(mesoscale) properties of individual components combined by ``mixing rules" (e.g., effective medium theory \cite{Stroud1975});
+(mesoscale) properties of individual components combined by porous media theory \cite{Stroud1975};
 (macroscale) directly measure effective conductivities \\
 %Not strictly multiscale; need to think about this more
 \textbf{mechanical properties}: 
@@ -494,9 +503,9 @@ solution ``design" \cite{Aurbach2004};
 
 We propose to use the multiscale implicit sampling and other frameworks developed under this proposal to
 address the origin and effects of pressure fluctuations in batteries for electric drive vehicles.  Specifically, we intend to
-use macroscopic experiments,
-% microscopic calculations (quantum),
-micro-(particle level) and meso-scale (electrode level) experiments to
+use macro-scale (cell level) experiments,
+% atomistic calculations (quantum),
+micro-scale (particle level), and meso-scale (electrode level) experiments to
 understand the small scale---especially mesoscale (because this is where the
 battery designer has the most degrees of freedom)---origin of macroscale
 pressure trends known to correlate with battery degradation (e.g.,
@@ -553,7 +562,7 @@ Uncertainty of the model is expressed by making the parameters $\theta$ random v
 For example, $\theta$ can be a Gaussian with mean $\mu$ and covariance matrix $\Sigma_0$.
 For each experiment we 
 assume we have an approximation for $\mu$ and $\Sigma_0$ that are known from prior investigations.
-The initial conditions $x_0$ may be random as well, however we assume that we have a (prior) pdf to describe them.
+The initial conditions $x_0$ may be random as well, and we assume that we have a (prior) pdf to describe them.
 
 We are also given data, $y_i$, at various time points $t_i$ in the evolution.
 The data is assumed to be a function of $x_i$ and
@@ -716,7 +725,7 @@ Another key problem that has to be addressed is model degeneracy.
 A model has an approximate degeneracy if many different parameter sets are nearly as good at explaining the data.
 For example, if there are multiple reaction pathways in a kinetic description,
 certain combinations of reaction rates may be much better
-estimated than the individual rates. Model degeneracies can lead to difficulties with implicit sampling, since these corresponds to ``valleys'' in  the function $F$.
+estimated than the individual rates. Model degeneracies can lead to difficulties with implicit sampling, since these correspond to ``valleys'' in  the function $F$.
 The valleys slow down the convergence of the required optimizations and, more importantly, a good approximation of the degeneracy requires the valleys being populated with samples which will increase the number of samples one needs to generate.
 The computational expense of implicit sampling will thus increase.
 To fix these issues, we will investigate how to connect MCMC to implicit sampling to speed up exploration of model degeneracies.
@@ -725,7 +734,7 @@ We plan to use the affine sampling approaches developed at NYU to address issues
 The idea here is to use an ensemble of $N$ samplers instead of just one. 
 If $N$ is sufficiently large, an ensemble sampler can be constructed that is affine invariant; i.e., it leaves the ensemble
 random walk unchanged under affine transformation.  This property guarantees that the method will work well for problems that can
-be rescaled to be well condition with an affine transformation.
+be rescaled to be well conditioned with an affine transformation.
 \MarginPar{(matti): Jonathan, does this make sense?}
 
 It is inevitable that the exact model is not in the family being fit (even at the highest level of the hierarchy) and
@@ -783,7 +792,7 @@ Although
 equation \ref{eq:quench} provides a quantitative relationship
 between the measured density of S and laser intensity, 
 the uncertainties in the various terms introduce additional sources of uncertainty
-into the measure function $h$.
+into the measure function $h_e$.
 
 We plan on extending the implicit formalism to estimate uncertainties in the measurement mechanisms.
 In addition, the actual measure quantity is
@@ -862,8 +871,8 @@ and GPR can be used to model  $(H^C - H^S)$ as $\mathcal{N}(m_{\rm GPR}(\theta;\
 %\MarginPar{need to decide if there is something viable here. Another alternative that merits consideration
 %is using the adjoint of a simpler model for the optimization.}
 
-Several other practical issues with will be addressed with both implicit sampling and MCMC.
-For any given experiment, we may have access to data at more than one time and we may have than one type of data.
+Several other practical issues will be addressed with both implicit sampling and MCMC.
+For any given experiment, we may have access to data at more than one time and we may have more than one type of data.
 There are two options for using these data for estimation:
 (\emph{i}) we can extend the
 %implicit
