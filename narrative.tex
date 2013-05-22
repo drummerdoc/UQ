@@ -127,16 +127,16 @@ Ill conditioning in problems of moderate dimension can come from approximate deg
 different combinations of parameters fit the data nearly as well.
 Several approaches are emerging to address this, including multi-stage adaptive samplers and
 affine invariant ensemble samplers.
-\MarginPar{JBB:  Need citations here}
 High dimensional problems that come from discretizing field theories or stochastic PDEs
 can be ill conditioned because of the range of modes at different length scales.
-Hamiltonian samplers have proven better than direct local Metropolis or heat bath methods \cite{}, but
+Hamiltonian samplers have proven better than direct local Metropolis or heat bath methods \cite{Hanson2001}, but
 they still can be slow.
-More sophisticated truly multi-scale samplers include Swendsen Wang \cite{} and multigrid methods \cite{}.
+More sophisticated truly multi-scale samplers include Swendsen Wang \cite{SwendsonWang1987}
+and multigrid methods \cite{Goodman1989}.
 Unfortunately, none of these methods at present is nearly as general, say, as multigrid for
 solving discretizations of PDEs.
-Some promising developments include ``chainless'' approximate methods \cite{}, and
-{\em parallel marginalization} \cite{}.
+Some promising developments include ``chainless'' approximate methods \cite{Chorin:2008}, and
+{\em parallel marginalization} \cite{Weare2007}.
 We will look for multiscale sampling methods that are effective for problems that come from PDE
 with noise under partial observation.
 
