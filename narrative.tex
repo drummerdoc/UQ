@@ -114,7 +114,7 @@ For equation solving there are generic methods such as Gaussian elimination, Gau
 Newton's method, etc.
 But these generic methods are unable to solve extreme scale problems that arise from simulating
 complex physics in 3D.
-These require specialized multi-scale algorithms, such as multigrid, that take into account the
+These problems require specialized multi-scale algorithms, such as multigrid, that take into account the
 physical nature of slowly relaxing modes.
 What this analogy fails to capture is an extra difficulty in sampling: these problems do not come with 
 something like {\em residuals} that can be evaluated to confirm convergence of the algorithms.
@@ -123,7 +123,7 @@ The correctness must be built in to the sampler.
 
 Standard Markov chain Monte Carlo (MCMC) samplers can become very slow when the distribution being
 sampled is ill conditioned.
-Ill conditioning in problems of moderate dimension can come from approximate degeneracy: Very
+Ill conditioning in problems of moderate dimension can come from approximate degeneracy: very
 different combinations of parameters fit the data nearly as well.
 Several approaches are emerging to address this, including multi-stage adaptive samplers and
 affine invariant ensemble samplers.
@@ -177,46 +177,9 @@ To further improve the match between the coarse and fine posterior distributions
 a zero-mean Gaussian model to approximate the discretization error~\cite{Kaipio:2007ux}.
 However, since our simpler models may involve significant simplifications of the physics or reduction of spatial dimensions,
 ROMs may be needed to more accurately model the structural variations of the difference between the models. 
-Gaussian process regression are a potentially attractive form of ROM to capturing differences in resolution of models.
+Gaussian process regression are a potentially attractive form of ROM to capturing differences in resolution of models.  
 ROMs can also be used directly as an efficient surrogate in forward UQ~\cite{Challenor:2012uv, Ratto:2012tf} for example in predicting catastrophic events and obtaining global sensitivity analyses indices that converges slowly with number of samples.   In this proposal, we will look into how ROMs can further improve the efficiency of the importance sampling approach that we will use.  In addition, we will determine how ROM can be used within our hierarchical framework to efficiently obtain an accurate predictions to pin the forward UQ.
 
-
-%Response surface and machine learning techniques such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz}, artificial neural network~\cite{Cybenko:1992vo} and polynomial chaos expansion~\cite{Oladyshkin:2012ur} are simpler to use but the functional relations between the outputs and parameters of interest encoded within the numerical models are lost, and must be indirectly captured through a large amount of training data.
-%A research question we will address is how to combine ROMs with MC algorithms as we move through the hierarchy of experiments.
-%For example, coarse resolution (thus computationally cheap) models can be used to generate samples during the importance sampling stage~\cite{Higdon:2002vx,Christen:2005wp,Efendiev:2007uw,Bal:2013tp} or coupled with fine resolution models through the metropolis coupled chain~\cite{Higdon:2002vx}.
-%To improve the match between the coarse and fine posterior distributions, Bal et. al.~\cite{Bal:2013tp} used a zero-mean Gaussian model to approximate the discretization error~\cite{Kaipio:2007ux}.
-%However, we expect that this simple approach will not be sufficient for our target applications since the simpler models we expect to encounter involve significant simplifications of the physics and / or reduction of spatial dimensions. We plan to use ROMs to model the structural variations of the difference between the models at the various levels of the hierarchy.
-%In addition, we will address how to use ROMs within our hierarchical framework to obtain accurate and efficient forward UQ techniques ~\cite{Challenor:2012uv, Ratto:2012tf}, for example for predicting catastrophic events and obtaining global sensitivity analysis indices. 
-%=======
-%Both MCMC and importance sampling approximate the posterior distribution of the targeted parameters by a (large) number of samples. With marginal additional costs, these samples can further be fruitfully used to create reduced order models (ROMs) that can be used to improve efficiency at the various stages of the MC algorithms.  ROMs are inexpensive surrogates for expensive computer simulations that aim to preserve the input-output relations in the numerical models. 
-%In this proposal, the term is used in an encompassing sense to refer to model reduction approaches, response surface approaches and machine learning techniques.
-%Model reduction approaches, such as the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr} directly approximate the PDEs using a parametrically-induced approximation space. 
-%However, these techniques can be difficult to apply to complex, multiscale models directly.  
-
-%Response surface and machine learning techniques
-%such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz}, artificial neural network (ANN)~\cite{Cybenko:1992vo} and polynomial chaos expansion (PCE)~\cite{Oladyshkin:2012ur} are simpler to use, but possess their own severe limitations. 
-%PCE, in particular has been applied successfully to a limited class of flow problems (e.g. \cite{GhanemDham1998, LeMaitre2001}).  In PCE methods, the probability space of the parameters is decomposed into a finite set of univariate polynomials with local or global support, and coupled together through tensor products.  These bases functions are propagated through the model, either ``intrusively'' or ``unintrusively''.  Intrusive schemes utilize, e.g., a Galerkin projection to reformulate the governing equations into a system governing the PC mode strengths directly; unintrusive methods numerically evaluate the modes through deterministic or random sampling of the original model/code.  However, strong nonlinearity and complex unsteady dynamics present significant challenges for this approach \cite{Mathelin2004}. 
-%The difficulties arise primarily from the high-order expansions necessary to capture the modes with sufficient accuracy.
-%In dynamic simulations, PCE usually requires a rapidly increasing expansion order to maintain a constant accuracy in time. 
-%Specialized applications exist for oscillatory systems (e.g. vortex-shedding \cite{LucorKarniadakis2004,Xiu2002}), including phase-locked wavelet-based approaches \cite{WitteveenBijl2008}, but the general time-dependent problems of interest here remain computationally intractable for PCE. 
-%GPR and ANN methods offer no relief, since much of the functional relationships between the outputs and parameters of interest encoded within the numerical models are lost, and must be indirectly captured through a prohibitively large set of training data.  
-
-%There are several areas in which ROMs can play a role in a MC algorithm. 
-%For example, coarse resolution (thus computationally cheap) models have been used to generate  samples  during the importance sampling stage~\cite{Higdon:2002vx,Christen:2005wp,Efendiev:2007uw,Bal:2013tp} or coupled with fine resolution models through the metropolis coupled chain~\cite{Higdon:2002vx}.
-%To further improve the match between the coarse and fine posterior distributions, Bal et. al.~\cite{Bal:2013tp} used a zero-mean Gaussian model to approximate the discretization error~\cite{Kaipio:2007ux}.
-%However, since our simpler models may involve significant simplifications of the physics or reduction of spatial dimensions,
-%ROMs may be needed to more accurately model the structural variations of the difference between the models. 
-%ROMs can also be used directly as an efficient surrogate in forward UQ~\cite{Challenor:2012uv, Ratto:2012tf} for example in predicting catastrophic events and obtaining global sensitivity analyses indices that converges slowly with number of samples.   In this proposal, we will look into how ROMs can further improve the efficiency of the importance sampling approach that we will use.  In addition, we will determine how ROM can be used within our hierarchical framework to efficiently obtain an accurate predictions to pin the forward UQ.
-
-%We intend to examine how we can use reduced order modeling techniques to model this error accurately.
-%In particular, Gaussian process regression~\cite{Rasmussen:2006vz} is expected to fit within the statistical framework that we will describe.
-%We note that reduced order models can also be directly used as the simpler model~\cite{BuiThanh:2012tx}.
-%For implicit sampling, reduced order models have the potential of reducing the cost of the required optimizations, either through the use of the simpler models in the optimizations or  via more direct optimization algorithms that utilize reduced order models~\cite{Regis:2007,Wild:2011uh}. 
-
-
-%We will also address forward UQ, including UQ of predictions made with the posterior computational models as well as sensitivity analysis used in decision making and experimental design. While multilevel Monte Carlo can improve the convergence rate for a series of convergent models~\cite{Giles:2008gc},  a theoretical framework for a heterogeneous set of models is lacking. Alternatively one can use surrogates for fine-scale models in the (posterior) forward  analyses~\cite{Challenor:2012uv, Ratto:2012tf} and we will investigate how these reduced order models can be accurately and efficiently used in a hierarchical framework. 
-
-% Although efficiency Monte Carlo of sampling techniques has been significantly improved in recent years, many problems are still computationally intractable, even with the computational gain achieved through high-performance computing efforts (Wang et al., 2011). One feasible solution is to use reduced-order models (ROMs), or emulators, as efficient surrogates for fine-scale models in these analyses (Challenor, 2012; Ratto et al., 2012).  
 
 \subsection*{Proposed Research}
 
@@ -258,111 +221,119 @@ We cannot hope to have a complete picture of the flame at a given time, because 
 However, the data carries some information about the underlying physical system and our goal is to extract this information from the limited data we have access to.
 
 \subsubsection*{Thin-film photovoltaic materials}
-Our second target application 
-is the formation of point defects in thin-film photovoltaic
+Our second  application 
+is the fabrication of thin-film photovoltaic
 materials. 
 \MarginPar{JBB:  maybe too long}
 Thin film photovoltaic (PV) devices have attracted research attention
 as a way to dramatically reduce the cost of solar panels. These
 materials compete with traditional crystalline silicon based on
 efficiency but use far less
-material \cite{JiangY13}. Leading thin film technologies include absorbers based on
-cadmium telluride (CdTe), Copper-Indium-Gallium-Selenide/Sulfide (CIGS) and $Cu_2ZnSnS_4$ (CZTS) \cite{JiangY13}. In contrast
-to the exotic elements in CdTe and CIGS, CZTS is
-comprised of relatively abundant and benign constituents. However,
-despite considerable attention CZTS development is still not mature
-relative to CdTe technology. The performance is sensitive to the
-fabrication process: leading demonstrations for CZTS successful
-fabrication processes include depositing the film on a substrate via
+material \cite{JiangY13}. 
+%Leading thin film technologies include absorbers based on
+%cadmium telluride (CdTe), Copper-Indium-Gallium-Selenide/Sulfide (CIGS) and 
+$Cu_2ZnSnS_4$ (CZTS) \cite{JiangY13} is a candiate material
+% In contrast
+%to the exotic elements in CdTe and CIGS, CZTS is
+comprised of relatively abundant and benign constituents but is not yet mature relative to more established thin film technlogies. 
+%. However,
+%despite considerable attention CZTS development is still not mature
+%relative to CdTe technology. The performance is sensitive to the
+%fabrication process: 
+Leading  CZTS  performance has been obtained by a variety of processes including depositing the film on a substrate via
 solution-processing (11\% conversion efficiency) \cite{Todorov13},
 co-evaporation (9.15\% efficiency \cite{Repins12})) and vacuum
 process (8.4\% efficiency, \cite{Shin11}). Despite theoretical
-efficiencies exceeding 30\%, developing optimum processing conditions
+efficiencies exceeding 30\%,  optimum processing conditions
 that realize the potential remain elusive.
 The challenge here is to 
-refine estimates of the model parameters
-sufficiently to improve predictions of the process
-from measurements of bulk
-properties that result from uncertain and time-varying process
+%refine estimates of the model parameters
+%sufficiently to improve predictions of the process
+%from measurements of bulk
+predict performance properties that result from uncertain and time-varying process
 conditions.
 
-Unlike crystalline silicon that is explicitly doped with phosphorous
-or boron to create n-type or p-type semiconductors, CZTS is
-`self-doped' through point defects in the kesterite crystal. Creation
-of these defects (vacancies, antisite and interstitial), particularly
-the $Cu_{Zn}$ antisite defect for p-type doping in CZTS, results in an
-increase in carrier concentration and semiconductor behavior
+Unlike crystalline silicon that is explicitly doped
+% with phosphorous
+%or boron 
+to create  semiconductors, CZTS is
+`self-doped' through point defects.
+% in the kesterite crystal. Creation
+These defects (vacancies, antisite and interstitial), particularly
+the $Cu_{Zn}$ antisite defect for p-type doping in CZTS, provide intrinsic 
+%result in an
+%increase in carrier concentration and 
+semiconductor behavior
 \cite{JiangY13}. The overall defect formation/destruction, movement
 through the crystal structure and along grain boundaries can be
 described by a set of coupled stochastic partial differential
-equations that treat the point defect concentrations as continuum
+equations that treat the defects as continuum
 quantities:
 \begin{equation}
   \label{eq:pdpde}
   \frac{\partial \phi_j}{\partial t}  = S_j + \nabla \cdot  D_j \nabla \phi_j  + T_j,
 \end{equation}
-where $\phi_j$ represents the number density of $j^\mathrm{th}$ defect or election/hole (carrier) concentration. \MarginPar{(matti) what is $D_j$ and$T_j$?}
+where $\phi_j$ represents the number density of $j^\mathrm{th}$ defect or election/hole (carrier) concentration. 
 
 The source term $S_j$ is local rate of change due to pseudo-reactions
 that govern the creation/destruction and interaction of point
-defects. For example, a simple model of a metal-X system  can
-be described by a simplistic system of four reactions. 
+defects, $D_j$ is a defect-dependent mobility, and $T_j$ represents a stochastic model for transport at grain boundaries. A simple example model of a metal-X system  can
+be described by a simplistic system of four reactions that are applied to every gridpoint (gridpoint indicies omitted for clarity):
 
 \begin{eqnarray}
+\label{eq:pdrxnsstart}
 \ce{ \tfrac{1}{2} X_2 -> X_x + V_m^{''} + 2 h^+ } \\
 \ce{ NULL -> V_m^{''}+ V_x^{\cdot \cdot} } \\
 \ce{ NULL -> e^ '+ h^{\cdot} } \\
 \ce{ X_x -> \tfrac{1}{2} X2 + V_x^{\cdot \cdot} + 2 e^- }.
-\label{eq:pdrxns}
+\label{eq:pdrxnsend}
 \end{eqnarray}
-In the above set, $\ce{X_2}$ is a non-metal gas phase that is interacting
-with the crystal at the interface. The first reaction represents the
-addition of an $\ce{X}$ atom to the lattice producing cation vacancies \MarginPar{(matti) Do the X's here need indices? What about the other symbols: $\ce{NULL},  \ce{h^{+}}, \ce{h^{\cdot}}, \ce{e^{\cdot}}, \ce{e^+}$?}
-($V_m^{''}$); the last reaction represents an X ion in the lattice
+
+ $\ce{X_2}$ is a non-metal gas  that is interacting
+with the crystal at the interface. The four reactions describe:  the
+addition of an $\ce{X}$ atom to the lattice producing cation vacancies
+($V_m^{''}$),  creation and elimination of vacancies
+(``Schottky defects''),  creation/elimination of electron/hole pairs
+(``electronic defects'') and an X ion. in the lattice
 dissociating into an X atom that leaves the lattice and two elections,
-leaving behind an anion vacancy ($V_x^{\cdot \cdot}$). The second and
-third reactions represent creation and elimination of vacancies
-(``Schottky defects'') and creation/elimination of electron/hole pairs
-(``electronic defects'') \cite{Tilley}. The equilibrium concentration
-of these defects are non-zero because the free energy of the crystal
-is lowered in the presence of such defects; in a more complicated
-system such as CZTS many more defects are possible. Electronic
-structure calculations \cite{Walsh12} provide a wealth of information
-indicating the important physical processes and configuration effects,
-but are unable to capture the long time-horizon dynamics necessary to
+leaving behind an anion vacancy ($V_x^{\cdot \cdot}$) \cite{Tilley}. 
+%The equilibrium concentration
+%of these defects are non-zero because the free energy of the crystal
+%is lowered in the presence of such defects; 
+In a more complicated
+system such as CZTS many more defects are possible. 
+%Electronic
+%structure calculations \cite{Walsh12} provide a wealth of information
+%indicating the important physical processes and configuration effects,
+This formulation is useful because electronic structure calculations are unable to capture the long time-horizon dynamics necessary to
 couple the processing conditions to the concentrations. The rates of
-the reactions in (\ref{eq:pdrxns}) are given by Arrhenius forms
-($\omega_\alpha = k_\alpha e^{-(E_a)_\alpha/(RT)}$) and then assembled
+the reactions in (\ref{eq:pdrxnsstart}--\ref{eq:pdrxnsend}) are given by Arrhenius forms
+($\omega_\alpha = k_\alpha e^{-(E_a)_\alpha/(RT)}$) and assembled
 into the source terms $S_j$ based on a linear combination given by the
 coefficients for the $j^\mathrm{th}$ species in the
 $\alpha^\mathrm{th}$ reaction.
 
 Transport of the point defects within the crystal occurs in two
 regimes. Solid state diffusion is frequently approximated using a
-Fickian treatment (2nd term on right hand side (RHS) of Equation (\ref{eq:pdpde}) with defect-dependent mobility $D_j$),
+Fickian treatment (2nd term on right hand side (RHS) of Equation (\ref{eq:pdpde})),
 however for point defects this is insufficient to account for their
-migration along grain boundaries, where, as suggested earlier, the
+migration along grain boundaries, where the
 transport mechanism changes and becomes delocalized. Higher
 probability of the defect moving along the grain boundary can be
-captured by a stochastic model more naturally than a deterministic
-treatment; the final term on the RHS represents stochastic transport
-that is active only in the vicinity of a grain boundary. Kolluri and
-Demkowicz \cite{Kolluri12} looked into transport of delocalized
-defects at interfacial grain boundaries for CuNb and found that it can
-be modelled as a complication on localized defect migration and
-successfully treated based on transition state theory with a
-temperature dependent pre-factor. \MarginPar{(matti) can you check the last sentence? I am a bit confused here.}
+captured by a stochastic model; the final term on the RHS represents stochastic transport
+that is active only in the vicinity of a grain boundary (see  Kolluri and
+Demkowicz \cite{Kolluri12} and Koptelov et al. \cite{Koptelov84} for  potential treatments). 
+%looked into transport of delocalized
+%defects at interfacial grain boundaries for CuNb and found that it can
+%be modelled as a complication on localized defect migration and
+%successfully treated based on transition state theory with a
+%temperature dependent pre-factor. \MarginPar{(matti) can you check the last sentence? I am a bit %confused here.}
 
-The importance of grain boundaries for transport requires a model for
-grain nucleation and growth. CZTS has a complicated phase diagram with
-\MarginPar{JBB:  huh?}
-a narrow region where the CZTS phase is present. The effects of the
-secondary phase presence on device performance is throughly described
-in, e.g., \cite{Flammersberger}, but are largely detrimental to device
-performance, so the process of grain growth under annealing conditions is an important processing step.  Grain boundaries between phases also alter the driving
-force for point defect migration that is notoriously difficult to
-capture deterministically; stochastic models have been much more
-successful \cite{Koptelov84}. Grain structure has been treated by numerous methods that attempt to capture the driving force for grain growth ( to first order, the reduction in grain energy captured by the curvature of the interface and interactions between the grain) including interface tracking and continuum descriptions. The latter, where grain boundaries are identified as misaligned orientations between adjacent points on a (typically cartesian) has been formulated as a deterministic \cite{FanGC97} or stochastic \cite{Rollett04} problems is conveniently compatible with the continuum representation of point defect kinetics.  In the deterministic treatment by Fan et al., a set of ODEs is written for a finite number $p$ of continuous orientation field variables at each grid point $\eta_1, \eta_2(x), \dots, \eta_p(x)$. The total free energy is then written in terms of the local free energy density $e_0$ and gradient energy coefficients $\kappa_i$:
+The importance of grain boundaries occuring between the pure phase and one of the several secondary phases the CZTS system permits for transport of point defects requires coupling the PD chemistry system to a model for
+grain nucleation and growth. 
+Furthermore, the effects of 
+secondary phase presence on device performance are largely detrimental to device
+performance \cite{Flammersberger} and annealing conditions is an important processing step.  Grain structure has been treated by numerous methods that attempt to capture the driving force for grain growth ( to first order, the reduction in grain energy captured by the curvature of the interface and interactions between the grain) including interface tracking and continuum descriptions. The latter, where grain boundaries are identified as misaligned orientations between adjacent points on a (typically cartesian) has been formulated as a deterministic \cite{FanGC97} or stochastic \cite{Rollett04} problems and is conveniently compatible with the continuum representation of point defect kinetics.  In the deterministic treatment by Fan et al., a set of ODEs is written for a finite number $p$ of continuous orientation field variables at each grid point $\eta_1, \eta_2(x), \dots, \eta_p(x)$. The total free energy is then written in terms of the local free energy density $e_0$ and gradient energy coefficients $\kappa_i$:
 \MarginPar{JBB:  may need to shorten this.  Can we credibly attack this complexity}
 \begin{equation}
   \label{eq:detgrainE}
@@ -434,8 +405,8 @@ A recent DOE Basic Energy Sciences (BES) workshop report states:
 ``Revolutionary breakthroughs in Electrical Energy Storage have been singled out as perhaps the most crucial need
 for this nation's secure energy future''  (\cite{ees_rpt}, p. xii).
 The promise of electric-drive vehicles (EDVs) can only be met if batteries having both high energy density and increased safety 
-and reliability are developed.  Current solutions, including exploding laptops and expensive electric vehicles that burst into 
-flame and/or can only travel 100 miles before requiring a full night to recharge, are inadequate for widespread adoption.
+and reliability are developed.  Current solutions have multiple limitations, including exploding laptops and expensive electric vehicles that burst into 
+flame and/or can only travel 100 miles before requiring a full night to recharge, and are thus inadequate for widespread adoption.  
 Lithium-ion batteries (LIBs) present a truly multiscale system, with important macroscopic behavior
 (e.g., catastrophic failure such as fire) determined by intricate microscale
 interactions (e.g., as a result of dendritic growth on lithium particles in
@@ -517,16 +488,16 @@ The hope for such a program rests on the fact that hierarchies of experiments ex
 of the heterogeneous battery system.  For example, some representative properties and measurements across scales include:\\
 \textbf{diffusivities}: (microscale) single-crystal measurements, molecular diffusivity  \cite{Chung:2011}; (mesoscale) in-situ/single particle measurements \cite{Cui:2012};  (macroscale) galvanostatic intermittent titration technique (GITT) and potentiostatic intermittent titration technique (PITT) (routinely carried out using composite electrodes) \cite{Wen01121979}\\
 %Multi-scale measurements hel p resolve disputes in transport mechanism
-\textbf{rate constants}: (microscale) reactive transmission electron microscopy (TEM)Ê\cite{Gu2012}; (mesoscale) electrolytic
+\textbf{rate constants}: (microscale) reactive transmission electron microscopy (TEM)ï¿½\cite{Gu2012}; (mesoscale) electrolytic
 solution ``design" \cite{Aurbach2004};  
 (macroscale) electrochemical impedence spectroscopy (EIS) \cite{Meyers2000} \\
 %(only ``effective reactivities" are of interest to the macro-models)  \\
-%Multi-scale measurements help eliminate multiple ÒoptimaÓ
+%Multi-scale measurements help eliminate multiple ï¿½optimaï¿½
 \textbf{open circuit potentials, entropy measurements, decomposition potentials}:  
 (microscale) composition versus lattice structure (XRD) \cite{Ceder2009,Ohzuku1995};
 (mesoscale) electrochemical quartz crystal microbalance (ECQM) \cite{Buttry1992};
 (macroscale) C/50 discharge for free energy\\
-%ÒVoltage fadeÓ???, non-stoichiometric ÒphasesÓ???, hysteresis!!!, decompn. potentials fairly well documented
+%ï¿½Voltage fadeï¿½???, non-stoichiometric ï¿½phasesï¿½???, hysteresis!!!, decompn. potentials fairly well documented
 \textbf{conductivities (electronic, ionic)}:  
 (microscale) quantum transport, lithiation mechanisms \cite{Ceder2009};
 (mesoscale) properties of individual components combined by porous media theory \cite{Stroud1975};
@@ -575,7 +546,7 @@ Models for photovoltaics are less well established.
 For this type of problem 
 model inconsistency is a more likely issue in this context.
 Aside from model inconsistency, the bounds on the input parameters are typically less well known and much wider than in the combustion context. 
-Photovoltaic models also have an inherently stochastic component in the transport at the grain boundaries and the grain growth models 
+Photovoltaic models also have an inherently stochastic component in the transport at the grain boundaries and the grain growth models.  
 Batteries are similar to photovoltaics
 in that the models are less sophisticated. However battery problems introduce a 
 new element, namely that the problem is inherently multiscale.
@@ -606,7 +577,7 @@ The data is assumed to be a function of $x_i$ and
 and we assume that the measurements are perturbed by noise, which, for simplicity, we assume to be Gaussian:
 \begin{equation}
 	\label{eq:DataEquation}
-	y_i = h_e(x_i)+vi,
+	y_i = h_e(x_i)+v_i,
 \end{equation}
 where $i=1,2,\dots$, and $v_i$ is are independent Gaussian random variables with mean $0$ and covariance matrix $\Sigma$.
 Our goal is to use the data across a range of experiments to reduce the uncertainty in $\theta$ (and possibly the initial conditions $x_0$), and to 
@@ -855,7 +826,7 @@ Another central research question is how to use sampling for multi-scale problem
 \MarginPar{at this point this is sampling only ... how would MCMC work. . Jonathan? I tried to disconnect the first part of the discussion from IS. This way we can talk about multi scale IS and MCMC}
 Specifically, we will address how information can be propagated efficiently across different scales.
 For example, in battery simulation, we are interested in the fluctuation of pressure with time since it can critically affect performance, degradation, and safety of batteries.
-This ``macro scale'' (here: millimeters) pressure is the manifestation of many effects at the ``mesoscale'' (here: microns): conversion of electrolyte to the gas phase; the sponge like nature of the porous electrode; elastic properties of the binder (the binder is the ``glue'' that holds the particles in their porous structure); the porosity and toruosity of the separater.
+This ``macro scale'' (here: millimeters) pressure is the manifestation of many effects at the ``mesoscale'' (here: microns): conversion of electrolyte to the gas phase; the sponge like nature of the porous electrode; elastic properties of the binder (the binder is the ``glue'' that holds the particles in their porous structure); the porosity and tortuosity of the separater.
 The pressure is the sum of these effects combined across the whole cell and can be measured via detailed signals from transducers. In addition, we have data of mesoscale phenomena such as stress, strain, swelling, and other mechanical properties.
 Our goal is to incorporate all available data to form an estimate of the pressure and the mesoscale state, described in terms of layer thicknesses (substrate, epoxy layer, current collector, active material, entire electrode), volume fractions (particles, binder, pores), porosity, tortuosity, particle sizes and distributions (see, e.g., \cite{Sethuraman2012334}) and other parameters governing the makeup and morphology of the heterogeneous
 electrode.
@@ -886,7 +857,6 @@ Alternatively, we can use a surrogate method, where a small number of forward si
 This model is then used in the optimization and its further refinement goes hand in hand with its use in seeking the minimum.
 Many research questions surround the interplay between optimization and sampling, particularly with approximate surrogate models.
 For example, we can use numerical experiments to find a characterization of how errors introduced by a simplified model impact the overall behavior of the algorithm and what must be known about the errors of the simplified model to obtain such a characterization.  
-\MarginPar{George: The optimization algorithm is sequential.  It is going to be a bottleneck in a sampling algorithms where everything else can be embarrassingly parallelized on an exascale machine.  }
 
 We will reduce the complexity of the response that reduced order models are required to emulate by modeling the difference between the simple and the complex models. A promising approach that is consistent with~(\ref{eq:IS_data}) is GPR. 
 Consider outputs from two different models, $H^S$ and $H^C$ where $H^C$ is deemed more accurate than $H^S$. 
@@ -950,7 +920,7 @@ We will demonstrate the use of the framework for prototype problems in combustio
 novel photovoltaic material and lithium-ion batteries.
 
 
-\bibliographystyle{plain}
+\bibliographystyle{abbrv}
 
 \bibliography{george_rom,pd,batteries3} 
 
