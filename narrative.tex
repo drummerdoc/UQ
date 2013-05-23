@@ -127,6 +127,9 @@ For one thing, evaluating $p$ involves a forward simulation of a physical model.
 In our applications, these can be 3D simulations with complex, potentialy noisy physics and noisy observations.
 When the dynamics is noisy, the quantities to be sampled include not just parameter values $\theta$,
 but an unobserved state $x$.
+\MarginPar{JG: Maybe it's the least of 3 evils, the other two being vagueness and verbal description
+of formulas, or stopping to define notation in a technical way in the intro.
+I'm basically only saying that $p$ is a probability density.}
 %This can be a 3D field of velocities and concentrations (e.g., in the combustion system).
 In such a case, the posterior joint distribution of $x$ and $\theta$ is described by $p(x,\theta|y)$.
 
@@ -234,24 +237,26 @@ ROMs can also be used directly as an efficient surrogate in forward UQ~\cite{Cha
 
 \subsection*{Proposed Research}
 
-To frame the discussion of the proposed research we need to first provide some specific detail
-about the target applications.
+We begin by outlining three target applications.
+These applications raise a series of unique challenges that do not arise in smaller or linear
+model problems.
+They involve sparse data, multi-scale and multi-physics, and severe ill conditioning.
 
-\subsubsection*{Combustion}
-Simulating combustion relies on parameters
-describing fuel  chemistry, transport and thermodynamics.
-Here we assume that the multicomponent reacting Navier Stokes equations with Arrhenius
-kinetics and a molecular transport model provide a good approximation to the dynamics.
-The target question we would like to answer is how confident are we in the computed statistical
-properties of a turbulent flame simulation and to what extent are the simulations consistent
-with experimental data.
-However, a direct attack on this problem is infeasible.
-The computational complexity is sufficiently high and the available data is sufficiently
-sparse that very little can be determined by directly pursuing this final target.
-A way to get around this is to utilize
-data from increasingly complex experiments for the same physical
-system ranging from 0d ignition, 1d laminar flames, shock-tube experiments,
-and
+\subsubsection*{Combustion, turbulent lean flames}
+\MarginPar{JG edited (i.e. made stuff up) to make this section more specific in order to
+make it more like the other two, which are pretty specific.}
+
+Flames are lean or rich depending on the amount of fuel.
+Lean flames are preferred in some industrial applications because they generate less heat, and 
+therefore less undesired byproducts.
+They also are more likely to be turbulent and harder to simulate.
+Unfortunately, reaction parameters that are measured in simple rich flame experiments may be
+different in unsteady lean flames.
+It is therefore important to infer some lean flame parameters directly from measurements of flames with
+complex spatial and temporal structure.
+
+We seek to utilize data from increasingly complex experiments ranging from 0d ignition, 
+1d laminar flames, shock-tube experiments, and
 a variety of 2D laminar flames to 3D turbulent flames.
 Each experiment can have a number of distinct sets of data that focus on different
 aspects of the flame.
@@ -259,21 +264,22 @@ Some experiments measure velocities using particle image velocimetry. Other expe
 measure composition at a given location using Raman spectroscopy. Others use planar laser induced
 fluorescence to indirectly measure a particular species in a cross section of the flow.
 One could also augment the data with non-reacting flow experiments that focus on transport properties.
-Since each of these experiments reveal information about the system (some are used by kineticists already), we want
-to use experimental data across the entire hierarchy of experiments to reduce uncertainty in parameters and estimate bounds on how those uncertainties impact predictive capability.
+Each of these experiments reveals information about the system (some are used by kineticists already). 
+We want to use experimental data across the entire hierarchy of experiments to estimate a full 
+parameter set more accurately. 
+The Bayesian UQ approach will quantify the remaining uncertainties.
 
-Our UQ approach needs to reflect the notion that as we move up the hierarchy, we are
-getting closer to realistic applications but the simulations become
-increasingly costly and the data become increasingly sparse.
-Moreover, the approach needs to respect the structure of the problem.
-A reasonable cartoon for a 
-turbulent flame experiment is that it corresponds to a stationary chaotic dynamical system.
-What the experimentalist is capturing, at some level, is
-snapshots of what the attractor looks like.
-We cannot hope to have a complete picture of the flame at a given time. Available data is at best limited and
-often correspond to only a characterization of features of the solution. Furthermore, boundary conditions are typically only known
-statistically.
-However, the data carries some information about the underlying physical system and our goal is to extract this information from the limited data we have access to.
+As we move up the hierarchy to more complex experiments, the datasets get larger, but the data 
+become sparse in that they measure a small fraction of the concentration or velocity fields 
+of a given turbulent flow.
+The data do not give a complete picture of the flame at a given time. 
+A reasonable cartoon for a turbulent flame experiment is that it corresponds to chaotic attractor 
+of a dynamical system.
+In this case, the dynamics are approximated by the multicomponent reacting Navier Stokes equations 
+with Arrhenius kinetics.
+Simulation and MC sampling will produce sample velocity, concentration fields, and parameter sets
+consistent with these large but incomplete datasets.
+
 
 \subsubsection*{Thin-film photovoltaic materials}
 Our second  application 
@@ -285,7 +291,7 @@ materials compete with traditional crystalline silicon in efficiency but use far
 material \cite{JiangY13}. 
 %Leading thin film technologies include absorbers based on
 %cadmium telluride (CdTe), Copper-Indium-Gallium-Selenide/Sulfide (CIGS) and 
-$Cu_2ZnSnS_4$ (CZTS) \cite{JiangY13} is a candiate material
+One candidate material is $Cu_2ZnSnS_4$ (CZTS) \cite{JiangY13}, which
 % In contrast
 %to the exotic elements in CdTe and CIGS, CZTS is
 comprised of relatively abundant and benign constituents but is not yet mature relative to more established thin film technlogies. 
@@ -436,6 +442,8 @@ In the above, the energy between orientation indicies $J$ and mobility $M$ are e
 orientation pair that reflect preferential growth along a particular misalignment direction.
 The state of the crystal is updated sequentially by choosing random locations and new orientations that
 are accepted based on the given probability. 
+\MarginPar{JG: This seems to be an atomistic description, not a continuum?  
+That's OK for MCMC sampling, but not (I don't think) for implicit sampling.}
 
 
 %\remrg{The stochastic formulation appears to be calling out for MCMC. This aspect of the thin film photovoltaic application readily generalizes and is applicable to a broader range of materials problems, where the objective is to predict grain size after an annealing process to design materials with specific mechanical as well as electrical properties.}
@@ -544,14 +552,19 @@ temperature $T$ (thermal transport): $\frac{\partial T}{dt} = \nabla \cdot (D_T 
 %``Simulation of lithium-ion battery models requires simultaneous evaluation of concentration and potential fields, %in both solid as well as liquid phases. In addition, the porous nature of the battery electrodes leads to highly %nonlinear and heterogeneous electrochemical reaction kinetics." \cite{Subramanian:2009}
 
 Examples of battery models include \cite{Less:2012}, in which a fully resolved 3D electrode is simulated using a combination
-of convection-diffusion and Butler-Volmer equations. This model uses approximately 25 parameters derived by the authors from experiment.
+of convection-diffusion and Butler-Volmer equations. 
+This model uses approximately 25 parameters.
 Another example is \cite{Garcia2005}, which simulates a 3D electrode, including the constitutive relations that are first steps toward
 incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{Kim-etal:2011}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
 
 The current paradigm for virtually all battery simulations (including those above)
 is to treat parameters as fixed valued derived from single-scale experiments.
-However, this is problematic: first, we do not propagate uncertainty in 
-these parameters through the model; second, we miss the chance to use information \emph{across scales} to optimally understand
+Different experiments yield quite different estimates.
+For example, \cite{Less:2012} cites estimates of the same parameter that differ by an order of 
+magnitude.
+Thus, fixed parameter simulations are problematic: first, they do not propagate uncertainty in 
+these parameters through the model; second, they miss the chance to use information \emph{across scales} 
+to optimally understand
 the system.  Our proposed work specifically addresses this shortcoming in the current paradigm by offering the means to 
 combine modeling and data \emph{across a hierarchy of experiments}
 to reduce uncertainty in the underlying physics parameters and improve predictive capability.
@@ -628,39 +641,35 @@ In this case we need to devise mechanisms to communicate information
 between different types of models at different scales.
 
 \subsubsection*{Problem set up and overview of implicit sampling and MCMC}
-For each experiment,  we have an operator $L_e$ that depends on the state of the system, $x$, time,
-and a set of parameters, $\theta$ that defines the dynamics of the system. For deterministic 
-dynamics
+An individual experiment with parameters $\theta$ might be modeled with deterministic dynamics as
 \begin{equation}
 \label{eq:ModelEquation}
-x_t = L_e(x,t,\theta) \qquad \mathrm{with} \qquad x(0) = x_0
+x_t = L_e(x,t,\theta) \qquad \mathrm{with} \qquad x(0) = x_0 \; ,
 \end{equation}
 while for stochastic dynamics we have
 \begin{equation}
 \label{eq:ModelEquationSt}
-dx = L_e(x,t,\theta) dt + dW \qquad \mathrm{with} \qquad x(0) = x_0
+dx = L_e(x,t,\theta) dt + dW \qquad \mathrm{with} \qquad x(0) = x_0 \; ,
 \end{equation}
 where $dW$ is a stochastic forcing term. 
-Uncertainty of the model is expressed by making the parameters $\theta$ random variables.
-For example, $\theta$ can be a Gaussian with mean $\mu$ and covariance matrix $\Sigma_0$.
-For each experiment we 
-assume we have an approximation for $\mu$ and $\Sigma_0$ that are known from prior investigations.
+%Uncertainty of the model is expressed by making the parameters $\theta$ random variables.
+%For example, $\theta$ can be a Gaussian with mean $\mu$ and covariance matrix $\Sigma_0$.
+%For each experiment we 
+%assume we have an approximation for $\mu$ and $\Sigma_0$ that are known from prior investigations.
 The initial conditions $x_0$ may be random as well; if so, we assume that we have a (prior) pdf to describe them.
-
 We are also given data, $y_i$, at various time points $t_i$ in the evolution.
-The data is assumed to be a function of $x_i$ and
-we assume that the measurements are perturbed by noise, which, for simplicity, we assume to be Gaussian:
+We assume that the data are functions of $x_i$ perturbed by observation noise:
 \begin{equation}
 	\label{eq:DataEquation}
-	y_i = h_e(x_i)+v_i,
+	y_i = h_e(x_i)+v_i.
 \end{equation}
-where $i=1,2,\dots$, and $v_i$ is are independent Gaussian random variables with mean $0$ and covariance matrix $\Sigma$.
-Our goal is to use the data across a range of experiments to reduce the uncertainty in $\theta$
-(and possibly the initial conditions $x_0$), and to 
-access the degree to which the reduction in uncertainty improves the predictive capability of the model.
+For simplicity, we take the noise, $v_i$, to be independent Gaussian random variables with mean 
+$0$ and covariance matrix $\Sigma$.
+The observation function, $h_e(x)$, may involve a large loss of information.
+For example, it may represent a 2D slice of a full 3D field.
+Many data points are needed to get a sense of the full $x_i$.
 
-Our overall approach relies on Bayes' rule to formulate
-the posterior pdf which we then approximate via Monte Carlo sampling. One generic issue with Monte Carlo approaches
+One generic issue with Monte Carlo approaches
 is the need for new algorithms to improve computational efficiency for large-scale problems.
 Our target problems also include specific features that must be addressed.
 Kinetic models for example often exhibit multiple reaction pathways where
@@ -668,6 +677,7 @@ many different parameter sets are nearly as good at explaining the data.
 This type of phenomenon, referred to as model degeneracy,
 causes isotropic sampling algorithms such as single variable heat bath (Gibbs sampler) or isotropic
 Metropolis walk to slow down dramatically.
+See \cite{HouStretch} for an illustration of ill conditioning arising in this way.
 Another characteristic of our target applications is that
 the exact model is not in the family being fit.
 Models are only approximations to reality.
@@ -685,21 +695,29 @@ The central theme of this project will be to develop new smart sampling technolo
 to address these issues.
 The types of methods we plan to consider fall into two distinct types:  particle filter approaches
 and MCMC.
-Both of these approaches aim to reduce the computational work associated with naive MC approaches.
-MCMC algorithms define a Markov
-process that samples the underlying Gibbs distribution of the problem. 
-Evolution of this Markov process
-samples the posterior distribution of the system.
-When the underlying dynamics is stochastic, MCMC needs to estimate
-\MarginPar{JBB:  is this correct? Jonathan?}
-the full state of the system in space and time, making it extremely memory intensive.
-Particle filters, which arise in the context of data assimilation,
-fit into the category of importance sampling Monte Carlo algorithms.  Here the goal is to use
-derivative / sensitivity information to guide the selection of samples to reduce the number of samples
-needed to effectively sample the distribution.
-%Compared to MCMC, the filtering approach is less memory intensive but more computationally intensive, thus representing
-%a tradeoff between memory and computation.
-In any given setting, it is not clear which of these approaches will be preferable and
+MCMC creates a stochastic dynamics that samples the desired distribution.
+As with iterative methods, the stochastic dynamics can be slow for ill conditioned problems.
+The MCMC can be expensive if every MCMC step requires a forward simulation of the underlying model
+(\ref{eq:ModelEquation}) or (\ref{eq:ModelEquationSt}).
+For stochastic dynamics (\ref{eq:ModelEquationSt}), it is necessary to keep pieces of the 
+stochastic trajectory $x_t$ as well as $\theta$ as part of the sample, which will make
+memory efficiency an important issue for the hardest target applications.
+
+Particle filters, arise in the context of data assimilation.
+They are distinct from MCMC in that they produce independent samples.
+They update a sample of the state $x_{i+1}$ and $\theta$ taking into account a new observation 
+$y_{i+1}$.
+They achieve independent samples using importance weights.
+Particle filter methods for stochastic systems store only a single state $x_i$ rather than 
+a trajectory, so they are more memory efficient.
+The most common direct particle filter method uses weights that have extremely high variance, 
+particularly when the observation noise, $v_i$,has small variance.
+More recent implicit sampling particle filters, invented at LBNL
+\cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013}, address this high variance 
+issue using a more sophisticated update/sampling strategy.
+Each step involves an optimization, for which derivative/sensitivity information is very helpful.
+
+It is not clear which of these approaches will be preferable in a given application, so
 we need to understand the tradeoffs, e.g. between memory and computation
 in each method to determine which approach will be most effective for a given experiment.
 We anticipate that one approach is not optimal across a hierarchy of experiments, rather
@@ -710,15 +728,8 @@ and understanding how to transition between approaches are important research qu
 Furthermore, although neither of these approaches is new, substantial development is needed to meet the requirements
 of the applications we are considering.
 
-The starting point for our development of particle filtering methods is the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013}.
-The central idea here is to first search for the regions of high probability with respect to the posterior.
-This search can be implemented by numerical optimization.
-Once the high probability region is located, samples that lie within this region can be generated by solving simple algebraic equations.
-Although the optimization is computationally expensive, implicit sampling was shown to outperform standard MC importance sampling in small geophysical models \cite{Morzfeld2011,Morzfeld2012,Atkins2013}. 
-However, for the realistic applications we are considering, substantial development is needed, especially with respect to efficient use of extreme-scale computer architectures. 
-
-To introduce the basic idea,
-we consider the case in which the dynamics is deterministic, the initial conditions are known and we only have data at a final time, $T$.
+We explain implicit sampling for the case of deterministic dynamics, known initial conditions and 
+data at a single time, $T$.
 In this case we can combine the model (\ref{eq:ModelEquation}) and data equation (\ref{eq:DataEquation}) to obtain
 \begin{equation}
 \label{eq:IS_data}
@@ -1079,6 +1090,6 @@ novel photovoltaic material and lithium-ion batteries.
 
 \bibliographystyle{abbrv}
 
-\bibliography{george_rom,pd,batteries3} 
+\bibliography{george_rom,pd,batteries3,jg} 
 
 \end{document}
