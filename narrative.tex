@@ -87,7 +87,7 @@ We believe that Bayesian UQ provides the most general, flexible, and rigorous wa
 We need an approach that allows us to pass information through the hierarchy in a way that 
 effectively uses data from all levels to improve overall predictive properties.
 Furthermore, even complex models (e.g., the systems of equations below modeling Lithium-ion batteries)
-cannot exactly capture the rich physics exactly.
+cannot capture the rich physics exactly.
 We must develop estimation methods that are robust to model errors as well as noisy observations
 using metrics based on identification of characteristic features that are more general than
 traditional quantities of interest.
@@ -110,7 +110,7 @@ parameter distribution $p(\theta|y)$.
 Here, $\theta$ represents the uncertain parameter values and $y$ is the experimental data.
 %see (\ref{eq:post}) for more detail.
 For example, if the data tightly constrain the parameters, then $p(\theta|y)$ is narrowly 
-distributed about some most maximum likelihood value $\theta_*$.
+distributed about some most likely value $\theta_*$.
 Rather than reporting, for example, the mean and covariance of $\theta \sim p(\cdot|y)$,
 modern Bayesian UQ represents $p(\cdot|y)$ by giving a collection of random samples $\theta_k$.
 These samples can be used to directly assess the parameter uncertainties.
@@ -125,8 +125,8 @@ application areas listed above using data from experiments as complex
 as is typical in these applications and outlined below.
 For one thing, evaluating $p$ involves a forward simulation of a physical model.
 %of the form (\ref{eq:ModelEquation}) or (\ref{eq:ModelEquationSt}).
-\MarginPar{JBB:  Don't like forware references}
-In our applications, these can be 3D simulations with complex, potentialy noisy physics and noisy observations.
+\MarginPar{JBB:  Don't like forward references}
+In our applications, these can be 3D simulations with complex, potentially noisy physics and noisy observations.
 When the dynamics are noisy, the quantities to be sampled include not just parameter values $\theta$,
 but an unobserved state $x$.
 \MarginPar{JG: Maybe it's the least of 3 evils, the other two being vagueness and verbal description
@@ -183,10 +183,9 @@ singular, i.e. when high-probability
 events with respect to the prior have low probability with respect to the posterior.
 However, this is the interesting case, which corresponds to the situation where the data severely 
 constrain the posterior beyond what was assumed in the prior.
-When this happens many of the samples have such a low weight so that the empirical estimate 
-they give little information about the posterior.
+When this happens many of the samples have such a low weight so that they give little information about the posterior.
 This was rigorously shown to happen for linear problems.
-Futher, the number of particles required can grow exponentially with the number
+Further, the number of particles required can grow exponentially with the number
 of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009},
 making this approach infeasible for 
 our target applications.
@@ -194,14 +193,7 @@ our target applications.
 as easily that implicit sampling can be exponentially bad in the number of parameters.  
 Just have $n$ independent non-gaussian parameters.}
 A number of methods have been invented to ameliorate this problem, most of which amount to finding a proposal density that  generates samples that are more compatible with the data \cite{Doucet,OptimalImportanceFunction,liuchen1995,Brad}.
-For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation \cite{vanLeeuwen}.
-
-% A more general approach constructs a map that transforms the prior measure into the posterior measure
-% %, i.e. to construct a map that transforms prior samples into posterior samples 
-% \cite{Moselhy2013}.  If such a map can be constructed, efficient posterior samples are easy to generate.
-% However, the construction of the map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps) that are not efficient.
-% We expect that we will need to compute a map at each level of the hierarchy and, thus, expect that this approach is computationally too expensive for our target applications. Moreover, the errors of the approximations involved in finding the map are, at this time, not well understood. We plan to base our particle filtering methods on the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013} that avoids some of the pitfalls of standard sampling by concentrating the computational power on localizing the regions of high probability in the parameter space (see below for details of this method).
-
+For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation~\cite{vanLeeuwen}.
 A more general approach constructs a map that transforms the prior
 measure into the posterior measure \cite{Moselhy2013}.  If such a map
 can be constructed, efficient posterior samples are easy to generate.
@@ -215,6 +207,13 @@ IS avoids some of the pitfalls of standard sampling by
 concentrating samples on localized regions of high probability in 
 the parameter space (see below for details of this method).
 \MarginPar{MSD: Rewrote to shorten}
+
+% A more general approach constructs a map that transforms the prior measure into the posterior measure
+% %, i.e. to construct a map that transforms prior samples into posterior samples 
+% \cite{Moselhy2013}.  If such a map can be constructed, efficient posterior samples are easy to generate.
+% However, the construction of the map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps) that are not efficient.
+% We expect that we will need to compute a map at each level of the hierarchy and, thus, expect that this approach is computationally too expensive for our target applications. Moreover, the errors of the approximations involved in finding the map are, at this time, not well understood. We plan to base our particle filtering methods on the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013} that avoids some of the pitfalls of standard sampling by concentrating the computational power on localizing the regions of high probability in the parameter space (see below for details of this method).
+
 
 The posterior samples obtained from sampling (either MCMC or implicit sampling) can be used to construct reduced order models (ROMs), by which we mean inexpensive (to evaluate) surrogates for expensive computer simulations that preserve the input-output relations in the numerical models.
 Here, we will use the term ROM in an encompassing sense which can refer to model reduction approaches, response surface approaches and machine learning techniques. For example, in model reduction approaches, e.g. the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr}, one directly approximates the PDEs using a parametrically-induced approximation space.
@@ -256,7 +255,7 @@ Gaussian process regression is a potentially attractive form of ROM to capturing
 ROMs can also be used directly as an efficient surrogate in forward UQ~\cite{Challenor:2012uv, Ratto:2012tf}
 for example in predicting catastrophic events and obtaining global sensitivity analyses indices that converges slowly with number of samples.  
 In this proposal, we will look into how ROMs can further improve the efficiency of the importance sampling approach that we will use.
-In addition, we will determine how ROM can be used within our hierarchical framework
+In addition, we will determine how ROM can be used within our hierarchical framework to
 improve the efficiency of {\it {a posteriori}} UQ.
 
 \subsection*{Proposed Research}
@@ -295,14 +294,14 @@ Although the form of the model for the gas-phase combustion of basic
 fuels is well-established, the ``correct'' parameter values are not.
 Kinetic\slash transport models (complete sets of model parameters) are routinely
 published in the combustion literature for specific fuels\slash
-conditions after having undergone extensive tuning in
-for particular set of
+conditions after having undergone extensive tuning
+for a particular set of
 simplified experimental configurations.  Historically, this tuning involves 
 considerable ``hands-on'' expertise and judgement in
 order to drastically reduce the full set (hundreds to thousands) of
 model parameters to a computationally manageable ``active set'' of
 10-30, which are optimized with fairly standard Monte Carlo or
-polynomial choas methods.
+polynomial chaos methods.
 
 Uncertainty in combustion simulations arise from a number of sources,
 including those discussed above (model structure, modeling
@@ -318,7 +317,7 @@ turbulent combustion simulations.
 
 A more general approach to uncertainty quantification in combustion
 would begin with prior art in the community, of course, but would
-proceed in a framework more suited to very lare scale tasks at hand.
+proceed in a framework more suited to very large scale tasks at hand.
 Existing model targets include ignition systems (e.g.\ 0D
 time-dependent point measurements of post-shock ignition in shock
 tubes), steady laminar flame configurations (e.g.\ opposed-flow flame
@@ -666,7 +665,7 @@ Another example is \cite{Garcia2005}, which simulates a 3D electrode, including 
 incorporating stress/strain in the models. This model contains approximately 50 parameters.  Another interesting case is \cite{Kim-etal:2011}, where models at three scales (particle, electrode, cell) are coupled via boundary conditions and forcing terms. This model also contains roughly 50 parameters.
 
 The current paradigm for virtually all battery simulations (including those above)
-is to treat parameters as fixed valued derived from single-scale experiments.
+is to treat parameters as fixed values derived from single-scale experiments.
 However, this is problematic: first, we do not propagate uncertainty in 
 these parameters through the model; second, we miss the chance to use information \emph{across scales} to optimally understand
 the system.  Our proposed work specifically addresses this shortcoming in the current paradigm by offering the means to 
@@ -789,7 +788,7 @@ Models are only approximations to reality.
 For example, the Arrhenius form for reaction rates are only modeling approximations, though they can be very accurate.
 Similarly, models for diffusion are only approximations to the underlying molecular processes.
 Even small modeling errors can make an accurate global fit impossible, particularly in chaotic systems.
-This issue become more serious in the case of batteries and photovoltaic models where the models
+This issue becomes more serious in the case of batteries and photovoltaic models where the models
 are not yet mature.  In these areas we are likely to encounter structural issues where key physical
 processes are missing from the description.
 We need statistical methods that are robust to fundamental inconsistencies between models and data.
@@ -872,7 +871,7 @@ Generating samples with low probability with respect to the data (as in standard
 \MarginPar{JBB: Matti, it seems like we should say more about solving the random equations.\\ (matti): I added a few things. Is that enough?}
 There are various ways for solving the algebraic equations of implicit sampling (\ref{eq:IS_sampling_eq}) \cite{chorin2010,Morzfeld2011}. 
 For example, we can use information about the curvature of $F$, e.g. from BFGS-type optimization~\cite{Liu:1989:LMB:81100.83726}, for the construction of linear maps. Let $L$ be a square root of the Hessian of $F$ (e.g. Cholesky factor), then $\theta = \mu +L^{-1}\xi$, where $\mu$ is the minimizer of $F$, solves the quadratic equation $F_0-\phi=0.5\xi^T\xi$, where $F_0$ is the Taylor expansion of order $2$ of $F$. 
-The error we make by solving a quadratic equation instead of (\ref{eq:IS_sampling_eq}) can be accounted for in the weights (without introducing bias). This method can fail if there is sufficient skew in the posterior pdf, or if the information about the curvature of $F$ is incomplete/inacurate (e.g. when derivative free optimization schemes are used). In this case, we can use the ``random map'' approach and pick a direction $\eta$ at random by setting $\theta = \mu+\lambda \eta$, where $\eta$ is the random direction and $\lambda$ is a scalar parameter that defines the sample. We search for solutions in this direction by solving a single algerbraic equation in a single variable (we must solve (\ref{eq:IS_sampling_eq}) for $\lambda$), e.g. by Newton iteration. The weights, i.e. the Jacobian of the random maps are straight forward to evaluate \cite{Morzfeld2011}. In summary, implicit sampling amounts to the following steps:
+The error we make by solving a quadratic equation instead of (\ref{eq:IS_sampling_eq}) can be accounted for in the weights (without introducing bias). This method can fail if there is sufficient skew in the posterior pdf, or if the information about the curvature of $F$ is incomplete/inacurate (e.g. when derivative free optimization schemes are used). In this case, we can use the ``random map'' approach and pick a direction $\eta$ at random by setting $\theta = \mu+\lambda \eta$, where $\eta$ is the random direction and $\lambda$ is a scalar parameter that defines the sample. We search for solutions in this direction by solving a single algebraic equation in a single variable (we must solve (\ref{eq:IS_sampling_eq}) for $\lambda$), e.g. by Newton iteration. The weights, i.e. the Jacobian of the random maps are straight forward to evaluate \cite{Morzfeld2011}. In summary, implicit sampling amounts to the following steps:
 \begin{compactenum}
 	\item Minimize the function $F$ to identify relevant regions of the parameter space
 	\item Find samples in this region by solving the random algebraic equations (\ref{eq:IS_sampling_eq})\
@@ -912,7 +911,7 @@ system size increases.
 Parallel marginalization is similar in spirit. It evolves a sequence of coarsened
 version of the Markov process
 simultaneously with the fine scale version of the process. 
-The distributions for the coarsened processes are obtain as marginals of the original
+The distributions for the coarsened processes are obtained as marginals of the original
 distribution.  In addition to normal proposals within each process, we also consider
 swap proposals between chains of adjacent resolution.  Proper choice of the acceptance
 criteria for swaps guarantees that the overall combination of the processes converges
@@ -945,7 +944,6 @@ random walk unchanged under affine transformation.  This property guarantees tha
 be rescaled to be well conditioned with an affine transformation.
 Although $N$ can be quite large for a large system, we conjecture that $N$ of the order of the length of the reaction pathways
 in the system should eliminate most of the model degeneracy.
-\MarginPar{(matti): Jonathan, does this make sense?}
 \MarginPar{RG: also possible that model is inconsistent with data
   given prior. In this case, we want to extract information to help
   design a better experiment to choose between equivalent parameter combinations}
