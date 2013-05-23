@@ -135,19 +135,19 @@ I'm basically only saying that $p$ is a probability density.}
 %This can be a 3D field of velocities and concentrations (e.g., in the combustion system).
 In such a case, the posterior joint distribution of $x$ and $\theta$ is described by $p(x,\theta|y)$.
 
-A key issue is that many current MC sampling techniques are not robustly effective for complex, 
-high-dimensional problems. 
-There is a weak analogy to the problem of solving large systems of linear or nonlinear equations.
-For equation solving there are generic methods such as Gaussian elimination, Gauss Seidel iteration,
-Newton's method, etc.
-But these generic methods are unable to solve extreme scale problems that arise from simulating
-complex physics in 3D.
-Such problems require specialized multi-scale algorithms, such as multigrid, that take into account the
-physical nature of slowly relaxing modes.
-What this analogy fails to capture is an extra difficulty in sampling: these problems do not come with 
-something like {\em residuals} that can be evaluated to confirm convergence of the algorithms.
-There is no way to test a-posteriori that a sampler has converged to the correct distribution.
-The correctness must be built in to the sampler.
+% A key issue is that many current MC sampling techniques are not robustly effective for complex, 
+% high-dimensional problems. 
+% There is a weak analogy to the problem of solving large systems of linear or nonlinear equations.
+% For equation solving there are generic methods such as Gaussian elimination, Gauss Seidel iteration,
+% Newton's method, etc.
+% But these generic methods are unable to solve extreme scale problems that arise from simulating
+% complex physics in 3D.
+% Such problems require specialized multi-scale algorithms, such as multigrid, that take into account the
+% physical nature of slowly relaxing modes.
+% What this analogy fails to capture is an extra difficulty in sampling: these problems do not come with 
+% something like {\em residuals} that can be evaluated to confirm convergence of the algorithms.
+% There is no way to test a-posteriori that a sampler has converged to the correct distribution.
+% The correctness must be built in to the sampler.
 
 We plan to consider two kinds of MC samplers, Markov chain Monte Carlo (MCMC) and particle filtering.
 Standard MCMC samplers can become very slow when the distribution being
@@ -160,6 +160,7 @@ High dimensional problems arise in our problems when we must sample a state, $x$
 parameter set $\theta$.
 Hamiltonian samplers have proven better than direct local Metropolis or heat bath methods \cite{Hanson2001}, but
 they still can be slow.
+\MarginPar{MSD: Removed paragraph on analogy to linear systems} %Comment here so it fits in the margin
 More sophisticated truly multi-scale samplers include Swendsen Wang \cite{SwendsonWang1987}
 and multigrid methods \cite{Goodman1989}.
 Unfortunately, none of these methods at present is as general, say, as multigrid for
@@ -195,11 +196,25 @@ Just have $n$ independent non-gaussian parameters.}
 A number of methods have been invented to ameliorate this problem, most of which amount to finding a proposal density that  generates samples that are more compatible with the data \cite{Doucet,OptimalImportanceFunction,liuchen1995,Brad}.
 For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation \cite{vanLeeuwen}.
 
-A more general approach constructs a map that transforms the prior measure into the posterior measure
-%, i.e. to construct a map that transforms prior samples into posterior samples 
-\cite{Moselhy2013}.  If such a map can be constructed, efficient posterior samples are easy to generate.
-However, the construction of the map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps) that are not efficient.
-We expect that we will need to compute a map at each level of the hierarchy and, thus, expect that this approach is computationally too expensive for our target applications. Moreover, the errors of the approximations involved in finding the map are, at this time, not well understood. We plan to base our particle filtering methods on the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013} that avoids some of the pitfalls of standard sampling by concentrating the computational power on localizing the regions of high probability in the parameter space (see below for details of this method).
+% A more general approach constructs a map that transforms the prior measure into the posterior measure
+% %, i.e. to construct a map that transforms prior samples into posterior samples 
+% \cite{Moselhy2013}.  If such a map can be constructed, efficient posterior samples are easy to generate.
+% However, the construction of the map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps) that are not efficient.
+% We expect that we will need to compute a map at each level of the hierarchy and, thus, expect that this approach is computationally too expensive for our target applications. Moreover, the errors of the approximations involved in finding the map are, at this time, not well understood. We plan to base our particle filtering methods on the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013} that avoids some of the pitfalls of standard sampling by concentrating the computational power on localizing the regions of high probability in the parameter space (see below for details of this method).
+
+A more general approach constructs a map that transforms the prior
+measure into the posterior measure \cite{Moselhy2013}.  If such a map
+can be constructed, efficient posterior samples are easy to generate.
+However, for complex applications, the map is cannot be constructed
+directly, and must instead rely on a number of approximations
+(e.g. polynomial representations of the maps) that are not efficient,
+or well-characterized.  Instead, we will base our particle filtering
+methods on the implicit sampling (IS) methodology
+\cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013}.
+IS avoids some of the pitfalls of standard sampling by
+concentrating samples on localized regions of high probability in 
+the parameter space (see below for details of this method).
+\MarginPar{MSD: Rewrote to shorten}
 
 The posterior samples obtained from sampling (either MCMC or implicit sampling) can be used to construct reduced order models (ROMs), by which we mean inexpensive (to evaluate) surrogates for expensive computer simulations that preserve the input-output relations in the numerical models.
 Here, we will use the term ROM in an encompassing sense which can refer to model reduction approaches, response surface approaches and machine learning techniques. For example, in model reduction approaches, e.g. the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr}, one directly approximates the PDEs using a parametrically-induced approximation space.
@@ -233,7 +248,7 @@ A research question we will address is how to combine ROMs with MC algorithms as
 For example, coarse resolution (thus computationally cheap) models have been used to generate  samples
 during the importance sampling stage~\cite{Higdon:2002vx,Christen:2005wp,Efendiev:2007uw,Bal:2013tp} or
 coupled with fine resolution models through the metropolis coupled chain~\cite{Higdon:2002vx}.
-To further improve the match between the coarse and fine posterior distributions, Bal et. al.~\cite{Bal:2013tp} used
+To further improve the match between the coarse and fine posterior distributions, Bal, et al.~\cite{Bal:2013tp} used
 a zero-mean Gaussian model to approximate the discretization error~\cite{Kaipio:2007ux}.
 However, since our simpler models may involve significant simplifications of the physics or reduction of spatial dimensions,
 ROMs may be needed to more accurately model the structural variations of the difference between the models. 
@@ -249,43 +264,122 @@ model problems.
 They involve sparse data, multi-scale and multi-physics, and severe ill conditioning.
 
 \subsubsection*{Combustion, turbulent lean flames}
-\MarginPar{JG edited (i.e. made stuff up) to make this section more specific in order to
-make it more like the other two, which are pretty specific.}
+\MarginPar{MSD: Rewrote this section}
 
-Flames are lean or rich depending on the amount of fuel.
-Lean flames are preferred in some industrial applications because they generate less heat, and 
-therefore less undesired byproducts.
-They also are more likely to be turbulent and harder to simulate.
-Unfortunately, reaction parameters that are measured in simple rich flame experiments may be
-different in unsteady lean flames.
-It is therefore important to infer some lean flame parameters directly from measurements of flames with
-complex spatial and temporal structure.
+A typical gas-phase hydrocarbon flame is characterized by a region
+tens of microns wide, where temperatures rise 1000-2000 Kelvin and
+tens to hundreds of short-lived flame radicals moved through a complex
+network of hundreds to thousands of fundamental chemical reactions
+converting inlet fuels and oxidizer to combustion products.  Each
+reaction in the combustion network can be extremely sensitive to
+temperature, and is coupled by high-speed inter-species diffusion to
+neighboring reactions in the network to sustain the system.  In most
+practical applications, this complex interplay of diffusion and
+reactions occurs in a highly turbulent environment, and may involve
+nontrival interactions with complex domain boundary geometries,
+radiative heat losses, and multiple phases.  Our focus here concerns
+the (relatively) simplified, but practically relevant combustion
+scenarios that operate entirely in the gas phase, and in particular,
+we are interested in problems of lean premixed turbulent combustion.
 
-We seek to utilize data from increasingly complex experiments ranging from 0d ignition, 
-1d laminar flames, shock-tube experiments, and
-a variety of 2D laminar flames to 3D turbulent flames.
-Each experiment can have a number of distinct sets of data that focus on different
-aspects of the flame and emphasize different combinations of parameter ranges.
-Some experiments measure velocities using particle image velocimetry. Other experiments
-measure composition at a given location using Raman spectroscopy. Others use planar laser induced
-fluorescence to indirectly measure a particular species in a cross section of the flow.
-One could also augment the data with non-reacting flow experiments that focus on transport properties.
-Each of these experiments reveals information about the system (some are used by kineticists already). 
-We want to use experimental data across the entire hierarchy of experiments to estimate a full 
-parameter set more accurately. 
-The Bayesian UQ approach will quantify the remaining uncertainties.
+Evolution of gas-phase combustion systems is governed by the reacting
+Navier-Stokes equations, coupled by
+differential mass and energy transport processes.  The model is 
+closed with
+parameterized characterizations for transport, thermodynamic
+relationships and Arrhenius fits to chemical rates.
+Although the form of the model for the gas-phase combustion of basic
+fuels is well-established, the ``correct'' parameter values are not.
+Kinetic\slash transport models (complete sets of model parameters) are routinely
+published in the combustion literature for specific fuels\slash
+conditions after having undergone extensive tuning in
+for particular set of
+simplified experimental configurations.  Historically, this tuning involves 
+considerable ``hands-on'' expertise and judgement in
+order to drastically reduce the full set (hundreds to thousands) of
+model parameters to a computationally manageable ``active set'' of
+10-30, which are optimized with fairly standard Monte Carlo or
+polynomial choas methods.
 
-As we move up the hierarchy to more complex experiments, the datasets get larger, but the data 
-become sparse in that they measure a small fraction of the concentration or velocity fields 
-of a given turbulent flow.
-The data do not give a complete picture of the flame at a given time. 
-A reasonable cartoon for a turbulent flame experiment is that it corresponds to chaotic attractor 
-of a dynamical system.
-In this case, the dynamics are approximated by the multicomponent reacting Navier Stokes equations 
-with Arrhenius kinetics.
-Simulation and MC sampling will produce sample velocity, concentration fields, and parameter sets
-consistent with these large but incomplete datasets.
+Uncertainty in combustion simulations arise from a number of sources,
+including those discussed above (model structure, modeling
+assumptions, consituitive laws, model parameters).  However,
+additional uncertainties arise in representing specific systems
+(domain boundary conditions and geometries, initial\slash inlet
+conditions, etc.), and in the measurement and interpretation of
+experimental data for those configurations.  While careful design of
+experiments and detailed measurements can help to mitigate some of
+these issues, no method currently exists for quantifying the
+propagation of all or many of these uncertainties through the
+turbulent combustion simulations.
 
+A more general approach to uncertainty quantification in combustion
+would begin with prior art in the community, of course, but would
+proceed in a framework more suited to very lare scale tasks at hand.
+Existing model targets include ignition systems (e.g.\ 0D
+time-dependent point measurements of post-shock ignition in shock
+tubes), steady laminar flame configurations (e.g.\ opposed-flow flame
+systems with various 1D and 2D measurements of flame profiles), and a
+variety of simple steady 2D systems.  Our target will be to incorprate
+these but then move quickly toward the ability to involve a variety of
+time-dependent 2D laminar and 3D turbulent flame systems.  Across this
+hierarchy, each experiment has a number of distinct data sets that
+focus on different aspects of the combustion model.  For example, some
+experiments infer information about velocity fields (e.g.\ using
+particle image velocimetry diagnostics). Others measure composition at
+a given location using Raman spectroscopy. Planar laser induced
+fluorescence is often used to indirectly measure a particular species
+in a cross section of the flow.  We will also augment the standard
+combustion data sets with non-reacting flow experiments that focus on
+transport properties.  Each of these experiments reveals information
+about the system (some are used by kineticists already).  We plan to
+build a system that can consistently incorporate data across the
+entire hierarchy of experiments to estimate a full parameter set more
+accurately and systematically.
+
+As we move up the hierarchy to more complex experiments, the datasets
+get larger, but the data becomes sparse, in that only a small fraction
+of the concentration or velocity field is probed in a given turbulent
+flow.  The data threfore cannot give a complete picture of the
+combustion system at a given time.  However, we plan to exploit the
+``manifold'' type dynamics commonly observed in flame systems that is
+a manifestation of scale separations in time and space that are known
+to exist.  Generically, flame kinetic systems are known to possess a
+range of time scales, both much faster and much slower than those of
+the underlying fluid dynamics.  This is why, for example, a candle or
+a gas stove flame can appear to be relatively steady even though there
+are important kinetic time scales acting at nanoseconds or faster.  A
+reasonable cartoon for a turbulent flame experiment is that it
+corresponds to chaotic attractor of a dynamical system.  In this case,
+the dynamics are approximated by the multicomponent reacting Navier
+Stokes equations with Arrhenius kinetics.  Simulation and MC sampling
+will produce sample velocity, concentration fields, and parameter sets
+consistent with these large but incomplete datasets.  The challenge
+will be to find a sufficiently accurate charaterization of the
+attractor.
+
+%Flames are lean or rich depending on the amount of fuel.
+%Lean flames are preferred in some industrial applications because they generate less heat, and 
+%therefore less undesired byproducts.
+%They also are more likely to be turbulent and harder to simulate.
+%Unfortunately, reaction parameters that are measured in simple rich flame experiments may be
+%different in unsteady lean flames.
+%It is therefore important to infer some lean flame parameters directly from measurements of flames with
+%complex spatial and temporal structure.
+
+%We seek to utilize data from increasingly complex experiments ranging from 0d ignition, 
+%1d laminar flames, shock-tube experiments, and
+%a variety of 2D laminar flames to 3D turbulent flames.
+%Each experiment can have a number of distinct sets of data that focus on different
+%aspects of the flame.
+%Some experiments measure velocities using particle image velocimetry. Other experiments
+%measure composition at a given location using Raman spectroscopy. Others use planar laser induced
+%fluorescence to indirectly measure a particular species in a cross section of the flow.
+%One could also augment the data with non-reacting flow experiments that focus on transport properties.
+%Each of these experiments reveals information about the system (some are used by kineticists already). 
+%We want to use experimental data across the entire hierarchy of experiments to estimate a full 
+%parameter set more accurately. 
+%The Bayesian UQ approach will quantify the remaining uncertainties.
 
 \subsubsection*{Thin-film photovoltaic materials}
 Our second  application 
@@ -869,7 +963,7 @@ dynamical equations to be satisfied exactly.
 This increases the complexity of both MCMC and implicit sampling approaches. In both cases, the sampler would 
 include estimation of the entire state in space and time.
 An interesting intermediate position is to only introduce stochastic perturbations periodically.  The system
-can be deterministic evolved between perturbations. This allows
+can be deterministically evolved between perturbations. This allows
 us to have some tradeoff between computation and memory.
 Balancing that tradeoff with architectural features and fidelity of the algorithms needs to be explored.
 We will conduct computational experiments to study this problem, then use the results to 
@@ -880,35 +974,44 @@ of the predictive skills of the resulting stochastic models.
 
 \subsubsection*{Efficient sampling in view of complex observation operators}
 %Another feature of all three target applications is a complex relation between the data and the parameters being estimated. For example, laser diagnostic measurements depend on the system state but there are parameters describing the laser interaction (so-called quenching coefficients) that have uncertainties as well, i.e. the observation function $h$ itself can be uncertain. We plan on extending the implicit formalism to estimate uncertainties in the measurement mechanisms. 
+% Another feature of all three target applications is a complex relation between the data and the parameters being estimated.
+% \MarginPar{JBB:  made this more specific . . .perhaps too much. . .left original text}
+% For example, in
+% laser diagnostic measurements of a species S,
+% the intensity, $I_{{LIF}}$,
+% for weak, non-perturbing laser excitation is given by
+% \begin{equation}
+% I_{{LIF}} \; = \; c_{cal} \; I_{{laser}} \; N_{\rm S} \sum_i 
+% f_{B,i}
+% (T) \; B_{i,k} \; g_{\lambda,i} (p, T, X) \sum_{k,j} {A_{k,j} \over \sum_\ell A_{k,\ell} + Q_k (p
+% ,
+% T, X)} \; .
+% \label{eq:quench}
+% \end{equation}
+% Thus the measured signal
+% depends on the number density of
+% the excitable molecules (number density $N_{\rm S}$
+% times the Boltzmann fraction $f_{B,i}$), the Einstein coefficient
+% $B_{i,k}$ for
+% absorption $i \rightarrow k$, the spectral overlap fraction
+% $g_{\lambda,i} (p, T, X)$ of the laser profile, the
+% absorption spectrum of species S, and the fluorescence quantum yield
+% $A/(\sum A + Q)$, where $A$ and $Q$ are decay rates due to
+% spontaneous emission and electronic quenching, respectively.
+% Although
+% equation (\ref{eq:quench}) provides a quantitative relationship
+% between the measured density of S and laser intensity, 
+% the uncertainties in the various terms introduce additional sources of uncertainty
+% into the measurement function $h_e$.
+
 Another feature of all three target applications is a complex relation between the data and the parameters being estimated.
-\MarginPar{JBB:  made this more specific . . .perhaps too much. . .left original text}
-For example, in
-laser diagnostic measurements of a species S,
-the intensity, $I_{{LIF}}$,
-for weak, non-perturbing laser excitation is given by
-\begin{equation}
-I_{{LIF}} \; = \; c_{cal} \; I_{{laser}} \; N_{\rm S} \sum_i 
-f_{B,i}
-(T) \; B_{i,k} \; g_{\lambda,i} (p, T, X) \sum_{k,j} {A_{k,j} \over \sum_\ell A_{k,\ell} + Q_k (p
-,
-T, X)} \; .
-\label{eq:quench}
-\end{equation}
-Thus the measured signal
-depends on the number density of
-the excitable molecules (number density $N_{\rm S}$
-times the Boltzmann fraction $f_{B,i}$), the Einstein coefficient
-$B_{i,k}$ for
-absorption $i \rightarrow k$, the spectral overlap fraction
-$g_{\lambda,i} (p, T, X)$ of the laser profile, the
-absorption spectrum of species S, and the fluorescence quantum yield
-$A/(\sum A + Q)$, where $A$ and $Q$ are decay rates due to
-spontaneous emission and electronic quenching, respectively.
-Although
-equation (\ref{eq:quench}) provides a quantitative relationship
-between the measured density of S and laser intensity, 
-the uncertainties in the various terms introduce additional sources of uncertainty
-into the measurement function $h_e$.
+For example, in laser diagnostic measurements of a chemical species,
+the intensity of measured fluorenscence signal is a strongly nonlinear function of the number density of
+the excitable molecules, but also of the absorption cross-section, spectral overlap of the laser profile, 
+and the fluorescence quantum yield associated with spontaneous emission and electronic quenching, respectively.
+Although quantitative expressions are available for this relationship, the dependencies themselves 
+introduce additional sources of uncertainty into the measurement.
+\MarginPar{MSD: Shortened}
 
 We plan on extending the implicit formalism to estimate uncertainties in the measurement mechanisms.
 In addition, the actual measured quantity is
