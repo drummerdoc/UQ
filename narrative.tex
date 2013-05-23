@@ -931,9 +931,9 @@ cell and electrode level data:
 	p(x^1, x^2|y^1,y^2) \propto p(y^1|x^1) p(y^2|x^2) p(x^2|x^1)p(x^1),
 \end{equation}
 where we use the indices to distinguish scales, i.e. $x^1,y^1$ correspond to the mesoscale state and data, $x^2,y^2$ to the macro scale state and data.
-Here, the first two terms come from a model of how the data is connected to the state (at each scale); the third term describes how the various mesocsale quantities affect pressure and the last term is the prior for the mesoscale parameters.
+Here, the first two terms come from a model of how the data is connected to the state (at each scale); the third term describes how the various mesoscale quantities affect pressure and the last term is the prior for the mesoscale parameters.
 The above equation demonstrates how both the data and physical models are being incorporated and combined across scales.
-By switching the indices, we can use this formalism to push information from macro- to mesoscales, which may be important since macro-scale measurements are typically more reliable than meso-scale measurements. In this case, the physical model ($p(x^2|x^1)$) acts as constraint
+By switching the indices, we can use this formalism to push information from macro- \emph{to} mesoscales, which may be important since macroscale battery measurements are typically \emph{more} reliable than mesoscale measurements. In this case, the physical model (with switched indices, now $p(x^1|x^2)$) acts as a constraint
 (what $x^1$ is compatible with $x^2$?) rather than as a prediction (what is $x^2$, given $x^1$?) because
 of the many-to-one relation between mesoscale parameters and macroscopic pressure.
 A research question is to assess the validity of the assumptions that lead to a factorization of the pdf,
@@ -941,8 +941,8 @@ in particular we need to verify that the scale coupling models are (nearly) ``Ma
 %they couple only two subsequent scales, and
 that the observation models at each scale only depend on the state at that scale. 
 
-A successful and efficient solution of this multi scale problem allows physics-based models (e.g. how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements, or, conversely, the physics-based model can ``learn" from the macro-scale measurements.
-We plan to develop a multi-scale version of implicit sampling to approximate the above (multi scale) pdf (\ref{eq:MultiScalePDF}) and, in particular, we will address implementation issues, e.g. how will the coupling between scales affect the required optimizations and subsequent solves of~(\ref{eq:IS_sampling_eq}).
+A successful and efficient solution of this multi scale problem allows physics-based models (e.g. how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements, or, conversely, allows the physics-based model to ``learn" from the macroscale measurements.
+We plan to develop a multi-scale version of implicit sampling to approximate the above (multiscale) pdf (\ref{eq:MultiScalePDF}) and, in particular, we will address implementation issues, e.g. how will the coupling between scales affect the required optimizations and subsequent solves of~(\ref{eq:IS_sampling_eq}).
 We expect that the required computations will be extreme scale, since the problem requires resolving and coupling of phenomena that vary over many orders of magnitude.
 
 \subsubsection*{Implementation, numerics and extreme scale computation}
@@ -950,7 +950,7 @@ There are also many implementation issues that to need be addressed, especially 
 In implicit sampling the minimization is the computational bottleneck and its efficient implementation is crucial for the success of the method.
 Moreover, the minimization algorithm will likely depend on where we are in the hierarchy of experiments.
 One of our specific research topics will be to address efficient minimization at each level of the hierarchy, especially in view of massively parallel computer architectures.
-For example, we can consider coupling adjoint codes for gradient computations of $F$ to BFGS-type algorithms using a parallel optimizer such as TAO from Argonne.
+For example, we can consider coupling adjoint codes for gradient computations of $F$ to BFGS-type algorithms using a parallel optimizer (e.g., TAO from Argonne).
 At high levels of the hierarchy, adjoint codes may be out of reach or too costly and time consuming to construct.
 In these cases, derivative free optimization methods must be considered.
 Another possibility is to use simplified models for the minimization.
