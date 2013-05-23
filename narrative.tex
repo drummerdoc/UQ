@@ -57,49 +57,44 @@
 \subsection*{Background / Introduction}
 
 Many important DOE applications rely on simulation to predict the behavior of complex physical systems.
-However, the fidelity of these simulations depends on uncertain parameters describing the underlying physical system
-obtained from a collection of
+However, these simulations depend on uncertain parameters describing the underlying physical system,
+which are obtained from a collection of
 complex and noisy experiments whose reliability is hard to determine. 
-Our ability to effectively use extreme scale computing will depend critically on our ability to reduce the
-uncertainty in these data and assess the impact of that uncertainty on predictive capability.
-Here, we will focus on combustion modeling, battery simulation and design of high-efficiency photovoltaic
-devices as motivating examples.
+Our ability to use extreme scale computing effectively will depend on our ability to reduce the
+uncertainty in these data and assess the impact of that uncertainty on simulation results.
+
+This proposal discusses the Bayesian approach to uncertainty quantification (UQ).
+We propose to develop and assess the effectiveness of newly emerging techniques in the 
+context of three important application areas: combustion modeling, 
+battery simulation and design of high-efficiency photovoltaic devices.
 \MarginPar{a bit more detail here?}
 However, the methodology will be broadly applicable to a
-range of problems in chemical and materials science, systems biology, subsurface flow and climate to name a
-few.
+range of problems in chemical and materials science, systems biology, subsurface flow and climate 
+to name a few.
+Many of the techniques discussed below have been demonstrated individually in simple model problems.
+We believe that important new mathematical and computational issues will arise in combining them 
+and applying them to more complex nonlinear problems.
 
-An important aspect of the class of problems we plan to consider is that 
-the system is not probed using a single experiment.  Instead,
-there is typically a hierarchy
-of experiments of increasing complexity that provide information about the underlying processes
-that lead up to the desired target application.
-As experimental complexity increases the fraction of the state that can be sampled
-by measurement is reduced and the cost of simulations increases.
-Rather than attempting to estimate parameters directly from a single complex experiment, we 
-will obtain parameter estimates across the entire hierarchy of experiments.
-Thus, we need an approach that allows us to pass
-information through the hierarchy in a way that effectively uses data from all levels
-to improve overall predictive properties.
-Furthermore, as complexity increases,
-the combination of rich physics and relative data sparsity suggests that we will not be
-able to exactly match the experimental dynamics computationally.
+An important aspect of the problems identified above is that they are not probed using a 
+single experiment.  
+Instead, there is a hierarchy of experiments of increasing complexity that provide 
+information about the relevant processes and parameter values.
+We hope to combine data from increasingly complex experiments to obtain increasingly accurate
+parameter estimates.
+The challenge is to assess the remaining uncertainties accurately.
+We believe that Bayesian UQ provides the most general, flexible, and rigorous way to do this.
+
+We need an approach that allows us to pass information through the hierarchy in a way that 
+effectively uses data from all levels to improve overall predictive properties.
+Furthermore, even complex models (e.g., the systems of equations below modeling Lithium-ion batteries)
+cannot exactly capture the rich physics exactly.
 We must develop estimation methods that are robust to model errors as well as noisy observations
 using metrics based on identification of characteristic features that are more general than
 traditional quantities of interest.
+This robustness will allow us to develop reduced order models (ROMs), and also to use them 
+within the Monte Carlo (MC) samplers for efficiency. 
 
-The goal of this project is to develop a
-mathematical framework for this class of problems that
-will utilize data from a hierarchy of experiments of increasing complexity to reduce
-uncertainty of simulations, estimate the impact of the improved characteristic on predictive capability
-and identify significant remaining sources of uncertainty.
-%intertwine parameter estimation and simulation into an integrated activity.
-Our approach is based on novel Monte Carlo (MC) sampling approaches within a Bayesian uncertainty quantification (UQ) framework. 
-The Bayesian approach combines modeling and sampling in a way that provides full insight into the propagation of 
-uncertainty.
-The result is a complete characterization of the posterior probability density function (pdf) which contains all information about remaining uncertainties that is implied by the data -- which aspects are tightly bounded and which are less precise.
-
-From a practical perspective, an implementation of the Bayesian UQ approach via MC sampling
+An implementation of the Bayesian UQ approach via MC sampling
 is attractive because it respects the strong nonlinearities in the target applications
 and avoids the need for simplifying assumptions/approximations required by some current UQ techniques.
 Moreover, some MC sampling methods are well suited for massively parallel computer
@@ -109,45 +104,86 @@ the communication between cores for each independent run is small.
 Using MC sampling as the computational backbone will lead to a numerically sound
 implementation of a rigorous UQ theory that is well suited for extreme scale machines, making UQ possible for realistic applications.
 
-MC sampling techniques approximate the posterior distributions that are the basis of Bayesian UQ by a set of samples. However, computing these samples can be very hard. A key issue is that many current MC techniques are not robustly effective for complex, high-dimensional problems. There is a weak analogy to the problem of solving large systems of linear or nonlinear equations.
+Bayesian UQ replaces traditional parameter estimation and error bars with a single {\em posterior}
+parameter distribution $p(\theta|y)$. 
+Here, $\theta$ represents the uncertain parameter values and $y$ is the experimental data;
+see (\ref{eq:post}) for more detail.
+For example, if the data tightly constrain the parameters, then $p(\theta|y)$ is narrowly 
+distributed about some most maximum likelihood value $\theta_*$.
+Rather than reporting, for example, the mean and covariance of $\theta \sim p(\cdot|y)$,
+modern Bayesian UQ represents $p(\cdot|y)$ by giving a collection of random samples $\theta_k$.
+These samples can be used to directly assess the parameter uncertainties.
+They also can be used to assess the reliability of predictive simulations.
+A simple way to do this would be to repeat the simulations with different $\theta_k$.
+A less computationally intensive approach would be to compute the sensitivity of the predictive 
+simulation to parameter perturbations using the adjoint method, and then plug in $\Delta \theta_k$
+directly.
+
+The posterior distribution $p(\theta|y)$ is extremely hard to calculate, and to sample, in the 
+application areas listed above using data from the kinds of complex experiments outlined below.
+For one thing, evaluating $p$ involves a forward simulation of a physical model of the form
+(\ref{eq:ModelEquation}) or (\ref{eq:ModelEquationSt}).
+In our applications, these are 3D simulations with complex noisy physics and noisy observations.
+In most cases, the quantities to be sampled include not just parameter values $\theta$,
+but an unobserved state $x$.
+This can be a 3D field of velocities and concentrations (e.g., in the combustion system).
+In such a case, the posterior joint distribution of $x$ and $\theta$ is described by $p(x,\theta|y)$.
+
+A key issue is that many current MC sampling techniques are not robustly effective for complex, 
+high-dimensional problems. 
+There is a weak analogy to the problem of solving large systems of linear or nonlinear equations.
 For equation solving there are generic methods such as Gaussian elimination, Gauss Seidel iteration,
 Newton's method, etc.
 But these generic methods are unable to solve extreme scale problems that arise from simulating
 complex physics in 3D.
-These problems require specialized multi-scale algorithms, such as multigrid, that take into account the
+Such problems require specialized multi-scale algorithms, such as multigrid, that take into account the
 physical nature of slowly relaxing modes.
 What this analogy fails to capture is an extra difficulty in sampling: these problems do not come with 
 something like {\em residuals} that can be evaluated to confirm convergence of the algorithms.
 There is no way to test a-posteriori that a sampler has converged to the correct distribution.
 The correctness must be built in to the sampler.
 
-Standard Markov chain Monte Carlo (MCMC) samplers can become very slow when the distribution being
+We plan to consider two kinds of MC samplers, Markov chain Monte Carlo (MCMC) and particle filtering.
+Standard MCMC samplers can become very slow when the distribution being
 sampled is ill conditioned.
 Ill conditioning in problems of moderate dimension can come from approximate degeneracy: very
 different combinations of parameters fit the data nearly as well.
 Several approaches are emerging to address this, including multi-stage adaptive samplers and
 affine invariant ensemble samplers.
-High dimensional problems that come from discretizing field theories or stochastic PDEs
-can be ill conditioned because of the range of modes at different length scales.
+High dimensional problems arise in our problems when we must sample a state, $x$, as well as a
+parameter set $\theta$.
 Hamiltonian samplers have proven better than direct local Metropolis or heat bath methods \cite{Hanson2001}, but
 they still can be slow.
 More sophisticated truly multi-scale samplers include Swendsen Wang \cite{SwendsonWang1987}
 and multigrid methods \cite{Goodman1989}.
-Unfortunately, none of these methods at present is nearly as general, say, as multigrid for
+Unfortunately, none of these methods at present is as general, say, as multigrid for
 solving discretizations of PDEs.
 Some promising developments include ``chainless'' approximate methods \cite{Chorin:2008}, and
 {\em parallel marginalization} \cite{Weare2007}.
 We will look for multiscale sampling methods that are effective for problems that come from PDE
 with noise under partial observation.
 
-We can consider different MC sampling techniques (the Bayesian approach is conceptually independent of its implementation) and we plan to investigate which sampling method is applicable at the various levels of the hierarchy. In particular, we will consider particle filters (importance sampling) as an alternative to MCMC. Standard particle filters first obtain samples of the prior and then evaluate their probability with respect to the posterior by attaching weights to each sample based on its distance to the data \cite{Doucet2001,GordonSIR}.
+Particle filter approaches seem promising particularly for time dependent simulation and observation,
+and when we want to take into account increasingly complex experiments.
+Standard particle filters first obtain samples of the prior (see (\ref{eq:post}))
+and then take the posterior into account by attaching weights to each sample based on its 
+likelihood \cite{Doucet2001,GordonSIR}.
 The weighted particles form an empirical estimate of the posterior.
-Difficulties arise if the prior and posterior approach are mutually singular, i.e. if high-probability events with respect to the prior have low probability with respect to the posterior.
-However, this is the interesting case, which corresponds to the situation where one can learn from the data, rather than simply confirming the prior.
-Under these conditions many of the samples have a low weight so that the empirical estimate they constitute is poor (it can be a single and often unlikely point).
-Although this can happen when estimating a single parameter, it was shown rigorously for linear problems that the number of particles required scales catastrophically with the number of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach infeasible for our target applications.
+Difficulties arise as the prior and posterior become mutually singular, i.e. when high-probability 
+events with respect to the prior have low probability with respect to the posterior.
+However, this is the interesting case, which corresponds to the situation where the data severely 
+constrain the posterior beyond what was assumed in the prior.
+When this happens many of the samples have such a low weight so that the empirical estimate 
+they give little information about the posterior.
+This was rigorously shown to happen for linear problems.
+The number of particles required can grow exponentially with the number of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009}, making this approach infeasible for 
+our target applications.
+\MarginPar{JG says (Not for inclusion in the proposal): a nonlinear version of the Bickel example shows just
+as easily that implicit sampling can be exponentially bad in the number of parameters.  
+Just have $n$ independent non-gaussian parameters.}
 A number of methods have been invented to ameliorate this problem, most of which amount to finding a proposal density that  generates samples that are more compatible with the data \cite{Doucet,OptimalImportanceFunction,liuchen1995,Brad}.
 For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation \cite{vanLeeuwen}.
+
 A more general approach constructs a map that transforms the prior measure into the posterior measure
 %, i.e. to construct a map that transforms prior samples into posterior samples 
 \cite{Moselhy2013}.  If such a map could be constructed, efficient posterior samples are easy to generate.
@@ -162,6 +198,11 @@ However, these techniques are difficult to apply to complex, multiscale models.
 
 Response surface and machine learning techniques
 such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz}, artificial neural network (ANN)~\cite{Cybenko:1992vo} and polynomial chaos expansion (PCE)~\cite{Oladyshkin:2012ur} are simpler to use, but possess their own severe limitations. 
+\MarginPar{JG objects severely and loudly to saying anything at all about PCE except that it 
+doesn't work.
+Not only is that his view, but he has turned in several high profile negative DOE reviews saying as 
+much.  
+The program officers know his views and would raise their eyebrows.}
 PCE, in particular has been applied successfully to a limited class of flow problems (e.g. \cite{GhanemDham1998, LeMaitre2001}).  In PCE methods, the probability space of the parameters is decomposed into a finite set of univariate polynomials with local or global support, and coupled together through tensor products.  These bases functions are propagated through the model, either ``intrusively'' or ``unintrusively''.  Intrusive schemes utilize, e.g., a Galerkin projection to reformulate the governing equations into a system governing the PC mode strengths directly; unintrusive methods numerically evaluate the modes through deterministic or random sampling of the original model/code.  However, strong nonlinearity and complex unsteady dynamics present significant challenges for this approach \cite{Mathelin2004}. 
 The difficulties arise primarily from the high-order expansions necessary to capture the modes with sufficient accuracy.
 In dynamic simulations, PCE usually requires a rapidly increasing expansion order to maintain a constant accuracy in time. 
@@ -276,9 +317,10 @@ quantities:
 where $\phi_j$ represents the number density of $j^\mathrm{th}$ defect or election/hole (carrier) concentration. 
 
 The source term $S_j$ is local rate of change due to pseudo-reactions
-that govern the creation, destruction and interaction of point
+that govern the creation/destruction and interaction of point
 defects, $D_j$ is a defect-dependent mobility, and $T_j$ represents a stochastic model for transport at grain boundaries. A simple example model of a metal-X system  can
 be described by a simplistic system of four reactions that are applied to every gridpoint (gridpoint indicies omitted for clarity):
+
 \begin{eqnarray}
 \label{eq:pdrxnsstart}
 \ce{ \tfrac{1}{2} X_2 -> X_x + V_m^{''} + 2 h^+ } \\
@@ -287,6 +329,7 @@ be described by a simplistic system of four reactions that are applied to every 
 \ce{ X_x -> \tfrac{1}{2} X2 + V_x^{\cdot \cdot} + 2 e^- }.
 \label{eq:pdrxnsend}
 \end{eqnarray}
+
  $\ce{X_2}$ is a non-metal gas  that is interacting
 with the crystal at the interface. The four reactions describe:  the
 addition of an $\ce{X}$ atom to the lattice producing cation vacancies
@@ -561,9 +604,10 @@ dynamics
 x_t = L_e(x,t,\theta) \qquad \mathrm{with} \qquad x(0) = x_0
 \end{equation}
 while for stochastic dynamics we have
-\[
+\begin{equation}
+\label{eq:ModelEquationSt}
 dx = L_e(x,t,\theta) dt + dW \qquad \mathrm{with} \qquad x(0) = x_0
-\]
+\end{equation}
 where $dW$ is a stochastic forcing term. 
 Uncertainty of the model is expressed by making the parameters $\theta$ random variables.
 For example, $\theta$ can be a Gaussian with mean $\mu$ and covariance matrix $\Sigma_0$.
@@ -648,6 +692,7 @@ where $H_e$ is the function which is obtained by first running the model up
 to time $T$ followed by applying $h_e$ to the state $x_T$. We are interested in the information we can extract from the data about the parameters $\theta$ and
 therefore consider the random variable $\theta|y$, which is characterized by its pdf $p(\theta|y)$. Using Bayes' rule, we find that
 \begin{equation}
+\label{eq:post}
 	p(\theta|y_T) \propto p(\theta)p(y_T|x_0,T,\theta),
 \end{equation}
 where  $p(\theta) = \mathcal{N}(\mu_0,\Sigma_0)$ is the ``prior'' and $p(y_T|x_0,T,\theta)$ is the ``likelihood'',
@@ -676,7 +721,7 @@ The error we make by solving a quadratic equation instead of (\ref{eq:IS_samplin
 \begin{enumerate}
 	\item Minimize the function $F$ to identify relevant regions of the parameter space
 	\item Find samples in this region by solving the random algebraic equations (\ref{eq:IS_sampling_eq})\
-        \item Compute weight of the samples
+        \item Compute weight of the sample
 \end{enumerate}
 While the general method of attack is clear, many research questions arise when applying this sampling technique to the target applications (see below for detail).
 
