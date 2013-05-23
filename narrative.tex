@@ -774,7 +774,7 @@ Generating samples with low probability with respect to the data (as in standard
 
 \MarginPar{JBB: Matti, it seems like we should say more about solving the random equations.\\ (matti): I added a few things. Is that enough?}
 There are various ways for solving the algebraic equations of implicit sampling (\ref{eq:IS_sampling_eq}) \cite{chorin2010,Morzfeld2011}. 
-For example, we can use information about the curvature of $F$, e.g. from BFGS-type optimization, for the construction of linear maps. Let $L$ be a square root of the Hessian of $F$ (e.g. Cholesky factor), then $\theta = \mu +L^{-1}\xi$, where $\mu$ is the minimizer of $F$, solves the quadratic equation $F_0-\phi=0.5\xi^T\xi$, where $F_0$ is the Taylor expansion of order $2$ of $F$. 
+For example, we can use information about the curvature of $F$, e.g. from BFGS-type optimization~\cite{Liu:1989:LMB:81100.83726}, for the construction of linear maps. Let $L$ be a square root of the Hessian of $F$ (e.g. Cholesky factor), then $\theta = \mu +L^{-1}\xi$, where $\mu$ is the minimizer of $F$, solves the quadratic equation $F_0-\phi=0.5\xi^T\xi$, where $F_0$ is the Taylor expansion of order $2$ of $F$. 
 The error we make by solving a quadratic equation instead of (\ref{eq:IS_sampling_eq}) can be accounted for in the weights (without introducing bias). This method can fail if there is sufficient skew in the posterior pdf, or if the information about the curvature of $F$ is incomplete/inacurate (e.g. when derivative free optimization schemes are used). In this case, we can use the ``random map'' approach and pick a direction $\eta$ at random by setting $\theta = \mu+\lambda \eta$, where $\eta$ is the random direction and $\lambda$ is a scalar parameter that defines the sample. We search for solutions in this direction by solving a single algerbraic equation in a single variable (we must solve (\ref{eq:IS_sampling_eq}) for $\lambda$), e.g. by Newton iteration. The weights, i.e. the Jacobian of the random maps are straight forward to evaluate \cite{Morzfeld2011}. In summary, implicit sampling amounts to the following steps:
 \begin{compactenum}
 	\item Minimize the function $F$ to identify relevant regions of the parameter space
@@ -975,7 +975,7 @@ There are also many implementation issues that to need be addressed, especially 
 In implicit sampling the minimization is the computational bottleneck and its efficient implementation is crucial for the success of the method.
 Moreover, the minimization algorithm will likely depend on where we are in the hierarchy of experiments.
 One of our specific research topics will be to address efficient minimization at each level of the hierarchy, especially in view of massively parallel computer architectures.
-For example, we can consider coupling adjoint codes for gradient computations of $F$ to BFGS-type algorithms using a parallel optimizer (e.g., TAO from Argonne).
+For example, we can consider coupling adjoint codes for gradient computations of $F$ to BFGS-type algorithms using a parallel optimizer (e.g., TAO \cite{tao-man}).
 At high levels of the hierarchy, adjoint codes may be out of reach or too costly and time consuming to construct.
 In these cases, derivative free optimization methods must be considered.
 Another possibility is to use simplified models for the minimization.
@@ -985,7 +985,10 @@ This model is then used in the optimization and its further refinement goes hand
 Many research questions surround the interplay between optimization and sampling, particularly with approximate surrogate models.
 For example, we can use numerical experiments to find a characterization of how errors introduced by a simplified model impact the overall behavior of the algorithm and what must be known about the errors of the simplified model to obtain such a characterization.  
 
-We can reduce the complexity of the response that reduced order models are required to emulate by modeling the difference between the simple and the complex models. A promising approach that is consistent with~(\ref{eq:IS_data}) is GPR. 
+We can reduce the complexity of the response that reduced order models
+are required to emulate by modeling the difference between the simple
+and the complex models. A promising approach that is consistent
+with~(\ref{eq:IS_data}) is GPR~\cite{Rasmussen:2006vz}. 
 Consider outputs from two different models, $H^S$ and $H^C$ where $H^C$ is deemed more accurate than $H^S$. 
 Then we can write (\ref{eq:IS_data}) as 
 \begin{equation}
