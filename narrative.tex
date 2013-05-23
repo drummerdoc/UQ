@@ -135,19 +135,19 @@ I'm basically only saying that $p$ is a probability density.}
 %This can be a 3D field of velocities and concentrations (e.g., in the combustion system).
 In such a case, the posterior joint distribution of $x$ and $\theta$ is described by $p(x,\theta|y)$.
 
-% A key issue is that many current MC sampling techniques are not robustly effective for complex, 
-% high-dimensional problems. 
-% There is a weak analogy to the problem of solving large systems of linear or nonlinear equations.
-% For equation solving there are generic methods such as Gaussian elimination, Gauss Seidel iteration,
-% Newton's method, etc.
-% But these generic methods are unable to solve extreme scale problems that arise from simulating
-% complex physics in 3D.
-% Such problems require specialized multi-scale algorithms, such as multigrid, that take into account the
-% physical nature of slowly relaxing modes.
-% What this analogy fails to capture is an extra difficulty in sampling: these problems do not come with 
-% something like {\em residuals} that can be evaluated to confirm convergence of the algorithms.
-% There is no way to test a-posteriori that a sampler has converged to the correct distribution.
-% The correctness must be built in to the sampler.
+A key issue is that many current MC sampling techniques are not robustly effective for complex, 
+high-dimensional problems. 
+There is a weak analogy to the problem of solving large systems of linear or nonlinear equations.
+For equation solving there are generic methods such as Gaussian elimination, Gauss Seidel iteration,
+Newton's method, etc.
+But these generic methods are unable to solve extreme scale problems that arise from simulating
+complex physics in 3D.
+Such problems require specialized multi-scale algorithms, such as multigrid, that take into account the
+physical nature of slowly relaxing modes.
+What this analogy fails to capture is an extra difficulty in sampling: these problems do not come with 
+something like {\em residuals} that can be evaluated to confirm convergence of the algorithms.
+There is no way to test a-posteriori that a sampler has converged to the correct distribution.
+The correctness must be built in to the sampler.
 
 We plan to consider two kinds of MC samplers, Markov chain Monte Carlo (MCMC) and particle filtering.
 Standard MCMC samplers can become very slow when the distribution being
@@ -253,8 +253,11 @@ a zero-mean Gaussian model to approximate the discretization error~\cite{Kaipio:
 However, since our simpler models may involve significant simplifications of the physics or reduction of spatial dimensions,
 ROMs may be needed to more accurately model the structural variations of the difference between the models. 
 Gaussian process regression is a potentially attractive form of ROM to capturing differences in resolution of models.  
-ROMs can also be used directly as an efficient surrogate in forward UQ~\cite{Challenor:2012uv, Ratto:2012tf} for example in predicting catastrophic events and obtaining global sensitivity analyses indices that converges slowly with number of samples.   In this proposal, we will look into how ROMs can further improve the efficiency of the importance sampling approach that we will use.  In addition, we will determine how ROM can be used within our hierarchical framework to efficiently obtain an accurate predictions to pin the forward UQ.\MarginPar{RG: huh?}
-
+ROMs can also be used directly as an efficient surrogate in forward UQ~\cite{Challenor:2012uv, Ratto:2012tf}
+for example in predicting catastrophic events and obtaining global sensitivity analyses indices that converges slowly with number of samples.  
+In this proposal, we will look into how ROMs can further improve the efficiency of the importance sampling approach that we will use.
+In addition, we will determine how ROM can be used within our hierarchical framework
+improve the efficiency of {\it {a posteriori}} UQ.
 
 \subsection*{Proposed Research}
 
@@ -1004,14 +1007,25 @@ of the predictive skills of the resulting stochastic models.
 % the uncertainties in the various terms introduce additional sources of uncertainty
 % into the measurement function $h_e$.
 
-Another feature of all three target applications is a complex relation between the data and the parameters being estimated.
+Another feature of all three target applications is that there is
+a complex relation between the data and the parameters being estimated.
 For example, in laser diagnostic measurements of a chemical species,
-the intensity of measured fluorenscence signal is a strongly nonlinear function of the number density of
-the excitable molecules, but also of the absorption cross-section, spectral overlap of the laser profile, 
-and the fluorescence quantum yield associated with spontaneous emission and electronic quenching, respectively.
-Although quantitative expressions are available for this relationship, the dependencies themselves 
-introduce additional sources of uncertainty into the measurement.
-\MarginPar{MSD: Shortened}
+the intensity of measured fluorenscence signal is
+proportional to the number density of the species but the constant of proportionality depends strongly on
+local
+composition as well
+absorption cross-section, spectral overlap of the laser profile, 
+and the fluorescence quantum yield associated with spontaneous emission and electronic quenching, which
+have their own uncertainties.
+Thus, the relationship between what is measured and the state is highly nonlinear with its own uncertainties.
+%Although quantitative expressions are available for this relationship, the dependencies themselves 
+%introduce additional sources of uncertainty into the measurement.
+%is a strongly nonlinear function of the number density of
+%the excitable molecules, but also of the absorption cross-section, spectral overlap of the laser profile, 
+%and the fluorescence quantum yield associated with spontaneous emission and electronic quenching, respectively.
+%Although quantitative expressions are available for this relationship, the dependencies themselves 
+%introduce additional sources of uncertainty into the measurement.
+%\MarginPar{MSD: Shortened}
 
 We plan on extending the implicit formalism to estimate uncertainties in the measurement mechanisms.
 In addition, the actual measured quantity is
