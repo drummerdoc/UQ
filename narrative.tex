@@ -257,7 +257,7 @@ model problems.
 They involve sparse data, multi-scale and multi-physics, and severe ill conditioning.
 
 \subsubsection*{Combustion, turbulent lean flames}
-\MarginPar{MSD: Rewrote this section}
+%\MarginPar{MSD: Rewrote this section}
 
 Gaseous flames are characterized by a region
 tens of microns wide where heat release from chemical reactions
@@ -291,9 +291,9 @@ Arrhenius fits to chemical rates that introduce a number of uncertain
 coefficients.
 Transport processes are typically approximated using multicomponent diffusive
 transport models derived from collision integrals.  The most general
-model of this type is typically to computationally expensive for large-scale
+model of this type is typically too computationally expensive for large-scale
 simulation so additional simplifications are introduced.
-For gas phase combustion, radiation is typically modeled as a simple heat loss
+For gas phase combustion, radiation, for example, is typically modeled as a simple heat loss
 process that assumes the gas is optically thin.
 There are uncertainties associated with all of these elements of the model,
 as well as extra challenges in representing specific systems
@@ -307,7 +307,7 @@ fuels is well-established,
 the ``correct'' parameter values are not.
 Development of kinetic\slash transport models (complete sets of model parameters)
 for specific fuels\slash conditions remains
-an active are of research in the combustion community.
+an active area of research in the combustion community.
 Parameter fits are typically derived by targeting
 a particular set of
 simplified experimental configurations.  Historically, the tuning of parameters
@@ -315,10 +315,10 @@ involves considerable ``hands-on'' expertise and judgement in
 order to drastically reduce the full set (hundreds to thousands) of
 model parameters to a computationally manageable ``active set'' of
 10-30, which are optimized with fairly standard Monte Carlo or
-polynomial chaos methods.
+polynomial chaos methods (e.g.\ \cite{SheenWang2011}).
 
 Bayesian approaches to fitting reaction parameters are already used
-extensively in the chemical kinetics community.
+extensively in the chemical kinetics community (e.g.\ \cite{Kseib2011,Urzay2012}).
 Target models for estimation of parameters typically include
 0D time-dependent point measurements of post-shock ignition in shock
 tubes, steady laminar flame configurations (e.g.\ opposed-flow flame
@@ -328,11 +328,11 @@ The difficulty here is that this class of experiments is typically only able to
 address a small portion of the thermo-chemical phase space as the solutions tend to 
 reside on a lower dimensional manifold. 
 \MarginPar{RG: rephrased this - JB  pls check}
-The interplay of diffusion and reaction in time dependent laminar and
-turbulent flames explores a much richer set of conditions in thermo-chemical
-phase space.  Flames that are of practical interest need to evaluate
-chemical rates in regions that under-represented in the standard target
-experiments used to develop the chemical mechanisms.
+%The interplay of diffusion and reaction in time-dependent laminar and
+%turbulent flames explores a much richer set of conditions.  
+Flames that are of practical interest need to evaluate
+the interplay of chemical kinetics and transport in regions that under-represented in the standard target
+experiments.
 A richer set of targets experiments is needed to probe chemical
 and transport behavior under a wider range of conditions.
 Unfortunately, current computational resources severely limit
@@ -345,8 +345,8 @@ needed to realize this potential.
 We want to establish a UQ methodology that can be used across a
 hierarchy of experiments that will enable us to enrich the set
 of targets used to reduce uncertainty in chemical rates and transport properties.
-Our approach start with current targets
-but extend those targets to include
+Our approach will be to start with current targets
+but extend that set to include
 time-dependent 2D laminar and 3D turbulent flame systems.  Across this
 hierarchy, each experiment has a number of distinct data sets that
 focus on different aspects of the combustion physics.
@@ -357,7 +357,7 @@ a given location using Raman spectroscopy.
 Planar laser induced
 fluorescence is often used to indirectly measure a particular species
 in a cross section of the flow.
-We will also augment the standard
+We will also augment the
 combustion data sets with non-reacting flow experiments that focus on
 transport properties.
 Each of these experiments reveals information
@@ -367,9 +367,9 @@ entire hierarchy of experiments to estimate a full parameter set more
 accurately and systematically.
 
 For some two dimensional, time-dependent laminar flame experiments, the
-experimental conditions will be well categorized. However,
+experimental conditions will be well-categorized. However,
 as we move up the hierarchy to more complex experiments, particularly
-as we move to turbulent flows, conditions are not precisely specified.
+as we include turbulent flows, conditions are not precisely specified.
 For example, initial and boundary conditions may only be known statistically.
 In addition, although the datasets
 get larger, the data becomes sparse, in that only a small fraction
@@ -1271,7 +1271,7 @@ novel photovoltaic material and lithium-ion batteries.
 \subsection*{Appendix 3:  Bibliography and References Cited}
 \bibliographystyle{abbrv}
 
-\bibliography{george_rom,pd,batteries3,jg} 
+\bibliography{george_rom,pd,batteries3,jg,comb} 
 %\newpage
 %\subsection*{Appendix 4:  Facilities and other Resources}
 %\includepdf[pages=-]{Facilities.pdf}
