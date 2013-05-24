@@ -18,6 +18,7 @@
 \usepackage[compact]{titlesec}
 \usepackage{paralist}
 \usepackage{url}
+\usepackage{pdfpages}
 
 %\usepackage[plain]{fullpage}
 \usepackage{amsfonts}
@@ -43,7 +44,7 @@
 %\renewcommand{\refname}{Literature Cited}
 %------------------------
 
-%\pagestyle{empty}  % No page numbers
+\pagestyle{empty}  % No page numbers
 %\textfloatsep 0mm
 %\abovecaptionskip 1mm
 
@@ -110,7 +111,7 @@ parameter distribution $p(\theta|y)$.
 Here, $\theta$ represents the uncertain parameter values and $y$ is the experimental data.
 %see (\ref{eq:post}) for more detail.
 For example, if the data tightly constrain the parameters, then $p(\theta|y)$ is narrowly 
-distributed about some most likely value $\theta_*$.
+distributed about the maximum likelihood value $\theta_*$.
 Rather than reporting, for example, the mean and covariance of $\theta \sim p(\cdot|y)$,
 modern Bayesian UQ represents $p(\cdot|y)$ by giving a collection of random samples $\theta_k$.
 These samples can be used to directly assess the parameter uncertainties.
@@ -1209,9 +1210,29 @@ on the uncertainty of predictions.
 We will demonstrate the use of the framework for prototype problems in combustion,
 novel photovoltaic material and lithium-ion batteries.
 
+\newpage
+\subsection*{Appendix 1:  Biographical Sketches}
+\includepdf[pages=-]{cv_all.pdf}
 
+\newpage
+\subsection*{Appendix 2:  Current and Pending Support}
+\includepdf[pages=-]{Current_and_Pending_All.pdf}
+
+\newpage
+\subsection*{Appendix 3:  Bibliography and References Cited}
 \bibliographystyle{abbrv}
 
 \bibliography{george_rom,pd,batteries3,jg} 
+\newpage
+\subsection*{Appendix 4:  Facilities and other Resources}
+\includepdf[pages=-]{Facilities.pdf}
 
+\newpage
+\subsection*{Appendix 5:  Equipment}
+
+This project does not require any special equipment.
+
+\newpage
+\subsection*{Appendix 6:  NREL Budget and Budget Explantion}
+\includepdf[pages=-]{NREL_Budget.pdf}
 \end{document}
