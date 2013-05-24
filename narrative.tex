@@ -121,9 +121,9 @@ A less computationally intensive approach would be to compute the sensitivity of
 simulation to parameter perturbations using the adjoint method, and then plug in $\Delta \theta_k$
 directly or use a suitable reduced order model.
 
-The posterior distribution $p(\theta|y)$ is extremely hard to calculate, and to sample, in the 
+The posterior distribution $p(\theta|y)$ is extremely hard to calculate and to sample in the 
 application areas listed above using data from experiments as complex
-as is typical in these applications and outlined below.
+as is typical in those applications as outlined below.
 For one thing, evaluating $p$ involves a forward simulation of a physical model.
 %of the form (\ref{eq:ModelEquation}) or (\ref{eq:ModelEquationSt}).
 %\MarginPar{JBB:  Don't like forward references}
@@ -167,7 +167,7 @@ and multigrid methods \cite{Goodman1989}.
 Unfortunately, none of these methods at present is as general, say, as multigrid for
 solving discretizations of PDEs.
 Some promising developments include ``chainless'' approximate methods \cite{Chorin:2008}, and
-{\em parallel marginalization} \cite{Weare2007}. \MarginPar{RG: why italics?}
+parallel marginalization \cite{Weare2007}. 
 We will look for multiscale sampling methods that are effective for problems that come from PDEs
 with noise under partial observation.
 
@@ -178,13 +178,11 @@ and then take the posterior into account by attaching weights to each sample bas
 likelihood \cite{Doucet2001,GordonSIR}.
 The weighted particles form an empirical estimate of the posterior.
 Difficulties arise as the prior and posterior become mutually
-singular, i.e. when high-probability 
-\MarginPar{RG: This could also
- indicate model is inconsistent with data given prior.}
+singular, i.e., when high-probability 
 events with respect to the prior have low probability with respect to the posterior.
 However, this is the interesting case, which corresponds to the situation where the data severely 
 constrain the posterior beyond what was assumed in the prior.
-When this happens many of the samples have such a low weight so that they give little information about the posterior.
+When this happens many of the samples have such a low weight that they give little information about the posterior.
 This was rigorously shown to happen for linear problems.
 Further, the number of particles required can grow exponentially with the number
 of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009},
@@ -199,8 +197,8 @@ A more general approach constructs a map that transforms the prior
 measure into the posterior measure \cite{Moselhy2013}.  If such a map
 can be constructed, efficient posterior samples are easy to generate.
 However, for complex applications, the map cannot be constructed
-directly, and must instead rely on a number of approximations
-(e.g. polynomial representations of the maps) that are not efficient,
+directly, and one must instead rely on a number of approximations
+(e.g. polynomial representations of the maps) that are neither efficient
 or well-characterized.  Instead, we will base our particle filtering
 methods on the implicit sampling (IS) methodology
 \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013}.
@@ -216,7 +214,7 @@ the parameter space (see below for details of this method).
 % We expect that we will need to compute a map at each level of the hierarchy and, thus, expect that this approach is computationally too expensive for our target applications. Moreover, the errors of the approximations involved in finding the map are, at this time, not well understood. We plan to base our particle filtering methods on the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013} that avoids some of the pitfalls of standard sampling by concentrating the computational power on localizing the regions of high probability in the parameter space (see below for details of this method).
 
 The posterior samples obtained from sampling (either MCMC or IS) can be used to construct reduced order models (ROMs), by which we mean inexpensive (to evaluate) surrogates for expensive computer simulations that preserve the input-output relations in the numerical models.
-Here, we will use the term ROM in an encompassing sense which can refer to model reduction approaches, response surface approaches and machine learning techniques. In model reduction approaches, e.g. the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr}, one directly approximates the PDEs using a parametrically-induced approximation space. However, these techniques are difficult to apply to complex, multiscale models. Response surface and machine learning techniques such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz} and artificial neural network (ANN)~\cite{Cybenko:1992vo} are simpler to use but will typically require large set of training data.   
+Here, we will use the term ROM in an encompassing sense that can refer to model reduction approaches, response surface approaches and machine learning techniques. In model reduction approaches, e.g. the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr}, one directly approximates the PDEs using a parametrically-induced approximation space. However, these techniques are difficult to apply to complex, multiscale models. Response surface and machine learning techniques such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz} and artificial neural network (ANN)~\cite{Cybenko:1992vo} are simpler to use but will typically require large set of training data.   
  %and polynomial chaos expansion (PCE)~\cite{Oladyshkin:2012ur} 
 %E except that it 
 %
@@ -241,7 +239,7 @@ Here, we will use the term ROM in an encompassing sense which can refer to model
 A research question is how we can find the most suitable ROM, or a combination of ROMs to improve efficiency of our proposed MC algorithms.  
 For example, when coarse models are used to generate samples
 during the importance sampling stage~\cite{Bal:2013tp,Christen:2005wp,Efendiev:2007uw,Higdon:2002vx} or
-coupled with fine models through the metropolis coupled chain~\cite{Higdon:2002vx}, the match between the fine and coarse models can be improved through a discretization error model~\cite{Kaipio:2007ux}. Although a zero-mean Gaussian model has be used~\cite{Bal:2013tp}, a ROM that models the structural variations in the difference can be more accurate for our purpose since we anticipate the coarse models to have significant simplifications of the physics or reduction of spatial dimensions.  Apart from improving the efficiency of the importance sampling approach that we will use,  we will examine how ROM can be used within our hierarchical framework to
+coupled with fine models through the Metropolis coupled chain~\cite{Higdon:2002vx}, the match between the fine and coarse models can be improved through a discretization error model~\cite{Kaipio:2007ux}. Although a zero-mean Gaussian model has be used~\cite{Bal:2013tp}, a ROM that models the structural variations in the difference can be more accurate for our purpose since we anticipate the coarse models to have significant simplifications of the physics or reduction of spatial dimensions.  Apart from improving the efficiency of the importance sampling approach that we will use,  we will examine how ROM can be used within our hierarchical framework to
 improve the efficiency of {\it {a posteriori}} UQ.
 %ROMs can also be used directly as an efficient surrogate in forward UQ~\cite{Challenor:2012uv, Ratto:2012tf}
 %for example in predicting catastrophic events and obtaining global sensitivity analyses indices that converges slowly with number of samples.  
@@ -264,9 +262,9 @@ tens of microns wide where heat release from chemical reactions
 increases temperature by 1000-2000 Kelvin.
 Even for simple fuels there
 are
-tens of short-lived flame radicals moved through a complex
+tens of short-lived flame radicals that move through a complex
 network of ten to hundreds of fundamental chemical reactions
-converting inlet fuels and oxidizer to combustion products.  
+converting inlet fuel and oxidizer to combustion products.  
 These reactions can be extremely sensitive to
 temperature and are closely coupled to thermal and species diffusion.
 In most
@@ -293,14 +291,13 @@ Transport processes are typically approximated using multicomponent diffusive
 transport models derived from collision integrals.  The most general
 model of this type is typically too computationally expensive for large-scale
 simulation so additional simplifications are introduced.
-For gas phase combustion, radiation, for example, is typically modeled as a simple heat loss
+For gas phase combustion, radiation is typically modeled as a simple heat loss
 process that assumes the gas is optically thin.
 There are uncertainties associated with all of these elements of the model,
 as well as extra challenges in representing specific systems
 (domain boundary conditions and geometries, initial\slash inlet
 conditions, etc.).
-Here we will focus on controlling uncertainty in kinetics and transport processes in the context
-of uncertain initial and boundary conditions. 
+Here we will focus on controlling uncertainty in kinetics and transport processes.
 
 Although the form of the model for the gas-phase combustion of basic
 fuels is well-established,
@@ -315,7 +312,8 @@ involves considerable ``hands-on'' expertise and judgement in
 order to drastically reduce the full set (hundreds to thousands) of
 model parameters to a computationally manageable ``active set'' of
 10-30, which are optimized with fairly standard Monte Carlo or
-polynomial chaos methods (e.g.\ \cite{SheenWang2011}).
+polynomial chaos methods
+(e.g.\ \cite{SheenWang2011,FrenklachWang1995,Davis2005,Qin2000}).
 
 Bayesian approaches to fitting reaction parameters are already used
 extensively in the chemical kinetics community (e.g.\ \cite{Kseib2011,Urzay2012}).
@@ -339,10 +337,10 @@ Unfortunately, current computational resources severely limit
 what can be done.
 Extreme scale computing provides the opportunity to remedy this
 problem.
-However, significant significant development of UQ methodology is
+However, significant development of UQ methodology is
 needed to realize this potential.
 
-We want to establish a UQ methodology that can be used across a
+We want to establish a UQ methodology, which can be used across a
 hierarchy of experiments that will enable us to enrich the set
 of targets used to reduce uncertainty in chemical rates and transport properties.
 Our approach will be to start with current targets
@@ -369,7 +367,7 @@ accurately and systematically.
 For some two dimensional, time-dependent laminar flame experiments, the
 experimental conditions will be well-categorized. However,
 as we move up the hierarchy to more complex experiments, particularly
-as we include turbulent flows, conditions are not precisely specified.
+as we include turbulent flows, conditions will not precisely specified.
 For example, initial and boundary conditions may only be known statistically.
 In addition, although the datasets
 get larger, the data becomes sparse, in that only a small fraction
@@ -433,7 +431,7 @@ materials compete with traditional crystalline silicon in efficiency but use far
 material \cite{JiangY13}. 
 %Leading thin film technologies include absorbers based on
 %cadmium telluride (CdTe), Copper-Indium-Gallium-Selenide/Sulfide (CIGS) and 
-One candidate material is $Cu_2ZnSnS_4$ (CZTS) \cite{JiangY13}, which
+One candidate material is $Cu_2ZnSnS_4$ (CZTS) \cite{JiangY13}, which is
 % In contrast
 %to the exotic elements in CdTe and CIGS, CZTS is
 comprised of relatively abundant and benign constituents but is not yet mature relative to more established thin film technologies. 
@@ -475,7 +473,7 @@ quantities:
   \frac{\partial \phi_j}{\partial t}  = R_j + \nabla \cdot  D_j \nabla \phi_j  + T_j,
 \end{equation}
 where $\phi_j$ represents the number density of $j^\mathrm{th}$ type
-of defect or election/hole (carrier) concentration. 
+of defect or electron/hole (carrier) concentration. 
 
 The source term $R_j$ is local rate of change due to pseudo-reactions
 that govern the creation / destruction and interaction of point
@@ -497,7 +495,7 @@ addition of an $\ce{X}$ atom to the lattice producing cation vacancies
 ($V_m^{''}$),  creation and elimination of vacancies
 (``Schottky defects''),  creation/elimination of electron/hole pairs
 (``electronic defects'') and an X ion in the lattice
-dissociating into an X atom that leaves the lattice and two elections,
+dissociating into an X atom that leaves the lattice and two electrons,
 leaving behind an anion vacancy ($V_x^{\cdot \cdot}$) \cite{Tilley}. 
 %The equilibrium concentration
 %of these defects are non-zero because the free energy of the crystal
@@ -512,12 +510,12 @@ couple the processing conditions to the concentrations. The rates of
 the reactions in (\ref{eq:pdrxnsstart}--\ref{eq:pdrxnsend}) are given by Arrhenius forms
 ($\omega_\alpha = k_\alpha e^{-(E_a)_\alpha/(RT)}$) and assembled
 into the source terms $R_j$ based on a linear combination given by the
-coefficients for the $j^\mathrm{th}$ species in the
+coefficients for the $j^\mathrm{th}$ ``species'' in the
 $\alpha^\mathrm{th}$ reaction.
 
 Transport of the point defects within the crystal occurs in two
-regimes. Solid state diffusion is frequently approximated using a
-Fickian treatment $\nabla\cdot D_j \nabla \phi_j$;
+regimes. Solid state diffusion is frequently approximated using the
+Fickian term $\nabla\cdot D_j \nabla \phi_j$;
 however, for point defects this is insufficient to account for their
 migration along grain boundaries, where the
 transport mechanism becomes delocalized. The higher
@@ -635,7 +633,7 @@ including exploding laptops and expensive electric vehicles that burst into
 flame and/or can only travel 100 miles before requiring a full night to recharge, and are thus inadequate for widespread adoption.  
 LIBs present a truly multiscale system, with important macroscopic behavior
 (e.g., catastrophic failure such as fire) determined by intricate microscale
-interactions (e.g., as a result of dendritic growth on lithium particles in
+interactions (e.g., as a result of dendritic growth on lithium particles at
 one location deep inside the battery pack). 
 %It is extremely difficult, where
 %possible at all, to examine the mechanisms involved---especially, to
@@ -742,10 +740,10 @@ needed to reduce and quantify uncertainty in LIB simulation.
 Specifically, we will combine
 macro-scale (cell level) experiments,
 % atomistic calculations (quantum),
-micro-scale (particle level), and meso-scale (electrode level) experiments to
-understand the small scale--especially mesoscale (because this is where the
-battery designer has the most degrees of freedom)--to 
-understand the
+and meso-scale (electrode level) experiments to
+understand how mesoscale phenomena, where the
+battery designer has the most degrees of freedom, to 
+impact the
 origin of macroscale
 pressure trends that correlate with battery degradation (e.g.,
 capacity fade) and safety (e.g., thermal runaway, a.k.a. fire) issues.
@@ -759,7 +757,7 @@ One characteristic of reaction diffusion processes is that some aspects of the s
 may not be observable from the available data. For example, in a reaction chain the slowest
 reactions dominate the response so that fast reactions are not effectively probed.
 Furthermore, all of the applications
-have a potentially complex relation between what is measured and quantity of interest,
+have a potentially complex relation between what is measured and quantities of interest,
 even for relatively simple experiments. 
 Planar laser induced fluorescence diagnostics in combustion, for example, 
 measure photon emissions from excited states that have complex relation to the underlying
@@ -771,7 +769,7 @@ particularly at higher levels of the hierarchy.
 In spite of the commonalities, the target application areas have a number
 of distinguishing features.
 Combustion is more well understood with mathematical models that are on firmer ground
-with more sophisticated numerical models.
+and where there are more sophisticated numerical models.
 However, combustion models potentially have more parameters than the other two areas.
 Models for photovoltaics are less well established and
 model inconsistency is more likely to be an issue in this context.
@@ -847,7 +845,7 @@ For stochastic dynamics (\ref{eq:ModelEquationSt}), it is necessary to keep piec
 stochastic trajectory $x_t$ as well as $\theta$ as part of the sample, which will make
 memory efficiency an important issue for the hardest target applications.
 
-Particle filters, arise in the context of data assimilation.
+Particle filters arise in the context of data assimilation.
 They are distinct from MCMC in that they produce independent samples.
 They update a sample of the state $x_{i+1}$ and $\theta$ taking into account a new observation 
 $y_{i+1}$.
@@ -855,7 +853,7 @@ They achieve independent samples using importance weights.
 Particle filter methods for stochastic systems store only a single state $x_i$ rather than 
 a trajectory, so they are more memory efficient.
 The most common direct particle filter method uses weights that have extremely high variance, 
-particularly when the observation noise, $v_i$,has small variance.
+particularly when the observation noise, $v_i$, has small variance.
 More recent implicit sampling particle filters, invented at LBNL
 \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013}, address this high variance 
 issue using a more sophisticated update/sampling strategy.
@@ -869,9 +867,6 @@ that different approaches will be preferred based on specific problem characteri
 we would expect MCMC to be a more attractive option for relatively simple problems with stochastic dynamics and a particle
 filter to be a better choice for deterministic dynamics as problem complexity increases. Quantifying those relationships
 and understanding how to transition between approaches are important research questions.
-\MarginPar{RG: Maybe we should emphasize that
-  defining an appropriate characterization of a model to choose which
-  approach to use is a broadly useful outcome of our work}
 Furthermore, although neither of these approaches is new, substantial development is needed to meet the requirements
 of the applications we are considering.
 
@@ -951,7 +946,7 @@ avoid this by inferring good directions for moves from an ensemble of other samp
 More subtle forms of ill conditioning arise in high dimensional problems that arise
 from PDE applications.
 This arises in Bayesian UQ when the dynamics are stochastic (\ref{eq:ModelEquationSt}) and we
-must sample at least parts of the state, $x$, along with the parameters.
+must sample at least part of the state, $x$, along with the parameters.
 Several approaches have been suggested to propose moves on many length scales.
 %\MarginPar{JBB:  Jonathan check . . .i just made this up}
 Here we will focus on multigrid MCMC \cite{Goodman1989}
@@ -976,7 +971,7 @@ For example, we can construct priors at a higher level of the hierarchy from pos
 Moreover, the theory and numerics can be intertwined here because the models obtained (as posteriors) at lower levels of the hierarchy may help with speeding up the minimizations required at higher levels of the hierarchy (see below for more detail). 
 Another central issue is determining whether or not moving through the hierarchy of experiments from the simplest to the most complex introduces bias in the parameter estimates. If this bias is found to be significant, strategies must be developed to reduce that bias. 
 
-\subsubsection*{Model inconstancies}
+\subsubsection*{Model inconsistencies}
 %\MarginPar{JG: I deleted the degeneracy part because it is discussed above.}
 
 As noted above, it is inevitable that the exact model is not in the family being fit and
@@ -992,9 +987,6 @@ the statistical methods we develop must be robust to this situation.
 One approach to address this type of model inconsistency 
 is to include noise in the dynamics, so that the posterior distribution does not require the
 dynamical equations to be satisfied exactly.
-\MarginPar{RG: also possible that model is inconsistent with data
-  given prior. In this case, we want to extract information to help
-  design a better experiment to choose between equivalent parameter combinations}
 
 This increases the complexity of both MCMC and implicit sampling approaches. In both cases, the sampler would 
 include estimation of the entire state in space and time.
@@ -1072,8 +1064,9 @@ analyze how different aspects of the measurement alter the information we can
 obtain from the measurement. This type of analysis will also allow us to assess the
 role of noise in highly nonlinear observations of the state.
 
-At high levels of the hierarchy in turbulent combustion, we are interested in finding parameters that
-consistent with observed features in the data that are insensitive to details of the state trajectory.
+At high levels of the hierarchy in turbulent combustion, we are interested in finding parameters that are
+consistent with observed features in the data using sampling
+techniques that are insensitive to details of the state trajectory.
 In fact, we want to avoid trying to estimate a trajectory that is a point-wise fit to the trajectory
 given by a measurement because it is a hopeless task.
 %\MarginPar{JBB:  is this too hopeless? (matti) I hope not, I would like to try.}
@@ -1092,7 +1085,6 @@ Multi scale-systems raise new issues for sampling.
 We plan to use the multi-scale battery application as a case study.
 Specifically, we are interested in the fluctuation of pressure with time since it can critically 
 affect safety of batteries.
-\MarginPar{deleted 2 of 3 reasons.  1 is enough?}
 This ``macro scale''(millimeters) pressure is driven by many effects at the ``mesoscale''(microns):
 conversion of electrolyte to the gas phase; the sponge like nature of the porous electrode; elastic properties of the binder (the binder is the ``glue'' that holds the particles in their porous structure); the porosity and tortuosity of the separator.
 We have detailed macroscopic pressure signals from transducer data.
@@ -1117,9 +1109,9 @@ If the conditionals of the macro and meso variables are difficult to formulate, 
 \begin{equation}
 	p(x_1,\theta_1,x_2,\theta_2|y_1,y_2) \propto p(y_1|x_1,\theta_1) p(y_2|x_2,\theta_2)p(x_2,\theta_2|x_1,\theta_1)p(x_1,\theta_1),
 \end{equation}
-which demonstrates how the data and physical models are being incorporated and combined across scales. While the factorization represents an attractive modeling tool, the Markovian assumption it requires, i.e. that the data at the each scale is conditionally independent of the state\slash parameters and data at the other scale, must be checked. We will investigate the applicability of Markovian measurement models and will propose new scale coupling models for efficient multi scale-UQ.
+which demonstrates how the data and physical models are being incorporated and combined across scales. While the factorization represents an attractive modeling tool, the Markovian assumption it requires, i.e. that the data at the each scale is conditionally independent of the state\slash parameters and data at the other scale, must be checked. We will investigate the applicability of Markovian measurement models and will propose new scale coupling models for efficient multiscale UQ.
 
-A successful and efficient solution of this multi scale problem allows physics-based models (e.g. how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements, or, conversely, allows the physics-based model to ``learn" from the macroscale measurements.
+A successful and efficient solution of this multiscale problem allows physics-based models (e.g. how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements, or, conversely, allows the physics-based model to ``learn" from the macroscale measurements.
 We expect that the required computations will be extreme scale, since the problem requires resolving and coupling of phenomena that vary over many orders of magnitude,
 and because each sample can require a new simulation.
 
@@ -1221,7 +1213,7 @@ Personnel are denoted by initials with $GS$ representing the graduate student at
 (MD 0.1; JG 0.04; RG 0.2)
 \item Extend MCMC for stochastic point defect model to 2D
 (RG 0.2; GS 0.3)
-\item Test hierarchical sampling multiple experiments for battery models
+\item Test hierarchical sampling using multiple experiments for battery models
 (PG 0.2; MM 0.2)
 \item Formulate feature-based sampling strategy for simplified chaotic system
 (JB 0.1; MM 0.1)
@@ -1234,7 +1226,7 @@ Personnel are denoted by initials with $GS$ representing the graduate student at
 (JB: 0.1; MD 0.25; JG 0.04; MM 0.1)
 \item Test hierarchical sampling for photovoltaic point defects
 (RG 0.4; JG 0.04; GS 0.75)
-\item Test hierarchical sampling for battery models
+\item Test hierarchical sampling for multiscale battery models
 (PG 0.4; MM 0.1)
 \item Test feature-based sampling on turbulent flame simulation
 (JB 0.15; MM 0.2)
@@ -1257,29 +1249,29 @@ on the uncertainty of predictions.
 We will demonstrate the use of the framework for prototype problems in combustion,
 novel photovoltaic material and lithium-ion batteries.
 
-%\newpage
-%\subsection*{Appendix 1:  Biographical Sketches}
-%\includepdf[pages=-]{cv_all.pdf}
-%
-%\newpage
-%\subsection*{Appendix 2:  Current and Pending Support}
-%\includepdf[pages=-]{Current_and_Pending_All.pdf}
+\newpage
+\subsection*{Appendix 1:  Biographical Sketches}
+\includepdf[pages=-]{cv_all.pdf}
+
+\newpage
+\subsection*{Appendix 2:  Current and Pending Support}
+\includepdf[pages=-]{Current_and_Pending_All.pdf}
 
 \newpage
 \subsection*{Appendix 3:  Bibliography and References Cited}
 \bibliographystyle{abbrv}
 
 \bibliography{george_rom,pd,batteries3,jg,comb} 
-%\newpage
-%\subsection*{Appendix 4:  Facilities and other Resources}
-%\includepdf[pages=-]{Facilities.pdf}
-%
-%\newpage
-%\subsection*{Appendix 5:  Equipment}
-%
-%This project does not require any special equipment.
-%
-%\newpage
-%\subsection*{Appendix 6:  NREL Budget and Budget Explantion}
-%\includepdf[pages=-]{NREL_Budget.pdf}
+\newpage
+\subsection*{Appendix 4:  Facilities and other Resources}
+\includepdf[pages=-]{Facilities.pdf}
+
+\newpage
+\subsection*{Appendix 5:  Equipment}
+
+This project does not require any special equipment.
+
+\newpage
+\subsection*{Appendix 6:  NREL Budget and Budget Explantion}
+\includepdf[pages=-]{NREL_Budget.pdf}
 \end{document}
