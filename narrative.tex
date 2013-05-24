@@ -262,13 +262,13 @@ They involve sparse data, multi-scale and multi-physics, and severe ill conditio
 Gaseous flames are characterized by a region
 tens of microns wide where heat release from chemical reactions
 increases temperature by 1000-2000 Kelvin.
-Even for simple fuels that
+Even for simple fuels there
 are
 tens of short-lived flame radicals moved through a complex
 network of ten to hundreds of fundamental chemical reactions
 converting inlet fuels and oxidizer to combustion products.  
-There reactions can be extremely sensitive to
-temperature and are continuously modulated by thermal and species diffusion.
+These reactions can be extremely sensitive to
+temperature and are closely coupled to thermal and species diffusion.
 In most
 practical applications, this complex interplay of diffusion and
 reactions occurs in a highly turbulent environment, and may involve
@@ -278,14 +278,13 @@ the (relatively) simplified, but practically relevant combustion
 scenarios that operate entirely in the gas phase, and in particular,
 we are interested primarily in problems of lean premixed turbulent combustion.
 
-The multicomponent Navier-Stokes equations provide a accurate framework for approximating
+The multicomponent Navier-Stokes equations provide an accurate framework for approximating
 the basic fluid dynamical behavior of a gas-phase system.
 However, for any 
 given system, the equations must be closed with models for
 thermodynamics,
 kinetics, differential mass and energy transport processes and radiation.
-differential mass and energy transport processes.
-Thermodynamics is based on ideal gas approximation with higher order fits
+Thermodynamic properties are based on an ideal gas approximation with higher order fits
 to species enthalpy as a function of temperature.
 Chemical reactions are typically parameterized with
 Arrhenius fits to chemical rates that introduce a number of uncertain
@@ -293,17 +292,21 @@ coefficients.
 Transport processes are typically approximated using multicomponent diffusive
 transport models derived from collision integrals.  The most general
 model of this type is typically to computationally expensive for large-scale
-simulation so that additional simplifications are introduced.
+simulation so additional simplifications are introduced.
 For gas phase combustion, radiation is typically modeled as a simple heat loss
 process that assumes the gas is optically thin.
-Although there are uncertainties associated with all of these elements of the model,
-here we will focus on kinetics and transport processes.
+There are uncertainties associated with all of these elements of the model,
+as well as extra challenges in representing specific systems
+(domain boundary conditions and geometries, initial\slash inlet
+conditions, etc.).
+Here we will focus on controlling uncertainty in kinetics and transport processes in the context
+of uncertain initial and boundary conditions. 
 
 Although the form of the model for the gas-phase combustion of basic
 fuels is well-established,
 the ``correct'' parameter values are not.
 Development of kinetic\slash transport models (complete sets of model parameters)
-specific fuels\slash conditions remain
+for specific fuels\slash conditions remains
 an active are of research in the combustion community.
 Parameter fits are typically derived by targeting
 a particular set of
@@ -314,19 +317,6 @@ model parameters to a computationally manageable ``active set'' of
 10-30, which are optimized with fairly standard Monte Carlo or
 polynomial chaos methods.
 
-Uncertainty in combustion simulations arise from a number of sources,
-including those discussed above (model structure, modeling
-assumptions, constitutive laws, model parameters).  However,
-\MarginPar{Not sure about this paragraph -- JBB}
-additional uncertainties arise in representing specific systems
-(domain boundary conditions and geometries, initial\slash inlet
-conditions, etc.), and in the measurement and interpretation of
-experimental data for those configurations.  While careful design of
-experiments and detailed measurements can help to mitigate some of
-these issues, no method currently exists for quantifying the
-propagation of all or many of these uncertainties through the
-turbulent combustion simulations.
-
 Bayesian approaches to fitting reaction parameters are already used
 extensively in the chemical kinetics community.
 Target models for estimation of parameters typically include
@@ -334,14 +324,16 @@ Target models for estimation of parameters typically include
 tubes, steady laminar flame configurations (e.g.\ opposed-flow flame
 systems with various 1D and 2D measurements of flame profiles), and, in some
 cases, a variety of simple steady 2D systems.
-The difficulty here is that this class of experiments is only able to
-address a low dimensional manifold of conditions in chemical phase space.
+The difficulty here is that this class of experiments is typically only able to
+address a small portion of the thermo-chemical phase space as the solutions tend to 
+reside on a lower dimensional manifold. 
+\MarginPar{RG: rephrased this - JB  pls check}
 The interplay of diffusion and reaction in time dependent laminar and
-turbulent flames explores a much richer set of conditions in chemical
+turbulent flames explores a much richer set of conditions in thermo-chemical
 phase space.  Flames that are of practical interest need to evaluate
-chemical rates in regions that are represented in the standard target
+chemical rates in regions that under-represented in the standard target
 experiments used to develop the chemical mechanisms.
-A richer set of targets experiments are needed to probe chemical
+A richer set of targets experiments is needed to probe chemical
 and transport behavior under a wider range of conditions.
 Unfortunately, current computational resources severely limit
 what can be done.
@@ -351,13 +343,13 @@ However, significant significant development of UQ methodology is
 needed to realize this potential.
 
 We want to establish a UQ methodology that can be used across a
-hierachy of experiments that will enable us to enrich the set
+hierarchy of experiments that will enable us to enrich the set
 of targets used to reduce uncertainty in chemical rates and transport properties.
 Our approach start with current targets
 but extend those targets to include
 time-dependent 2D laminar and 3D turbulent flame systems.  Across this
 hierarchy, each experiment has a number of distinct data sets that
-focus on different aspects of the combustion model.
+focus on different aspects of the combustion physics.
 For example, some
 experiments infer information about velocity fields (e.g.\ using
 particle image velocimetry diagnostics). Others measure composition at
@@ -375,7 +367,7 @@ entire hierarchy of experiments to estimate a full parameter set more
 accurately and systematically.
 
 For some two dimensional, time-dependent laminar flame experiments, the
-experiemental conditions will be well categorized. However,
+experimental conditions will be well categorized. However,
 as we move up the hierarchy to more complex experiments, particularly
 as we move to turbulent flows, conditions are not precisely specified.
 For example, initial and boundary conditions may only be known statistically.
@@ -398,9 +390,9 @@ a reasonable cartoon for a turbulent flame experiment is that it
 corresponds to chaotic attractor of a dynamical system.
 In this case, we can view the experiment as 
 providing samples of the attractor. 
-Rather than trying to direclty match experimental data in this case, our goal
+Rather than trying to directly match experimental data in this case, our goal
 will be to match features of the attractor and assess how sensitive
-those features are to uncertaintites in parameters.
+those features are to uncertainties in parameters.
 %the dynamics are approximated by the multicomponent reacting Navier
 %Stokes equations with Arrhenius kinetics.  Simulation and MC sampling
 %will produce sample velocity, concentration fields, and parameter sets
