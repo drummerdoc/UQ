@@ -1085,40 +1085,45 @@ and we plan to take first steps towards a methodological and quantitative assimi
 A major hurdle here is that we cannot use adjoints for the optimization needed by the implicit sampling approach.  Instead we will need
 some type of surrogate representation of the likelihood to perform the optimization.
 
-\subsubsection*{Multi scale sampling}
-We plan to extend our method to multi-scale systems by addressing
-\MarginPar{at this point this is sampling only ... how would MCMC work. . Jonathan? I tried to disconnect the first part of the discussion from IS. This way we can talk about multi scale IS and MCMC}
-how information can be propagated efficiently across different scales
-using multiscale battery simulation as a case study.
-Specifically, we are interested in the fluctuation of pressure with time since it can critically affect performance, degradation, and safety of batteries.
-This ``macro scale''(millimeters)  pressure is the manifestation of many effects at the ``mesoscale''(microns):
-conversion of electrolyte to the gas phase; the sponge like nature of the porous electrode; elastic properties of the binder (the binder is the ``glue'' that holds the particles in their porous structure); the porosity and tortuosity of the separater.
-The pressure is the sum of these effects combined across the whole cell and can be measured via detailed signals from transducers.
+\subsubsection*{Multi-scale sampling}
+\MarginPar{JG: edited to make notation consistent -- $\theta$ and parameters etc.
+This includes standardized hyphenation: multi-scale.}
+Multi scale-systems raise new issues for sampling.
+We plan to use the multi-scale battery application as a case study.
+Specifically, we are interested in the fluctuation of pressure with time since it can critically 
+affect safety of batteries.
+\MarginPar{deleted 2 of 3 reasons.  1 is enough?}
+This ``macro scale''(millimeters) pressure is driven by many effects at the ``mesoscale''(microns):
+conversion of electrolyte to the gas phase; the sponge like nature of the porous electrode; elastic properties of the binder (the binder is the ``glue'' that holds the particles in their porous structure); the porosity and tortuosity of the separator.
+We have detailed macroscopic pressure signals from transducer data.
 In addition, we have data at the mesoscale such as stress, strain, swelling, and other mechanical properties.
 Our goal is to incorporate all available data to form an estimate of the pressure and the mesoscale state,
 described in terms of layer thicknesses (substrate, epoxy layer, current collector, active material, entire electrode),
 volume fractions (particles, binder, pores), porosity, tortuosity, particle sizes and distributions (see, e.g., \cite{Sethuraman2012334})
 and other parameters governing the makeup and morphology of the heterogeneous electrode.
-By using Bayes' rule we can factorize the conditional pdf of the cell-level pressure and electrode-level stress and strain, given both
-cell and electrode level data:
-\begin{equation}
-\label{eq:MultiScalePDF}
-	p(x^1, x^2|y^1,y^2) \propto p(y^1|x^1) p(y^2|x^2) p(x^2|x^1)p(x^1),
-\end{equation}
-where we use the indices to distinguish scales, i.e. $x^1,y^1$ correspond to the mesoscale state and data, $x^2,y^2$ to the macro scale state and data.
-Here, the first two terms come from a model of how the data is connected to the state (at each scale); the third term describes how the various mesoscale quantities affect pressure and the last term is the prior for the mesoscale parameters.
-The above equation demonstrates how both the data and physical models are being incorporated and combined across scales.
-By switching the indices, we can use this formalism to push information from macro- \emph{to} mesoscales, which may be important since macroscale battery measurements are typically \emph{more} reliable than mesoscale measurements. In this case, the physical model (with switched indices, now $p(x^1|x^2)$) acts as a constraint
-(what $x^1$ is compatible with $x^2$?) rather than as a prediction (what is $x^2$, given $x^1$?) because
-of the many-to-one relation between mesoscale parameters and macroscopic pressure.
+
+Suppose $\theta_{1,2}$, $x_{1,2}$, and $y_{1,2}$, are respectively the parameter, state and data 
+from scales 1 (macro) and 2 (meso).
+One sampling strategy would be a heat bath partial resampling where one alternates between
+resampling the macro variables $\theta_1,x_1$ from their conditional distributions 
+$p(\theta_1,x_1|\theta_2,x_2,y_1,y_2)$, and then resamples the mesoscopic variables from their
+conditionals $p(\theta_2,x_2|\theta_1,x_1,y_1,y_2)$.
+A more sophisticated strategy might, for example, use a ROM of the meso-scale system to propose
+macro-scale MC moves, and conversely.
+This is another possible application of implicit sampling, which allows exact sampling of more
+sophisticated proposal distributions, such as proposals incorporating ROM models as well as data.
+
+\MarginPar{JG: I hope the above captures this.  If so, delete this.
+Otherwise I have misunderstood.
+I think the point is to go beyond "Markovian".}
 A research question is to assess the validity of the assumptions that lead to a factorization of the pdf,
 in particular we need to verify that the scale coupling models are (nearly) ``Markovian'', i.e.
 %they couple only two subsequent scales, and
 that the observation models at each scale only depend on the state at that scale. 
 
 A successful and efficient solution of this multi scale problem allows physics-based models (e.g. how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements, or, conversely, allows the physics-based model to ``learn" from the macroscale measurements.
-We plan to develop a multi-scale version of implicit sampling to approximate the above (multiscale) pdf (\ref{eq:MultiScalePDF}) and, in particular, we will address implementation issues, e.g. how will the coupling between scales affect the required optimizations and subsequent solves of~(\ref{eq:IS_sampling_eq}).
-We expect that the required computations will be extreme scale, since the problem requires resolving and coupling of phenomena that vary over many orders of magnitude.
+We expect that the required computations will be extreme scale, since the problem requires resolving and coupling of phenomena that vary over many orders of magnitude,
+and because each sample can require a new simulation.
 
 \subsubsection*{Implementation, numerics and extreme scale computation}
 There are also many implementation issues that to need be addressed, especially with respect to efficient scaling of the MC algorithms on massively parallel computers.
