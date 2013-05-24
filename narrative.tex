@@ -101,7 +101,7 @@ and avoids the need for simplifying assumptions/approximations required by some 
 Moreover, some MC sampling methods are well suited for massively parallel computer
 architectures because the computationally expensive calculations,
 e.g. forward or adjoint model runs, can be executed independently and
-the communication between cores for each independent run is small (see, e.g., (\cite{Foreman-Mackey}).
+the communication between cores for each independent run is small (see, e.g., \cite{Foreman-Mackey}).
 Using MC sampling as the computational backbone will lead to a numerically sound
 implementation of a rigorous UQ theory that is well suited for extreme
 scale machines, making UQ possible for realistic and relevant applications.
@@ -198,7 +198,7 @@ For example, a nudging technique was proposed in meteorology, however the method
 A more general approach constructs a map that transforms the prior
 measure into the posterior measure \cite{Moselhy2013}.  If such a map
 can be constructed, efficient posterior samples are easy to generate.
-However, for complex applications, the map is cannot be constructed
+However, for complex applications, the map cannot be constructed
 directly, and must instead rely on a number of approximations
 (e.g. polynomial representations of the maps) that are not efficient,
 or well-characterized.  Instead, we will base our particle filtering
@@ -215,7 +215,7 @@ the parameter space (see below for details of this method).
 % However, the construction of the map is theoretically and computationally expensive and, therefore, relies on a number of approximations (e.g. polynomial representations of the maps) that are not efficient.
 % We expect that we will need to compute a map at each level of the hierarchy and, thus, expect that this approach is computationally too expensive for our target applications. Moreover, the errors of the approximations involved in finding the map are, at this time, not well understood. We plan to base our particle filtering methods on the implicit sampling methodology invented at LBNL \cite{chorintupnas,chorin2010,Morzfeld2011,Morzfeld2012,Atkins2013} that avoids some of the pitfalls of standard sampling by concentrating the computational power on localizing the regions of high probability in the parameter space (see below for details of this method).
 
-The posterior samples obtained from sampling (either MCMC or implicit sampling) can be used to construct reduced order models (ROMs), by which we mean inexpensive (to evaluate) surrogates for expensive computer simulations that preserve the input-output relations in the numerical models.
+The posterior samples obtained from sampling (either MCMC or IS) can be used to construct reduced order models (ROMs), by which we mean inexpensive (to evaluate) surrogates for expensive computer simulations that preserve the input-output relations in the numerical models.
 Here, we will use the term ROM in an encompassing sense which can refer to model reduction approaches, response surface approaches and machine learning techniques. In model reduction approaches, e.g. the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr}, one directly approximates the PDEs using a parametrically-induced approximation space. However, these techniques are difficult to apply to complex, multiscale models. Response surface and machine learning techniques such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz} and artificial neural network (ANN)~\cite{Cybenko:1992vo} are simpler to use but will typically require large set of training data.   
  %and polynomial chaos expansion (PCE)~\cite{Oladyshkin:2012ur} 
 %E except that it 
@@ -800,7 +800,7 @@ where $dW$ is a stochastic forcing term.
 %For example, $\theta$ can be a Gaussian with mean $\mu$ and covariance matrix $\Sigma_0$.
 %For each experiment we 
 %assume we have an approximation for $\mu$ and $\Sigma_0$ that are known from prior investigations.
-The initial conditions $x_0$ may be random as well; if so, we assume that we have a (prior) pdf to describe them.
+The initial conditions $x_0$ may be random as well; if so, we assume that we have a (prior) probabitiy density function (pdf) to describe them.
 We are also given data, $y_i$, at various time points $t_i$ in the evolution.
 We assume that the data are functions of $x_i$ perturbed by observation noise:
 \begin{equation}
@@ -930,7 +930,7 @@ The MCMC algorithm produces $\theta_{\tau+1}$ from $\theta_{\tau}$ and other ran
 The algorithm is ``correct'' if 
 $\theta_{\tau} \sim p(\cdot|y_T) \Rightarrow \theta_{\tau+1} \sim p(\cdot|y_T)$.
 The problem is that $\theta_{\tau+1}$ may closely resemble $\theta_{\tau}$.
-Then this happens it may take many iterations until $\theta_{\tau + k}$ is a essentially 
+When this happens it may take many iterations until $\theta_{\tau + k}$ is essentially 
 independent of $\theta_{\tau}$.
 Sophisticated MCMC algorithms attempt to address this long ``auto-correlation time'' or ``critical
 slowing down'' issue.
@@ -1113,13 +1113,11 @@ macro-scale MC moves, and conversely.
 This is another possible application of implicit sampling, which allows exact sampling of more
 sophisticated proposal distributions, such as proposals incorporating ROM models as well as data.
 
-\MarginPar{JG: I hope the above captures this.  If so, delete this.
-Otherwise I have misunderstood.
-I think the point is to go beyond "Markovian".}
-A research question is to assess the validity of the assumptions that lead to a factorization of the pdf,
-in particular we need to verify that the scale coupling models are (nearly) ``Markovian'', i.e.
-%they couple only two subsequent scales, and
-that the observation models at each scale only depend on the state at that scale. 
+If the conditionals of the macro and meso variables are difficult to formulate, one can consider the joint probability density across scales, $p(x_1,\theta_1,x_2,\theta_2|y_1,y_2)$. Using Markovian models for the measurement processes at each scale, $p(y_1|x_1,\theta_1),\ p(y_2|x_2,\theta_2)$, and ``scale coupling models'' of the form $p(x_1,\theta_1|x_2,\theta_2)$, one can obtain the factorization
+\begin{equation}
+	p(x_1,\theta_1,x_2,\theta_2|y_1,y_2) \propto p(y_1|x_1,\theta_1) p(y_2|x_2,\theta_2)p(x_2,\theta_2|x_1,\theta_1)p(x_1,\theta_1),
+\end{equation}
+which demonstrates how the data and physical models are being incorporated and combined across scales. While the factorization represents an attractive modeling tool, the Markovian assumption it requires, i.e. that the data at the each scale is conditionally independent of the state\slash parameters and data at the other scale, must be checked. We will investigate the applicability of Markovian measurement models and will propose new scale coupling models for efficient multi scale-UQ.
 
 A successful and efficient solution of this multi scale problem allows physics-based models (e.g. how pressure arises from mesoscale phenomena) to inform our interpretation of macroscale measurements, or, conversely, allows the physics-based model to ``learn" from the macroscale measurements.
 We expect that the required computations will be extreme scale, since the problem requires resolving and coupling of phenomena that vary over many orders of magnitude,
