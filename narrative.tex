@@ -126,13 +126,13 @@ application areas listed above using data from experiments as complex
 as is typical in these applications and outlined below.
 For one thing, evaluating $p$ involves a forward simulation of a physical model.
 %of the form (\ref{eq:ModelEquation}) or (\ref{eq:ModelEquationSt}).
-\MarginPar{JBB:  Don't like forward references}
+%\MarginPar{JBB:  Don't like forward references}
 In our applications, these can be 3D simulations with complex, potentially noisy physics and noisy observations.
 When the dynamics are noisy, the quantities to be sampled include not just parameter values $\theta$,
 but an unobserved state $x$.
-\MarginPar{JG: Maybe it's the least of 3 evils, the other two being vagueness and verbal description
-of formulas, or stopping to define notation in a technical way in the intro.
-I'm basically only saying that $p$ is a probability density.}
+%\MarginPar{JG: Maybe it's the least of 3 evils, the other two being vagueness and verbal description
+%of formulas, or stopping to define notation in a technical way in the intro.
+%I'm basically only saying that $p$ is a probability density.}
 %This can be a 3D field of velocities and concentrations (e.g., in the combustion system).
 In such a case, the posterior joint distribution of $x$ and $\theta$ is described by $p(x,\theta|y)$.
 
@@ -161,7 +161,7 @@ High dimensional problems arise in our problems when we must sample a state, $x$
 parameter set $\theta$.
 Hamiltonian samplers have proven better than direct local Metropolis or heat bath methods \cite{Hanson2001}, but
 they still can be slow.
-\MarginPar{MSD: Removed paragraph on analogy to linear systems} %Comment here so it fits in the margin
+%\MarginPar{MSD: Removed paragraph on analogy to linear systems} %Comment here so it fits in the margin
 More sophisticated truly multi-scale samplers include Swendsen Wang \cite{SwendsonWang1987}
 and multigrid methods \cite{Goodman1989}.
 Unfortunately, none of these methods at present is as general, say, as multigrid for
@@ -190,9 +190,9 @@ Further, the number of particles required can grow exponentially with the number
 of parameters being estimated \cite{Bickel,BickelBootstrap,Bickel2,Snyder,Weare2012,Weare2009},
 making this approach infeasible for 
 our target applications.
-\MarginPar{JG says (Not for inclusion in the proposal): a nonlinear version of the Bickel example shows just
-as easily that implicit sampling can be exponentially bad in the number of parameters.  
-Just have $n$ independent non-gaussian parameters.}
+%\MarginPar{JG says (Not for inclusion in the proposal): a nonlinear version of the Bickel example shows just
+%as easily that implicit sampling can be exponentially bad in the number of parameters.  
+%Just have $n$ independent non-gaussian parameters.}
 A number of methods have been invented to ameliorate this problem, most of which amount to finding a proposal density that  generates samples that are more compatible with the data \cite{Doucet,OptimalImportanceFunction,liuchen1995,Brad}.
 For example, a nudging technique was proposed in meteorology, however the method is not theoretically sound, requires a lot of ad hoc tuning  and is not easily applicable to parameter estimation~\cite{vanLeeuwen}.
 A more general approach constructs a map that transforms the prior
@@ -207,7 +207,7 @@ methods on the implicit sampling (IS) methodology
 IS avoids some of the pitfalls of standard sampling by
 concentrating samples on localized regions of high probability in 
 the parameter space (see below for details of this method).
-\MarginPar{MSD: Rewrote to shorten}
+%\MarginPar{MSD: Rewrote to shorten}
 
 % A more general approach constructs a map that transforms the prior measure into the posterior measure
 % %, i.e. to construct a map that transforms prior samples into posterior samples 
@@ -218,12 +218,12 @@ the parameter space (see below for details of this method).
 The posterior samples obtained from sampling (either MCMC or implicit sampling) can be used to construct reduced order models (ROMs), by which we mean inexpensive (to evaluate) surrogates for expensive computer simulations that preserve the input-output relations in the numerical models.
 Here, we will use the term ROM in an encompassing sense which can refer to model reduction approaches, response surface approaches and machine learning techniques. In model reduction approaches, e.g. the proper orthogonal decomposition method~\cite{Cardoso:2009jn, Lieberman:2010dw, Willcox:2002uk}, reduced basis method~\cite{Prudhomme:2002ug,Quarteroni:2011jm} and trajectory piecewise linearization procedure~\cite{Cardoso:2010, Rewienski:2003tr}, one directly approximates the PDEs using a parametrically-induced approximation space. However, these techniques are difficult to apply to complex, multiscale models. Response surface and machine learning techniques such as the Gaussian process regression (GPR)~\cite{Rasmussen:2006vz} and artificial neural network (ANN)~\cite{Cybenko:1992vo} are simpler to use but will typically require large set of training data.   
  %and polynomial chaos expansion (PCE)~\cite{Oladyshkin:2012ur} 
-\MarginPar{JG objects severely and loudly to saying anything at all about PCE except that it 
-doesn't work.
-Not only is that his view, but he has turned in several high profile negative DOE reviews saying as 
-much.  
-The program officers know his views and would raise their eyebrows. JBB:  I just deleted the whole bloody paragraph. Said
-a bunch of stuff doesn't work and didn't say pce doesn't work loudly enough}
+%E except that it 
+%
+%e DOE reviews saying as 
+%
+%just deleted the whole bloody paragraph. Said
+%
 %PCE, in particular has been applied successfully to a limited class of flow problems (e.g. \cite{GhanemDham1998, LeMaitre2001}). 
 %In PCE methods, the probability space of the parameters is decomposed into a finite set of univariate polynomials with local or global support, and coupled together through tensor products. 
 %These bases functions are propagated through the model, either ``intrusively'' or ``unintrusively''.  Intrusive schemes utilize, e.g., a Galerkin projection to reformulate the governing equations into a system governing the PC mode strengths directly; unintrusive methods numerically evaluate the modes through deterministic or random sampling of the original model/code. 
@@ -327,7 +327,7 @@ cases, a variety of simple steady 2D systems.
 The difficulty here is that this class of experiments is typically only able to
 address a small portion of the thermo-chemical phase space as the solutions tend to 
 reside on a lower dimensional manifold. 
-\MarginPar{RG: rephrased this - JB  pls check}
+%\MarginPar{RG: rephrased this - JB  pls check}
 %The interplay of diffusion and reaction in time-dependent laminar and
 %turbulent flames explores a much richer set of conditions.  
 Flames that are of practical interest need to evaluate
@@ -530,8 +530,8 @@ Demkowicz \cite{Kolluri12} and Koptelov et al. \cite{Koptelov84} for  potential 
 %be modelled as a complication on localized defect migration and
 %successfully treated based on transition state theory with a
 %temperature dependent pre-factor. \MarginPar{(matti) can you check the last sentence? I am a bit %confused here.}
-
-\MarginPar{JBB:  Unable to parse this sentence. RG: is this better?}
+%
+%\MarginPar{JBB:  Unable to parse this sentence. RG: is this better?}
 Because the point defect transport and chemistry is coupled to grain structure, a model
 for grain nucleation and growth is also necessary.
 The grain growth model is important in its own right because the
@@ -588,8 +588,8 @@ knwon) for each
 orientation pair that reflect preferential growth along a particular misalignment direction.
 The state of the crystal is updated sequentially by choosing random locations and new orientations that
 are accepted based on the given probability. 
-\MarginPar{JG: This seems to be an atomistic description, not a continuum?  
-That's OK for MCMC sampling, but not (I don't think) for implicit sampling. RG: no, continuum - the `lattice site' term was wrong, should be `gridpoint'}
+%\MarginPar{JG: This seems to be an atomistic description, not a continuum?  
+%That's OK for MCMC sampling, but not (I don't think) for implicit sampling. RG: no, continuum - the `lattice site' term was wrong, should be `gridpoint'}
 
 
 %\remrg{The stochastic formulation appears to be calling out for MCMC. This aspect of the thin film photovoltaic application readily generalizes and is applicable to a broader range of materials problems, where the objective is to predict grain size after an annealing process to design materials with specific mechanical as well as electrical properties.}
@@ -662,7 +662,7 @@ focus on the electrode and cell scales.
 %particle-electrolyte interfacial kinetics, e.g., Butler-Volmer: $I = \exp(\alpha_a \eta(I)) - \exp(\alpha_c \eta(I))$.  The overpotential $\eta(I)$ is a function of Li current $I$ across the interface, and $\alpha_a$, $\alpha_c$
 %are anode and cathode charge transfer coefficients.  This equation can be derived under certain assumptions from more general chemical kinetic equations.
 %\end{compactitem}
-\MarginPar{multiscale discussion now only talks about 2 scales . . . probably ambitious enough}
+%\MarginPar{multiscale discussion now only talks about 2 scales . . . probably ambitious enough}
 
 \noindent{Electrode scale}
 \begin{compactitem}
@@ -687,7 +687,7 @@ where $D_{\Phi}$ is charge diffusivity in cell/pack, $R_{\Phi}$ represents charg
 temperature $T$ (thermal transport): $\frac{\partial T}{dt} = \nabla \cdot (D_T \nabla \Phi) + R_T$, where $R_T$ is heat flux from electrode scale, $D_T$ is heat diffusivity.
 \end{compactitem}
 
-\MarginPar{JBB:  reduced for space. . only 2 scale so only 3 order of magnitude}
+%\MarginPar{JBB:  reduced for space. . only 2 scale so only 3 order of magnitude}
 %given systems at particle, given system at electrode and given system as cell}
 %Uncertainty quantification in this context represents an
 %extreme scale challenge:
@@ -905,13 +905,13 @@ Note that $F$ is a function of the uncertain parameters and that the minimizer o
 where $\phi = \min F$ and $\xi$ is a Gaussian reference variable with mean zero and unit variance, i.e. the equations have a random RHS.
 Note that the RHS is small with a high probability ($\xi$ has mean zero), which implies that the left hand side is also small with a high probability and, therefore, the solution is close to the minimizer of $F$ which is the mode of the posterior.
 Thus, the solutions of these equations (for different realizations of $\xi$) are in the neighborhood of the mode of the posterior, i.e. almost all samples are compatible with the data.
-\MarginPar{JG: deleted the diss of "standard MC" because this is too broad.  It's standard 
-in vanilla particle filtering, but not in other MC methods.  Too much of a digression to 
-explain, so delete?}
+%\MarginPar{JG: deleted the diss of "standard MC" because this is too broad.  It's standard 
+%in vanilla particle filtering, but not in other MC methods.  Too much of a digression to 
+%explain, so delete?}
 Generating samples with low probability with respect to the data is avoided by the minimization step. The weights of each sample are the Jacobian determinant of the mapping we choose to solve (\ref{eq:IS_sampling_eq}).
 
 
-\MarginPar{JBB: Matti, it seems like we should say more about solving the random equations.\\ (matti): I added a few things. Is that enough?}
+%\MarginPar{JBB: Matti, it seems like we should say more about solving the random equa%tions.\\ (matti): I added a few things. Is that enough?}
 There are various ways for solving the algebraic equations of implicit sampling (\ref{eq:IS_sampling_eq}) \cite{chorin2010,Morzfeld2011}. 
 For example, we can use information about the curvature of $F$, e.g. from BFGS-type optimization~\cite{Liu:1989:LMB:81100.83726}, for the construction of linear maps. Let $L$ be a square root of the Hessian of $F$ (e.g. Cholesky factor), then $\theta = \mu +L^{-1}\xi$, where $\mu$ is the minimizer of $F$, solves the quadratic equation $F_0-\phi=0.5\xi^T\xi$, where $F_0$ is the Taylor expansion of order $2$ of $F$. 
 The error we make by solving a quadratic equation instead of (\ref{eq:IS_sampling_eq}) can be accounted for in the weights (without introducing bias). This method can fail if there is sufficient skew in the posterior pdf, or if the information about the curvature of $F$ is incomplete/inaccurate (e.g. when derivative free optimization schemes are used). In this case, we can use the ``random map'' approach and pick a direction $\eta$ at random by setting $\theta = \mu+\lambda \eta$, where $\eta$ is the random direction and $\lambda$ is a scalar parameter that defines the sample. We search for solutions in this direction by solving a single algebraic equation in a single variable (we must solve (\ref{eq:IS_sampling_eq}) for $\lambda$), e.g. by Newton iteration. The weights, i.e. the Jacobian of the random maps are straight forward to evaluate \cite{Morzfeld2011}. In summary, implicit sampling amounts to the following steps:
@@ -977,7 +977,7 @@ Moreover, the theory and numerics can be intertwined here because the models obt
 Another central issue is determining whether or not moving through the hierarchy of experiments from the simplest to the most complex introduces bias in the parameter estimates. If this bias is found to be significant, strategies must be developed to reduce that bias. 
 
 \subsubsection*{Model inconstancies}
-\MarginPar{JG: I deleted the degeneracy part because it is discussed above.}
+%\MarginPar{JG: I deleted the degeneracy part because it is discussed above.}
 
 As noted above, it is inevitable that the exact model is not in the family being fit and
 the statistical methods we develop must be robust to this situation.
@@ -1006,7 +1006,7 @@ We will conduct computational experiments to study this problem, then use the re
 choose appropriate noise levels for our physical models.
 By combining what is known about the error levels in both model and data, we can also estimate upper and lower bounds
 of the predictive skills of the resulting stochastic models.
-\MarginPar{can be develop criteria to assess if something is missing form model}
+%\MarginPar{can be develop criteria to assess if something is missing form model}
 
 \subsubsection*{Efficient sampling in view of complex observation operators}
 %Another feature of all three target applications is a complex relation between the data and the parameters being estimated. For example, laser diagnostic measurements depend on the system state but there are parameters describing the laser interaction (so-called quenching coefficients) that have uncertainties as well, i.e. the observation function $h$ itself can be uncertain. We plan on extending the implicit formalism to estimate uncertainties in the measurement mechanisms. 
@@ -1076,7 +1076,7 @@ At high levels of the hierarchy in turbulent combustion, we are interested in fi
 consistent with observed features in the data that are insensitive to details of the state trajectory.
 In fact, we want to avoid trying to estimate a trajectory that is a point-wise fit to the trajectory
 given by a measurement because it is a hopeless task.
-\MarginPar{JBB:  is this too hopeless? (matti) I hope not, I would like to try.}
+%\MarginPar{JBB:  is this too hopeless? (matti) I hope not, I would like to try.}
 On an abstract level, this corresponds to the problem of translating qualitative behavior observed in the data
 into quantitative information about parameters (by using sampling techniques) and, to the best of our knowledge,
 this fundamental problem has not been addressed before.
@@ -1086,8 +1086,8 @@ A major hurdle here is that we cannot use adjoints for the optimization needed b
 some type of surrogate representation of the likelihood to perform the optimization.
 
 \subsubsection*{Multi-scale sampling}
-\MarginPar{JG: edited to make notation consistent -- $\theta$ and parameters etc.
-This includes standardized hyphenation: multi-scale.}
+%\MarginPar{JG: edited to make notation consistent -- $\theta$ and parameters etc.
+%This includes standardized hyphenation: multi-scale.}
 Multi scale-systems raise new issues for sampling.
 We plan to use the multi-scale battery application as a case study.
 Specifically, we are interested in the fluctuation of pressure with time since it can critically 
@@ -1186,7 +1186,7 @@ The investigation of the research questions posed above will be pursued in the c
 We will initially focus on relatively simple models and progress to more complex systems as the methodology matures.
 Specific timetable for the research activities are given below.
 Personnel are denoted by initials with $GS$ representing the graduate student at NYU. Levels of effort are given in terms of FTE.
-\MarginPar{needs to add to jbb .25, msd .25, gp .2, rg .4, pg .4, jg .08, gs .75, feel free to modify. }
+%\MarginPar{needs to add to jbb .25, msd .25, gp .2, rg .4, pg .4, jg .08, gs .75, feel free to modify. }
 %
 
 \underline{First Year}
