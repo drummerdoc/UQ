@@ -63,11 +63,11 @@ Senior Personnel: M. Day, J. Goodman, R. Grout, S. Habib, M. Kowalsky, M. Morzfe
 Predicting the behavior of complex physical systems is a key requirement for
 many important DOE applications.
 One approach to predicting the behavior of such systems is through high fidelity simulation. However,
-for many systems uncertainties in the model used for computation limit its predictive capability.
+for many systems, uncertainties in the model used for computation limit its predictive capability.
 Systems can also be probed experimentally; however, the 
 relationship between the data and the system
 can be complicated,
-making it difficult to predict system behavior directly from data.
+making it difficult to predict system behavior statistically directly from data.
 %
 %Typically, these systems are investigated using a variety of different experiments, often
 %aimed at probing a specific aspect of the physical system.
@@ -95,9 +95,12 @@ a particular system component.
 A second common feature is that there is a complex, often uncertain relationship between the state of the system and
 what is being measured. For example, laser diagnostic measurements
 of a chemical species in a reacting flow are modulated by quenching corrections that depend locally on the full
-thermodynamic state of the system. Cosmological observations from telescopes provide a complex
-space-time image  requiring corrections for
-red shift and other effects. Data from tracer tests, resistivity measurements and pressure tests used to probe the subsurface
+thermodynamic state of the system.
+%Cosmological observations from telescopes provide a complex
+%space-time image  requiring corrections for
+%red shift and other effects.
+Observations from cosmological surveys require modeling of photometric redshifts, corrections for telescope focal plane distortions, and a number of other systematic effects.
+Data from tracer tests, resistivity measurements and pressure tests used to probe the subsurface
 all provide complex nonlocal measurements of the system state. 
 The third common characteristic of the systems we are considering is that the combination of the experiment not being sufficiently well defined 
 and the dynamics being sufficiently complex means that we are often only trying to extract
@@ -189,8 +192,11 @@ to the data, especially when measurements are obtained from instruments with a c
 
 To evaluate the methodology we will examine test cases within each of our target application areas.
 Specifically, we plan to consider how combustion experiments can be used to improve
-the predictions of turbulent flames, how to use observations to improve our understanding of
-cosmological parameters and how to use field scale measurements to improve prediction of subsurface
+the predictions of turbulent flames,
+%how to use observations to improve our understanding of
+%cosmological parameters
+how to combine observations to robustly estimate cosmological parameters
+and how to use field scale measurements to improve prediction of subsurface
 flows.
 By adopting a Bayesian framework with MC sampling, the proposed methodology will provide an accurate representation of the posterior distribution that not only defines the limits of what can be predicted but also provides insight into how additional data could be used to improve fidelity. For the initial phases of the project, we plan to use synthetic data from high-fidelity simulations; however, for each target application we
 plan to test the methodology with real data in the final year of the project.
