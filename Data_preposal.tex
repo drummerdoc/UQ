@@ -53,8 +53,9 @@
 {\large{\textbf{Combining Data and Simulation to Predict the Behavior of Complex Systems}}}
 
 \vskip\baselineskip
-{\large{ Lead PI:  J. Bell \\
-Senior/Key Personnel: M. Day, J. Goodman, R. Grout, M. Morzfeld, G. Pau}}
+%{\large{ Lead PI:  J. Bell \\
+{{ Lead PI:  J. Bell \\
+Senior Personnel: M. Day, J. Goodman, R. Grout, S. Habib, M. Kowalsky, M. Morzfeld, G. Pau}}
 \end{center}
 
 \subsection*{Background}
@@ -94,11 +95,12 @@ a particular system component.
 A second common feature is that there is a complex, often uncertain relationship between the state of the system and
 what is being measured. For example, laser diagnostic measurements
 of a chemical species in a reacting flow are modulated by quenching corrections that depend locally on the full
-thermodynamic state of the system. Cosmological observations from telescopes require corrections for
-red shift. Data from tracer tests, resistivity measurements and pressure tests used to probe the subsurface
+thermodynamic state of the system. Cosmological observations from telescopes provide a complex
+space-time image  requiring corrections for
+red shift and other effects. Data from tracer tests, resistivity measurements and pressure tests used to probe the subsurface
 all provide complex nonlocal measurements of the system state. 
 The third common characteristic of the systems we are considering is that the combination of the experiment not being sufficiently well defined 
-and the dynamics being sufficiently complex means that we are only trying to extract
+and the dynamics being sufficiently complex means that we are often only trying to extract
 statistical properties of the experiments, not a detailed trajectory.
 
 The goal of this project is to develop a
@@ -121,8 +123,8 @@ The methodology needs to be able to use metrics based on identification of
 characteristic features that are more general than
 traditional quantities of interest.
 
-To meet these requirements, we plan to use a Bayesian framework and asses via the posterior distribution how well system behavior
-can be predicted based on all the data we have -- which aspects are tightly bounded and which are less precise. Our implementation will rely on Monte Carlo (MC) sampling to combine modeling and data in a way that provides full insight into the characterization of uncertainty of the complex system. Using MC sampling as the computational backbone leads to a numerically sound implementation that respects the strong nonlinearity in the target applications and which is well suited for extreme-scale architectures, making this type of analysis possible for realistic applications.
+To meet these requirements, we plan to use a Bayesian framework and assess via the posterior distribution how well system behavior
+can be predicted based on all the data we have -- which aspects are tightly bounded and which are less precise. Our implementation will rely on Monte Carlo (MC) sampling to combine modeling and data in a way that provides full insight into the characterization of uncertainty of the complex system. Using MC sampling as the computational backbone leads to a numerically sound implementation that respects the strong nonlinearity in the target applications and is well suited to extreme-scale architectures, making this type of analysis possible for realistic applications.
 
 %A core problem with current MC techniques is that they rely on prior sampling, which is problematic because,
 %from a Bayesian perspective, high-probability events with respect to the prior are likely to have low
@@ -138,7 +140,7 @@ Metropolis and heat bath algorithms suffer on problems that are poorly condition
 One of the central themes of this project will be to develop new smart sampling technologies 
 to address these issues.
 We will investigate the use of multigrid Markov chain Monte Carlo (MCMC) and parallel marginalization to reduce correlation
-times and thus to improve the effectiveness of sampling techniques.
+times and thus improve the effectiveness of sampling techniques.
 We will also investigate the use of the implicit sampling methodology developed at LBNL.
 Here, the central idea is to prevent the breakdown of particle filters by finding a probability distribution that approximates the
 relationship between parameters and data. The search for a suitable approximate distribution is implemented
@@ -156,18 +158,17 @@ via solution of a minimization problem.
 This optimization can either be done using standard methods when a derivative (adjoint) is available
 or with a derivative-free algorithm based on reduced order models (ROM).
 Many research questions surround the interplay between optimization and
-sampling, particularly with approximate surrogate models.
+sampling, particularly with approximate surrogate models based on ROMs.
 
-Another key problem that has to be addressed for effective sampling is dealing with model degeneracy.
+Effective sampling methodology must also deal with model degeneracy and inconsistency.
 A model has an approximate degeneracy if many different parameter sets are nearly as good at explaining the data.
 %For example, if there are multiple reaction pathways in a kinetic description,
 %certain combinations of reaction rates may be much better
 %estimated than the individual rates.
 In such cases, isotropic sampling algorithms such as single variable heat bath (Gibbs sampler) or isotropic
 Metropolis walk will be slow. We plan to use the affine sampling approaches developed at NYU to address issues of model degeneracy.
-
-Finally, it is important to use statistical methods that are robust in the inevitable situation where the model is not in
-the family being fit.
+Methods must also be robust in the inevitable situation where the model is not consistent with the
+data.
 %For example, the power law/exponential formulas for reaction rates are only modeling approximations, though they can be
 %very accurate.
 In chaotic systems especially, even small modeling errors can make an accurate global fit impossible.
@@ -175,13 +176,13 @@ One approach is to include noise in the dynamics, so that the posterior distribu
 dynamical equations to be satisfied exactly.
 We will conduct computational experiments to study this problem, then use the results to 
 choose appropriate noise levels for our physical models.
-By combining what is known about the error levels in both model and data, we can also estimate upper and lower bounds
+By combining what is known about the error levels in both model and data, we can estimate upper and lower bounds
 of the predictive skills of the resulting stochastic models.
 
 As noted above, ROMs can be used as
 part of a derivative free optimization strategy
 to guide a sampling procedure. We will also use ROMs to represent the mapping from the state of the system
-to the data, especially when measurements are obtained from instruments with a complex and possibly uncertain response and for cases in which the data is statistical in nature. For these various purposes, different reduced order modeling technique can be used, ranging from model reduction approaches for models with smooth solution manifolds, to response surface approaches or machine learning techniques for complex models.
+to the data, especially when measurements are obtained from instruments with a complex and possibly uncertain response and for cases in which the data is statistical in nature. For these various purposes, different reduced order modeling techniques can be used, ranging from model reduction approaches for models with smooth solution manifolds, to response surface approaches or machine learning techniques for complex models.
 %This analysis not only defines the predictive capability of the models, it also identifies
 %the major factors that limit predictability and identify what additional data would most significantly
 %impact the fidelity of predictions.
