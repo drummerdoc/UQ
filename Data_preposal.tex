@@ -175,10 +175,14 @@ data.
 %For example, the power law/exponential formulas for reaction rates are only modeling approximations, though they can be
 %very accurate.
 In chaotic systems especially, even small modeling errors can make an accurate global fit impossible.
-One approach is to include noise in the dynamics, so that the posterior distribution does not require the
-dynamical equations to be satisfied exactly.
-We will conduct computational experiments to study this problem, then use the results to 
-choose appropriate noise levels for our physical models.
+One approach is to include noise directly into the dynamical model
+itself, and then introduce a corresponding statistics-based error measure. We will conduct computational experiments to study
+cases for which this approach is appropriate to understand the
+influence of noise levels in the models.
+%One approach is to include noise in the dynamics, so that the posterior distribution does not require the
+%dynamical equations to be satisfied exactly.
+%We will conduct computational experiments to study this problem, then use the results to 
+%choose appropriate noise levels for our physical models.
 By combining what is known about the error levels in both model and data, we can estimate upper and lower bounds
 of the predictive skills of the resulting stochastic models.
 
