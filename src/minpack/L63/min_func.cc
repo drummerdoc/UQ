@@ -427,8 +427,10 @@ void min_func::minimize(double &s, double &b, double &r){
      X[2] = r;                                                                         
 
      global_mfp=this;
-     hybrd1_(global_fcn,&N,X,FVEC,&TOL,&INFO,WA,&LWA);                                                         
-     FNORM=enorm_(&N,FVEC);                                                                             
+
+     hybrd1(global_fcn,global_mfp,N,X,FVEC,TOL,WA,LWA); 
+
+     FNORM=enorm(N,FVEC);  
 
      if(INFO==1){
        printf("Optimization successful, res = %g\n",FNORM); 
@@ -520,7 +522,9 @@ void min_func::sampling(int NOS,double sMAP,double bMAP,double rMAP){
   Save("weights.txt",w,NOS);
 }
 
-//void global_fcn(int *NP,double *X,double *FVEC,int *IFLAGP) {
-void global_fcn(const int *NP,const double *X,double *FVEC,int *IFLAGP) {
-	global_mfp->FCN(NP,X,FVEC,IFLAGP);
+//void global_fcn(const int *NP,const double *X,double *FVEC,int *IFLAGP) {
+int global_fcn(void *p, int NP, const double *X, double *FVEC, int IFLAGP ) {
+  min_func* mf = (min_func*)p;
+  mf->FCN(&NP,X,FVEC,&IFLAGP);
+  return IFLAGP;
 }

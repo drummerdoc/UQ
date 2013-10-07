@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <math.h>
 
-#include "minpack.h"
+#include "cminpack.h"
 
 class min_func {
 
@@ -53,6 +53,7 @@ private:
 
 };
 
-void global_fcn(const int *NP,const double *X,double *FVEC,int *IFLAGP);
+int global_fcn(void *p, int NP, const double *X, double *FVEC, int IFLAGP );
+//void global_fcn(const int *NP,const double *X,double *FVEC,int *IFLAGP);
 
 #endif

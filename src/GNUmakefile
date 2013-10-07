@@ -23,13 +23,19 @@ endif
 CFLAGS += -std=c99
 
 # Set paths to BoxLib and Chemistry
-TOP = ../..
+TOP = ../../../..
 BOXLIB_DIR = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 
-EBASE = driver
+#EBASE = driver
+EBASE = Minimizex2
 Blocs := . hacked_src data/Lu 
 INCLUDE_LOCATIONS += hacked_src data/Lu
+
+INCLUDE_LOCATIONS+=./minpack/cminpack/cminpack-1.3.0
+LIBRARY_LOCATIONS+=./minpack/cminpack/cminpack-1.3.0
+LIBRARIES += -lcminpack
+
 
 CEXE_headers += Observation.H
 CEXE_sources += ${EBASE}.cpp Observation.cpp
