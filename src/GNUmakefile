@@ -23,7 +23,7 @@ endif
 CFLAGS += -std=c99
 
 # Set paths to BoxLib and Chemistry
-TOP = ../../../..
+TOP = ../..
 BOXLIB_DIR = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 
