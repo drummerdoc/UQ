@@ -244,17 +244,24 @@ struct ExperimentManager
   Array<double> true_std, true_std_inv2;
 };
 
-static ChemDriver cd;
-ParameterManager parameter_manager(cd);
-ExperimentManager expt_manager(parameter_manager);
 
+struct MINPACKstruct
+{
+  MINPACKstruct(ChemDriver& cd) : parameter_manager(cd), expt_manager(parameter_manager) {}
+  ParameterManager parameter_manager;
+  ExperimentManager expt_manager;  
+};
+
+static ChemDriver cd;
+MINPACKstruct mystruct(cd);
 
 Real 
-funcF(const Array<Real>& pvals)
+funcF(void* p, const Array<Real>& pvals)
 {
-  Array<Real> dvals(expt_manager.NumExptData());
-  expt_manager.GenerateTestMeasurements(pvals,dvals);
-  return parameter_manager.ComputePrior(pvals) + expt_manager.ComputeLikelihood(dvals);
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  Array<Real> dvals(s->expt_manager.NumExptData());
+  s->expt_manager.GenerateTestMeasurements(pvals,dvals);
+  return s->parameter_manager.ComputePrior(pvals) + s->expt_manager.ComputeLikelihood(dvals);
 }
 
 int
@@ -264,6 +271,10 @@ main (int   argc,
   BoxLib::Initialize(argc,argv);
 
   if (argc<2) print_usage(argc,argv);
+
+  ParameterManager& parameter_manager = mystruct.parameter_manager;
+  ExperimentManager expt_manager = mystruct.expt_manager;  
+  
 
   Array<Real> true_params;
   true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::FWD_BETA));
@@ -329,7 +340,7 @@ main (int   argc,
 
   parameter_manager.SetStatsForPrior(prior_mean,prior_std);
 
-  Real F = funcF(prior_mean);  	
+  Real F = funcF((void*)(&mystruct), prior_mean);  	
   std::cout << "F = " << F << std::endl;
 
 
