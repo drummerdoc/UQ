@@ -28,7 +28,8 @@ BOXLIB_DIR = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 
 #EBASE = driver
-EBASE = Minimizex2
+EBASE = reworkedDriver
+#EBASE = Minimizex2
 Blocs := . hacked_src data/Lu 
 INCLUDE_LOCATIONS += hacked_src data/Lu
 
