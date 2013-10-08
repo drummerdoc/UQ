@@ -242,6 +242,10 @@ struct ExperimentManager
   int num_expt_data;
   Array<double> true_data, perturbed_data;
   Array<double> true_std, true_std_inv2;
+
+private:
+  ExperimentManager(const ExperimentManager& rhs);
+
 };
 
 
@@ -273,7 +277,7 @@ main (int   argc,
   if (argc<2) print_usage(argc,argv);
 
   ParameterManager& parameter_manager = mystruct.parameter_manager;
-  ExperimentManager expt_manager = mystruct.expt_manager;  
+  ExperimentManager& expt_manager = mystruct.expt_manager;  
   
 
   Array<Real> true_params;
