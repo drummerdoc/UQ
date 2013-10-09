@@ -23,9 +23,12 @@ struct CVReactor
   CVReactor(ChemDriver& _cd);
   CVReactor(const CVReactor& rhs);
   ~CVReactor() {}
+
   virtual void GetMeasurements(Array<Real>& simulated_observations);
-  int NumMeasuredValues() const {return num_measured_values;}
+
   virtual void InitializeExperiment();
+
+  virtual int NumMeasuredValues() const;
 
 private:
   // Compute observation from evolution
@@ -42,5 +45,12 @@ private:
   int sCompY, sCompT, sCompR, sCompRH;
   Real Patm;
 };
+
+inline
+int
+CVReactor::NumMeasuredValues() const
+{
+  return num_measured_values;
+}
 
 #endif // _SimulatedExperiment_

@@ -38,8 +38,7 @@ LIBRARY_LOCATIONS+=./minpack/cminpack/cminpack-1.3.0
 LIBRARIES += -lcminpack
 
 
-CEXE_headers += Observation.H SimulatedExperiment.H Rand.H
-CEXE_sources += ${EBASE}.cpp Observation.cpp SimulatedExperiment.cpp Rand.cpp
-f90EXE_sources += driver_f.f90
+CEXE_headers += Observation.H SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H
+CEXE_sources += ${EBASE}.cpp Observation.cpp SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp
 
 include $(CHEMISTRY_DIR)/tools/make/Make.CHEM
