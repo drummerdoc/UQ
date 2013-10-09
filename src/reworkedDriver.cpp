@@ -1,6 +1,8 @@
 #include <iostream>
 
 #include <ChemDriver.H>
+#include <cminpack.h>
+#include <SimulatedExperiment.H>
 
 static
 void 
@@ -15,84 +17,6 @@ print_usage (int,
   exit(1);
 }
 
-// ******************************************************
-// Generate uniformly distributed random number 
-static
-Real drand() {
-  return (rand()+1.0)/(RAND_MAX+1.0);
-}
-  
-// Generate standard normal random number 
-static
-Real randn(){
-  double pi; 
-  pi =  3.14159265358979323846;
-  return sqrt(-2*log(drand())) * cos(2*pi*drand());
-}
-
-
-typedef PArray<ChemDriver::Parameter> Parameters;
-
-struct SimulatedExperiment
-{
-  SimulatedExperiment() {}
-  SimulatedExperiment(const SimulatedExperiment& rhs);
-  ~SimulatedExperiment() {}
-  virtual void GetMeasurements(Array<Real>& simulated_observations) = 0;
-  virtual int NumMeasuredValues() const = 0;
-  virtual void InitializeExperiment() = 0;
-};
-
-
-struct CVReactor
-  : public SimulatedExperiment
-{
-  CVReactor() {
-    Real dt = 1;
-    int num_time_intervals = 10;
-    measurement_times.resize(num_time_intervals+1);
-    for (int i=0; i<=num_time_intervals; ++i) {
-      measurement_times[i] = i*dt/num_time_intervals;
-    }
-    num_measured_values = measurement_times.size();
-  }
-  CVReactor(const CVReactor& rhs) {
-    measurement_times = rhs.measurement_times;
-    measured_comps = rhs.measured_comps;
-    num_measured_values = num_measured_values;
-    s_init.resize(rhs.s_init.box(),rhs.s_init.nComp()); s_init.copy(rhs.s_init);
-    s_final.resize(rhs.s_final.box(),rhs.s_final.nComp()); s_final.copy(rhs.s_final);
-    C_0.resize(rhs.C_0.box(),rhs.C_0.nComp()); C_0.copy(rhs.C_0);
-    I_R.resize(rhs.I_R.box(),rhs.I_R.nComp()); I_R.copy(rhs.I_R);
-    funcCnt.resize(rhs.funcCnt.box(),rhs.funcCnt.nComp()); funcCnt.copy(rhs.funcCnt);
-    sCompY=rhs.sCompY;
-    sCompT=rhs.sCompT;
-    sCompR=rhs.sCompR;
-    sCompRH=rhs.sCompRH;
-    Patm=rhs.Patm;
-  }
-  ~CVReactor() {}
-  virtual void GetMeasurements(Array<Real>& simulated_observations) {
-    for (int i=0; i<num_measured_values; ++i) {
-      simulated_observations[i] = i;
-    }
-  }
-  int NumMeasuredValues() const {return num_measured_values;}
-  virtual void InitializeExperiment() {
-  }
-
-private:
-  // Compute observation from evolution
-  Real FinalValue() const {return 0;}
-
-  Array<Real> measurement_times;
-  Array<int> measured_comps;
-  int num_measured_values;
-
-  FArrayBox s_init, s_final, C_0, I_R, funcCnt; 
-  int sCompY, sCompT, sCompR, sCompRH;
-  Real Patm;
-};
 
 struct ParameterManager
 {
@@ -125,9 +49,9 @@ struct ParameterManager
     }
   }
 
-  Real ComputePrior(const Array<double>& params) const {
+  Real ComputePrior(const Array<Real>& params) const {
     BL_ASSERT(params.size() == NumParams());
-    double p = 0;
+    Real p = 0;
     for (int ii=0, End=NumParams(); ii<End; ii++){
       p+=(prior_mean[ii]-params[ii])*(prior_mean[ii]-params[ii])/2/prior_std[ii]/prior_std[ii];
     }
@@ -142,13 +66,15 @@ struct ParameterManager
     return active_parameters[i];
   }
 
+  Real TypicalValue(int i) {return 1;} // FIXME: Generalize this
+
   bool prior_stats_initialized;
   PArray<ChemDriver::Parameter> active_parameters; // The set of active parameters
   ChemDriver& cd;
 
-  Array<double> true_prior;
-  Array<double> prior_mean;
-  Array<double> prior_std;
+  Array<Real> true_prior;
+  Array<Real> prior_mean;
+  Array<Real> prior_std;
 };
 
 
@@ -166,7 +92,8 @@ struct ExperimentManager
     int num_new_values = expts[num_expts_old].NumMeasuredValues();
     raw_data.resize(num_expts_old+1,Array<Real>(num_new_values));
     data_offsets.resize(num_expts_old+1);
-    data_offsets[num_expts_old] = ( num_expts_old == 0 ? 0 : data_offsets[num_expts_old-1]+raw_data[num_expts_old-1].size() );
+    data_offsets[num_expts_old] = ( num_expts_old == 0 ? 0 : 
+                                    data_offsets[num_expts_old-1]+raw_data[num_expts_old-1].size() );
     num_expt_data = data_offsets[num_expts_old] + num_new_values;
     expt_map[expt_id] = num_expts_old;
   }
@@ -178,8 +105,8 @@ struct ExperimentManager
   }
 
   int NumExptData() const {return num_expt_data;}
-  void InitializeTrueData(const Array<double>& _true_data,
-                          const Array<double>& _true_data_std) {
+  void InitializeTrueData(const Array<Real>& _true_data,
+                          const Array<Real>& _true_data_std) {
     BL_ASSERT(_true_data.size() == _true_data_std.size());
     num_expt_data = _true_data.size();
     true_data = _true_data;
@@ -215,14 +142,14 @@ struct ExperimentManager
     }    
   }
 
-  Real ComputeLikelihood(const Array<double>& test_data) const {
+  Real ComputeLikelihood(const Array<Real>& test_data) const {
     BL_ASSERT(test_data.size() == num_expt_data);
     if (perturbed_data.size()==0) {
       BoxLib::Abort("Must generate (perturbed) expt data before computing likelihood");
     }
-    double L = 0;
+    Real L = 0;
     for (int ii=0; ii<num_expt_data; ii++) {
-      double n = perturbed_data[ii] - test_data[ii];
+      Real n = perturbed_data[ii] - test_data[ii];
       L += 0.5 * n * n * true_std_inv2[ii];
     }
     return L;
@@ -240,8 +167,8 @@ struct ExperimentManager
   std::map<std::string,int> expt_map;
   
   int num_expt_data;
-  Array<double> true_data, perturbed_data;
-  Array<double> true_std, true_std_inv2;
+  Array<Real> true_data, perturbed_data;
+  Array<Real> true_std, true_std_inv2;
 
 private:
   ExperimentManager(const ExperimentManager& rhs);
@@ -251,13 +178,27 @@ private:
 
 struct MINPACKstruct
 {
-  MINPACKstruct(ChemDriver& cd) : parameter_manager(cd), expt_manager(parameter_manager) {}
+  MINPACKstruct(ChemDriver& cd, Real _param_eps)
+  : parameter_manager(cd), expt_manager(parameter_manager), param_eps(_param_eps) {}
+
+  void ResizeWork() {
+    int N = parameter_manager.NumParams();
+    int NWORK = 2;
+    work.resize(NWORK);
+    for (int i=0; i<NWORK; ++i) {
+      work[i].resize(N);
+    }
+  }
+
   ParameterManager parameter_manager;
-  ExperimentManager expt_manager;  
+  ExperimentManager expt_manager;
+  Array<Array<Real> > work;
+  Real param_eps;
 };
 
 static ChemDriver cd;
-MINPACKstruct mystruct(cd);
+Real param_eps = 1.5e-8;
+MINPACKstruct mystruct(cd,param_eps);
 
 Real 
 funcF(void* p, const Array<Real>& pvals)
@@ -267,6 +208,97 @@ funcF(void* p, const Array<Real>& pvals)
   s->expt_manager.GenerateTestMeasurements(pvals,dvals);
   return s->parameter_manager.ComputePrior(pvals) + s->expt_manager.ComputeLikelihood(dvals);
 }
+
+// Compute the derivative of the function funcF with respect to 
+// the Kth variable (centered finite differences)
+Real
+der_cfd(void* p, const Array<Real>& X, int K) {
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  Array<Real>& xdX1 = s->work[0];
+  Array<Real>& xdX2 = s->work[1];
+
+  int num_vals = s->parameter_manager.NumParams();
+
+  for (int ii=0; ii<num_vals; ii++){
+    xdX1[ii] = X[ii];
+    xdX2[ii] = X[ii];
+  }
+                
+  Real typ = std::max(s->parameter_manager.TypicalValue(K), std::abs(X[K]));
+  Real h = typ * s->param_eps;
+
+  xdX1[K] += h;
+  Real fx1 = funcF(p, xdX1);
+
+  xdX2[K] -= h;
+  Real fx2 = funcF(p, xdX2);
+
+  return (fx1-fx2)/(xdX1[K]-xdX2[K]);
+}
+
+// Compute the derivative of the function funcF with respect to 
+// the Kth variable (forward finite differences)
+Real
+der_ffd(void* p, const Array<Real>& X, int K) {
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  Array<Real>& xdX = s->work[0];
+
+  int num_vals = s->parameter_manager.NumParams();
+
+  for (int ii=0; ii<num_vals; ii++){
+    xdX[ii]  = X[ii];
+  }
+                
+  Real typ = std::max(s->parameter_manager.TypicalValue(K), std::abs(xdX[K]));
+  Real h = typ * s->param_eps;
+
+  xdX[K] += h;
+  Real fx1 = funcF(p, xdX);
+  Real fx2 = funcF(p, X);
+
+  Real der = (fx1-fx2)/(xdX[K]-X[K]);
+  return der;
+}
+
+// Gradient with finite differences
+void grad(void * p, const Array<Real>& X, Array<Real>& gradF) {
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  int num_vals = s->parameter_manager.NumParams();
+  for (int ii=0;ii<num_vals;ii++){
+    gradF[ii] = der_cfd(p,X,ii); 
+  } 
+}
+
+// This is what we give to MINPACK
+int FCN(void       *p,    
+        int	   NP,
+        const Real *X,
+        Real       *FVEC,
+        int 	   IFLAGP)
+{
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  s->ResizeWork();
+  Array<Real> Xv(X,NP);
+  Array<Real> Fv(FVEC,NP);
+  grad(p,Xv,Fv);
+  return 0;
+}
+
+// Call minpack
+void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
+{
+  int INFO,LWA=180;
+  Real TOL=1e-14;
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  int num_vals = s->parameter_manager.NumParams();
+  Array<Real> FVEC(num_vals);
+  Array<Real> WA(LWA);
+  soln = guess;
+  INFO = hybrd1(FCN,p,num_vals,soln.dataPtr(),FVEC.dataPtr(),TOL,WA.dataPtr(),WA.size());   
+  std::cout << "minpack INFO: " << INFO << std::endl;
+};
+
+
 
 int
 main (int   argc,
@@ -281,59 +313,70 @@ main (int   argc,
   
 
   Array<Real> true_params;
-  true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::FWD_BETA));
-  true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::FWD_EA));
-  true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::LOW_A));
-  true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::LOW_BETA));
-  true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::LOW_EA));
-  true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::TROE_A));
-  true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::TROE_TS));
-  true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::TROE_TSSS));
+  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::FWD_BETA));
+  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::FWD_EA));
+  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::LOW_A));
+  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::LOW_BETA));
+  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::LOW_EA));
+  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::TROE_A));
+  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::TROE_TS));
+  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::TROE_TSSS));
+
+  true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::FWD_A));
+  true_params.push_back(parameter_manager.AddParameter(9,ChemDriver::FWD_A));
+  true_params.push_back(parameter_manager.AddParameter(10,ChemDriver::FWD_A));
+  //true_params.push_back(parameter_manager.AddParameter(11,ChemDriver::FWD_A));
+  //true_params.push_back(parameter_manager.AddParameter(12,ChemDriver::FWD_A));
+  //true_params.push_back(parameter_manager.AddParameter(13,ChemDriver::FWD_A));
+  //true_params.push_back(parameter_manager.AddParameter(14,ChemDriver::FWD_A));
   int num_params = parameter_manager.NumParams();
   std::cout << "NumParams:" << num_params << std::endl; 
   for(int ii=0; ii<num_params; ii++){
     std::cout << "  True: " << parameter_manager[ii] << std::endl;
   }
 
-  CVReactor cv_reactor;
-  CVReactor cv_reactor2;
+  CVReactor cv_reactor(cd);
+  CVReactor cv_reactor2(cd);
   expt_manager.AddExperiment(cv_reactor,"exp1");
-  expt_manager.AddExperiment(cv_reactor2,"exp2");
+  //expt_manager.AddExperiment(cv_reactor2,"exp2");
   expt_manager.InitializeExperiments();
 
   int num_data = expt_manager.NumExptData();
   std::cout << "NumData:" << num_data << std::endl; 
   Array<Real> true_data(num_data);
-  Array<Real> true_data_std(num_data,2); // Set variance of data (likelihood) to 14
+  Array<Real> true_data_std(num_data,50); // Set variance of data 
 
   expt_manager.GenerateTestMeasurements(true_params,true_data);
   expt_manager.InitializeTrueData(true_data,true_data_std);
 
-  // Output true data and std
-  std::cout << "True data:\n"; 
-  for(int ii=0; ii<num_data; ii++){
-    std::cout << "  True: " << true_data[ii] << std::endl;
-  }
-
   expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
   const Array<Real>& perturbed_data = expt_manager.TrueDataWithObservationNoise();
 
-  std::cout << "True data with observation noise:\n"; 
+  std::cout << "True and noisy data:\n"; 
   for(int ii=0; ii<num_data; ii++){
-    std::cout << "  Noisy: " << perturbed_data[ii] << "  Standard deviation: " << true_data_std[ii] << std::endl;
+    std::cout << "  True: " << true_data[ii]
+              << "  Noisy: " << perturbed_data[ii]
+              << "  Standard deviation: " << true_data_std[ii] << std::endl;
   }
 
 
   Array<Real> prior_mean(num_params);
   Array<Real> prior_std(num_params);
   for(int ii=0; ii<num_params; ii++){
-    prior_std[ii] = true_params[ii]*0.1;
-    if (prior_std[ii] == 0) {prior_std[ii] =1e-2;}
+    prior_std[ii] = 0.5;
+    prior_std[ii] = 0.8;
+    if (prior_std[ii] == 0) {prior_std[ii] = 1e-2;}
 
     prior_mean[ii] = true_params[ii]*(1+0.5*prior_std[ii]);
     if (prior_mean[ii] == 0) {prior_mean[ii] =1e-2;}
   }
 
+  std::cout << "True and prior mean:\n"; 
+  for(int ii=0; ii<num_params; ii++){
+    std::cout << "  True: " << true_params[ii]
+              << "  Prior: " << prior_mean[ii]
+              << "  Standard deviation: " << prior_std[ii] << std::endl;
+  }
   Array<Real> prior_data(num_data);
   std::cout << "Data with prior mean:\n"; 
   expt_manager.GenerateTestMeasurements(prior_mean,prior_data);
@@ -347,6 +390,12 @@ main (int   argc,
   Real F = funcF((void*)(&mystruct), prior_mean);  	
   std::cout << "F = " << F << std::endl;
 
+  // Call minpack
+  Array<Real> soln(num_params);
+  minimize((void*)(&mystruct), prior_mean, soln);
+  for(int ii=0; ii<num_params; ii++){
+    std::cout << "  Final: " << parameter_manager[ii] << std::endl;
+  }
 
   BoxLib::Finalize();
 }
