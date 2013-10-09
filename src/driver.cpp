@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include <Observation.H>
-//#include "minpack.h"
+#include "cminpack.h"
 
 static
 void 
@@ -52,73 +52,222 @@ generate_data(double *data, // the "output" is data, array of length num_exps
   		}
 }
 
-
-// Generate a sample of the prior (i.e. a set of parameters)
-void generate_prior_sample(
-		double 	*sample, 		// the sample
-		int 	 num_vals, 		// number of parameters
-		double  *prior_mean,		// the mean
-		double  *prior_std)	// the standard deviations
-{
-	int ii;
-	for(ii=0;ii<num_vals;ii++){
-		sample[ii]=prior_mean[ii]+prior_std[ii]*randn();
-	}
-}
-
-// Function that evaluates the prior
-double prior(	double *prior_mean,	// mean of prior
-		double *prior_std, 	// standard deviations of prior
-		double *pvals,		// the parameters
-		int 	num_vals)	// number of parameters
-{
-	int ii;
-	double p = 0;
-	for(ii=0;ii<num_vals;ii++){
-		p+=(prior_mean[ii]-pvals[ii])*(prior_mean[ii]-pvals[ii])/2/prior_std[ii]/prior_std[ii];
-	}	
-	return p;
-}
-
-// Function that evaluates the likelihood
-double likelihood(
-	double *data, 		// the data
-    	int     num_exps,	// how many data
-	double *likelihood_std, // standard deviations of likelihood
-	double *pvals,		// the parameters
-	int 	num_vals)	// number of parameters
-{
-	Real ret;
-	observation_function(num_vals,pvals,&ret);
-	double l = 0;
-	int ii;
-	for(ii=0;ii<num_exps;ii++){
-		l+=(data[ii]-ret)*(data[ii]-ret)/2/likelihood_std[ii]/likelihood_std[ii];
-	}
-	return l;
-}
-
-#if 0
 struct ExperimentData
 {
-  ExperimentDatafuncF()
-  void initialize(	double *data, 		// the data
-                        int     num_exps,	// how many data
-                        double *likelihood_std, // standard deviations of likelihood
-                        double *prior_mean,	// mean of prior
-                        double *prior_std, 	// standard deviations of prior
-                        int 	num_vals)	// number of parameters
-  double *data; // the data
-  int     num_exps; // how many data
-  double *likelihood_std; // standard deviations of likelihood
-  double *prior_mean; // mean of prior
-  double *prior_std; // standard deviations of prior
-  int 	num_vals; // number of parameters
+	double *data; 		// the data
+        int     num_exps;	// how many data
+        double *likelihood_std; // standard deviations of likelihood
+        double *prior_mean;	// mean of prior
+        double *prior_std; 	// standard deviations of prior
+        int 	num_vals;	// number of parameters
+	
+	// Constructor and destructor
+	ExperimentData(	double *data_, 		// the data
+        		int     num_exps_,	// how many data
+        		double *likelihood_std_, // standard deviations of likelihood
+       			double *prior_mean_,	// mean of prior
+        		double *prior_std_,	// standard deviations of prior
+        		int 	num_vals_)	// number of parameters
+		: 	data(data_),
+			num_exps(num_exps_),
+			likelihood_std(likelihood_std_),
+			prior_mean(prior_mean_),
+			prior_std(prior_std_),
+			num_vals(num_vals_){};
+	
+	// Function that prints configuration to the screen
+	void Info()
+	{
+ 		int ii;
+		puts(" ");
+		std::cout << "Number of parameters: " << num_vals << std::endl;
+		std::cout << "Number of data points: "<< num_exps << std::endl;
+
+		puts(" ");
+		std::cout << "Data: " << std::endl;
+		for(ii=0;ii<num_exps;ii++){
+			 std::cout << "Mean (+/- standard deviation): " << data[ii] << " +/- " << likelihood_std[ii] << std::endl;
+		};
+
+		puts(" ");
+		std::cout << "Prior: " << std::endl;
+		for(ii=0;ii<num_vals;ii++){
+			 std::cout << "Mean (+/- standard deviation): " << prior_mean[ii] << " +/- " << prior_std[ii] << std::endl;
+		};
+	};
+
+	// Function that evaluates the prior
+	double prior(double *pvals)
+	{
+		int ii;
+		double p = 0;
+		for(ii=0;ii<num_vals;ii++){
+			p+=(prior_mean[ii]-pvals[ii])*(prior_mean[ii]-pvals[ii])/2/prior_std[ii]/prior_std[ii];
+		}	
+		return p;
+	}
+
+	// Function that evaluates the likelihood
+	double likelihood(double *pvals)
+	{
+		Real ret;
+		observation_function(num_vals,pvals,&ret);
+		double l = 0;
+		int ii;
+		for(ii=0;ii<num_exps;ii++){
+			l+=(data[ii]-ret)*(data[ii]-ret)/2/likelihood_std[ii]/likelihood_std[ii];
+		}
+		return l;
+	}
+
+	Real funcF(double *pvals)
+	{
+		Real F = prior(pvals)+likelihood(pvals);
+		return F;
+	}
+
+
+	// Compute the derivative of the function funcF with respect to 
+	// the Kth variable (centered finite differences)
+	double der_cfd(const double *X,
+				int K)
+	{
+  		int ii;
+  		double h = 1.5e-8;
+  		double *xdX  = new double[num_vals];
+  		double *xdX1 = new double[num_vals];
+  		double *xdX2 = new double[num_vals];
+
+  		for(ii=0;ii<num_vals;ii++){
+     			xdX[ii]  = X[ii];
+     			xdX1[ii] = X[ii];
+     			xdX2[ii] = X[ii];
+  		}
+                
+		double typ = std::abs(xdX[K]);
+		if(std::abs(typ)<1){typ= 1;};
+
+   		xdX1[K] = xdX[K]+h*typ;
+    		double fx1 = funcF(xdX1);
+    		xdX2[K] = xdX[K]-h*typ;
+    		double fx2 = funcF(xdX2);
+    		double dx = xdX1[K]-xdX2[K];
+    		double fp = (fx1-fx2)/dx;    	
+                delete xdX;
+                delete xdX1;
+                delete xdX2;
+		return fp;
+	}	
+
+	// Compute the derivative of the function funcF with respect to 
+	// the Kth variable (forward finite differences)
+	double der_ffd(const double *X,
+			        int K)
+	{
+		int ii;
+  		double h = 1.5e-8;
+  		double *xdX  = new double[num_vals];
+ 	 	double *xdX1 = new double[num_vals];
+
+  		for(ii=0;ii<num_vals;ii++){
+    	 		xdX[ii] = X[ii];
+     			xdX1[ii]= X[ii];
+  		}
+                double typ = std::abs(xdX[K]);
+		if(std::abs(typ)<1){typ= 1;};
+		xdX1[K] = xdX[K]+typ*h;
+ 		double fx1 = funcF(xdX1);
+
+ 		double fx2 = funcF(xdX);
+ 		double dx  = xdX1[K]-xdX[K];
+  		double fp  = (fx1-fx2)/dx;
+
+                delete xdX;
+                delete xdX1;
+  		return fp;
+	}
+
+	// Gradient with finite differences
+	void grad(const double *X,
+	  		double *gradF)
+	{
+		int ii;
+		for(ii=0;ii<num_vals;ii++){  
+         		gradF[ii] = der_ffd(X,ii); 
+          		//gradF[ii] = der_cfd(X,ii); 
+  		} 
+	}
+
+	
+	// This is what we give to MINPACK
+	int FCN(void   *p,    
+         	int	NP,
+	 	const double *X,
+	 	double *FVEC,
+	 	int 	IFLAGP)
+	{
+ 		grad(X,FVEC);	
+		
+		int ii;
+		puts(" ");
+		std::cout <<"Gradient via FNC: " << std::endl;
+
+		for(ii=0;ii<num_vals;ii++){
+  			std::cout << FVEC[ii] << std::endl;
+  		};
+
+        	return 0;
+	}
+
+	/*
+	// Call minpack
+	void minimize(double *InitialGuess)
+	{
+		int INFO,LWA=180;                                                                                  
+ 		double TOL=1e-14;                                                                                  
+  		double *FVEC = new double[num_vals];
+  		double *WA   = new double[180];                                                
+
+		InitialGuess = prior_mean;
+
+		INFO = hybrd1(FCN,0,num_vals,InitialGuess,FVEC,TOL,WA,LWA); 
+
+  		std::cout << "INFO: " << INFO << std::endl;
+  		for (int i=0; i<num_vals; ++i) { 
+    		std::cout << "i,f: " << i << ", " << FVEC[i] << std::endl;
+ 		}
+	};
+	*/
+
+
+	/*
+	// Generate a sample of the prior (i.e. a set of parameters)
+	void generate_prior_sample(double *sample)
+	{
+		int ii;
+		for(ii=0;ii<num_vals;ii++){
+			sample[ii]=prior_mean[ii]+prior_std[ii]*randn();
+		}
+	}
+
+
+
+	void PriorImportanceSampling(int NOS) // input is number of samples
+	{
+ 		double *sample = new double[num_vals];
+		double *weights = new double[num_samples];
+  		int    ii;
+  		for(ii=0;ii<NOS;ii++){
+			generate_prior_sample(sample);
+			weights[ii] = likelihood(sample);
+		}
+	};
+	*/
 };
 
-ExperimentData expData;
+//ExperimentData expData;
 
-
+#if 0
   extern "C" {
     void
     funcF()
@@ -140,118 +289,6 @@ main() {
 }
 
 #endif
-
-// The function F we will minimize with Minpack 
-// Note: we will give Minpack the gradient of this function
-Real 
-funcF(	double *data, 		// the data
-    	int     num_exps,	// how many data
-	double *likelihood_std, // standard deviations of likelihood
-	double *prior_mean,	// mean of prior
-	double *prior_std, 	// standard deviations of prior
-	double *pvals,		// the parameters
-	int 	num_vals)	// number of parameters
-{
-	Real F = 0;
-	Real ret;
-	int ii;
-	// prior
-	for(ii=0;ii<num_vals;ii++){
-		F+= prior(prior_mean,prior_std,pvals,num_vals);
-	}
-	// likelihood
-	for(ii=0;ii<num_exps;ii++){
-		observation_function(num_vals,pvals,&ret);
-		F+=likelihood(data,num_exps,likelihood_std,pvals,num_vals);
-	}
-	return F;
-}
-
-/*
-Real funcF(double *X){
-	Real F = 0;
-	int ii;
-	for(ii=0;ii<8;ii++){
-		F+=0.5*X[ii]*X[ii];
-	}
-	return F;
-}
-
-
-// Compute the derivative of the function funcF with respect to 
-// the Kth variable (forward finite differences)
-double der_ffd(double *X,
-	       int N, 
-	       int K)
-{
-		int ii;
-  		double h=1.5e-8;
-  		double *xdX  = new double[N];
- 	 	double *xdX1 = new double[N];
-
-  		for(ii=0;ii<N;ii++){
-    	 		xdX[ii] = X[ii];
-     			xdX1[ii]= X[ii];
-  		}
-  		xdX1[K] = xdX[K]+h*xdX[K];
- 		double fx1 = funcF(xdX1);
- 		double fx2 = funcF(xdX);
- 		double dx  = xdX1[K]-xdX[K]; 
-  		double fp  = (fx1-fx2)/dx;
-  		return fp;
-}
-
-// Compute the derivative of the function funcF with respect to 
-// the Kth variable (centered finite differences)
-double der_cfd(	double *X,
-		int N, 
-		int K)
-{
-  		int ii;
-  		double h=1.5e-8;
-  		double *xdX  = new double[N];
-  		double *xdX1 = new double[N];
-  		double *xdX2 = new double[N];
-
-  		for(ii=0;ii<N;ii++){
-     			xdX[ii]  = X[ii];
-     			xdX1[ii] = X[ii];
-     			xdX2[ii] = X[ii];
-  		}
-   		xdX1[K] = xdX[K]+h*xdX[K];
-    		double fx1 = funcF(xdX1);
-    		xdX2[K] = xdX[K]-h*xdX[K];
-    		double fx2 = funcF(xdX2);
-    		double dx = xdX1[K]-xdX2[K]; 
-    		double fp = (fx1-fx2)/dx;
-    		return fp;
-}	
-
-// Gradient with finite differences
-void grad(double *X,
-	  double *gradF, 
-	  int N)
-{
-	int ii;
-	for(ii=0;ii<N;ii++){  
-   		//gradF[ii] = der_ffd(X,N,ii); 
-		gradF[ii] = der_cfd(X,N,ii); 
-  	} 
-}
-
-// This is what we give to MINPACK
-void FCN(int 	*NP,
-	double 	*X,
-	double 	*FVEC,
-	int 	*IFLAGP)
-{
- 	int ii;
-	int n=8;	
- 	double *gradF = new double[n];	
- 	grad(X,gradF,n);	
- 	for(ii=0;ii<n;ii++) FVEC[ii]=gradF[ii];
-}
-*/
 // END Matti *(CAREFUL)*
 // ******************************************************
 
@@ -283,35 +320,26 @@ main (int   argc,
 
   // Matti *(CAREFUL)*
   // ******************************************************
-  // This "generates the data", i.e. it runs the observation function(s)
-  // and perturbs them by a Gaussian with mean zero and known variance.
-  // This variance is also used in minpack later on.
-  // The reason it is here is that it needs the above stuff and the observation
-  // function (but currently only one observation object can be created.
-  // What it does: Takes in the true parameters/conficuration of ChemKin
-  // and outputs the "data". This corresponds to a simulation of going to a lab,
-  // performing an experiment, measuring something, writing it down and using the
-  // result for the parameter estimation. This has nothing to do with the estimation itself,
-  // but the "synthetic data" created by gen_data is used during the estimation process.
   //
-  int ii;
   int num_exps = 1; 			 	     	// how many data points/different experiments do we have?
-  double *data = new double[num_exps];
-  double *likelihood_std = new double[num_exps];	// What is the error in the measurement processes?
-  					  		// For now we think of the errors as being uncorrelated,
-					 		// so that likelihood_stds is a vector of length num_exps;
-  double *true_params = pdata.dataPtr();		// True parameter set						 
-  Real ret;
+  double *true_params = pdata.dataPtr();		// True parameter set	
+  int ii;
+ 
+  // Output true parameters (we want to find these via sampling) 	  
+  std::cout << "True parameters: " << std::endl;
+  for(ii=0;ii<num_vals;ii++){
+	  std::cout << true_params[ii] << std::endl;
+  };
   
-  // Here I set the likelihood
+  // Define the likelihood
+  double *likelihood_std = new double[num_exps];
   for(ii=0;ii<num_exps;ii++){ 
 	  likelihood_std[ii] = 14.; // standard deviations
   }	
  
-  // Here I define the prior, by giving it a mean and variance for all the active parameters
+  // Define the prior, by giving it a mean and variance for all the active parameters
   // Std is 10% of the true value of the parameter
   // Mean is 0.5*std away from true value
-  std::cout << "Prior:\n"; 
   double *prior_mean = new double[num_vals];
   double *prior_std  = new double[num_vals];
   for(ii=0;ii<num_vals;ii++){
@@ -321,31 +349,46 @@ main (int   argc,
 	  if(prior_mean[ii] == 0){prior_mean[ii] =1e-2;}
 
   }
-  // Output true parameters and prior	  
-  for(ii=0;ii<num_vals;ii++){
-	  std::cout << "True: " << true_params[ii] << " Mean: " << prior_mean[ii] << "  Standard deviation: " << prior_std[ii] << std::endl;
-  }
 
-  // Observation function with true parameters and without added noise 
-  observation_function(num_vals,true_params,&ret);
-  for(ii=0;ii<num_exps;ii++){
-	 std::cout << "Unperturbed value of obs with true parameters: " << ret << std::endl;
-  }
   // generate a synthetic set of data: run observation with true parameters and perturb what we get  
+  double *data = new double[num_exps];
   generate_data(data,num_exps,likelihood_std,num_vals,true_params);
-  for(ii=0;ii<num_exps;ii++){
-	  std::cout << "Data (output of observation funciton perturbed): " << data[ii] << std::endl;
-  }	
-  // run observation with prior mean
-  observation_function(num_vals,prior_mean,&ret);
-  for(ii=0;ii<num_exps;ii++){
-	  std::cout << "Data with prior parameters: " << ret << std::endl;
-  }
 
-  // The function F
-  Real F = funcF(data,num_exps,likelihood_std,prior_mean,prior_std,prior_mean,num_vals);  	
-  std::cout << "F =  " << F << std::endl;
+  // Creat an "ExperimentData" instant
+  ExperimentData ExpData(data,num_exps,likelihood_std,prior_mean, prior_std,num_vals);	
+  ExpData.Info();	
   
+  // Test functions in class
+  puts(" ");
+  std::cout << "Prior evaluated at prior mean: " <<  ExpData.prior(prior_mean) << std::endl;
+  std::cout << "Prior evaluated at true parameters: " <<  ExpData.prior(true_params) << std::endl;
+  
+  puts(" ");
+  std::cout << "Likelihood evaluated at prior mean: " <<  ExpData.likelihood(prior_mean) << std::endl;
+  std::cout << "Likelihood evaluated at true parameters:  " <<  ExpData.likelihood(true_params) << std::endl; 
+  
+  puts(" ");
+  std::cout << "F evaluated at prior mean:   " <<  ExpData.funcF(prior_mean) << std::endl; 
+  std::cout << "F evaluated at true parameters:  " <<  ExpData.funcF(true_params) << std::endl;
+  
+  double *gradF = new double[num_vals];
+  ExpData.grad(prior_mean,gradF);
+  puts(" ");
+  std::cout << "Gradient evaluated at true parameters:  "<< std::endl;
+  for(ii=0;ii<num_vals;ii++){
+  	std::cout << gradF[ii] << std::endl;
+  };
+
+  void *p;
+  int FLAG;
+  int tmp = ExpData.FCN(p,num_vals,prior_mean,gradF,FLAG); 
+  std::cout << "FCN evaluated at true parameters:  "<< tmp << std::endl;
+
+
+
+
+
+/*
   // generate samples of prior and compare to data (simple MC scheme)
   double *sample = new double[num_vals];
   int 	  num_samples = 1000;
@@ -359,7 +402,7 @@ main (int   argc,
 	weights[ii] = likelihood(data,num_exps,likelihood_std,sample,num_vals);
 	std::cout << "Outcome: " << ret << " Weight: " << weights[ii] <<std::endl;
   }
-
+*/
   
   
   /*
