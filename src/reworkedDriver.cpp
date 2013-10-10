@@ -23,6 +23,7 @@ print_usage (int,
   exit(1);
 }
 
+
 // A simple struct to hold all the parameters, experiment data and some work space
 // to be accessible to the MINPACK function
 struct MINPACKstruct
@@ -45,11 +46,6 @@ struct MINPACKstruct
   Real param_eps;
 };
 
-//
-// Make some static data
-//
-static ChemDriver cd;
-
 static
 Real
 get_macheps() {
@@ -62,9 +58,8 @@ get_macheps() {
   return mach_eps;
 }
 
-//Real param_eps = get_macheps();
-Real param_eps = 1.e-4;
-MINPACKstruct mystruct(cd,param_eps);
+static ChemDriver* cd;
+MINPACKstruct *mystruct;
 
 
 //
@@ -214,8 +209,6 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
 
 };
 
-
-
 int
 main (int   argc,
       char* argv[])
@@ -224,8 +217,14 @@ main (int   argc,
 
   if (argc<2) print_usage(argc,argv);
 
-  ParameterManager& parameter_manager = mystruct.parameter_manager;
-  ExperimentManager& expt_manager = mystruct.expt_manager;  
+  cd = new ChemDriver;
+
+  Real eps = get_macheps();
+  Real param_eps = 1.e-4;
+  mystruct = new MINPACKstruct(*cd,param_eps);
+
+  ParameterManager& parameter_manager = mystruct->parameter_manager;
+  ExperimentManager& expt_manager = mystruct->expt_manager;  
   
 
   Array<Real> true_params;
@@ -246,8 +245,8 @@ main (int   argc,
     std::cout << "  True: " << parameter_manager[ii] << std::endl;
   }
 
-  CVReactor cv_reactor(cd);
-  CVReactor cv_reactor2(cd);
+  CVReactor cv_reactor(*cd);
+  CVReactor cv_reactor2(*cd);
   expt_manager.AddExperiment(cv_reactor,"exp1");
   //expt_manager.AddExperiment(cv_reactor2,"exp2");
   expt_manager.InitializeExperiments();
@@ -299,7 +298,7 @@ main (int   argc,
 
   parameter_manager.SetStatsForPrior(prior_mean,prior_std);
 
-  Real Ftrue = funcF((void*)(&mystruct),true_params);
+  Real Ftrue = funcF((void*)(mystruct),true_params);
   std::cout << "Ftrue = " << Ftrue << std::endl;
 
   ParmParse pp;
@@ -314,7 +313,6 @@ main (int   argc,
     of << std::setprecision(20);
     of1 << std::setprecision(20);
     int Nsample = 101; pp.query("Nsample",Nsample);
-    const Array<Real>& times = expt_manager.Experiment(0).GetMeasurementTimes();
     for (int i=0; i<Nsample; ++i) {
       Real eta = Real(i)/(Nsample-1);
       for(int ii=0; ii<num_params; ii++){
@@ -323,8 +321,8 @@ main (int   argc,
       }
 
 #if 1
-      grad((void *)(&mystruct), plot_params,plot_grad);
-      Real Fplot = funcF((void*)(&mystruct), plot_params);
+      grad((void *)(mystruct), plot_params,plot_grad);
+      Real Fplot = funcF((void*)(mystruct), plot_params);
       of << plot_params[0] << " " << Fplot << '\n';
       of1 << plot_params[0] << " " <<plot_grad[0] << '\n';
 #endif
@@ -347,7 +345,7 @@ main (int   argc,
 
 
 
-  Real F = funcF((void*)(&mystruct), prior_mean);  	
+  Real F = funcF((void*)(mystruct), prior_mean);  	
   std::cout << "F = " << F << std::endl;
 
   // Call minpack
@@ -366,7 +364,7 @@ main (int   argc,
   }
 
   Array<Real> soln_params(num_params);
-  minimize((void*)(&mystruct), guess_params, soln_params);
+  minimize((void*)(mystruct), guess_params, soln_params);
 
   std::cout << "Final parameters: " << std::endl;
   for(int ii=0; ii<num_params; ii++){
@@ -380,12 +378,12 @@ main (int   argc,
     std::cout << confirm_data[ii] << std::endl;
   }
 
-  Real Fconf = funcF((void*)(&mystruct),soln_params);
+  Real Fconf = funcF((void*)(mystruct),soln_params);
   std::cout << "Fconf = " << Fconf << std::endl;
 
   Array<Real> Gconf(num_params); 
   std::cout << "Gconf: " << std::endl;
-  grad((void*)(&mystruct),soln_params,Gconf);
+  grad((void*)(mystruct),soln_params,Gconf);
   for(int ii=0; ii<num_params; ii++){
     std::cout << Gconf[ii] << std::endl;
   }
@@ -396,6 +394,8 @@ main (int   argc,
     std::cout << parameter_manager[ii] << std::endl;
   }
 
+  delete mystruct;
+  delete cd;
   BoxLib::Finalize();
 }
 
