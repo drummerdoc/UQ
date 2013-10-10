@@ -45,6 +45,7 @@ ExperimentManager::InitializeTrueData(const Array<Real>& _true_data,
 void
 ExperimentManager::GenerateExptData()
 {
+  BL_ASSERT(perturbed_data.size()==0);
   perturbed_data.resize(num_expt_data);
   BL_ASSERT(true_std.size() == num_expt_data);
   BL_ASSERT(true_data.size() == num_expt_data);

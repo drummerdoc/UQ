@@ -61,7 +61,7 @@ inline
 Real
 ParameterManager::TypicalValue(int i)
 {
-  return 1; // FIXME: Generalize this
+  return active_parameters[i].DefaultValue();
 }
 
 inline

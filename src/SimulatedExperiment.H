@@ -11,6 +11,7 @@ struct SimulatedExperiment
   SimulatedExperiment() {}
   SimulatedExperiment(const SimulatedExperiment& rhs);
   ~SimulatedExperiment() {}
+  virtual const Array<Real>& GetMeasurementTimes() const = 0;
   virtual void GetMeasurements(Array<Real>& simulated_observations) = 0;
   virtual int NumMeasuredValues() const = 0;
   virtual void InitializeExperiment() = 0;
@@ -24,6 +25,7 @@ struct CVReactor
   CVReactor(const CVReactor& rhs);
   ~CVReactor() {}
 
+  virtual const Array<Real>& GetMeasurementTimes() const;
   virtual void GetMeasurements(Array<Real>& simulated_observations);
 
   virtual void InitializeExperiment();
@@ -52,5 +54,13 @@ CVReactor::NumMeasuredValues() const
 {
   return num_measured_values;
 }
+
+inline
+const Array<Real>&
+CVReactor::GetMeasurementTimes() const
+{
+  return measurement_times;
+}
+
 
 #endif // _SimulatedExperiment_

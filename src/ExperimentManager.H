@@ -28,6 +28,8 @@ struct ExperimentManager
   const Array<Real>& TrueData() const;
   const Array<Real>& TrueDataWithObservationNoise() const;
 
+  const SimulatedExperiment& Experiment(int i) const;
+
 protected:  
   bool initialized;
   ParameterManager& parameter_manager;
@@ -64,6 +66,14 @@ const Array<Real>&
 ExperimentManager::TrueDataWithObservationNoise() const
 {
   return perturbed_data;
+}
+
+inline
+const
+SimulatedExperiment&
+ExperimentManager::Experiment(int i) const
+{
+  return expts[i];
 }
 
 

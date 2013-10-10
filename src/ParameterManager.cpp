@@ -34,6 +34,7 @@ ParameterManager::GenerateSampleOfPrior(Array<Real>& parameter_samples) const
 Real
 ParameterManager::ComputePrior(const Array<Real>& params) const
 {
+  BL_ASSERT(prior_stats_initialized);
   BL_ASSERT(params.size() == NumParams());
   Real p = 0;
   for (int ii=0, End=NumParams(); ii<End; ii++){
