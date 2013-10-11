@@ -1,4 +1,4 @@
-
+//#include <iostream>
 #include <ExperimentManager.H>
 #include <Rand.H>
   
@@ -79,6 +79,8 @@ ExperimentManager::ComputeLikelihood(const Array<Real>& test_data) const
   }
   Real L = 0;
   for (int ii=0; ii<num_expt_data; ii++) {
+    //std::cout << "perturbed data: " << perturbed_data[ii] << std::endl;
+    //std::cout << "test data: " << test_data[ii] << std::endl;
     Real n = perturbed_data[ii] - test_data[ii];
     L += 0.5 * n * n * true_std_inv2[ii];
   }
