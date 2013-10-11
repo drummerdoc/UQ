@@ -196,6 +196,23 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
   soln = guess;
   INFO = hybrd1(FCN,p,num_vals,soln.dataPtr(),FVEC.dataPtr(),TOL,WA.dataPtr(),WA.size());   
   std::cout << "minpack INFO: " << INFO << std::endl;
+  if(INFO==1)
+  {
+	std::cout << "minpack: improper input parameters " << std::endl;
+  }
+  else if(INFO==2)
+  {
+	std::cout << "minpack: algorithm estimates that the relative error between X and the solution is at most TOL " << std::endl;
+  }
+   else if(INFO==3)
+  {
+	std::cout << "minpack: number of calls to FCN has reached or exceeded 200*(N+1)" << std::endl;
+  }
+  else if(INFO==4)
+  {
+  	std::cout << "minpack: iteration is not making good progress" << std::endl;
+  }
+
 
   Real Ffinal = funcF(p,soln);
   std::cout << "Ffinal: " << Ffinal << std::endl;
