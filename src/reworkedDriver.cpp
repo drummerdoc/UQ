@@ -79,7 +79,9 @@ funcF(void* p, const Array<Real>& pvals)
   Real Fa = s->parameter_manager.ComputePrior(pvals);
   Real Fb = s->expt_manager.ComputeLikelihood(dvals);
 
-  std::cout << "F, Fa, Fb: " << Fa + Fb << ", " << Fa << ", " << Fb << std::endl;
+  //std::cout << "F, Fa, Fb: " << Fa + Fb << ", " << Fa << ", " << Fb << std::endl;
+  //std::cout << "Parameter: " << pvals[0] << std::endl;
+  
   return Fa  +  Fb;
 }
 
@@ -158,8 +160,10 @@ void grad(void * p, const Array<Real>& X, Array<Real>& gradF) {
   MINPACKstruct *s = (MINPACKstruct*)(p);
   int num_vals = s->parameter_manager.NumParams();
   for (int ii=0;ii<num_vals;ii++){
-    gradF[ii] = der_ffd(p,X,ii); 
-    //gradF[ii] = der_cfd(p,X,ii); 
+    //gradF[ii] = der_ffd(p,X,ii); 
+    gradF[ii] = der_cfd(p,X,ii);
+    std::cout << "parameter = " << X[0] << std::endl; 
+    std::cout << "grad = " << gradF[0] << std::endl; 
   } 
 }
 
@@ -187,8 +191,9 @@ int FCN(void       *p,
 // Call minpack
 void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
 {
+#if 1
   int INFO,LWA=180;
-  Real TOL=1e-14;
+  Real TOL=1.5e-14;
   MINPACKstruct *s = (MINPACKstruct*)(p);
   int num_vals = s->parameter_manager.NumParams();
   Array<Real> FVEC(num_vals);
@@ -212,6 +217,55 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
   {
   	std::cout << "minpack: iteration is not making good progress" << std::endl;
   }
+#endif
+
+#if 0
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  int num_vals = s->parameter_manager.NumParams();
+  Array<Real> FVEC(num_vals);
+
+
+  int INFO,LWA=180,MAXFEV=1e8,ML=1,MU=1,EPSFCN=1e-4,DIAG=1,MODE=1,NPRINT=0,LDFJAC=1;
+  int NFEV;
+  int LR = 1;
+  Array<Real> R(LR);
+  Array<Real> QTF(num_vals);
+
+  Real XTOL=1.e-4;
+  Real FACTOR=100;
+  Array<Real> WA1(num_vals);
+  Array<Real> WA2(num_vals);
+  Array<Real> WA3(num_vals);
+  Array<Real> WA4(num_vals);
+
+  soln = guess;
+  hybrd(FCN,p,num_vals,soln.dataPtr(),FVEC.dataPtr(),XTOL,MAXFEV,ML,MU,EPSFCN,DIAG,MODE,FACTOR,NPRINT,INFO,NFEV,LDFJAC,R,LR,QTF,WA1,WA2,WA3,WA4);   
+
+  std::cout << "minpack INFO: " << INFO << std::endl;
+  if(INFO==0)
+  {
+	std::cout << "minpack: improper input parameters " << std::endl;
+  }
+  else if(INFO==1)
+  {
+	std::cout << "minpack: elative error between two consecutive iterates is at most XTOL" << std::endl;
+  }
+  else if(INFO==2)
+  {
+	std::cout << "minpack: number of calls to FCN has reached or exceeded MAXFEV" << std::endl;
+  }
+   else if(INFO==3)
+  {
+	std::cout << "minpack: XTOL is too small.  No further improvement in the approximate solution X is possible." << std::endl;
+  }
+  else if(INFO==4)
+  {
+  	std::cout << "minpack: iteration is not making good progress, as measured by the improvement from the last five Jacobian evaluations."<< std::endl;
+  }
+  else if(INFO==5)
+  {
+  	std::cout << "minpack: iteration is not making good progress, as measured by the improvement from the last ten iterations. "<< std::endl;
+  }
 
 
   Real Ffinal = funcF(p,soln);
@@ -223,7 +277,7 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
   for(int ii=0; ii<num_vals; ii++){
     std::cout << soln[ii] << " " << FVEC[ii] << std::endl;
   }
-
+#endif
 };
 
 int
@@ -289,11 +343,9 @@ main (int   argc,
   Array<Real> prior_mean(num_params);
   Array<Real> prior_std(num_params);
   for(int ii=0; ii<num_params; ii++){
-    prior_std[ii] = 500;
+    prior_std[ii] = 6000;
     if (prior_std[ii] == 0) {prior_std[ii] = 1e-2;}
-
-    //prior_mean[ii] = 1.2*true_params[ii];
-    prior_mean[ii] = 17000;
+    prior_mean[ii] = 10000;
     if (prior_mean[ii] == 0) {prior_mean[ii] =1e-2;}
   }
 
@@ -310,7 +362,7 @@ main (int   argc,
   expt_manager.GenerateTestMeasurements(prior_mean,prior_data);
 
   for(int ii=0; ii<num_data; ii++){
-    std::cout << "  Data with prior: " << prior_data[ii] << std::endl;
+     std::cout << "  Data with prior: " << prior_data[ii] << std::endl;
   }
 
   parameter_manager.SetStatsForPrior(prior_mean,prior_std);
@@ -318,8 +370,11 @@ main (int   argc,
   Real Ftrue = funcF((void*)(mystruct),true_params);
   std::cout << "Ftrue = " << Ftrue << std::endl;
 
+
+ 
   ParmParse pp;
   bool do_sample=false; pp.query("do_sample",do_sample);
+  std::cout << "START SAMPLING"  << std::endl;
   if (do_sample) {
     Array<Real> plot_params(num_params);
     Array<Real> plot_data(num_data);
@@ -334,7 +389,8 @@ main (int   argc,
       Real eta = Real(i)/(Nsample-1);
       for(int ii=0; ii<num_params; ii++){
         //plot_params[ii] = eta*true_params[ii] + (1-eta)*prior_mean[ii];
-        plot_params[ii] = 0.98*eta*true_params[ii] + (1-eta)*prior_mean[ii]*1.01;
+        //plot_params[ii] = 0.98*eta*true_params[ii] + (1-eta)*prior_mean[ii]*1.01;
+	plot_params[ii] = eta*10000 + (1-eta)*17000;
       }
 
 #if 1
@@ -365,12 +421,14 @@ main (int   argc,
   Real F = funcF((void*)(mystruct), prior_mean);  	
   std::cout << "F = " << F << std::endl;
 
+#if 1
+  std::cout << " starting MINPACK "<< std::endl;
   // Call minpack
   Array<Real> guess_params(num_params);
   std::cout << "Guess parameters: " << std::endl;
   for(int ii=0; ii<num_params; ii++){
-    guess_params[ii] = prior_mean[ii] * 0.9;
-    guess_params[ii] = 16900;
+    //guess_params[ii] = prior_mean[ii];
+    guess_params[ii] = 10000;
     std::cout << guess_params[ii] << std::endl;
   }
   Array<Real> guess_data(num_data);
@@ -410,7 +468,7 @@ main (int   argc,
   for(int ii=0; ii<num_params; ii++){
     std::cout << parameter_manager[ii] << std::endl;
   }
-
+# endif
   delete mystruct;
   delete cd;
   BoxLib::Finalize();
