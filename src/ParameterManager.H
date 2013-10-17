@@ -58,11 +58,4 @@ ParameterManager::TypicalValue(int i)
   return active_parameters[i].DefaultValue();
 }
 
-inline
-void
-ParameterManager::ResetParametersToDefault()
-{
-  cd.ResetAllParamsToDefault();
-}
-
 #endif // ParameterManager

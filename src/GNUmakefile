@@ -1,6 +1,6 @@
 PRECISION       = DOUBLE
-DEBUG           = TRUE
 DEBUG           = FALSE
+DEBUG           = TRUE
 DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
@@ -34,6 +34,7 @@ EBASE = findInterestingParams
 Blocs := . hacked_src data/Lu 
 #Blocs := . hacked_src
 INCLUDE_LOCATIONS += hacked_src data/Lu
+#INCLUDE_LOCATIONS += hacked_src
 
 INCLUDE_LOCATIONS+=./minpack/cminpack/cminpack-1.3.0
 LIBRARY_LOCATIONS+=./minpack/cminpack/cminpack-1.3.0

@@ -21,6 +21,14 @@ ParameterManager::NumParams() const
 }
 
 void
+ParameterManager::ResetParametersToDefault()
+{
+  for (int i=0, End=active_parameters.size(); i<End; ++i) {
+    active_parameters[i] = active_parameters[i].DefaultValue();
+  }
+}
+
+void
 ParameterManager::Clear()
 {
   ResetParametersToDefault();
