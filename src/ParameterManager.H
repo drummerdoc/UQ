@@ -9,6 +9,7 @@ struct ParameterManager
 
   // Add parameter to active set, return default value
   Real AddParameter(int reaction, const ChemDriver::REACTION_PARAMETER& rp);
+  void Clear();
 
   // Reset internal data back to state of initialization
   void ResetParametersToDefault();
@@ -35,13 +36,6 @@ struct ParameterManager
   Array<Real> prior_mean;
   Array<Real> prior_std;
 };
-
-inline
-int
-ParameterManager::NumParams() const
-{
-  return active_parameters.size();
-}
 
 inline
 ChemDriver::Parameter&

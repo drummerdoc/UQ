@@ -162,8 +162,6 @@ void grad(void * p, const Array<Real>& X, Array<Real>& gradF) {
   for (int ii=0;ii<num_vals;ii++){
     //gradF[ii] = der_ffd(p,X,ii); 
     gradF[ii] = der_cfd(p,X,ii);
-    std::cout << "parameter = " << X[0] << std::endl; 
-    std::cout << "grad = " << gradF[0] << std::endl; 
   } 
 }
 
@@ -185,19 +183,24 @@ int FCN(void       *p,
   for (int i=0; i<NP; ++i) {
     FVEC[i] = Fv[i];
   }
+  if (IFLAGP==1) {
+    std::cout << "parameter, grad = " << X[0] << ", " << FVEC[0] << std::endl; 
+  }
   return 0;
 }
 
 // Call minpack
 void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
 {
-#if 1
-  int INFO,LWA=180;
-  Real TOL=1.5e-14;
   MINPACKstruct *s = (MINPACKstruct*)(p);
   int num_vals = s->parameter_manager.NumParams();
   Array<Real> FVEC(num_vals);
+  int INFO;
+
+#if 0
+  int LWA=180;
   Array<Real> WA(LWA);
+  Real TOL=1.5e-14;
   soln = guess;
   INFO = hybrd1(FCN,p,num_vals,soln.dataPtr(),FVEC.dataPtr(),TOL,WA.dataPtr(),WA.size());   
   std::cout << "minpack INFO: " << INFO << std::endl;
@@ -217,29 +220,33 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
   {
   	std::cout << "minpack: iteration is not making good progress" << std::endl;
   }
-#endif
 
-#if 0
-  MINPACKstruct *s = (MINPACKstruct*)(p);
-  int num_vals = s->parameter_manager.NumParams();
-  Array<Real> FVEC(num_vals);
+#elif 1
 
-
-  int INFO,LWA=180,MAXFEV=1e8,ML=1,MU=1,EPSFCN=1e-4,DIAG=1,MODE=1,NPRINT=0,LDFJAC=1;
+  int MAXFEV=1e8,ML=num_vals-1,MU=num_vals-1,NPRINT=1,LDFJAC=num_vals;
   int NFEV;
-  int LR = 1;
+  int LR = 0.5*(num_vals*(num_vals+1)) + 1;
   Array<Real> R(LR);
   Array<Real> QTF(num_vals);
+  Array<Real> DIAG(num_vals);
 
-  Real XTOL=1.e-4;
+  int MODE = 2;
+  if (MODE==2) {
+    for (int i=0; i<num_vals; ++i) {
+      DIAG[i] = std::abs(s->parameter_manager[i].DefaultValue());
+    }
+  }
+  Real EPSFCN=1e-4;
+  Array<Real> FJAC(num_vals*num_vals);
+
+  Real XTOL=1.e-6;
   Real FACTOR=100;
-  Array<Real> WA1(num_vals);
-  Array<Real> WA2(num_vals);
-  Array<Real> WA3(num_vals);
-  Array<Real> WA4(num_vals);
+  Array< Array<Real> > WA(4, Array<Real>(num_vals));
 
   soln = guess;
-  hybrd(FCN,p,num_vals,soln.dataPtr(),FVEC.dataPtr(),XTOL,MAXFEV,ML,MU,EPSFCN,DIAG,MODE,FACTOR,NPRINT,INFO,NFEV,LDFJAC,R,LR,QTF,WA1,WA2,WA3,WA4);   
+  INFO = hybrd(FCN,p,num_vals,soln.dataPtr(),FVEC.dataPtr(),XTOL,MAXFEV,ML,MU,EPSFCN,DIAG.dataPtr(),
+               MODE,FACTOR,NPRINT,&NFEV,FJAC.dataPtr(),LDFJAC,R.dataPtr(),LR,QTF.dataPtr(),
+               WA[0].dataPtr(),WA[1].dataPtr(),WA[2].dataPtr(),WA[3].dataPtr());   
 
   std::cout << "minpack INFO: " << INFO << std::endl;
   if(INFO==0)
@@ -248,7 +255,7 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
   }
   else if(INFO==1)
   {
-	std::cout << "minpack: elative error between two consecutive iterates is at most XTOL" << std::endl;
+	std::cout << "minpack: relative error between two consecutive iterates is at most XTOL" << std::endl;
   }
   else if(INFO==2)
   {
@@ -291,45 +298,35 @@ main (int   argc,
   cd = new ChemDriver;
 
   Real eps = get_macheps();
-  Real param_eps = 1.e-4;
+  Real param_eps = 1000*eps;
   mystruct = new MINPACKstruct(*cd,param_eps);
 
   ParameterManager& parameter_manager = mystruct->parameter_manager;
   ExperimentManager& expt_manager = mystruct->expt_manager;  
   
+  CVReactor cv_reactor(*cd);
+  expt_manager.AddExperiment(cv_reactor,"exp1");
+  expt_manager.InitializeExperiments();
 
+  parameter_manager.Clear();
   Array<Real> true_params;
-  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::FWD_BETA));
-  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::FWD_EA));
-  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::LOW_A));
-  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::LOW_BETA));
-  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::LOW_EA));
-  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::TROE_A));
-  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::TROE_TS));
-  // true_params.push_back(parameter_manager.AddParameter(8,ChemDriver::TROE_TSSS));
-
-  //true_params.push_back(parameter_manager.AddParameter(9,ChemDriver::FWD_A));
-  true_params.push_back(parameter_manager.AddParameter(0,ChemDriver::FWD_EA));
+  // Reactions that seem to matter: 0, 15, 41, 49, 135, 137, 155 (15, 135 strongest)
+  true_params.push_back(parameter_manager.AddParameter(135,ChemDriver::FWD_EA));
   int num_params = parameter_manager.NumParams();
+
   std::cout << "NumParams:" << num_params << std::endl; 
   for(int ii=0; ii<num_params; ii++){
     std::cout << "  True: " << parameter_manager[ii] << std::endl;
   }
 
-  CVReactor cv_reactor(*cd);
-  CVReactor cv_reactor2(*cd);
-  expt_manager.AddExperiment(cv_reactor,"exp1");
-  //expt_manager.AddExperiment(cv_reactor2,"exp2");
-  expt_manager.InitializeExperiments();
-
   int num_data = expt_manager.NumExptData();
   std::cout << "NumData:" << num_data << std::endl; 
   Array<Real> true_data(num_data);
-  Array<Real> true_data_std(num_data,.01); // Set variance of data 
-
+  Array<Real> true_data_std(num_data,25); // Set variance of data 
+    
   expt_manager.GenerateTestMeasurements(true_params,true_data);
   expt_manager.InitializeTrueData(true_data,true_data_std);
-
+    
   expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
   const Array<Real>& perturbed_data = expt_manager.TrueDataWithObservationNoise();
 
@@ -339,13 +336,13 @@ main (int   argc,
               << "  Noisy: " << perturbed_data[ii]
               << "  Standard deviation: " << true_data_std[ii] << std::endl;
   }
-
+   
   Array<Real> prior_mean(num_params);
   Array<Real> prior_std(num_params);
   for(int ii=0; ii<num_params; ii++){
-    prior_std[ii] = 6000;
+    prior_std[ii] = std::abs(true_params[ii]) * .2;
     if (prior_std[ii] == 0) {prior_std[ii] = 1e-2;}
-    prior_mean[ii] = 10000;
+    prior_mean[ii] = true_params[ii] * 1.5;
     if (prior_mean[ii] == 0) {prior_mean[ii] =1e-2;}
   }
 
@@ -360,10 +357,10 @@ main (int   argc,
   Array<Real> prior_data(num_data);
   std::cout << "Data with prior mean:\n"; 
   expt_manager.GenerateTestMeasurements(prior_mean,prior_data);
-
+    
   for(int ii=0; ii<num_data; ii++){
-     std::cout << "  Data with prior: " << prior_data[ii] << std::endl;
-  }
+    std::cout << "  Data with prior: " << prior_data[ii] << std::endl;
+  }    
 
   parameter_manager.SetStatsForPrior(prior_mean,prior_std);
 
@@ -374,8 +371,8 @@ main (int   argc,
  
   ParmParse pp;
   bool do_sample=false; pp.query("do_sample",do_sample);
-  std::cout << "START SAMPLING"  << std::endl;
   if (do_sample) {
+    std::cout << "START SAMPLING"  << std::endl;
     Array<Real> plot_params(num_params);
     Array<Real> plot_data(num_data);
     Array<Real> plot_grad(num_params);
@@ -388,14 +385,13 @@ main (int   argc,
     for (int i=0; i<Nsample; ++i) {
       Real eta = Real(i)/(Nsample-1);
       for(int ii=0; ii<num_params; ii++){
-        //plot_params[ii] = eta*true_params[ii] + (1-eta)*prior_mean[ii];
-        //plot_params[ii] = 0.98*eta*true_params[ii] + (1-eta)*prior_mean[ii]*1.01;
-	plot_params[ii] = eta*10000 + (1-eta)*17000;
+        plot_params[ii] = eta*true_params[ii] + (1-eta)*prior_mean[ii];
       }
 
 #if 1
       grad((void *)(mystruct), plot_params,plot_grad);
       Real Fplot = funcF((void*)(mystruct), plot_params);
+      std::cout << eta << " " << plot_params[0] << " " << Fplot << '\n';
       of << plot_params[0] << " " << Fplot << '\n';
       of1 << plot_params[0] << " " <<plot_grad[0] << '\n';
 #endif
@@ -427,8 +423,8 @@ main (int   argc,
   Array<Real> guess_params(num_params);
   std::cout << "Guess parameters: " << std::endl;
   for(int ii=0; ii<num_params; ii++){
-    //guess_params[ii] = prior_mean[ii];
-    guess_params[ii] = 10000;
+    guess_params[ii] = prior_mean[ii];
+    //guess_params[ii] = 20000;
     std::cout << guess_params[ii] << std::endl;
   }
   Array<Real> guess_data(num_data);
@@ -471,6 +467,7 @@ main (int   argc,
 # endif
   delete mystruct;
   delete cd;
+
   BoxLib::Finalize();
 }
 

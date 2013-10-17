@@ -1,3 +1,4 @@
+#include <iostream>
 
 #include <ParameterManager.H>
 #include <Rand.H>
@@ -9,7 +10,23 @@ ParameterManager::AddParameter(int reaction, const ChemDriver::REACTION_PARAMETE
   int len = active_parameters.size();
   active_parameters.resize(len+1,PArrayManage);
   active_parameters.set(len, new ChemDriver::Parameter(reaction,rp));
+  prior_stats_initialized = false;
   return active_parameters[len].DefaultValue();
+}
+
+int
+ParameterManager::NumParams() const
+{
+  return active_parameters.size();
+}
+
+void
+ParameterManager::Clear()
+{
+  ResetParametersToDefault();
+  active_parameters.clear();
+  active_parameters.resize(0);
+  prior_stats_initialized = false;
 }
 
 void

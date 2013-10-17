@@ -3,6 +3,16 @@
 #include <Rand.H>
   
 void
+ExperimentManager::Clear()
+{
+  expts.clear(); expts.resize(0);
+  raw_data.clear();
+  data_offsets.clear();
+  num_expt_data = 0;
+  expt_map.clear();
+}
+
+void
 ExperimentManager::AddExperiment(SimulatedExperiment& expt,
                                  const std::string& expt_id)
 {

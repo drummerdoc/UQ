@@ -11,6 +11,8 @@ struct ExperimentManager
   void AddExperiment(SimulatedExperiment& expt,
                      const std::string& expt_id);
 
+  void Clear();
+
   void InitializeExperiments();
 
   int NumExptData() const;
