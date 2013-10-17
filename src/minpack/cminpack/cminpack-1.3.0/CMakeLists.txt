@@ -5,8 +5,6 @@ cmake_minimum_required (VERSION 2.6)
 project (CMINPACK)
 string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 
-set (CMAKE_BUILD_TYPE Release)
-
 include(${PROJECT_SOURCE_DIR}/cmake/cminpack_utils.cmake)
 # Set version and OS-specific settings
 set(CMINPACK_VERSION 1.0.90 CACHE STRING "CMinpack version")
