@@ -28,18 +28,16 @@ BOXLIB_DIR = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 
 #EBASE = driver
-#EBASE = reworkedDriver
-EBASE = findInterestingParams
+EBASE = reworkedDriver
+#EBASE = findInterestingParams
 #EBASE = Minimizex2
-Blocs := . hacked_src data/Lu 
-#Blocs := . hacked_src
-INCLUDE_LOCATIONS += hacked_src data/Lu
-#INCLUDE_LOCATIONS += hacked_src
 
-INCLUDE_LOCATIONS+=./minpack/cminpack/cminpack-1.3.0
-LIBRARY_LOCATIONS+=./minpack/cminpack/cminpack-1.3.0
+Blocs := . hacked_src
+INCLUDE_LOCATIONS += hacked_src
+
+INCLUDE_LOCATIONS+=./minpack/cminpack/include/cminpack-1
+LIBRARY_LOCATIONS+=./minpack/cminpack/lib
 LIBRARIES += -lcminpack
-
 
 CEXE_headers += Observation.H SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H
 CEXE_sources += ${EBASE}.cpp Observation.cpp SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp

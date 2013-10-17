@@ -279,7 +279,7 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
   std::cout << "Ffinal: " << Ffinal << std::endl;
 
   int IFLAGP = 0;
-  int ret = FCN(p,num_vals,soln.dataPtr(),FVEC.dataPtr(),IFLAGP);
+  FCN(p,num_vals,soln.dataPtr(),FVEC.dataPtr(),IFLAGP);
   std::cout << "X, FVEC: " << std::endl;
   for(int ii=0; ii<num_vals; ii++){
     std::cout << soln[ii] << " " << FVEC[ii] << std::endl;
@@ -342,7 +342,7 @@ main (int   argc,
   for(int ii=0; ii<num_params; ii++){
     prior_std[ii] = std::abs(true_params[ii]) * .2;
     if (prior_std[ii] == 0) {prior_std[ii] = 1e-2;}
-    prior_mean[ii] = true_params[ii] * 1.5;
+    prior_mean[ii] = true_params[ii] * 1.2;
     if (prior_mean[ii] == 0) {prior_mean[ii] =1e-2;}
   }
 

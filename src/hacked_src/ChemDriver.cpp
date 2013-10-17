@@ -45,13 +45,13 @@ extern "C" {
   }
 
   struct ReactionData {
-    double activation_units, prefactor_units, phase_units;
     double fwd_A,fwd_beta,fwd_Ea;
     double low_A,low_beta,low_Ea;
     double rev_A,rev_beta,rev_Ea;
-    int is_PD, troe_len, sri_len;
     double troe_a,troe_Ts, troe_Tss, troe_Tsss;
     double sri_a, sri_b, sri_c, sri_d, sri_e;
+    double activation_units, prefactor_units, phase_units;
+    int is_PD, troe_len, sri_len;
   };
 
   struct ReactionData* GetReactionData(int id);
@@ -175,7 +175,9 @@ std::ostream& operator<< (std::ostream&  os, const ChemDriver::Parameter& param)
 void
 ChemDriver::Parameter::operator=(Real new_value)
 {
-  *get_parameter_value(param_id, GetReactionData(reaction_id)) = new_value;
+  struct ReactionData* rd = GetReactionData(reaction_id);
+  *get_parameter_value(param_id,rd) = new_value;
+  SetReactionData(reaction_id,rd);
 }
 
 void

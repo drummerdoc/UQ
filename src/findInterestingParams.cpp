@@ -84,19 +84,19 @@ main (int   argc,
   expt_manager.InitializeExperiments();
 
   for (int j=0; j<cd->numReactions(); ++j) {
+    //for (int j=0; j<2; ++j) {
     parameter_manager.Clear();
     Array<Real> true_params;
     // Reactions that seem to matter: 0, 15, 41, 49, 135 (15, 135 strongest)
-    //true_params.push_back(parameter_manager.AddParameter(j,ChemDriver::FWD_EA));
-    std::cout << j << " " << ChemDriver::Parameter(j,ChemDriver::FWD_EA) << std::endl;
-
-
+    true_params.push_back(parameter_manager.AddParameter(j,ChemDriver::FWD_EA));
     int num_params = parameter_manager.NumParams();
 
     Array<Real> prior_mean(num_params);
     for(int ii=0; ii<num_params; ii++){
       prior_mean[ii] = true_params[ii] * 1.5;
       if (prior_mean[ii] == 0) {prior_mean[ii] =1e-2;}
+
+      parameter_manager[ii] = prior_mean[ii];
     }
 
     int num_data = expt_manager.NumExptData();
@@ -104,7 +104,7 @@ main (int   argc,
     expt_manager.GenerateTestMeasurements(prior_mean,prior_data);
     
     for(int ii=num_data-1; ii<num_data; ii++){
-      //std::cout << j << " " << prior_data[ii] << std::endl;
+      std::cout << j << " " << prior_data[ii] << std::endl;
     }    
   }
   delete mystruct;
