@@ -21,7 +21,21 @@ CVReactor::CVReactor(ChemDriver& _cd)
   for (int i=0; i<num_time_intervals; ++i) {
     measurement_times[i] = (i+1)*dt/num_time_intervals;
   }
-  num_measured_values = measurement_times.size();
+  sCompT  = 1;
+  sCompRH = 2;
+  sCompR  = 3;
+  sCompY  = 4;
+
+  bool do_temp = true; pp.query("do_temp",do_temp);
+  measured_comps.resize(1);
+  if (do_temp) {
+    measured_comps[0] = sCompT;
+  }
+  else {
+    measured_comps[0] = sCompY+cd.index("OH");
+  }
+  num_measured_values = measurement_times.size() * measured_comps.size();
+
 }
 
 CVReactor::CVReactor(const CVReactor& rhs)
@@ -98,7 +112,8 @@ Real
 CVReactor::ExtractMeasurement() const
 {
   // Return the final temperature of the cell that was evolved
-  return s_final(s_final.box().smallEnd(),sCompT);
+  //return s_final(s_final.box().smallEnd(),sCompT);
+  return s_final(s_final.box().smallEnd(),measured_comps[0]);
 }
 
 void
@@ -126,10 +141,6 @@ CVReactor::InitializeExperiment()
     std::cout << "pmf file is not compatible with the mechanism compiled into this code" << '\n';
     BoxLib::Abort();
   }
-  sCompT  = 1;
-  sCompRH = 2;
-  sCompR  = 3;
-  sCompY  = 4;
 
   // Find location
   bool found = false;

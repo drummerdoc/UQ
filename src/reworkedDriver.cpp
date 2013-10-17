@@ -298,7 +298,7 @@ main (int   argc,
   cd = new ChemDriver;
 
   Real eps = get_macheps();
-  Real param_eps = 1000*eps;
+  Real param_eps = 1.e-4;
   mystruct = new MINPACKstruct(*cd,param_eps);
 
   ParameterManager& parameter_manager = mystruct->parameter_manager;
@@ -311,7 +311,8 @@ main (int   argc,
   parameter_manager.Clear();
   Array<Real> true_params;
   // Reactions that seem to matter: 0, 15, 41, 49, 135, 137, 155 (15, 135 strongest)
-  true_params.push_back(parameter_manager.AddParameter(135,ChemDriver::FWD_EA));
+  //true_params.push_back(parameter_manager.AddParameter(15,ChemDriver::FWD_EA));
+  true_params.push_back(parameter_manager.AddParameter(13,ChemDriver::FWD_EA));
   int num_params = parameter_manager.NumParams();
 
   std::cout << "NumParams:" << num_params << std::endl; 
@@ -322,9 +323,13 @@ main (int   argc,
   int num_data = expt_manager.NumExptData();
   std::cout << "NumData:" << num_data << std::endl; 
   Array<Real> true_data(num_data);
-  Array<Real> true_data_std(num_data,25); // Set variance of data 
     
   expt_manager.GenerateTestMeasurements(true_params,true_data);
+
+  Array<Real> true_data_std(num_data);
+  for(int ii=0; ii<num_data; ii++){
+    true_data_std[ii] = std::max(eps, std::abs(true_data[ii]) * 0.1);
+  }
   expt_manager.InitializeTrueData(true_data,true_data_std);
     
   expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
@@ -342,7 +347,7 @@ main (int   argc,
   for(int ii=0; ii<num_params; ii++){
     prior_std[ii] = std::abs(true_params[ii]) * .2;
     if (prior_std[ii] == 0) {prior_std[ii] = 1e-2;}
-    prior_mean[ii] = true_params[ii] * 1.2;
+    prior_mean[ii] = true_params[ii] * 1.1;
     if (prior_mean[ii] == 0) {prior_mean[ii] =1e-2;}
   }
 

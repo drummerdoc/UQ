@@ -36,7 +36,7 @@ Blocs := . hacked_src
 INCLUDE_LOCATIONS += hacked_src
 
 INCLUDE_LOCATIONS+=./minpack/cminpack/include/cminpack-1
-LIBRARY_LOCATIONS+=./minpack/cminpack/lib
+LIBRARY_LOCATIONS+=./minpack/cminpack/lib64
 LIBRARIES += -lcminpack
 
 CEXE_headers += Observation.H SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H

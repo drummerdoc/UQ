@@ -1,4 +1,4 @@
-//#include <iostream>
+#include <iostream>
 #include <ExperimentManager.H>
 #include <Rand.H>
   
@@ -59,8 +59,11 @@ ExperimentManager::GenerateExptData()
   perturbed_data.resize(num_expt_data);
   BL_ASSERT(true_std.size() == num_expt_data);
   BL_ASSERT(true_data.size() == num_expt_data);
+
+  // FIXME: Make more general
   for(int ii=0; ii<num_expt_data; ii++){
-    perturbed_data[ii] = true_data[ii] + true_std[ii] * randn();
+    Real small = true_std[ii];
+    perturbed_data[ii] = std::max(small,true_data[ii] + true_std[ii] * randn());
   }
 }
 
@@ -89,8 +92,6 @@ ExperimentManager::ComputeLikelihood(const Array<Real>& test_data) const
   }
   Real L = 0;
   for (int ii=0; ii<num_expt_data; ii++) {
-    //std::cout << "perturbed data: " << perturbed_data[ii] << std::endl;
-    //std::cout << "test data: " << test_data[ii] << std::endl;
     Real n = perturbed_data[ii] - test_data[ii];
     L += 0.5 * n * n * true_std_inv2[ii];
   }
