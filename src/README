@@ -1,4 +1,117 @@
 
+UQ:
+
+Time to update this note...For one, the location of this work in the
+CCSE git repos has changed somewhat, being moved out of the
+Combustion/Chemistry/bin folder and into its own repository called
+"UQ".
+
+The fuego stuff mentioned below no longer applies to this repository
+since we moved all that into the CCSE Combustion repository.  As a
+result the data and fuego folders are gone.
+
+Overview:
+
+So far, our goal here is to define a function that takes an active
+parameter set as input, and evaluates a simulated experiment as 
+output.  The active parameters are a subset of the complete 
+CHEMKIN-based model specification for a combustion system.  These
+tools implement an interface to modify a small subset of these,
+and then used the modified complete set to evaluate a set of 
+numerical experiments.  The experiments tend to be of the type
+that involve ODE evolution of a constant-volume reactor system, 
+and the output tends to be time-traces of one or more of the 
+state quantities that evolve.
+
+The driver (reworkedDriver.cpp) manages several key tasks:
+  1. Define the active parameter subset
+  2. Define the set of numerical experiments
+  3. Generate synthetic experimental data at the default parameter settings
+  4. Generate synthetic "priors" for the active parameter set
+  5. Provide a function, F, that computes the function to be 
+       minimized, the negative log of the likelihood of the data
+       wrt the prior, for a given parameter set.
+  6. Drive the call to MINPACK to minimize F wrt the active parameters.
+
+The parameters are managed using a "ParameterManager".  New active 
+parameters are added manually, with limited flexibility that supports
+identifying several key parameters of the Arrhenius reaction form,
+given the number of the reaction in the CHEMKIN input format.
+Implementation of the model is carried out via a set of compiled-in
+functions specific to a particular CHEMKIN specification.  The 
+Python-based "fuego" package distributed as part of CCSE's Combustion
+repository is used to as a preprocessing step to generate C++ 
+source code that is linked into this executable.  The fuego-generated
+functions evaluate the chemical kinetics, thermodynamics and transport
+properties.
+
+The experiments are managed using an "ExperimentManager", which 
+orchestrates the evolution of an arbitrary number of individual 
+experiments.  Each experiment produces a set of (time,value) pairs
+that result from an evolution of a chemical system based on the 
+fuego/CHEMKIN model (which incorporates the active parameters
+discussed above).  At the moment, a simple "constant-volume" point
+reactor is used as an example, and the time-evolution of either
+temperature or the OH mole fraction are produced.  The initial 
+conditions and integration for the reactor are set when the
+experiment is intialized at runtime.  Any number of these 
+may be added to the set, and the resulting output lists are 
+concatenated into a single 1D array of "experimental data output".
+
+The function, F of parameter set x
+
+     F(x) = SUM((p-pbar)^t.A.(p-pbar) + (h(x)-z)^t.B.(h(x)-z))
+
+quantifies contributions from two pieces, satisfaction of the 
+"prior data" (mean pbar, std=1/sqrt(A)) and the synthetic data, z,
+given h(x), the output of the experiment for a give parameter set x.
+F is minimized with MINPACK, which requires a routine to compute
+the gradient vector dF/dx that it will use to find where dF/dx=0.
+
+
+Some detail:
+
+Since the last time I wrote anything here, I added a simple driver to
+explore reactions/parameters (findInterestingParams) and rearranged
+the minpack stuff slightly.  The preferred way to build cminpack here
+is now as follows:
+
+cd minpack/cminpack
+tar zxf /path/to/cminpack-1.3.0.tar.gz
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/this/folder/minpack/cminpack ../cminpack-1.3.0
+make 
+make install
+cd ../..
+
+This will create "include" and "lib" or "lib64" in the
+minpack/cminpack folder.
+
+In the GNUmakefile in this folder, make sure that the following lines
+are correct (ie, they point to where you just installed the minpack
+software).
+
+INCLUDE_LOCATIONS+=./minpack/cminpack/include/cminpack-1
+LIBRARY_LOCATIONS+=./minpack/cminpack/lib64
+LIBRARIES += -lcminpack
+
+In this folder, type "make" and with luck one of the drivers will be
+built.  The current favorite is "reworkedDriver".
+
+Current layout of stuff:
+
+
+
+When the next step of stuff settles down, we should add a description 
+of what we are doing here.
+
+-Marc, 10/17/13
+
+
+---------------------------------------------------------------------
+
+
 FuegoParam
 
 This is a work-in-progress folder containing code for using the
