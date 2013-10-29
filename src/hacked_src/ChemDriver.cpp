@@ -10,7 +10,6 @@ const Real HtoTerrMAX_DEF  = 1.e-8;
 const int  HtoTiterMAX_DEF = 20;
 const Real Tmin_trans_DEF  = 0.;
 const ChemDriver::TRANSPORT transport_DEF = ChemDriver::CD_EG;
-const std::string tranlib_linking_file="tran.asc";
 
 namespace
 {
@@ -30,18 +29,6 @@ extern "C" {
 
   int FORT_USINGMC() {
     return (int)(transport == ChemDriver::CD_TRANLIB);
-  }
-
-  void FORT_MCLINKNAME(int* codedName, int* len, int* maxlen) {
-    Array<int> file = ChemDriver::encodeStringForFortran(tranlib_linking_file);
-    *len = file.size();
-    if (*len > *maxlen) {
-      BoxLib::Abort("Fort memory bust...need more space for tranlib linking file name");
-    }
-
-    for (int i=0; i<file.size(); ++i) {
-      codedName[i] = file[i];
-    }
   }
 
   struct ReactionData {
@@ -804,7 +791,6 @@ ChemDriver::solveTransient_sdc(FArrayBox&        rhoYnew,
 			       const FArrayBox&  rhoHold,
 			       const FArrayBox&  Told,
 			       const FArrayBox&  const_src,
-			       FArrayBox&        I_R,
 			       FArrayBox&        FuncCount,
 			       const Box&        box,
 			       int               sComprhoY,
@@ -838,7 +824,6 @@ ChemDriver::solveTransient_sdc(FArrayBox&        rhoYnew,
                       rhoHold.dataPtr(sComprhoH), ARLIM(rhoHold.loVect()),   ARLIM(rhoHold.hiVect()),
                       Told.dataPtr(sCompT),       ARLIM(Told.loVect()),      ARLIM(Told.hiVect()),
                       const_src.dataPtr(0),       ARLIM(const_src.loVect()), ARLIM(const_src.hiVect()),
-		      I_R.dataPtr(0),             ARLIM(I_R.loVect()),       ARLIM(I_R.hiVect()),
                       FuncCount.dataPtr(),        ARLIM(FuncCount.loVect()), ARLIM(FuncCount.hiVect()),
 		      &Patm, &dt, diagData, &do_diag, &do_stiff);
 }

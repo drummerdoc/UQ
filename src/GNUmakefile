@@ -17,7 +17,6 @@ CHEMISTRY_MODEL = LUDME
 
 ifeq (${USE_SDC}, TRUE)
   DEFINES += -DLMC_SDC
-  DEFINES += -DDO_TEMPERATURE
   #DEFINES += -DDO_AJAC
 endif
 CFLAGS += -std=c99
@@ -39,7 +38,7 @@ INCLUDE_LOCATIONS+=./minpack/cminpack/include/cminpack-1
 LIBRARY_LOCATIONS+=./minpack/cminpack/lib64
 LIBRARIES += -lcminpack
 
-CEXE_headers += Observation.H SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H
-CEXE_sources += ${EBASE}.cpp Observation.cpp SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp
+CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H
+CEXE_sources += ${EBASE}.cpp SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp
 
 include $(CHEMISTRY_DIR)/tools/make/Make.CHEM

@@ -19,7 +19,8 @@ CVReactor::CVReactor(ChemDriver& _cd)
   pp.query("time_intervals",num_time_intervals);
   measurement_times.resize(num_time_intervals);
   for (int i=0; i<num_time_intervals; ++i) {
-    measurement_times[i] = (i+1)*dt/num_time_intervals;
+    //measurement_times[i] = (i+1)*dt/num_time_intervals;
+    measurement_times[i] = .068 + (i+1)*.0013/num_time_intervals;
   }
   sCompT  = 1;
   sCompRH = 2;
@@ -46,7 +47,6 @@ CVReactor::CVReactor(const CVReactor& rhs)
   s_init.resize(rhs.s_init.box(),rhs.s_init.nComp()); s_init.copy(rhs.s_init);
   s_final.resize(rhs.s_final.box(),rhs.s_final.nComp()); s_final.copy(rhs.s_final);
   C_0.resize(rhs.C_0.box(),rhs.C_0.nComp()); C_0.copy(rhs.C_0);
-  I_R.resize(rhs.I_R.box(),rhs.I_R.nComp()); I_R.copy(rhs.I_R);
   funcCnt.resize(rhs.funcCnt.box(),rhs.funcCnt.nComp()); funcCnt.copy(rhs.funcCnt);
   sCompY=rhs.sCompY;
   sCompT=rhs.sCompT;
@@ -89,10 +89,13 @@ CVReactor::GetMeasurements(Array<Real>& simulated_observations)
     Real dt = t_end - t_start;
 
 #ifdef LMC_SDC
-    cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,I_R,
+    cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
                           funcCnt,box,sCompY,sCompRH,sCompT,
                           dt,Patm,diag,true);
     simulated_observations[i] = ExtractMeasurement();
+
+    //std::cout << "Data :  " << t_end << " " << simulated_observations[i] << std::endl;
+
     rYold.copy(rYnew,sCompY,sCompY,Nspec);
     rHold.copy(rHnew,sCompRH,sCompRH,Nspec);
     Told.copy(Tnew,sCompT,sCompT,1);
@@ -105,6 +108,9 @@ CVReactor::GetMeasurements(Array<Real>& simulated_observations)
     Told.copy(Tnew,sCompT,sCompT,1);
 #endif
   }
+
+  //std::cout << std::endl;
+  //BoxLib::Abort();
 }
 
 
@@ -163,7 +169,6 @@ CVReactor::InitializeExperiment()
     s_init.mult(s_init,sCompR,sCompY+i,1);
   }
   C_0.resize(bx,nSpec+1); C_0.setVal(0);
-  I_R.resize(bx,nSpec+1); I_R.setVal(0);
 #endif
 
   s_final.resize(bx,s_init.nComp());

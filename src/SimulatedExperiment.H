@@ -43,7 +43,7 @@ private:
   Array<int> measured_comps;
   int num_measured_values;
 
-  FArrayBox s_init, s_final, C_0, I_R, funcCnt, s_save; 
+  FArrayBox s_init, s_final, C_0, funcCnt, s_save; 
   int sCompY, sCompT, sCompR, sCompRH;
   Real Patm;
 };

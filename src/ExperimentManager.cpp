@@ -77,6 +77,9 @@ ExperimentManager::GenerateTestMeasurements(const Array<Real>& test_params,
   for (int i=0; i<expts.size(); ++i) {
     expts[i].GetMeasurements(raw_data[i]);
     int offset = data_offsets[i];
+
+    int s = raw_data[i].size();
+
     for (int j=0; j<raw_data[i].size(); ++j) {
       test_measurements[offset + j] = raw_data[i][j];
     }

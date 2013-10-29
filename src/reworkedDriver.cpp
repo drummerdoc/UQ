@@ -236,7 +236,7 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
       DIAG[i] = std::abs(s->parameter_manager[i].DefaultValue());
     }
   }
-  Real EPSFCN=1e-4;
+  Real EPSFCN=1e-6;
   Array<Real> FJAC(num_vals*num_vals);
 
   Real XTOL=1.e-6;
@@ -328,7 +328,9 @@ main (int   argc,
 
   Array<Real> true_data_std(num_data);
   for(int ii=0; ii<num_data; ii++){
-    true_data_std[ii] = std::max(eps, std::abs(true_data[ii]) * 0.1);
+    //true_data_std[ii] = std::max(eps, std::abs(true_data[ii]) * 0.1);
+    true_data_std[ii] = 75;
+    true_data_std[ii] = 150;
   }
   expt_manager.InitializeTrueData(true_data,true_data_std);
     
@@ -345,9 +347,12 @@ main (int   argc,
   Array<Real> prior_mean(num_params);
   Array<Real> prior_std(num_params);
   for(int ii=0; ii<num_params; ii++){
-    prior_std[ii] = std::abs(true_params[ii]) * .2;
+    prior_std[ii] = std::abs(true_params[ii]) * .1;
+    prior_std[ii] = 30;
+    prior_std[ii] = 60;
     if (prior_std[ii] == 0) {prior_std[ii] = 1e-2;}
-    prior_mean[ii] = true_params[ii] * 1.1;
+    prior_mean[ii] = true_params[ii] * 0.99;
+    prior_mean[ii] = 11976;
     if (prior_mean[ii] == 0) {prior_mean[ii] =1e-2;}
   }
 
@@ -391,6 +396,8 @@ main (int   argc,
       Real eta = Real(i)/(Nsample-1);
       for(int ii=0; ii<num_params; ii++){
         plot_params[ii] = eta*true_params[ii] + (1-eta)*prior_mean[ii];
+        //plot_params[ii] = eta*11963 + (1-eta)*11982;
+        plot_params[ii] = eta*11975 + (1-eta)*11985;
       }
 
 #if 1
@@ -429,7 +436,6 @@ main (int   argc,
   std::cout << "Guess parameters: " << std::endl;
   for(int ii=0; ii<num_params; ii++){
     guess_params[ii] = prior_mean[ii];
-    //guess_params[ii] = 20000;
     std::cout << guess_params[ii] << std::endl;
   }
   Array<Real> guess_data(num_data);
