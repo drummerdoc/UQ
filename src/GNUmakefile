@@ -26,8 +26,7 @@ TOP = ../..
 BOXLIB_DIR = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 
-#EBASE = driver
-EBASE = reworkedDriver
+EBASE = driver
 #EBASE = findInterestingParams
 #EBASE = Minimizex2
 
