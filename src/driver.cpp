@@ -287,6 +287,234 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
 #endif
 };
 
+// MATTI'S CODE, USE WITH EXTREME CAUTION
+
+void NormalizeWeights(Array<Real>& w){
+  int NOS = w.size();
+  Real SumWeights = 0;
+  for(int ii=0; ii<NOS; ii++){
+	SumWeights = SumWeights+w[ii];
+  }
+  for(int ii=0; ii<NOS; ii++){
+	w[ii] = w[ii]/SumWeights;
+  }
+}
+
+Real EffSampleSize(Array<Real>& w, int NOS){
+   // Approximate effective sample size
+   Real SumSquaredWeights = 0;
+   for(int ii=0; ii<NOS; ii++){
+	   SumSquaredWeights = SumSquaredWeights + w[ii]*w[ii];
+   }
+   Real Neff = 1/SumSquaredWeights; 
+   return Neff;
+}
+
+
+void Mean(Array<Real>& Mean, Array<Array<Real> >& samples){
+  int NOS = samples.size();
+  int num_params = samples[1].size();
+  for(int ii=0; ii<num_params; ii++){
+	  Mean[ii] = 0; // initialize  
+	  for(int jj=0; jj<NOS; jj++){
+		  Mean[ii] = Mean[ii]+samples[jj][ii];
+	  }
+	  Mean[ii] = Mean[ii]/(Real)NOS;
+  }	
+}
+
+
+void WeightedMean(Array<Real>& CondMean, Array<Real>& w, Array<Array<Real> >& samples){
+  int NOS = samples.size();
+  int num_params = samples[1].size();
+  for(int ii=0; ii<num_params; ii++){
+	  CondMean[ii] = 0; // initialize  
+	  for(int jj=0; jj<NOS; jj++){
+		  CondMean[ii] = CondMean[ii]+w[jj]*samples[jj][ii];
+	  }
+  }	
+}
+
+
+void Var(Array<Real>& Var,Array<Real>& Mean, Array<Array<Real> >& samples){
+  int NOS = samples.size();
+  int num_params = samples[1].size();
+  for(int ii=0; ii<num_params; ii++){	  
+  Var[ii] = 0;
+  for(int jj=0; jj<NOS; jj++){
+	  Var[ii] = Var[ii] + (samples[jj][ii]-Mean[ii])*(samples[jj][ii]-Mean[ii]);
+  }
+  Var[ii] = Var[ii]/NOS;
+  }
+}
+
+
+void WeightedVar(Array<Real>& CondVar,Array<Real>& CondMean, Array<Real>& w, Array<Array<Real> >& samples){
+  int NOS = samples.size();
+  int num_params = samples[1].size();	
+  for(int ii=0; ii<num_params; ii++){	  
+  CondVar[ii] = 0;
+  for(int jj=0; jj<NOS; jj++){
+	  CondVar[ii] = CondVar[ii] + w[jj]*(samples[jj][ii]-CondMean[ii])*(samples[jj][ii]-CondMean[ii]);
+  }
+  }
+}
+
+
+void WriteSamplesWeights(Array<Array<Real> >& samples, Array<Real>& w){
+  int NOS = samples.size();
+  int num_params = samples[1].size();
+  std::ofstream of,of1;
+  of.open("samples.dat");
+  of1.open("weights.dat");
+  of << std::setprecision(20);
+  of1 << std::setprecision(20);
+  for(int ii=0;ii<NOS;ii++){
+      of1 << w[ii] << '\n';
+  }
+  for(int jj=0;jj<NOS;jj++){
+  	for(int ii=0;ii<num_params;ii++){
+		  of << samples[jj][ii] << " ";
+	  }
+	of << '\n';
+  }
+  of.close();
+  of1.close();
+}
+
+
+void Resampling(Array<Array<Real> >& Xrs,Array<Real>& w,Array<Array<Real> >& samples){
+  int NOS = samples.size();
+  int num_params = samples[1].size();
+  Array<Real> c(NOS+1);
+  for(int jj = 0;jj < NOS+1; jj++){
+	 c[jj] = 0; // initialize	  
+  }
+  // construct cdf
+  for(int jj=1;jj<NOS+1;jj++){
+	  c[jj]=c[jj-1]+w[jj-1];
+  }
+  // sample it and get the stronger particles more often
+  int ii = 0; // initialize
+  Real u1 = drand()/NOS;
+  Real u = 0;
+  for(int jj=0;jj<NOS;jj++){
+    u = u1+(Real)jj/NOS;
+    while(u>c[ii]){
+        ii++;
+    }
+    for(int kk=0;kk<num_params;kk++){
+	    Xrs[jj][kk] = samples[(ii-1)][kk];
+    }
+  }
+}
+
+
+void WriteResampledSamples(Array<Array<Real> >& Xrs){
+  int NOS = Xrs.size();
+  int num_params = Xrs[1].size();
+  std::ofstream of2;
+  of2.open("resampled_samples.dat");
+  of2 << std::setprecision(20);
+  for(int jj=0;jj<NOS;jj++){
+	  for(int ii=0;ii<num_params;ii++){
+		  of2 << Xrs[jj][ii] << " ";
+	  }
+	  of2 << '\n';
+  }
+  of2.close();
+}
+
+void MCSampler( void* p,
+		Array<Array<Real> >& samples,
+		Array<Real>& w,
+		Array<Real>& prior_mean,
+		Array<Real>& prior_std){
+  MINPACKstruct *str = (MINPACKstruct*)(p);
+  str->ResizeWork();
+	  
+  int num_params = str->parameter_manager.NumParams();
+  int num_data = str->expt_manager.NumExptData();
+  int NOS = samples.size();
+
+  Array<Real> sample_data(str->expt_manager.NumExptData());
+  Array<Real> s(num_params);
+  
+  std::cout <<  " " << std::endl;
+  std::cout <<  "STARTING BRUTE FORCE MC SAMPLING " << std::endl;
+  std::cout <<  "Number of samples: " << NOS << std::endl;
+  std::cout <<  " " << std::endl;
+  //BL_ASSERT(samples.size()==num_params);
+  for(int ii=0; ii<NOS; ii++){
+        BL_ASSERT(samples[ii].size()==num_params);
+	for(int jj=0; jj<num_params; jj++){
+		samples[ii][jj] = prior_mean[jj] + prior_std[jj]*randn();
+	}
+	str->expt_manager.GenerateTestMeasurements(samples[ii],sample_data);
+	w[ii] = exp(-str->expt_manager.ComputeLikelihood(sample_data));
+  }
+
+  // Normalize weights
+  NormalizeWeights(w);
+  // Print weights to terminal
+  for(int ii=0; ii<NOS; ii++){
+	  for(int jj=0; jj<num_params; jj++){
+		  std::cout << "Sample " << samples[ii][jj] <<  " weight = "<< w[ii] << std::endl;
+	  }
+  }
+  
+  // Approximate effective sample size	
+  Real Neff = EffSampleSize(w,NOS);
+  std::cout <<  " " << std::endl;
+  std::cout <<  "Effective sample size = "<< Neff << std::endl;
+
+  // Compute conditional mean
+  Array<Real> CondMean(num_params);
+  WeightedMean(CondMean, w, samples);
+
+  // Variance
+  Array<Real> CondVar(num_params);
+  WeightedVar(CondVar,CondMean, w, samples);
+
+  // Print stuff to screen
+  for(int jj=0; jj<num_params; jj++){
+	  std::cout <<  "Prior mean = "<< prior_mean[jj] << std::endl;
+	  std::cout <<  "Conditional mean = "<< CondMean[jj] << std::endl;
+	  std::cout <<  "Standard deviation = "<< sqrt(CondVar[jj]) << std::endl;
+  }
+
+  // Write samples and weights into files
+  WriteSamplesWeights(samples, w);
+
+  // Resampling
+  Array<Array<Real> > Xrs(NOS, Array<Real>(num_params,-1));// resampled parameters
+  Resampling(Xrs,w,samples);
+  WriteResampledSamples(Xrs);
+
+  // Compute conditional mean after resampling
+  Array<Real> CondMeanRs(num_params);
+  Mean(CondMeanRs, Xrs);
+  
+  // Variance after resampling
+  Array<Real> CondVarRs(num_params);
+  Var(CondVarRs, CondMeanRs, Xrs);
+
+  // Print results of resampling
+  for(int jj=0; jj<num_params; jj++){
+	  std::cout <<  "Conditional mean after resampling = "<< CondMeanRs[jj] << std::endl;
+	  std::cout <<  "Standard deviation after resampling = "<< sqrt(CondVarRs[jj]) << std::endl;
+  }
+
+
+  std::cout <<  " " << std::endl;
+  std::cout <<  "END BRUTE FORCE MC SAMPLING " << std::endl;
+  std::cout <<  " " << std::endl;
+}
+// END MATTI'S CODE
+
+
+
+
 int
 main (int   argc,
       char* argv[])
@@ -363,7 +591,7 @@ main (int   argc,
               << "  Standard deviation: " << prior_std[ii] << std::endl;
   }
 
-
+#if 1
   Array<Real> prior_data(num_data);
   std::cout << "Data with prior mean:\n"; 
   expt_manager.GenerateTestMeasurements(prior_mean,prior_data);
@@ -371,12 +599,12 @@ main (int   argc,
   for(int ii=0; ii<num_data; ii++){
     std::cout << "  Data with prior: " << prior_data[ii] << std::endl;
   }    
+#endif
 
   parameter_manager.SetStatsForPrior(prior_mean,prior_std);
 
   Real Ftrue = funcF((void*)(mystruct),true_params);
   std::cout << "Ftrue = " << Ftrue << std::endl;
-
 
  
   ParmParse pp;
@@ -429,7 +657,7 @@ main (int   argc,
   Real F = funcF((void*)(mystruct), prior_mean);  	
   std::cout << "F = " << F << std::endl;
 
-#if 1
+#if 0
   std::cout << " starting MINPACK "<< std::endl;
   // Call minpack
   Array<Real> guess_params(num_params);
@@ -476,6 +704,15 @@ main (int   argc,
     std::cout << parameter_manager[ii] << std::endl;
   }
 # endif
+
+
+// MATTI'S CODE, USE WITH EXTREME CAUTION
+  int NOS = 10;
+  Array<Real> w(NOS);
+  Array<Array<Real> > samples(NOS, Array<Real>(num_params,-1));
+  MCSampler((void*)(mystruct),samples,w,prior_mean,prior_std);
+// END MATTI'S CODE
+
   delete mystruct;
   delete cd;
 
