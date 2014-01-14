@@ -9,6 +9,20 @@
 
 #include <ExperimentManager.H>
 
+// RG -this prototype because I don't have the right header on my laptop
+// and am in a hurry right now - will fix 
+#ifdef __cplusplus 	
+extern "C" {	
+#endif	
+/* Subroutine */ int dgeev_(char *jobvl, char *jobvr, int *n, double *
+	a, int *lda, double *wr, double *wi, double *vl, 
+	int *ldvl, double *vr, int *ldvr, double *work, 
+	int *lwork, int *info);
+#ifdef __cplusplus 	
+}
+#endif	
+
+
 static
 void 
 print_usage (int,
@@ -33,7 +47,7 @@ struct MINPACKstruct
 
   void ResizeWork() {
     int N = parameter_manager.NumParams();
-    int NWORK = 2;
+    int NWORK = 4;
     work.resize(NWORK);
     for (int i=0; i<NWORK; ++i) {
       work[i].resize(N);
@@ -83,6 +97,115 @@ funcF(void* p, const Array<Real>& pvals)
   //std::cout << "Parameter: " << pvals[0] << std::endl;
   
   return Fa  +  Fb;
+}
+
+/*
+ * Compute the mixed partial of the function funcF with respect to the Ith and Jth variable
+ * RG 2014
+ * NOT YET TESTED
+ */
+Real 
+mixed_partial_centered( void*p, const Array<Real>& X, int I, int J ){
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  Array<Real>& XpIpJ = s->work[0];
+  Array<Real>& XmIpJ = s->work[1];
+  Array<Real>& XpImJ = s->work[2];
+  Array<Real>& XmImJ = s->work[3];
+
+  int num_vals = s->parameter_manager.NumParams();
+
+  for (int ii=0; ii<num_vals; ii++){
+   XpIpJ [ii] = X[ii];
+   XpImJ [ii] = X[ii];
+   XmIpJ [ii] = X[ii];
+   XmImJ [ii] = X[ii];
+  }
+                
+  Real typ = std::max(s->parameter_manager.TypicalValue(I), std::abs(X[I]));
+  Real hI = typ * s->param_eps;
+
+  typ = std::max(s->parameter_manager.TypicalValue(J), std::abs(X[J]));
+  //Real hJ = typ * s->param_eps;
+  // Use same hJ = hI; probably want to use different 
+  Real hJ = hI;
+
+  XpIpJ[I] += hI;
+  XpIpJ[J] += hJ;
+
+  XpImJ[I] += hI;
+  XpImJ[J] -= hJ;
+
+  XmIpJ[I] -= hI;
+  XmIpJ[J] += hJ;
+
+  XmImJ[I] -= hI;
+  XmImJ[J] -= hJ;
+
+  Real fpIpJ = funcF(p, XpIpJ);
+  Real fpImJ = funcF(p, XpImJ);
+  Real fmIpJ = funcF(p, XmIpJ);
+  Real fmImJ = funcF(p, XmImJ);
+
+  return 1.0/(4.0*hI) * ( fpIpJ - fpImJ - fmIpJ + fmImJ );
+  
+}
+
+/*
+ *
+ * Load Hessian components up and call lapack routines
+ * to get eigenvalues
+ * RG 2014
+ * NOT YET TESTED
+ */
+Real 
+get_H_eigs( void *p, const Array<Real>& X, Array<Real>& evals){
+
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  int num_vals = s->parameter_manager.NumParams();
+
+  // Dyanamically allocate work arrays now; later move this to either
+  // MINPACKstruct or a LAPACKstruct
+
+
+  // Don't need all of these - evecs especially can by dummy arrrays,
+  // using them all for now to mess about
+  int lwork = 4*num_vals; 
+  double * H = new double[num_vals*num_vals];
+  double * evecs = new double[num_vals*num_vals];
+  double * evecs_left = new double[num_vals*num_vals];
+  double * evals_re = new double[num_vals];
+  double * evals_im = new double[num_vals];
+  double * work = new double[lwork];
+  int info;
+
+  
+  char cN, cV;
+  cN = 'N';
+  cV = 'V';
+
+  // Build Hessian - rows increment quickly for fortran dgeev_
+  for( int jj=0; jj<num_vals; jj++ ){
+      for( int ii=0; ii<num_vals; ii++ ){
+          H[ii + jj*num_vals] = mixed_partial_centered( p, X, ii, jj );
+      }
+  }
+
+  info = -1;
+  dgeev_( &cN, &cN, &num_vals, H, &num_vals, evals_re, evals_im, 
+          evecs_left, &num_vals, evecs, 
+          &num_vals, work, &lwork, &info );
+
+  // Copy out the evals we want - do we need them all?
+  for (int ii=0;ii<num_vals;ii++){
+    evals[ii] = evals_re[ii];
+  } 
+
+  delete H;
+  delete evecs;
+  delete evecs_left;
+  delete evals_re;
+  delete evals_im;
+  delete work;
 }
 
 //
@@ -605,6 +728,19 @@ main (int   argc,
 
   Real Ftrue = funcF((void*)(mystruct),true_params);
   std::cout << "Ftrue = " << Ftrue << std::endl;
+  
+#if 1
+    // Exercise H eigenvalue calculation
+    std::ofstream eigof;
+    Array<Real> plot_eigs(num_params);
+    get_H_eigs((void *)(mystruct), true_params,plot_eigs);
+    eigof.open("eigs.dat");
+    for(int ii=0; ii<num_params; ii++ ){
+        eigof << ii << "\t" << plot_eigs[ii] << std::endl;
+    }
+    eigof.close();
+#endif
+
 
  
   ParmParse pp;
@@ -636,6 +772,7 @@ main (int   argc,
       of1 << plot_params[0] << " " <<plot_grad[0] << '\n';
 #endif
 
+
 #if 0
       expt_manager.GenerateTestMeasurements(plot_params,plot_data);
       
@@ -649,6 +786,7 @@ main (int   argc,
     }
     of.close();
     of1.close();
+
     exit(0);
   }
 
