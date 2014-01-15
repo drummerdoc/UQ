@@ -6,21 +6,23 @@
 #include <Utility.H>
 #include <ChemDriver.H>
 #include <cminpack.h>
+#include <stdio.h>
+#include <lapacke.h>
 
 #include <ExperimentManager.H>
 
-// RG -this prototype because I don't have the right header on my laptop
-// and am in a hurry right now - will fix 
-#ifdef __cplusplus 	
-extern "C" {	
-#endif	
-/* Subroutine */ int dgeev_(char *jobvl, char *jobvr, int *n, double *
-	a, int *lda, double *wr, double *wi, double *vl, 
-	int *ldvl, double *vr, int *ldvr, double *work, 
-	int *lwork, int *info);
-#ifdef __cplusplus 	
-}
-#endif	
+// // RG -this prototype because I don't have the right header on my laptop
+// // and am in a hurry right now - will fix 
+// #ifdef __cplusplus 	
+// extern "C" {	
+// #endif	
+// /* Subroutine */ int dgeev_(char *jobvl, char *jobvr, int *n, double *
+// 	a, int *lda, double *wr, double *wi, double *vl, 
+// 	int *ldvl, double *vr, int *ldvr, double *work, 
+// 	int *lwork, int *info);
+// #ifdef __cplusplus 	
+// }
+// #endif	
 
 
 static
@@ -37,40 +39,94 @@ print_usage (int,
   exit(1);
 }
 
-
 // A simple struct to hold all the parameters, experiment data and some work space
 // to be accessible to the MINPACK function
 struct MINPACKstruct
 {
   MINPACKstruct(ChemDriver& cd, Real _param_eps)
-  : parameter_manager(cd), expt_manager(parameter_manager), param_eps(_param_eps) {}
+  : parameter_manager(cd), expt_manager(parameter_manager),
+    param_eps(_param_eps), num_work_arrays(4), work_array_len(-1) {}
+
+  struct LAPACKstruct
+  {
+    lapack_int DGESVD_wrap() {
+      lapack_int info;
+      if (lwork == -1) {
+        double work_query;
+        info = LAPACKE_dgesvd_work(matrix_order,jobu,jobvt,m,n,a.dataPtr(),lda,s.dataPtr(),
+                                   u.dataPtr(),ldu,vt.dataPtr(),ldvt,&work_query,lwork);
+        lwork = (lapack_int)work_query;
+        work.resize(lwork);
+      }
+      else {
+        /* Call middle-level interface */
+        info = LAPACKE_dgesvd_work(matrix_order,jobu,jobvt,m,n,a.dataPtr(),lda,s.dataPtr(),
+                                   u.dataPtr(),ldu,vt.dataPtr(),ldvt,work.dataPtr(),lwork);
+      }
+      BL_ASSERT(info == 0);
+      return info;
+    }
+
+    void ResizeWork(int work_array_len) {
+      matrix_order = LAPACK_ROW_MAJOR; // Order of matrices
+
+      jobu  = 'a';             // 'a' -> all M columns of U are returned
+      jobvt = 'a';             // 'a' -> all N rows of V**T are returned
+      m     = work_array_len;  // Number of rows of matrix
+      n     = work_array_len;  // Number of columns of matrix
+      a.resize(n*m);           // The matrix A
+      lda   = n;               // Leading dimension of matrix a
+      s.resize(std::min(m,n)); // Singular values of a
+      u.resize(m*m);           // The matrix U
+      ldu   = m;               // Leading dimension of matrix u
+      vt.resize(n*n);          // The matrix VT
+      ldvt  = n;               // Leading dimension of matrix vt
+
+      // Query for work size
+      lwork = -1;              // size of work, -1 for query
+      lapack_int info = DGESVD_wrap();
+      BL_ASSERT(info == 0);
+    }
+    char jobu,jobvt;
+    lapack_int m, n, lda, ldu, ldvt, lwork;
+    Array<double> a, s, u, vt, work;
+    int matrix_order;
+  };
 
   void ResizeWork() {
-    int N = parameter_manager.NumParams();
-    int NWORK = 4;
-    work.resize(NWORK);
-    for (int i=0; i<NWORK; ++i) {
-      work[i].resize(N);
+    if (work_array_len != parameter_manager.NumParams()) {
+      work_array_len = parameter_manager.NumParams();
+      work.resize(num_work_arrays);
+      for (int i=0; i<num_work_arrays; ++i) {
+        work[i].resize(work_array_len);
+      }
+      lapack_struct.ResizeWork(work_array_len);
     }
   }
 
+  Array<Real>& Work(int i) {
+    BL_ASSERT(i<num_work_arrays);
+    return work[i];
+  }
   ParameterManager parameter_manager;
   ExperimentManager expt_manager;
+  LAPACKstruct lapack_struct;
   Array<Array<Real> > work;
   Real param_eps;
+  int num_work_arrays, work_array_len;
 };
 
-static
-Real
-get_macheps() {
-  Real h = 1;
-  while (1+h != 1) {
-    h *= 0.5;
-  }
-  Real mach_eps = std::sqrt(h);
-  std::cout << "Setting macheps to " << mach_eps << std::endl;
-  return mach_eps;
-}
+// static
+// Real
+// get_macheps() {
+//   Real h = 1;
+//   while (1+h != 1) {
+//     h *= 0.5;
+//   }
+//   Real mach_eps = std::sqrt(h);
+//   std::cout << "Setting macheps to " << mach_eps << std::endl;
+//   return mach_eps;
+// }
 
 static ChemDriver* cd;
 MINPACKstruct *mystruct;
@@ -92,25 +148,17 @@ funcF(void* p, const Array<Real>& pvals)
   s->expt_manager.GenerateTestMeasurements(pvals,dvals);
   Real Fa = s->parameter_manager.ComputePrior(pvals);
   Real Fb = s->expt_manager.ComputeLikelihood(dvals);
-
-  //std::cout << "F, Fa, Fb: " << Fa + Fb << ", " << Fa << ", " << Fb << std::endl;
-  //std::cout << "Parameter: " << pvals[0] << std::endl;
-  
   return Fa  +  Fb;
 }
 
-/*
- * Compute the mixed partial of the function funcF with respect to the Ith and Jth variable
- * RG 2014
- * NOT YET TESTED
- */
-Real 
-mixed_partial_centered( void*p, const Array<Real>& X, int I, int J ){
+Real mixed_partial_centered (void* p, const Array<Real>& X, int i, int j)
+{
   MINPACKstruct *s = (MINPACKstruct*)(p);
-  Array<Real>& XpIpJ = s->work[0];
-  Array<Real>& XmIpJ = s->work[1];
-  Array<Real>& XpImJ = s->work[2];
-  Array<Real>& XmImJ = s->work[3];
+  BL_ASSERT(s->work_array_len >= X.size());
+  Array<Real>& XpIpJ = s->Work(0);
+  Array<Real>& XmIpJ = s->Work(1);
+  Array<Real>& XpImJ = s->Work(2);
+  Array<Real>& XmImJ = s->Work(3);
 
   int num_vals = s->parameter_manager.NumParams();
 
@@ -121,25 +169,23 @@ mixed_partial_centered( void*p, const Array<Real>& X, int I, int J ){
    XmImJ [ii] = X[ii];
   }
                 
-  Real typ = std::max(s->parameter_manager.TypicalValue(I), std::abs(X[I]));
-  Real hI = typ * s->param_eps;
+  Real typI = std::max(s->parameter_manager.TypicalValue(i), std::abs(X[i]));
+  Real typJ = std::max(s->parameter_manager.TypicalValue(j), std::abs(X[j]));
 
-  typ = std::max(s->parameter_manager.TypicalValue(J), std::abs(X[J]));
-  //Real hJ = typ * s->param_eps;
-  // Use same hJ = hI; probably want to use different 
-  Real hJ = hI;
+  Real hI = typI * s->param_eps;
+  Real hJ = typJ * s->param_eps;
 
-  XpIpJ[I] += hI;
-  XpIpJ[J] += hJ;
+  XpIpJ[i] += hI;
+  XpIpJ[j] += hJ;
 
-  XpImJ[I] += hI;
-  XpImJ[J] -= hJ;
+  XpImJ[i] += hI;
+  XpImJ[j] -= hJ;
 
-  XmIpJ[I] -= hI;
-  XmIpJ[J] += hJ;
+  XmIpJ[i] -= hI;
+  XmIpJ[j] += hJ;
 
-  XmImJ[I] -= hI;
-  XmImJ[J] -= hJ;
+  XmImJ[i] -= hI;
+  XmImJ[j] -= hJ;
 
   Real fpIpJ = funcF(p, XpIpJ);
   Real fpImJ = funcF(p, XpImJ);
@@ -151,61 +197,22 @@ mixed_partial_centered( void*p, const Array<Real>& X, int I, int J ){
 }
 
 /*
- *
- * Load Hessian components up and call lapack routines
- * to get eigenvalues
- * RG 2014
- * NOT YET TESTED
+ * Load Hessian at X, perform SVD, results stored internally (RG, MSD 2014)
  */
-Real 
-get_H_eigs( void *p, const Array<Real>& X, Array<Real>& evals){
-
-  MINPACKstruct *s = (MINPACKstruct*)(p);
-  int num_vals = s->parameter_manager.NumParams();
-
-  // Dyanamically allocate work arrays now; later move this to either
-  // MINPACKstruct or a LAPACKstruct
-
-
-  // Don't need all of these - evecs especially can by dummy arrrays,
-  // using them all for now to mess about
-  int lwork = 4*num_vals; 
-  double * H = new double[num_vals*num_vals];
-  double * evecs = new double[num_vals*num_vals];
-  double * evecs_left = new double[num_vals*num_vals];
-  double * evals_re = new double[num_vals];
-  double * evals_im = new double[num_vals];
-  double * work = new double[lwork];
-  int info;
-
-  
-  char cN, cV;
-  cN = 'N';
-  cV = 'V';
-
-  // Build Hessian - rows increment quickly for fortran dgeev_
+void
+get_Hessian_SVD(void *p, const Array<Real>& X)
+{
+  MINPACKstruct *str = (MINPACKstruct*)(p);
+  int num_vals = str->parameter_manager.NumParams();
+  MINPACKstruct::LAPACKstruct& lapack = str->lapack_struct;
+  Array<Real>& a = lapack.a;
   for( int jj=0; jj<num_vals; jj++ ){
-      for( int ii=0; ii<num_vals; ii++ ){
-          H[ii + jj*num_vals] = mixed_partial_centered( p, X, ii, jj );
-      }
+    for( int ii=0; ii<num_vals; ii++ ){
+      a[ii + jj*num_vals] = mixed_partial_centered( p, X, ii, jj);
+    }
   }
-
-  info = -1;
-  dgeev_( &cN, &cN, &num_vals, H, &num_vals, evals_re, evals_im, 
-          evecs_left, &num_vals, evecs, 
-          &num_vals, work, &lwork, &info );
-
-  // Copy out the evals we want - do we need them all?
-  for (int ii=0;ii<num_vals;ii++){
-    evals[ii] = evals_re[ii];
-  } 
-
-  delete H;
-  delete evecs;
-  delete evecs_left;
-  delete evals_re;
-  delete evals_im;
-  delete work;
+  lapack_int info = lapack.DGESVD_wrap();
+  BL_ASSERT(info == 0);
 }
 
 //
@@ -215,8 +222,8 @@ get_H_eigs( void *p, const Array<Real>& X, Array<Real>& evals){
 Real
 der_cfd(void* p, const Array<Real>& X, int K) {
   MINPACKstruct *s = (MINPACKstruct*)(p);
-  Array<Real>& xdX1 = s->work[0];
-  Array<Real>& xdX2 = s->work[1];
+  Array<Real>& xdX1 = s->Work(0);
+  Array<Real>& xdX2 = s->Work(1);
 
   int num_vals = s->parameter_manager.NumParams();
 
@@ -244,7 +251,7 @@ der_cfd(void* p, const Array<Real>& X, int K) {
 Real
 der_ffd(void* p, const Array<Real>& X, int K) {
   MINPACKstruct *s = (MINPACKstruct*)(p);
-  Array<Real>& xdX = s->work[0];
+  Array<Real>& xdX = s->Work(0);
 
   int num_vals = s->parameter_manager.NumParams();
 
@@ -259,21 +266,8 @@ der_ffd(void* p, const Array<Real>& X, int K) {
 
   Real fx1 = funcF(p, xdX);
   Real fx2 = funcF(p, X);
-  Real der = (fx1-fx2)/(xdX[K]-X[K]);
 
-  // std::cout << "typ from p: " << s->parameter_manager.TypicalValue(K) << std::endl;
-  // std::cout << "typ: " << typ << std::endl;
-  // std::cout << "h: " << h << std::endl;
-  // std::cout << "X: " << X[0] << std::endl;
-  // std::cout << "xdX: " << xdX[0] << std::endl;
-  // std::cout << "fx1: " << fx1 << std::endl;
-  // std::cout << "fx2: " << fx2 << std::endl;
-  // std::cout << "df: " << fx1-fx2 << std::endl;
-  // std::cout << "dx: " << xdX[K]-X[K] << std::endl;
-  // std::cout << "der: " << der << std::endl;
-  // BoxLib::Abort();
-
-  return der;
+  return (fx1-fx2)/(xdX[K]-X[K]);
 }
 
 //
@@ -319,32 +313,6 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
   int num_vals = s->parameter_manager.NumParams();
   Array<Real> FVEC(num_vals);
   int INFO;
-
-#if 0
-  int LWA=180;
-  Array<Real> WA(LWA);
-  Real TOL=1.5e-14;
-  soln = guess;
-  INFO = hybrd1(FCN,p,num_vals,soln.dataPtr(),FVEC.dataPtr(),TOL,WA.dataPtr(),WA.size());   
-  std::cout << "minpack INFO: " << INFO << std::endl;
-  if(INFO==1)
-  {
-	std::cout << "minpack: improper input parameters " << std::endl;
-  }
-  else if(INFO==2)
-  {
-	std::cout << "minpack: algorithm estimates that the relative error between X and the solution is at most TOL " << std::endl;
-  }
-   else if(INFO==3)
-  {
-	std::cout << "minpack: number of calls to FCN has reached or exceeded 200*(N+1)" << std::endl;
-  }
-  else if(INFO==4)
-  {
-  	std::cout << "minpack: iteration is not making good progress" << std::endl;
-  }
-
-#elif 1
 
   int MAXFEV=1e8,ML=num_vals-1,MU=num_vals-1,NPRINT=1,LDFJAC=num_vals;
   int NFEV;
@@ -407,7 +375,6 @@ void minimize(void *p, const Array<Real>& guess, Array<Real>& soln)
   for(int ii=0; ii<num_vals; ii++){
     std::cout << soln[ii] << " " << FVEC[ii] << std::endl;
   }
-#endif
 };
 
 // MATTI'S CODE, USE WITH EXTREME CAUTION
@@ -548,6 +515,10 @@ void WriteResampledSamples(Array<Array<Real> >& Xrs){
   of2.close();
 }
 
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
 void MCSampler( void* p,
 		Array<Array<Real> >& samples,
 		Array<Real>& w,
@@ -557,7 +528,6 @@ void MCSampler( void* p,
   str->ResizeWork();
 	  
   int num_params = str->parameter_manager.NumParams();
-  int num_data = str->expt_manager.NumExptData();
   int NOS = samples.size();
 
   Array<Real> sample_data(str->expt_manager.NumExptData());
@@ -566,24 +536,45 @@ void MCSampler( void* p,
   std::cout <<  " " << std::endl;
   std::cout <<  "STARTING BRUTE FORCE MC SAMPLING " << std::endl;
   std::cout <<  "Number of samples: " << NOS << std::endl;
-  std::cout <<  " " << std::endl;
-  //BL_ASSERT(samples.size()==num_params);
   for(int ii=0; ii<NOS; ii++){
-        BL_ASSERT(samples[ii].size()==num_params);
-	for(int jj=0; jj<num_params; jj++){
-		samples[ii][jj] = prior_mean[jj] + prior_std[jj]*randn();
-	}
-	str->expt_manager.GenerateTestMeasurements(samples[ii],sample_data);
-	w[ii] = exp(-str->expt_manager.ComputeLikelihood(sample_data));
+    BL_ASSERT(samples[ii].size()==num_params);
+    for(int jj=0; jj<num_params; jj++){
+      samples[ii][jj] = prior_mean[jj] + prior_std[jj]*randn();
+    }
   }
 
-  // Normalize weights
+#ifdef _OPENMP
+  int tnum = omp_get_max_threads();
+  BL_ASSERT(tnum>0);
+  std::cout <<  " number of threads: " << tnum << std::endl;
+#else
+  int tnum = 1;
+#endif
+  Real dthread = NOS / Real(tnum);
+  Array<int> trange(tnum);
+  for (int ithread = 0; ithread < tnum; ithread++) {
+    trange[ithread] = ithread * dthread;
+  }
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+  for (int ithread = 0; ithread < tnum; ithread++) {
+    int iBegin = trange[ithread];
+    int iEnd = (ithread==tnum-1 ? NOS : trange[ithread+1]);
+
+    for(int ii=iBegin; ii<iEnd; ii++){
+      str->expt_manager.GenerateTestMeasurements(samples[ii],sample_data);
+      w[ii] = exp(-str->expt_manager.ComputeLikelihood(sample_data));
+    }
+  }
+
+  // Normalize weights, print to terminal
   NormalizeWeights(w);
-  // Print weights to terminal
   for(int ii=0; ii<NOS; ii++){
-	  for(int jj=0; jj<num_params; jj++){
-		  std::cout << "Sample " << samples[ii][jj] <<  " weight = "<< w[ii] << std::endl;
-	  }
+    for(int jj=0; jj<num_params; jj++){
+      std::cout << "Sample " << samples[ii][jj] <<  " weight = "<< w[ii] << std::endl;
+    }
   }
   
   // Approximate effective sample size	
@@ -648,7 +639,7 @@ main (int   argc,
 
   cd = new ChemDriver;
 
-  Real eps = get_macheps();
+  //Real eps = get_macheps();
   Real param_eps = 1.e-4;
   mystruct = new MINPACKstruct(*cd,param_eps);
 
@@ -729,20 +720,6 @@ main (int   argc,
   Real Ftrue = funcF((void*)(mystruct),true_params);
   std::cout << "Ftrue = " << Ftrue << std::endl;
   
-#if 1
-    // Exercise H eigenvalue calculation
-    std::ofstream eigof;
-    Array<Real> plot_eigs(num_params);
-    get_H_eigs((void *)(mystruct), true_params,plot_eigs);
-    eigof.open("eigs.dat");
-    for(int ii=0; ii<num_params; ii++ ){
-        eigof << ii << "\t" << plot_eigs[ii] << std::endl;
-    }
-    eigof.close();
-#endif
-
-
- 
   ParmParse pp;
   bool do_sample=false; pp.query("do_sample",do_sample);
   if (do_sample) {
@@ -795,7 +772,7 @@ main (int   argc,
   Real F = funcF((void*)(mystruct), prior_mean);  	
   std::cout << "F = " << F << std::endl;
 
-#if 0
+#if 1
   std::cout << " starting MINPACK "<< std::endl;
   // Call minpack
   Array<Real> guess_params(num_params);
@@ -835,21 +812,33 @@ main (int   argc,
   for(int ii=0; ii<num_params; ii++){
     std::cout << Gconf[ii] << std::endl;
   }
+#endif
+
+#if 1
+  // Get Hessian SVD
+  get_Hessian_SVD((void *)(mystruct), true_params);
+  const Array<Real>& singular_values = mystruct->lapack_struct.s;
+  std::cout << "Singular value(s) of Hessian at mimimum: [ ";
+  for(int ii=0; ii<singular_values.size(); ii++ ){
+    std::cout << singular_values[ii] << " ";
+  }
+  std::cout << "]" << std::endl;
+#endif
+
+#if 1
+// MATTI'S CODE, USE WITH EXTREME CAUTION
+  int NOS = 10; pp.query("NOS",NOS);
+  Array<Real> w(NOS);
+  Array<Array<Real> > samples(NOS, Array<Real>(num_params,-1));
+  MCSampler((void*)(mystruct),samples,w,prior_mean,prior_std);
+// END MATTI'S CODE
+#endif
 
   parameter_manager.ResetParametersToDefault();
   std::cout << "Reset parameters: " << std::endl;
   for(int ii=0; ii<num_params; ii++){
     std::cout << parameter_manager[ii] << std::endl;
   }
-# endif
-
-
-// MATTI'S CODE, USE WITH EXTREME CAUTION
-  int NOS = 10;
-  Array<Real> w(NOS);
-  Array<Array<Real> > samples(NOS, Array<Real>(num_params,-1));
-  MCSampler((void*)(mystruct),samples,w,prior_mean,prior_std);
-// END MATTI'S CODE
 
   delete mystruct;
   delete cd;

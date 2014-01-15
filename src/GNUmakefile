@@ -1,11 +1,12 @@
 PRECISION       = DOUBLE
-DEBUG           = FALSE
 DEBUG           = TRUE
+DEBUG           = FALSE
 DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
 USE_MPI         = FALSE
 USE_OMP         = FALSE
+USE_OMP         = TRUE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
 
@@ -35,7 +36,14 @@ INCLUDE_LOCATIONS += hacked_src
 
 INCLUDE_LOCATIONS+=./minpack/cminpack/include/cminpack-1
 LIBRARY_LOCATIONS+=./minpack/cminpack/lib64
+#LIBRARIES += -lcminpack -llapack
 LIBRARIES += -lcminpack
+
+LAPACK_DIR=${HOME}/src/CLAPACK/Release
+INCLUDE_LOCATIONS+=${LAPACK_DIR}/include
+LIBRARY_LOCATIONS+=${LAPACK_DIR}/lib
+LIBRARIES += -llapacke -llapack -lblas
+
 
 CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H
 CEXE_sources += ${EBASE}.cpp SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp
