@@ -1,6 +1,12 @@
 
 UQ:
 
+
+To build, see the "INSTALL" file in this folder  -Marc, 1/15/14
+
+
+
+
 Time to update this note...For one, the location of this work in the
 CCSE git repos has changed somewhat, being moved out of the
 Combustion/Chemistry/bin folder and into its own repository called
@@ -67,46 +73,6 @@ quantifies contributions from two pieces, satisfaction of the
 given h(x), the output of the experiment for a give parameter set x.
 F is minimized with MINPACK, which requires a routine to compute
 the gradient vector dF/dx that it will use to find where dF/dx=0.
-
-
-Some detail:
-
-Since the last time I wrote anything here, I added a simple driver to
-explore reactions/parameters (findInterestingParams) and rearranged
-the minpack stuff slightly.  The preferred way to build cminpack here
-is now as follows:
-
-cd minpack/cminpack
-tar zxf /path/to/cminpack-1.3.0.tar.gz
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/path/to/this/folder/minpack/cminpack ../cminpack-1.3.0
-make 
-make install
-cd ../..
-
-This will create "include" and "lib" or "lib64" in the
-minpack/cminpack folder.
-
-In the GNUmakefile in this folder, make sure that the following lines
-are correct (ie, they point to where you just installed the minpack
-software).
-
-INCLUDE_LOCATIONS+=./minpack/cminpack/include/cminpack-1
-LIBRARY_LOCATIONS+=./minpack/cminpack/lib64
-LIBRARIES += -lcminpack
-
-In this folder, type "make" and with luck one of the drivers will be
-built.  The current favorite is "reworkedDriver".
-
-Current layout of stuff:
-
-
-
-When the next step of stuff settles down, we should add a description 
-of what we are doing here.
-
--Marc, 10/17/13
 
 
 ---------------------------------------------------------------------

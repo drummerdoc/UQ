@@ -1,3 +1,8 @@
+
+# Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
+TOP = ../..
+PACKAGES=./packages
+
 PRECISION       = DOUBLE
 DEBUG           = TRUE
 DEBUG           = FALSE
@@ -23,7 +28,6 @@ endif
 CFLAGS += -std=c99
 
 # Set paths to BoxLib and Chemistry
-TOP = ../..
 BOXLIB_DIR = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 
@@ -34,16 +38,11 @@ EBASE = driver
 Blocs := . hacked_src
 INCLUDE_LOCATIONS += hacked_src
 
-INCLUDE_LOCATIONS+=./minpack/cminpack/include/cminpack-1
-LIBRARY_LOCATIONS+=./minpack/cminpack/lib64
-#LIBRARIES += -lcminpack -llapack
-LIBRARIES += -lcminpack
-
-LAPACK_DIR=${HOME}/src/CLAPACK/Release
-INCLUDE_LOCATIONS+=${LAPACK_DIR}/include
-LIBRARY_LOCATIONS+=${LAPACK_DIR}/lib
-LIBRARIES += -llapacke -llapack -lblas
-
+INCLUDE_LOCATIONS+=${PACKAGES}/include
+INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
+LIBRARY_LOCATIONS+=${PACKAGES}/lib
+LIBRARY_LOCATIONS+=${PACKAGES}/lib64
+LIBRARIES += -lcminpack -llapacke -llapack -lblas
 
 CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H
 CEXE_sources += ${EBASE}.cpp SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp
