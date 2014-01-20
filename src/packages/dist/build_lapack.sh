@@ -2,11 +2,16 @@
 
 PKG=lapack
 VERS=3.5.0
-export CC=gcc
-export CFLAGS='-O2'
+#export CC='gcc-mp-4.6'
+#export CXX='g++-mp-4.6'
+#export FC=gfortran-mp-4.6
+
+export CC='gcc'
 export CXX='g++'
-export CXXFLAGS='-O2'
 export FC=gfortran
+
+export CFLAGS='-O2'
+export CXXFLAGS='-O2'
 
 fullname=$PKG-${VERS}
 tardir=$PWD
