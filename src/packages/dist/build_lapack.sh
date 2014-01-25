@@ -25,6 +25,6 @@ cd "$builddir/$fullname"
 echo hostname > build_$PKG.log
 env >> build_$PKG.log
 
-cmake -DCMAKE_INSTALL_PREFIX:STRING="$destdir" -DCMAKE_BUILD_TYPE:STRING="Release"
+cmake -DCMAKE_INSTALL_PREFIX:STRING="$destdir" -DCMAKE_BUILD_TYPE:STRING="Release" -DBUILD_SHARED_LIBS:BOOL=TRUE
 make -j4
 make install
