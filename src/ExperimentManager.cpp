@@ -5,7 +5,7 @@
 void
 ExperimentManager::Clear()
 {
-  expts.clear(); expts.resize(0);
+  expts.clear(); expts.resize(0, PArrayManage);
   raw_data.clear();
   data_offsets.clear();
   num_expt_data = 0;
@@ -13,14 +13,14 @@ ExperimentManager::Clear()
 }
 
 void
-ExperimentManager::AddExperiment(SimulatedExperiment& expt,
-                                 const std::string& expt_id)
+ExperimentManager::AddExperiment(SimulatedExperiment* expt,
+                                 const std::string&   expt_id)
 {
   int num_expts_old = expts.size();
-  expts.resize(num_expts_old+1,PArrayNoManage);
-  expts.set(num_expts_old, &expt);
+  expts.resize(num_expts_old+1);
+  expts.set(num_expts_old, expt);
   int num_new_values = expts[num_expts_old].NumMeasuredValues();
-  raw_data.resize(num_expts_old+1,Array<Real>(num_new_values));
+  raw_data.resize(num_expts_old+1,std::vector<Real>(num_new_values));
   data_offsets.resize(num_expts_old+1);
   data_offsets[num_expts_old] = ( num_expts_old == 0 ? 0 : 
                                   data_offsets[num_expts_old-1]+raw_data[num_expts_old-1].size() );
@@ -37,8 +37,8 @@ ExperimentManager::InitializeExperiments()
 }
 
 void
-ExperimentManager::InitializeTrueData(const Array<Real>& _true_data,
-                                      const Array<Real>& _true_data_std)
+ExperimentManager::InitializeTrueData(const std::vector<Real>& _true_data,
+                                      const std::vector<Real>& _true_data_std)
 {
   BL_ASSERT(_true_data.size() == _true_data_std.size());
   num_expt_data = _true_data.size();
@@ -59,7 +59,6 @@ ExperimentManager::GenerateExptData()
   perturbed_data.resize(num_expt_data);
   BL_ASSERT(true_std.size() == num_expt_data);
   BL_ASSERT(true_data.size() == num_expt_data);
-
   // FIXME: Make more general
   for(int ii=0; ii<num_expt_data; ii++){
     Real small = true_std[ii];
@@ -68,8 +67,8 @@ ExperimentManager::GenerateExptData()
 }
 
 void
-ExperimentManager::GenerateTestMeasurements(const Array<Real>& test_params,
-                                            Array<Real>&       test_measurements)
+ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params,
+                                            std::vector<Real>&       test_measurements)
 {
   for (int i=0; i<test_params.size(); ++i) {
     parameter_manager[i] = test_params[i];      
@@ -80,14 +79,14 @@ ExperimentManager::GenerateTestMeasurements(const Array<Real>& test_params,
 
     int s = raw_data[i].size();
 
-    for (int j=0; j<raw_data[i].size(); ++j) {
+    for (int j=0; j<s; ++j) {
       test_measurements[offset + j] = raw_data[i][j];
     }
   }    
 }
 
 Real
-ExperimentManager::ComputeLikelihood(const Array<Real>& test_data) const
+ExperimentManager::ComputeLikelihood(const std::vector<Real>& test_data) const
 {
   BL_ASSERT(test_data.size() == num_expt_data);
   if (perturbed_data.size()==0) {

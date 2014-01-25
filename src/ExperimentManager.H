@@ -6,9 +6,9 @@
 
 struct ExperimentManager
 {
-  ExperimentManager(ParameterManager& pmgr) : parameter_manager(pmgr), perturbed_data(0) {}
+  ExperimentManager(ParameterManager& pmgr) : parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0) {}
   
-  void AddExperiment(SimulatedExperiment& expt,
+  void AddExperiment(SimulatedExperiment* expt,
                      const std::string& expt_id);
 
   void Clear();
@@ -17,18 +17,18 @@ struct ExperimentManager
 
   int NumExptData() const;
 
-  void InitializeTrueData(const Array<Real>& _true_data,
-                          const Array<Real>& _true_data_std);
+  void InitializeTrueData(const std::vector<Real>& _true_data,
+                          const std::vector<Real>& _true_data_std);
 
   void GenerateExptData();
 
-  void GenerateTestMeasurements(const Array<Real>& test_params,
-                                Array<Real>&       test_measurements);
+  void GenerateTestMeasurements(const std::vector<Real>& test_params,
+                                std::vector<Real>&       test_measurements);
 
-  Real ComputeLikelihood(const Array<Real>& test_data) const;
+  Real ComputeLikelihood(const std::vector<Real>& test_data) const;
 
-  const Array<Real>& TrueData() const;
-  const Array<Real>& TrueDataWithObservationNoise() const;
+  const std::vector<Real>& TrueData() const;
+  const std::vector<Real>& TrueDataWithObservationNoise() const;
 
   const SimulatedExperiment& Experiment(int i) const;
 
@@ -36,13 +36,13 @@ protected:
   bool initialized;
   ParameterManager& parameter_manager;
   PArray<SimulatedExperiment> expts;
-  Array<Array<Real> > raw_data;
-  Array<int> data_offsets;
+  std::vector<std::vector<Real> > raw_data;
+  std::vector<int> data_offsets;
   std::map<std::string,int> expt_map;
   
   int num_expt_data;
-  Array<Real> true_data, perturbed_data;
-  Array<Real> true_std, true_std_inv2;
+  std::vector<Real> true_data, perturbed_data;
+  std::vector<Real> true_std, true_std_inv2;
 
 private:
   ExperimentManager(const ExperimentManager& rhs);
@@ -57,14 +57,14 @@ ExperimentManager::NumExptData() const
 }
 
 inline
-const Array<Real>&
+const std::vector<Real>&
 ExperimentManager::TrueData() const
 {
   return true_data;
 }
 
 inline
-const Array<Real>&
+const std::vector<Real>&
 ExperimentManager::TrueDataWithObservationNoise() const
 {
   return perturbed_data;

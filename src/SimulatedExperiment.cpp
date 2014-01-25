@@ -56,7 +56,7 @@ CVReactor::CVReactor(const CVReactor& rhs)
 }
 
 void
-CVReactor::GetMeasurements(Array<Real>& simulated_observations)
+CVReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
   Reset();
   const Box& box = funcCnt.box();
@@ -132,7 +132,7 @@ void
 CVReactor::InitializeExperiment()
 {
   ParmParse pp;
-  std::string pmf_file=""; pp.get("pmf_file",pmf_file);
+  std::string pmf_file="dme.fab"; pp.query("pmf_file",pmf_file);
   std::ifstream is;
   is.open(pmf_file.c_str());
   FArrayBox fileFAB;

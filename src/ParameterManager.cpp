@@ -38,15 +38,20 @@ ParameterManager::Clear()
 }
 
 void
-ParameterManager::SetStatsForPrior(const Array<Real>& mean,
-                                   const Array<Real>& std) {
-  prior_mean = mean;
-  prior_std = std;
+ParameterManager::SetStatsForPrior(const std::vector<Real>& _mean,
+                                   const std::vector<Real>& _std,
+                                   const std::vector<Real>& _lower_bound,
+                                   const std::vector<Real>& _upper_bound)
+{
+  prior_mean = _mean;
+  prior_std = _std;
+  lower_bound = _lower_bound;
+  upper_bound = _upper_bound;
   prior_stats_initialized = true;
 }
 
 void
-ParameterManager::GenerateSampleOfPrior(Array<Real>& parameter_samples) const
+ParameterManager::GenerateSampleOfPrior(std::vector<Real>& parameter_samples) const
 {
   BL_ASSERT(prior_stats_initialized);
   int num_vals = NumParams();
@@ -56,15 +61,18 @@ ParameterManager::GenerateSampleOfPrior(Array<Real>& parameter_samples) const
   }
 }
 
-Real
-ParameterManager::ComputePrior(const Array<Real>& params) const
+std::pair<bool,Real>
+ParameterManager::ComputePrior(const std::vector<Real>& params) const
 {
   BL_ASSERT(prior_stats_initialized);
   BL_ASSERT(params.size() == NumParams());
   Real p = 0;
+  bool sample_oob = false;
   for (int ii=0, End=NumParams(); ii<End; ii++){
+    sample_oob |= (params[ii] < lower_bound[ii] || params[ii] > upper_bound[ii]);
     p+=(prior_mean[ii]-params[ii])*(prior_mean[ii]-params[ii])/2/prior_std[ii]/prior_std[ii];
   }
-  return p;
+  bool sample_ok = !sample_oob;
+  return std::pair<bool,Real>(sample_ok,p);
 }
 

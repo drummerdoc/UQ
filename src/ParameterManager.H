@@ -16,12 +16,14 @@ struct ParameterManager
 
   int NumParams() const;
 
-  void SetStatsForPrior(const Array<Real>& mean,
-                        const Array<Real>& std);
+  void SetStatsForPrior(const std::vector<Real>& mean,
+                        const std::vector<Real>& std,
+                        const std::vector<Real>& lower_bound,
+                        const std::vector<Real>& upper_bound);
 
-  void GenerateSampleOfPrior(Array<Real>& parameter_samples) const;
+  void GenerateSampleOfPrior(std::vector<Real>& parameter_samples) const;
 
-  Real ComputePrior(const Array<Real>& params) const;
+  std::pair<bool,Real> ComputePrior(const std::vector<Real>& params) const;
 
   ChemDriver::Parameter& operator[](int i);
   const ChemDriver::Parameter& operator[](int i) const;
@@ -32,9 +34,11 @@ struct ParameterManager
   PArray<ChemDriver::Parameter> active_parameters; // The set of active parameters
   ChemDriver& cd;
 
-  Array<Real> true_prior;
-  Array<Real> prior_mean;
-  Array<Real> prior_std;
+  std::vector<Real> true_prior;
+  std::vector<Real> prior_mean;
+  std::vector<Real> prior_std;
+  std::vector<Real> lower_bound;
+  std::vector<Real> upper_bound;
 };
 
 inline

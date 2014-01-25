@@ -11,8 +11,8 @@ struct SimulatedExperiment
   SimulatedExperiment() {}
   SimulatedExperiment(const SimulatedExperiment& rhs);
   ~SimulatedExperiment() {}
-  virtual const Array<Real>& GetMeasurementTimes() const = 0;
-  virtual void GetMeasurements(Array<Real>& simulated_observations) = 0;
+  virtual const std::vector<Real>& GetMeasurementTimes() const = 0;
+  virtual void GetMeasurements(std::vector<Real>& simulated_observations) = 0;
   virtual int NumMeasuredValues() const = 0;
   virtual void InitializeExperiment() = 0;
 };
@@ -25,8 +25,8 @@ struct CVReactor
   CVReactor(const CVReactor& rhs);
   ~CVReactor() {}
 
-  virtual const Array<Real>& GetMeasurementTimes() const;
-  virtual void GetMeasurements(Array<Real>& simulated_observations);
+  virtual const std::vector<Real>& GetMeasurementTimes() const;
+  virtual void GetMeasurements(std::vector<Real>& simulated_observations);
 
   virtual void InitializeExperiment();
 
@@ -39,8 +39,8 @@ private:
 
   ChemDriver& cd;
 
-  Array<Real> measurement_times;
-  Array<int> measured_comps;
+  std::vector<Real> measurement_times;
+  std::vector<int> measured_comps;
   int num_measured_values;
 
   FArrayBox s_init, s_final, C_0, funcCnt, s_save; 
@@ -56,7 +56,7 @@ CVReactor::NumMeasuredValues() const
 }
 
 inline
-const Array<Real>&
+const std::vector<Real>&
 CVReactor::GetMeasurementTimes() const
 {
   return measurement_times;

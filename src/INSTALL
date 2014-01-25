@@ -9,13 +9,24 @@ cminpack.  Both use CMake to build.  We'll do an out-of-source build, and instal
 with "packages" as the install root.
 
 Assume that UQ_DIR is a defined enviroment variable pointing to the folder containing
-this file.  LAPACK can be build by doing the following:
+this file.  In order that this stuff be callable from Python, we need to build it all
+in shared libs.  LAPACK can be built by doing the following:
+
+NOTE: In order to enable running from python, I sorta broke everything for the non-Python
+version (which really wants to be compiled statically, and needs to include main.cpp in
+order to properly link).  I also temporarily broke the mac builds because I need to
+deal with dylib files instead of so files.  Finally, this was all slapped together 
+pretty quickly.  The setup stuff that used to be in driver.cpp is now in Driver.cpp,
+and much of the auxiliary code (such as the calls to minpack, and Matti's sampler)
+are not yet weaved into something callable in this new format.  It will all be sorted
+out properly in due time.  Anyway....on to the build:
+
 
 cd packages
 tar zxf dist/lapack-3.5.0.tgz
 mkdir LA_Release
 cd LA_Release
-cmake -DLAPACKE:BOOL=TRUE -DCMAKE_INSTALL_PREFIX:PATH=${UQ_DIR}/packages -DCMAKE_BUILD_TYPE:STRING=Release ../lapack-3.5.0
+cmake -DLAPACKE:BOOL=TRUE -DCMAKE_INSTALL_PREFIX:PATH=${UQ_DIR}/packages -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHARED_LIBS:BOOL=TRUE ../lapack-3.5.0
 make -j 4
 make test
 make install
@@ -28,7 +39,7 @@ cd packages
 tar zxf dist/cminpack-1.3.0.tar.gz
 mkdir CM_Release
 cd CM_Release
-cmake -DCMAKE_INSTALL_PREFIX:PATH=${UQ_DIR}/packages -DCMAKE_BUILD_TYPE:STRING=Release ../cminpack-1.3.0
+cmake -DCMAKE_INSTALL_PREFIX:PATH=${UQ_DIR}/packages -DCMAKE_BUILD_TYPE:STRING=Release -DSHARED_LIBS:BOOL=TRUE ../cminpack-1.3.0
 make -j 4
 make test
 make install
@@ -36,7 +47,7 @@ cd ../..
 
 
 Finally, ensure that "TOP" is defined in ${UQ_DIR}/GNUmakefile to point to the folder containing 
-CCSE's BoxLib and Combustion git repositories, and the type "make" in ${UQ_DIR}.  Also, depending
+CCSE's BoxLib and Combustion git repositories, and then type "make" in ${UQ_DIR}.  Note, depending
 on your system, the LAPACK lib will install in 
 
 packages/lib, or 
@@ -44,5 +55,27 @@ packages/lib64
 
 If the latter, uncomment the line in GNUmakefile that adds the relevant folder to the lib
 search path.
+
+The build will create a shared library that is built directly in the "pyemcee" folder, and a .py
+file that is copied there.
+
+
+--------------------------------------------------------------------------------------------------
+
+RUNNING THE CODE VIA EMCEE:
+
+Add the library install folders to your LD_LIBRARY_PATH:
+
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${UQ_DIR}/packages/lib:${UQ_DIR}/packages/lib64
+
+Add the UQ_DIR to PYTHONPATH
+
+        export PYTHONPATH=$PYTHONPATH:${UQ_DIR}
+
+Move to the run folder and run the script:
+
+        cd pyemcee
+        python test.py
+
 
 
