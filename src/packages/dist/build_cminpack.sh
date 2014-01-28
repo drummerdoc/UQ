@@ -5,6 +5,11 @@ export VERS=1.3.0
 
 export BUILD_TYPE="Release"
 
+export HOST=`hostname`
+if [ "${HOST}" == "stc-23736s" ]; then
+  export CC='gcc-mp-4.6'
+fi
+
 export fullname=${PKG}-${VERS}
 tardir=${PWD}
 builddir=${PWD}/${fullname}-${BUILD_TYPE}

@@ -14,6 +14,12 @@ mkdir -p "${builddir}"
 tar -C "${builddir}" -xf "${tardir}"/${fullname}.tgz
 cd "${builddir}/${fullname}"
 
+export HOST=`hostname`
+if [ "${HOST}" == "stc-23736s" ]; then
+  export CC='gcc-mp-4.6'
+  export FC='gfortran-mp-4.6'
+fi
+
 cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
       -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \
       -DBUILD_SHARED_LIBS:BOOL=TRUE \
