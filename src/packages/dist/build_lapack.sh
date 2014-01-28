@@ -1,30 +1,31 @@
 #!/bin/bash
 
-PKG=lapack
-VERS=3.5.0
-#export CC='gcc-mp-4.6'
-#export CXX='g++-mp-4.6'
-#export FC=gfortran-mp-4.6
+export PKG=lapack
+export VERS=3.5.0
 
-export CC='gcc'
-export CXX='g++'
-export FC=gfortran
+export BUILD_TYPE="Release"
 
-export CFLAGS='-O2'
-export CXXFLAGS='-O2'
+export fullname=${PKG}-${VERS}
+export tardir=${PWD}
+export builddir=${PWD}/${fullname}-${BUILD_TYPE}
+export destdir=${PWD}/..
 
-fullname=$PKG-${VERS}
-tardir=$PWD
-builddir=$PWD/$fullname-build.$$
-destdir=$PWD/../
+mkdir -p "${builddir}"
+tar -C "${builddir}" -xf "${tardir}"/${fullname}.tgz
+cd "${builddir}/${fullname}"
 
-mkdir "$builddir"
-tar -C "$builddir" -xf "$tardir"/$fullname.tgz
+cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
+      -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \
+      -DBUILD_SHARED_LIBS:BOOL=TRUE \
+      -DLAPACKE:BOOL=TRUE
 
-cd "$builddir/$fullname"
-echo hostname > build_$PKG.log
-env >> build_$PKG.log
-
-cmake -DCMAKE_INSTALL_PREFIX:STRING="$destdir" -DCMAKE_BUILD_TYPE:STRING="Release" -DBUILD_SHARED_LIBS:BOOL=TRUE
 make -j4
+
 make install
+
+export MACHINE=`uname`
+
+if [ "${MACHINE}" == "Darwin" ]; then
+  install_name_tool -change liblapack.dylib @loader_path/liblapack.dylib ${destdir}/lib/liblapacke.dylib 
+  install_name_tool -change libblas.dylib @loader_path/libblas.dylib ${destdir}/lib/liblapacke.dylib 
+fi  

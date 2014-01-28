@@ -1,24 +1,25 @@
 #!/bin/bash
 
-PKG=cminpack
-VERS=1.3.0
-export CC=gcc
-export CFLAGS='-O2'
-export CXX='g++'
-export CXXFLAGS='-O2'
+export PKG=cminpack
+export VERS=1.3.0
 
-fullname=$PKG-${VERS}
-tardir=$PWD
-builddir=$PWD/$fullname-build.$$
-destdir=$PWD/../
+export BUILD_TYPE="Release"
 
-mkdir "$builddir"
-tar -C "$builddir" -xf "$tardir"/$fullname.tar.gz
+export fullname=${PKG}-${VERS}
+tardir=${PWD}
+builddir=${PWD}/${fullname}-${BUILD_TYPE}
+destdir=${PWD}/..
 
-cd "$builddir/$fullname"
-echo hostname > build_$PKG.log
-env >> build_$PKG.log
+mkdir -p "${builddir}"
+tar -C "${builddir}" -xf "${tardir}"/${fullname}.tar.gz
 
-cmake -DCMAKE_INSTALL_PREFIX:STRING="$destdir" -DCMAKE_BUILD_TYPE:STRING="Release" -DSHARED_LIBS:BOOL=TRUE
+cd "${builddir}/${fullname}"
+
+cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
+      -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \
+      -DSHARED_LIBS:BOOL=TRUE
+
 make -j4
+
 make install
+

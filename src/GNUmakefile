@@ -28,12 +28,12 @@ endif
 CFLAGS += -std=c99
 
 # Set paths to BoxLib and Chemistry
-BOXLIB_DIR = ${TOP}/BoxLib
+BOXLIB_HOME = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 
 EBASE = main
 
-include ${BOXLIB_DIR}/Tools/C_mk/Make.defs 
+include ${BOXLIB_HOME}/Tools/C_mk/Make.defs 
 fincludes=${includes}
 
 # build to link to shared libs
@@ -53,14 +53,6 @@ Blocs	+= $(foreach dir, $(Bdirs), $(dir))
 include $(Bpack)
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
-
-INCLUDE_LOCATIONS+=${PACKAGES}/include
-INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
-LIBRARY_LOCATIONS+=${PACKAGES}/lib
-LIBRARY_LOCATIONS+=${PACKAGES}/lib64
-LIBRARIES += -lcminpack -llapacke -llapack -lblas
-SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.so 
-SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.so
 
 CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H
 CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp
@@ -106,24 +98,43 @@ ifeq ($(MACHINE), Linux)
   ifeq (${WHICHLINUX}, HEDORAH)
     PYTHON_DIR := /usr
     PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.6
+    SHARED_LIBRARY_SUFFIX:=so
     #ifeq ($(USE_MPI), TRUE)
-    #  SHARED_LIBRARIES += /usr/local/lib/libmpichcxx.so \
-    #                      /usr/local/lib/libmpl.so
+    #  SHARED_LIBRARIES += /usr/local/lib/libmpichcxx.${SHARED_LIBRARY_SUFFIX} \
+    #                      /usr/local/lib/libmpl.${SHARED_LIBRARY_SUFFIX}
     #endif
-    #SHARED_LIBRARIES += /usr/lib/libstdc++.so.6 \
-    #                    /usr/lib/gcc/x86_64-linux-gnu/4.4.3/libgfortran.so \
-    #                    /usr/lib/libm.so
+    #SHARED_LIBRARIES += /usr/lib/libstdc++.${SHARED_LIBRARY_SUFFIX}.6 \
+    #                    /usr/lib/gcc/x86_64-linux-gnu/4.4.3/libgfortran.${SHARED_LIBRARY_SUFFIX} \
+    #                    /usr/lib/libm.${SHARED_LIBRARY_SUFFIX}
+
   endif
 endif
 ifeq (${MACHINE}, Darwin) 
   PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
   PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
-  SHARED_LIBRARIES += ${PYTHON_DIR}/lib/libpython2.7.dylib \
-                      /usr/local/lib/libgfortran.dylib
+  SHARED_LIBRARY_SUFFIX:=dylib
+  SHARED_LIBRARIES += ${PYTHON_DIR}/lib/libpython2.7.${SHARED_LIBRARY_SUFFIX} \
+                      /usr/local/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
   PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
 endif
 
+MY_SHARED_LIBRARY_SUFFIX:=so
 INCLUDE_LOCATIONS += ${PYTHON_INCLUDES}
+
+INCLUDE_LOCATIONS+=${PACKAGES}/include
+INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
+
+# For static links
+LIBRARY_LOCATIONS+=${PACKAGES}/lib
+LIBRARY_LOCATIONS+=${PACKAGES}/lib64
+LIBRARIES += -lcminpack -llapacke -llapack -lblas
+
+# For dynamic links
+SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
+SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.${SHARED_LIBRARY_SUFFIX}
+SHARED_LIBRARIES+=${PACKAGES}/lib/liblapack.${SHARED_LIBRARY_SUFFIX}
+
+PACKAGE := pyemcee
 
 vpath %.c   $(VPATH_LOCATIONS)
 vpath %.cpp $(VPATH_LOCATIONS)
@@ -133,20 +144,18 @@ vpath %.F   $(VPATH_LOCATIONS)
 vpath %.f   $(VPATH_LOCATIONS)
 vpath %.f90 $(VPATH_LOCATIONS)
 
-PACKAGE := pyemcee
+all: ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 
-all: _${PACKAGE}.so
-#CEXE_sources += main.cpp
-#all: $(executable)
-
-_${PACKAGE}.so: all $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
-	g++ -shared -o ${PACKAGE}/_${PACKAGE}.so $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
+${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}: all $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
+	mkdir -p ${PACKAGE}
+	g++ -shared -o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
+	./fixDYLIB.sh ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 	cp ${PACKAGE}.py ${PACKAGE}
 
 ${PACKAGE}_wrap.cpp: ${PACKAGE}.i
 	swig -python -c++ -I. $(includes) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
 
 realclean::
-	rm -rf dat dat1 dat2 dat3 _${PACKAGE}.so ${PACKAGE}_wrap.cpp ${PACKAGE}.py *.pyc d f o
+	rm -rf dat dat1 dat2 dat3 ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} ${PACKAGE}_wrap.cpp ${PACKAGE}.py *.pyc d f o
 
-include $(BOXLIB_DIR)/Tools/C_mk/Make.rules
+include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
