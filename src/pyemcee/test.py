@@ -31,16 +31,15 @@ print('p0:',p0)
 # Initialize the sampler with the chosen specs.
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
 
-# Run 100 steps as a burn-in.
+# Run burn-in steps
 pos, prob, state = sampler.run_mcmc(p0, 100)
 print ('Burn-in complete, number of evals:',driver.count)
 
 # Reset the chain to remove the burn-in samples.
 sampler.reset()
 
-# Starting from the final position in the burn-in chain, sample for 1000
-# steps.
-sampler.run_mcmc(pos, 1000, rstate0=state)
+# Starting from the final position in the burn-in chain, do sample steps.
+sampler.run_mcmc(pos, 10000, rstate0=state)
 print ('Sampling complete, number of evals:',driver.count)
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction
@@ -56,13 +55,18 @@ print("Mean acceptance fraction:", np.mean(sampler.acceptance_fraction))
 #except ImportError:
 #    print("You can install acor: http://github.com/dfm/acor")
 
+import cPickle as pickle
+f=open('hist.dat','wb')
+pickle.dump(sampler.flatchain[:,0],f)
+f.close()
+
 # Finally, you can plot the projected histograms of the samples using
 # matplotlib as follows (as long as you have it installed).
-try:
-    import matplotlib.pyplot as pl
-except ImportError:
-    print("Try installing matplotlib to generate some sweet plots...")
-else:
-    pl.hist(sampler.flatchain[:,0], 100)
-    pl.show()
+#try:
+#    import matplotlib.pyplot as pl
+#except ImportError:
+#    print("Try installing matplotlib to generate some sweet plots...")
+#else:
+#    pl.hist(sampler.flatchain[:,0], 100)
+#    pl.show()
     
