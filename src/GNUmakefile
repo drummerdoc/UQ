@@ -110,11 +110,18 @@ ifeq ($(MACHINE), Linux)
   endif
 endif
 ifeq (${MACHINE}, Darwin) 
-  PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
-  PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
   SHARED_LIBRARY_SUFFIX:=dylib
-  SHARED_LIBRARIES += ${PYTHON_DIR}/lib/libpython2.7.${SHARED_LIBRARY_SUFFIX} \
-                      /usr/local/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
+  ifeq (${WHICHDARWIN}, MARC)
+    PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
+    PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
+    GFORTLIB := /usr/local/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
+  endif
+  ifeq (${WHICHDARWIN}, MATTI)
+    PYTHON_DIR := /System/Library/Frameworks/Python.framework/Versions/2.7
+    PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
+    GFORTLIB := /opt/local/lib/gcc47/libgfortran.${SHARED_LIBRARY_SUFFIX}
+  endif
+  SHARED_LIBRARIES += ${PYTHON_DIR}/lib/libpython2.7.${SHARED_LIBRARY_SUFFIX} ${GFORTLIB}
   PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
 endif
 
