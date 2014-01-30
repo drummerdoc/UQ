@@ -29,6 +29,7 @@ struct ExperimentManager
 
   const std::vector<Real>& TrueData() const;
   const std::vector<Real>& TrueDataWithObservationNoise() const;
+  const std::vector<Real>& ObservationSTD() const;
 
   const SimulatedExperiment& Experiment(int i) const;
 
@@ -61,6 +62,13 @@ const std::vector<Real>&
 ExperimentManager::TrueData() const
 {
   return true_data;
+}
+
+inline
+const std::vector<Real>&
+ExperimentManager::ObservationSTD() const
+{
+  return true_std;
 }
 
 inline

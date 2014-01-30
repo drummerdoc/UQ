@@ -4,8 +4,8 @@ TOP = ../..
 PACKAGES=./packages
 
 PRECISION       = DOUBLE
-DEBUG           = TRUE
 DEBUG           = FALSE
+DEBUG           = TRUE
 DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
@@ -14,6 +14,7 @@ USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
+BUILD_EXEC      = TRUE
 
 # Choose model (from list below), and pmf file
 #CHEMISTRY_MODEL = DRM19
@@ -99,14 +100,7 @@ ifeq ($(MACHINE), Linux)
     PYTHON_DIR := /usr
     PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.6
     SHARED_LIBRARY_SUFFIX:=so
-    #ifeq ($(USE_MPI), TRUE)
-    #  SHARED_LIBRARIES += /usr/local/lib/libmpichcxx.${SHARED_LIBRARY_SUFFIX} \
-    #                      /usr/local/lib/libmpl.${SHARED_LIBRARY_SUFFIX}
-    #endif
-    #SHARED_LIBRARIES += /usr/lib/libstdc++.${SHARED_LIBRARY_SUFFIX}.6 \
-    #                    /usr/lib/gcc/x86_64-linux-gnu/4.4.3/libgfortran.${SHARED_LIBRARY_SUFFIX} \
-    #                    /usr/lib/libm.${SHARED_LIBRARY_SUFFIX}
-
+    LIBRARIES+=-lpython2.6
   endif
 endif
 ifeq (${MACHINE}, Darwin) 
@@ -115,11 +109,13 @@ ifeq (${MACHINE}, Darwin)
     PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
     PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
     GFORTLIB := /usr/local/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
+    LIBRARIES+=-lpython2.7
   endif
   ifeq (${WHICHDARWIN}, MATTI)
     PYTHON_DIR := /System/Library/Frameworks/Python.framework/Versions/2.7
     PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
     GFORTLIB := /opt/local/lib/gcc47/libgfortran.${SHARED_LIBRARY_SUFFIX}
+    LIBRARIES+=-lpython2.7
   endif
   SHARED_LIBRARIES += ${PYTHON_DIR}/lib/libpython2.7.${SHARED_LIBRARY_SUFFIX} ${GFORTLIB}
   PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
@@ -137,7 +133,7 @@ LIBRARY_LOCATIONS+=${PACKAGES}/lib64
 LIBRARIES += -lcminpack -llapacke -llapack -lblas
 
 # For dynamic links
-SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
+SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapack.${SHARED_LIBRARY_SUFFIX}
 
@@ -151,6 +147,12 @@ vpath %.F   $(VPATH_LOCATIONS)
 vpath %.f   $(VPATH_LOCATIONS)
 vpath %.f90 $(VPATH_LOCATIONS)
 
+EBASE=main
+
+ifeq ($(BUILD_EXEC), TRUE)
+  test: exec
+endif
+
 all: ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 
 ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}: all $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
@@ -161,6 +163,11 @@ ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}: all $(objForExecs) $(objEXET
 
 ${PACKAGE}_wrap.cpp: ${PACKAGE}.i
 	swig -python -c++ -I. $(includes) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
+
+exec: main.o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
+	@echo Linking $@ ...
+	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) \
+		-o  $(addsuffix $(optionsSuffix).ex, $(EBASE)) $^ ${SHARED_LIBRARIES} ${libraries}
 
 realclean::
 	rm -rf dat dat1 dat2 dat3 ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} ${PACKAGE}_wrap.cpp ${PACKAGE}.py *.pyc d f o

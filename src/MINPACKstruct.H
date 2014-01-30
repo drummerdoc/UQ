@@ -34,11 +34,31 @@ struct MINPACKstruct
       return info;
     }
 
+    lapack_int DSYEV_wrap() {
+      lapack_int info;
+      if (lwork == -1) {
+        double work_query;
+        info = LAPACKE_dsyev_work(matrix_order,jobz,uplo,n,a.dataPtr(),lda,s.dataPtr(),
+                                  &work_query,lwork);
+        lwork = (lapack_int)work_query;
+        work.resize(lwork);
+      }
+      else {
+        /* Call middle-level interface */
+        info = LAPACKE_dsyev_work(matrix_order,jobz,uplo,n,a.dataPtr(),lda,s.dataPtr(),
+                                  work.dataPtr(),lwork);
+      }
+      BL_ASSERT(info == 0);
+      return info;
+    }
+
     void ResizeWork(int work_array_len) {
       matrix_order = LAPACK_ROW_MAJOR; // Order of matrices
 
       jobu  = 'a';             // 'a' -> all M columns of U are returned
       jobvt = 'a';             // 'a' -> all N rows of V**T are returned
+      jobz  = 'v';             // 'V' -> return vectors and values 'N' otherwise
+      uplo  = 'u';             // 'U' -> A is upper-triangular
       m     = work_array_len;  // Number of rows of matrix
       n     = work_array_len;  // Number of columns of matrix
       a.resize(n*m);           // The matrix A
@@ -51,10 +71,11 @@ struct MINPACKstruct
 
       // Query for work size
       lwork = -1;              // size of work, -1 for query
-      lapack_int info = DGESVD_wrap();
+      //lapack_int info = DGESVD_wrap();
+      lapack_int info = DSYEV_wrap();
       BL_ASSERT(info == 0);
     }
-    char jobu,jobvt;
+    char jobu,jobvt,jobz,uplo;
     lapack_int m, n, lda, ldu, ldvt, lwork;
     Array<double> a, s, u, vt, work;
     int matrix_order;

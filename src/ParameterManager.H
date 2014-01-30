@@ -34,7 +34,11 @@ struct ParameterManager
   PArray<ChemDriver::Parameter> active_parameters; // The set of active parameters
   ChemDriver& cd;
 
-  std::vector<Real> true_prior;
+  const std::vector<Real>& TrueParameters() const {BL_ASSERT(true_parameters.size()>0); return true_parameters;}
+  const std::vector<Real>& PriorMean() const {return prior_mean;}
+  const std::vector<Real>& PriorSTD() const {return prior_std;}
+
+  std::vector<Real> true_parameters;
   std::vector<Real> prior_mean;
   std::vector<Real> prior_std;
   std::vector<Real> lower_bound;

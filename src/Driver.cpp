@@ -33,14 +33,14 @@ funcF(void* p, const std::vector<Real>& pvals)
   s->expt_manager.GenerateTestMeasurements(pvals,dvals);
   Real Fb = s->expt_manager.ComputeLikelihood(dvals);
 
-  std::cout << pvals[0] << " " << Fa.second + Fb << std::endl;
+  //std::cout << pvals[0] << " " << Fa.second + Fb << std::endl;
 
-  return -(Fa.second  +  Fb);
+  return (Fa.second  +  Fb);
 }
 
 double Driver::LogLikelihood(const std::vector<double>& parameters)
 {
-  return funcF((void*)(Driver::mystruct),parameters);
+  return -funcF((void*)(Driver::mystruct),parameters);
 }
 
 int Driver::NumParams()

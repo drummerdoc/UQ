@@ -11,7 +11,9 @@ ParameterManager::AddParameter(int reaction, const ChemDriver::REACTION_PARAMETE
   active_parameters.resize(len+1,PArrayManage);
   active_parameters.set(len, new ChemDriver::Parameter(reaction,rp));
   prior_stats_initialized = false;
-  return active_parameters[len].DefaultValue();
+  true_parameters.resize(len+1);
+  true_parameters[len] = active_parameters[len].DefaultValue();
+  return true_parameters[len];
 }
 
 int
