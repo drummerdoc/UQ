@@ -562,8 +562,8 @@ Driver::Driver()
   std::vector<Real> prior_mean(num_params);
   std::vector<Real> prior_std(num_params);
   for(int ii=0; ii<num_params; ii++){
-    prior_mean[ii] = 11976;
-    prior_std[ii] = 1000;
+    prior_mean[ii] = 11980;
+    prior_std[ii] = 200;
     lower_bound[ii] = 1000;
     upper_bound[ii] = 20000;
   }

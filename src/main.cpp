@@ -426,8 +426,8 @@ void WriteResampledSamples(std::vector<std::vector<Real> >& Xrs){
 void MCSampler( void* p,
 		std::vector<std::vector<Real> >& samples,
 		std::vector<Real>& w,
-		std::vector<Real>& prior_mean,
-		std::vector<Real>& prior_std){
+		const std::vector<Real>& prior_mean,
+		const std::vector<Real>& prior_std){
   MINPACKstruct *str = (MINPACKstruct*)(p);
   str->ResizeWork();
 	  
@@ -469,9 +469,22 @@ void MCSampler( void* p,
 
     for(int ii=iBegin; ii<iEnd; ii++){
       str->expt_manager.GenerateTestMeasurements(samples[ii],sample_data);
-      w[ii] = exp(-str->expt_manager.ComputeLikelihood(sample_data));
+      //w[ii] = exp(-str->expt_manager.ComputeLikelihood(sample_data));
+      w[ii] = str->expt_manager.ComputeLikelihood(sample_data);
     }
   }
+
+
+#if 1
+  Real wmin = w[0];
+  for(int ii=1; ii<NOS; ii++){
+    wmin = std::min(w[ii],wmin);
+  }
+  for(int ii=1; ii<NOS; ii++){
+    w[ii] = std::exp(-(w[ii] - wmin));
+    std::cout << "wbefore = "<< w[ii] << std::endl;
+  }
+#endif
 
   // Normalize weights, print to terminal
   NormalizeWeights(w);
@@ -668,7 +681,7 @@ void SlightlyBetterSampler( void* p,
 
 
   std::cout <<  " " << std::endl;
-  std::cout <<  "END BRUTE FORCE MC SAMPLING " << std::endl;
+  std::cout <<  "END SLIGHTLY BETTER MC SAMPLING " << std::endl;
   std::cout <<  " " << std::endl;
 }
 
@@ -814,7 +827,7 @@ main (int   argc,
   int NOS = 10; pp.query("NOS",NOS);
   std::vector<Real> w(NOS);
   std::vector<std::vector<Real> > samples(NOS, std::vector<Real>(num_params,-1));
-#if 0
+#if 1
   MCSampler((void*)(driver.mystruct),samples,w,prior_mean,prior_std);
 #else
   SlightlyBetterSampler((void*)(driver.mystruct),samples,w,soln_params,H,invsqrt,Fconf);
