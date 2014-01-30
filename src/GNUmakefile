@@ -3,6 +3,12 @@
 TOP = ../..
 PACKAGES=./packages
 
+HOST=$(shell hostname)
+ifeq (${HOST},stc-23736s)
+TOP = /Users/rgrout/Code/rev-controlled/LBNL
+WHICHDARWIN=RAY
+endif
+
 PRECISION       = DOUBLE
 DEBUG           = TRUE
 DEBUG           = FALSE
@@ -31,6 +37,7 @@ CFLAGS += -std=c99
 # Set paths to BoxLib and Chemistry
 BOXLIB_HOME = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
+INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/src_common
 
 EBASE = main
 
@@ -105,6 +112,13 @@ ifeq ($(MACHINE), Linux)
 endif
 ifeq (${MACHINE}, Darwin) 
   SHARED_LIBRARY_SUFFIX:=dylib
+  ifeq (${WHICHDARWIN}, RAY)
+    PYTHON_DIR := /opt/local/Library/Frameworks/Python.framework/Versions/Current
+    PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
+    GFORTLIB := /opt/local/lib/gcc46/libgfortran.${SHARED_LIBRARY_SUFFIX}
+    COMP            = g++-mp-4.6
+    FCOMP           = gfortran-mp-4.6
+  endif
   ifeq (${WHICHDARWIN}, MARC)
     PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
     PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
@@ -155,9 +169,9 @@ endif
 
 all: ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 
-${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}: all $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
+${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
 	mkdir -p ${PACKAGE}
-	g++ -shared -o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
+	$(COMP) -shared -o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
 	./fixDYLIB.sh ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 	cp ${PACKAGE}.py ${PACKAGE}
 
