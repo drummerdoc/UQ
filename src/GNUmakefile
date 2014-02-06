@@ -143,11 +143,11 @@ INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
 
 # For static links
 LIBRARY_LOCATIONS+=${PACKAGES}/lib
-LIBRARY_LOCATIONS+=${PACKAGES}/lib64
+#LIBRARY_LOCATIONS+=${PACKAGES}/lib64
 LIBRARIES += -lcminpack -llapacke -llapack -lblas
 
 # For dynamic links
-SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
+SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapack.${SHARED_LIBRARY_SUFFIX}
 
@@ -182,6 +182,7 @@ exec: main.o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 	@echo Linking $@ ...
 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) \
 		-o  $(addsuffix $(optionsSuffix).ex, $(EBASE)) $^ ${SHARED_LIBRARIES} ${libraries}
+	./fixDYLIBexe.sh $(addsuffix $(optionsSuffix).ex, $(EBASE))
 
 realclean::
 	rm -rf dat dat1 dat2 dat3 ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} ${PACKAGE}_wrap.cpp ${PACKAGE}.py *.pyc d f o
