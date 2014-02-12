@@ -1,4 +1,4 @@
-CHEMTOOLSDIR=/Users/rgrout/Code/rev-controlled/LBNL/Combustion/Chemistry/tools
+CHEMTOOLSDIR=/home/marc/src/CCSE/Combustion/Chemistry/tools
 
 CHEMINP=mech.inp
 THERMINP=therm.dat
@@ -15,7 +15,7 @@ CHEMC=chem.c
 TRANLOG=tran.log
 HEADERDIR=${CHEMTOOLSDIR}/../data/header
 
-echo python ${FMC} -mechanism=${CHEMINP} -thermo=${THERMINP} -name=${CHEMC}
+python ${FMC} -mechanism=${CHEMINP} -thermo=${THERMINP} -name=${CHEMC}
 echo Compiling ${FINALFILE}...
 echo " &files"  > model_files.dat
 echo "   CHEMKIN_input = \"$CHEMINP\"" >> model_files.dat
