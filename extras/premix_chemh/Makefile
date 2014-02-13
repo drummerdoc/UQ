@@ -1,6 +1,7 @@
-
-BIN = /Users/rgrout/Code/rev-controlled/LBNL/Combustion/Chemistry/tools/chemkin/bin
-DATA = ~/Code/rev-controlled/LBNL/Combustion/Chemistry/data/chem-H
+CHEM_HOME=/Users/rgrout/Code/rev-controlled/LBNL/Combustion/Chemistry
+#CHEM_HOME=/home/marc/src/CCSE/Combustion/Chemistry
+BIN = ${CHEM_HOME}/tools/chemkin/bin
+DATA = ${CHEM_HOME}/data/chem-H
 
 # Pick mechanism by setting relevant filenames
 
