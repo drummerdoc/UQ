@@ -172,13 +172,13 @@ C
 C     end of SUBROUTINE PMABS
       END
 C
-      SUBROUTINE FLDRIV (LIN, LOUT, LREST, LSAVE, LRCRVR, LINKCK,
-     1                   LINKMC, JMAX, RCKWRK, RMCWRK, EPS, WT, REAC,
+      SUBROUTINE FLDRIV (LIN, LOUT, LREST, LSAVE, LRCRVR, 
+     1                    JMAX, RCKWRK, RMCWRK, EPS, WT, REAC,
      2                   SCRTCH, X, COND, REG, TGIVEN, XGIVEN, D, DKJ,
      3                   TDR, YV, ABOVE, BELOW, BUFFER, S, SN, F, FN,
      4                   DS, A6, A, ICKWRK, IMCWRK, KSYM, CCKWRK, KR,
      5                   KI, KP, IPIVOT, ACTIVE, MARK, NAME, ITWWRK,
-     6                   RTWWRK, SSAVE, RKFT, RKRT, RSAVE)
+     6                   RTWWRK, SSAVE, RKFT, RKRT, RSAVE, SAVESOL, SAVESZ)
 C
 C  START PROLOGUE
 C
@@ -187,7 +187,6 @@ C  LOUT       - integer scalar, formatted output file unit number
 C  LREST      - integer scalar, binary input restart file unit number
 C  LSAVE      - integer scalar, binary output solution file unit number
 C  LRCRVR     - integer scalar, binary output scratch file unit number
-C  LINKCK     - integer scalar, CHEMKIN input linkfile unit number
 C  LINKMC     - integer scalar, TRANSPORT input linkfile unit number
 C  JMAX       - integer scalar, maximum number of gridpoints
 C  RCKWRK(*)  - real array, CHEMKIN workspace
@@ -298,6 +297,9 @@ C
       INTEGER CKLSCH, dckspnam
       EXTERNAL CKLSCH, dckspnam
       integer coded(16), ii
+      DOUBLE PRECISION SAVESOL(*)
+      INTEGER SAVESZ
+      CHARACTER REPORT*16
 
       CHARACTER scratcha*80
 C
@@ -323,6 +325,9 @@ C
           J=dckspnam(I, coded)
           do ii=1,j
               KSYM(I)(ii:ii) = ACHAR(coded(ii))
+          enddo
+          do ii = j+1, 16
+              KSYM(I)(ii:ii) = ' '
           enddo
       ENDDO
 
@@ -355,7 +360,7 @@ C        Read the restart data file for starting profiles.
 C
          IF (.NOT. RSTCNT) THEN
 C           read a restart file solution (sets JJ to old solution)
-            CALL PRREST (JMAX, LREST, LOUT, MFILE, X, S, KERR)
+            CALL PRREST (JMAX, SAVESOL, SAVESZ, LOUT, MFILE, X, S, KERR)
             IF (KERR) RETURN
          ENDIF
 C
@@ -392,15 +397,39 @@ C
      3             CCKWRK, IMCWRK, RMCWRK, ITWWRK, RTWWRK, F, FN,
      4             SSAVE, RKFT, RKRT, RSAVE, LOUT, LRCRVR, A, CONDIT,
      5             IPIVOT, NAME, KSYM, ABOVE, BELOW, JMAX, MARK,
-     6             ACTIVE, N1CALL, KERR)
+     6             ACTIVE, N1CALL, KERR, REPORT)
+
+      SAVESZ = -1
+      if( REPORT.ne. ' ' ) RETURN ! might be handy to push twopnt exit status
+                                  ! back up - for now just die unless sucess
+
       IF (KERR) RETURN
 C
 C     WRITE TO LSAVE WHEN SOLUTION IS COMPLETE
 C
-      WRITE (LSAVE) ISOLUT
-      WRITE (LSAVE) NATJ, JJ, P, S(NM, 1)
-      WRITE (LSAVE) (X(J), J = 1, JJ)
-      WRITE (LSAVE) ((S(N, J), N = 1, NATJ), J = 1, JJ)
+      write(*,*) 'PREMIX writing solution to savesol instead of file'
+      DO J = 1, JJ
+      SAVESOL( J ) = X(J)
+      DO N = 1, NATJ
+          SAVESOL( J + N*JMAX ) = S(N,J)
+      ENDDO
+      ENDDO
+      SAVESOL( JJ + NATJ*JMAX + 1 ) = P
+      SAVESOL( JJ + NATJ*JMAX + 2 ) = S(NM, 1)
+
+      CALL CKRHOY (P, S(NT, 1), S(NY,1), ICKWRK, RCKWRK, RHO)
+      SAVESOL( JJ + NATJ*JMAX + 3 ) = S(NM,1) / (RHO*AREA(X(1)))
+      SAVESZ = JJ
+
+      !DO J = 1, JJ
+      !write(*,*) J, SAVESOL(J)
+      !ENDDO
+
+
+      !WRITE (LSAVE) ISOLUT
+      !WRITE (LSAVE) NATJ, JJ, P, S(NM, 1)
+      !WRITE (LSAVE) (X(J), J = 1, JJ)
+      !WRITE (LSAVE) ((S(N, J), N = 1, NATJ), J = 1, JJ)
 C
 C///////////////////////////////////////////////////////////////////////
 C
@@ -1273,7 +1302,7 @@ C     end of SUBROUTINE LINWMX
       RETURN
       END
 C
-      SUBROUTINE POINTR (LINKCK, LINKMC, LENIWK, LENRWK, LENCWK, JMAX,
+      SUBROUTINE POINTR ( LINKMC, LENIWK, LENRWK, LENCWK, JMAX,
      1                   LOUT, LSAVE, LTOT, ITOT, NTOT, ICTOT, I, R, C,
      2                   NIWK, NRWK)
 C
@@ -1330,7 +1359,8 @@ C      NYS = 1
 C      NY  = 2
 C      NM  = KK+2
 C
-      CALL CKLEN (LINKCK, LOUT, LENICK, LENRCK, LENCCK, IFLAG)
+      !CALL CKLEN (LINKCK, LOUT, LENICK, LENRCK, LENCCK, IFLAG)
+
       CALL MCLEN (LINKMC, LOUT, LENIMC, LENRMC, IFLAG)
 C
 C     real chemkin work space
@@ -1353,15 +1383,13 @@ C
 !      IF (ITOT.LT.LENIWK .AND. NTOT.LT.LENRWK .AND. ICTOT.LT.LENCWK)
 !     1   THEN
          write(*,*) ' calling ckinit...'
-         CALL CKINIT (LENICK, LENRCK, LENCCK, LINKCK, LOUT, I, R, C,
-     1        IFLAG)
+         !CALL CKINIT()
          CALL CKINDX (I, R, MM, KK, II, NFIT)
          write(*,*) 'Species count: ', KK
 C
          CALL CKMXTP (I, MAXTP)
          NTR = MAXTP - 1
 C
-
          CALL MCINIT (LINKMC, LOUT, LENIMC, LENRMC, I(IMCW), R(NMCW),
      1        IFLAG)
          REWIND LSAVE
@@ -1441,9 +1469,9 @@ C
 !      SUBROUTINE PREMIX (JMAX, LIN, LOUT, LINKCK, LINKMC, LREST, LSAVE,
 !     1                   LRCRVR, LENLWK, L, LENIWK, I, LENRWK, R,
 !     2                   LENCWK, C)
-      SUBROUTINE PREMIX (JMAX, LIN, LOUT, LINKCK, LINKMC, LREST, LSAVE,
-     1                   LRCRVR, LENLWK, L, LENIWK, LENRWK,
-     2                   LENCWK)
+      SUBROUTINE PREMIX (JMAX, LIN, LOUT, LINKMC, LREST, LSAVE,
+     1                   LRCRVR, LENLWK, LENIWK, LENRWK,
+     2                   LENCWK, SAVESOL, SAVESZ)
 C
 C  START PROLOGUE
 C
@@ -1493,6 +1521,8 @@ C
       LOGICAL L(LENLWK)
       INTEGER CKLSCH
       EXTERNAL CKLSCH
+      DOUBLE PRECISION SAVESOL(*)
+      INTEGER SAVESZ
 C
       DATA PRVERS/'3.15'/, PRDATE/'98/03/03'/
 C
@@ -1512,7 +1542,7 @@ C
      6' The U.S. Government retains a limited license in this software.'
 C
 C     Set up internal work pointers
-      CALL POINTR (LINKCK, LINKMC, LENIWK, LENRWK, LENCWK, JMAX, LOUT,
+      CALL POINTR (LINKMC, LENIWK, LENRWK, LENCWK, JMAX, LOUT,
      1             LSAVE, LTOT, ITOT, NTOT, ICTOT, I, R, C, NIWK, NRWK)
 C
 C     Check for enough space
@@ -1532,7 +1562,7 @@ C
       ENDIF
 
 C
-      CALL FLDRIV (LIN, LOUT, LREST, LSAVE, LRCRVR, LINKCK, LINKMC,
+      CALL FLDRIV (LIN, LOUT, LREST, LSAVE, LRCRVR, 
      1             JMAX, R(NCKW), R(NMCW), R(NEPS), R(NWT), R(NRE),
      2             R(NSCH), R(NX), R(NCON), R(NREG), R(NTGV), R(NXGV),
      3             R(ND), R(NDKJ), R(NTDR), R(NYV), R(NABV), R(NBLW),
@@ -1540,7 +1570,7 @@ C
      5             R(NKA6), R(NA), I(ICKW), I(IMCW), C(IKS), C(ICC),
      6             I(IKR), I(IKI), I(IKP), I(IIP), L(LAC), L(LMK),
      7             C(INAME), I(NIWK), R(NRWK), R(NSSAVE), R(NRKFT),
-     8             R(NRKRT), R(NRSAVE))
+     8             R(NRKRT), R(NRSAVE), SAVESOL, SAVESZ)
 C
 C     end of SUBROUTINE PREMIX
       RETURN
@@ -1552,7 +1582,7 @@ C
      3                   ICKWRK, RCKWRK, CCKWRK, IMCWRK, RMCWRK, ITWWRK,
      4                   RTWWRK, F, FN, SSAVE, RKFT, RKRT, RSAVE, LOUT,
      5                   LRCRVR, A, CONDIT, IPIVOT, NAME, KSYM, ABOVE,
-     6                   BELOW, JMAX, MARK, ACTIVE, N1CALL, KERR)
+     6                   BELOW, JMAX, MARK, ACTIVE, N1CALL, KERR, REPORT)
 C
 C  START PROLOGUE
 C
@@ -1847,20 +1877,20 @@ C              Show the solution
 
 c     HACK
                print *,'showing...'
-               ICASE = 1
-               LVARMC = .TRUE.
-               LENRGY = .TRUE.
-               CALL FUN (LBURNR, LENRGY, LMULTI, LVCOR, LTDIF,
-     1                      LVARMC, LTIME, WT, EPS, XGIVEN, TGIVEN,
-     3                      X, SN, BUFFER, SCRTCH(1, 1), YV,
-     4                      SCRTCH(1, 2), SCRTCH(1, 3), SCRTCH(1, 4),
-     5                      COND, D, DKJ, TDR, ICKWRK, RCKWRK, IMCWRK,
-     6                      RMCWRK, F, SCRTCH(1, 5), SSAVE, RKFT,
-     7                      RKRT, ICASE, RSAVE)
+               !ICASE = 1
+               !LVARMC = .TRUE.
+               !LENRGY = .TRUE.
+               !CALL FUN (LBURNR, LENRGY, LMULTI, LVCOR, LTDIF,
+     1         !             LVARMC, LTIME, WT, EPS, XGIVEN, TGIVEN,
+     3         !             X, SN, BUFFER, SCRTCH(1, 1), YV,
+     4         !             SCRTCH(1, 2), SCRTCH(1, 3), SCRTCH(1, 4),
+     5         !             COND, D, DKJ, TDR, ICKWRK, RCKWRK, IMCWRK,
+     6         !             RMCWRK, F, SCRTCH(1, 5), SSAVE, RKFT,
+     7         !             RKRT, ICASE, RSAVE)
 c     HACK
-               CALL PRINT (LOUT, LENRGY, LMOLE, LMULTI, LTDIF, LVCOR, 
-     +              X, BUFFER, SCRTCH(1, 1), SCRTCH(1, 2), KSYM, WT,
-     +              cckwrk, ICKWRK, RCKWRK, IMCWRK, RMCWRK)
+               !CALL PRINT (LOUT, LENRGY, LMOLE, LMULTI, LTDIF, LVCOR, 
+     +         !     X, BUFFER, SCRTCH(1, 1), SCRTCH(1, 2), KSYM, WT,
+     +         !     cckwrk, ICKWRK, RCKWRK, IMCWRK, RMCWRK)
 C
             ELSEIF (SIGNAL .EQ. 'SAVE') THEN
 
@@ -2529,7 +2559,7 @@ C     end of SUBROUTINE PRINT
       RETURN
       END
 C
-      SUBROUTINE PRREST (JMAX, LREST, LOUT, MFILE, X, S, KERR)
+      SUBROUTINE PRREST (JMAX, SAVESOL, SAVESZ, LOUT, MFILE, X, S, KERR)
 C
 C  START PROLOGUE
 C  Fill mesh with a previous solution from a restart file.
@@ -2563,7 +2593,30 @@ C
       PARAMETER (ICKLNK='CKLINK', IMCLNK='MCLINK', ISOLUT='SOLUTION',
      1           ISENSI='SENSITIVITY', IHSENS='HSENSITIVITY')
       LOGICAL KERR
+
+      DOUBLE PRECISION SAVESOL(*)
+      INTEGER SAVESZ
+
       KERR = .FALSE.
+      if( SAVESZ < 0 ) then
+          KERR = .TRUE.
+          RETURN
+      endif
+
+      write(*,*) 'PREMIX loading solution from savesol instead of file'
+      JJ = SAVESZ
+      DO J=1, JJ
+          X(J) = SAVESOL(J)
+          DO N=1,NATJ
+              S(N,J) = SAVESOL( J + N*JMAX)
+          ENDDO
+      ENDDO
+      P = SAVESOL( JJ + NATJ*JMAX + 1 )
+      DMFLRT = SAVESOL( JJ + NATJ*JMAX + 2 )
+
+      return
+
+
 C
 C     Read the restart data file for starting profiles.
       NREST = 0
@@ -4387,13 +4440,26 @@ C     end of SUBROUTINE PRPOS
       RETURN
       END
 
-      subroutine open_premix_files( lin, linck, linmc, lrin, lrout, lrcvr )
-          integer, intent(in) :: lin, linck, linmc, lrin, lrout, lrcvr
+      subroutine open_premix_files( lin, linmc, lrin, lrout, lrcvr, inputfile,
+     1     strlen )
+
+          integer, intent(in) :: lin, linmc, lrin, lrout, lrcvr
           character path*150 
+          integer, intent(in) :: strlen
+          integer, intent(in) :: inputfile(strlen)
+          character(strlen) :: infile
+
+          integer :: i
+
+          do i=1,strlen
+              infile(i:i) = ACHAR(inputfile(i))
+              write(*,*) infile(i:i)
+          enddo
+          write(*,*) 'inputfile name: ', trim(infile)
           !path = '../extras/premix/'
           path = '../extras/premix_chemh/'
-          OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./premix.inp')
-          OPEN(LINCK,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./chem.asc')
+          !OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./premix.inp_closer')
+          OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//trim(infile))
           OPEN(LINMC,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./tran.asc')
           OPEN(LRIN,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./rest.bin')
           OPEN(LROUT,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./save.bin')
@@ -4401,10 +4467,9 @@ C     end of SUBROUTINE PRPOS
 
       end
 
-      subroutine close_premix_files( lin, linck, linmc, lrin, lrout, lrcvr )
-          integer, intent(in) :: lin, linck, linmc, lrin, lrout, lrcvr
+      subroutine close_premix_files( lin, linmc, lrin, lrout, lrcvr )
+          integer, intent(in) :: lin,  linmc, lrin, lrout, lrcvr
           CLOSE(LIN)
-          CLOSE(LINCK)
           CLOSE(LINMC)
           CLOSE(LRIN)
           CLOSE(LROUT)

@@ -1,10 +1,12 @@
 #include <Driver.H>
+#include <ChemDriver.H>
 
 #include <iomanip>
 #include <iostream>
 #include <fstream>
 
 #include <ParmParse.H>
+#include <SimulatedExperiment.H>
 
 static
 void 
@@ -693,6 +695,31 @@ main (int   argc,
       char* argv[])
 {
   BoxLib::Initialize(argc,argv);
+
+  // Bit to test premix wrapping
+  //
+  //
+  ChemDriver *cd; 
+  cd->SetTransport(ChemDriver::CD_TRANLIB);
+  cd = new ChemDriver;
+
+  std::cout << "Chemdriver using " << cd->numSpecies() << " species\n";
+  Array<std::string> names = cd->speciesNames();
+  for(int i=0; i< cd->numSpecies(); i++ ){
+      std::cout << " Species " << i << " in cd is: " << names[i] << std::endl;
+  }
+  PREMIXReactor * pmreact;
+  pmreact = new PREMIXReactor(*cd);
+  pmreact->setInputFile("premix.inp_closer");
+  pmreact->InitializeExperiment();
+  std::vector<Real> sim_obs;
+  pmreact->GetMeasurements( sim_obs);
+  std::cout << "Simulated observation as: " << sim_obs[0] << std::endl;
+
+
+  //
+  return(0);
+
 
   Driver driver;
   ParameterManager& parameter_manager = driver.mystruct->parameter_manager;

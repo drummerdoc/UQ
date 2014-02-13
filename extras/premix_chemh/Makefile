@@ -27,8 +27,8 @@ premix:
 	gfortran premix_stock.f prdriv.f twopnt.f refine.f cktime.f tranlib_d.f math.f mach.f cklib_d.f -o premix_stock
 
 premix_new:
-	gcc -std=c99 -c chem-H.c
-	gfortran  premix_new.f prdriv.f twopnt.f refine.f cktime.f tranlib_d.f math.f mach.f misc_math.f chem-H.o -o premix_new 
+	gcc-mp-4.5 -std=c99 -c chem-H.c
+	gfortran-mp-4.5  premix_new.f prdriv.f twopnt.f refine.f cktime.f tranlib_d.f math.f mach.f misc_math.f chem-H.o -o premix_new 
 
 clean:
 	rm -f *.asc *.bak *.bin *.dat *.out *.o premix_stock premix_new

@@ -11,7 +11,7 @@ endif
 
 PRECISION       = DOUBLE
 DEBUG           = TRUE
-DEBUG           = FALSE
+#DEBUG           = FALSE
 DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
@@ -24,8 +24,8 @@ BUILD_EXEC      = TRUE
 
 # Choose model (from list below), and pmf file
 #CHEMISTRY_MODEL = DRM19
-#CHEMISTRY_MODEL = CHEMH
-CHEMISTRY_MODEL = LUDME
+CHEMISTRY_MODEL = CHEMH
+#CHEMISTRY_MODEL = LUDME
 #CHEMISTRY_MODEL = GRI30
 
 ifeq (${USE_SDC}, TRUE)
@@ -134,6 +134,13 @@ ifeq (${MACHINE}, Darwin)
   SHARED_LIBRARIES += ${PYTHON_DIR}/lib/libpython2.7.${SHARED_LIBRARY_SUFFIX} ${GFORTLIB}
   PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
 endif
+#
+# Where chemkin/premix bits are
+  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
+  INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
+  fEXE_sources += premix_2.f twopnt.f \
+				  mach.f refine.f cktime.f misc_math.f 
+
 
 MY_SHARED_LIBRARY_SUFFIX:=so
 INCLUDE_LOCATIONS += ${PYTHON_INCLUDES}
