@@ -8,6 +8,8 @@
 #include <ParmParse.H>
 #include <SimulatedExperiment.H>
 
+#include <PremixSol.H>
+
 static
 void 
 print_usage (int,
@@ -708,16 +710,50 @@ main (int   argc,
   for(int i=0; i< cd->numSpecies(); i++ ){
       std::cout << " Species " << i << " in cd is: " << names[i] << std::endl;
   }
+
+  // Container to hold restart solution for premix
+  PremixSol * restartSol; 
+
+  // The premix simulation
   PREMIXReactor * pmreact;
   pmreact = new PREMIXReactor(*cd);
+
+  /* RG: Set this up before calling InitializeExperiment; if it exists and is set,
+   it will be used and left alone when pmreact is destoyed, if 
+   not it will be created but destroyed when pmreact is. 
+   There is probably a more sensible way to keep this around without
+   worrying about leaking memory, but it's beyond me right now */
+  restartSol = new PremixSol(pmreact->numComp(), 1000 );
+  pmreact->setPremixSol( restartSol );
+
+  /* Set up where the input files are */
+  pmreact->setInputDir("../extras/premix_chemh/");
   pmreact->setInputFile("premix.inp_closer");
+
+  /* This allocates memory */
   pmreact->InitializeExperiment();
+
+  /* This does the simulation */
   std::vector<Real> sim_obs;
-  pmreact->GetMeasurements( sim_obs);
+  pmreact->GetMeasurements(sim_obs);
   std::cout << "Simulated observation as: " << sim_obs[0] << std::endl;
+  
+  // Do it again, restarting from last solution
+  restartSol = pmreact->getPremixSol();
+  delete pmreact;
 
+  /* Second round - different input file, with RSTR keyword */
+  PREMIXReactor * pmreact2; 
+  pmreact2 = new PREMIXReactor(*cd);
+  pmreact2->setInputDir("../extras/premix_chemh/");
+  pmreact2->setInputFile("premix.rstr");
+  pmreact2->setPremixSol(restartSol);
+  pmreact2->InitializeExperiment();
 
-  //
+  std::vector<Real> next_sim_obs;
+  pmreact2->GetMeasurements(next_sim_obs);
+  std::cout << "Restart simulated observation as: " << next_sim_obs[0] << std::endl;
+
   return(0);
 
 

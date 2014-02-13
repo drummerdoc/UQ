@@ -183,117 +183,108 @@ CVReactor::InitializeExperiment()
 
 PREMIXReactor::PREMIXReactor(ChemDriver& _cd)
   : cd(_cd)
-//PREMIXReactor::PREMIXReactor()
 {
 
     sprintf(inputfile, ""); 
     ncomp = cd.numSpecies() + 3;
+    theSol = NULL;
 
+}
+
+PREMIXReactor::~PREMIXReactor()
+{
+    delete iwork;
+    delete rwork;
+    delete cwork;
+    delete lwork;
+    if( theSolPersist == 0 ){
+        delete theSol;
+    }
 }
 
 void
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
-
     // This set to return a single value - the flame speed
     simulated_observations.resize(1);
 
-    int solsz = -1;
+    // If a PremixSol hasn't been set up yet, make one
+    if( theSol == NULL ){
+        theSol = new PremixSol(ncomp, maxsolsz );
+        theSolPersist = 0; // If we make it here, destroy it when this object is destroyed
+    }
+    else{
+        theSolPersist = 1; // If it was already here, leave it alone when this is done
+    }
+    double * savesol = theSol->solvec; 
+    int * solsz = &(theSol->ngp);
 
-    // Set up work arrays for premix - need these
-    // to store solution even though they're not used
-    // for chemkin/transport stuff
-    double * savesol = new double[ncomp*maxsolsz];
-
+    // Messing about to be able to pass input file names to fortran. blech.
     int charlen = strlen( inputfile );
-    std::cout << "Opening inputfile:"<<inputfile<<"/length:"<<charlen<<std::endl;
+    int pathcharlen = strlen( path );
+    //std::cout << "Opening inputfile:"<<inputfile<<"/length:"<<charlen<<std::endl;
 
     {
         int infilecoded[charlen];
         for(int i=0; i<charlen; i++){
             infilecoded[i] = inputfile[i];
         }
-        open_premix_files_( &lin, &linmc, &lrin,
-                &lrout, &lrcvr, infilecoded, &charlen );
-
-    }
-
-    premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
-            &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, &solsz);
-
-    //// Check if something reasonable was saved for solution
-    printf("Grid for saved solution: (%d points)\n", solsz);
-    FILE * FP = fopen("sol.txt","w");
-    for (int i=0; i<solsz; i++) {
-        fprintf(FP,"%d\t", i);
-        for( int j=0; j<ncomp; j++){
-            fprintf(FP,"%10.3g\t", savesol[i + j*nmax]);
+        int pathcoded[pathcharlen];
+        for(int i=0; i<pathcharlen; i++){
+            pathcoded[i] = path[i];
         }
-        fprintf(FP,"\n");
+        open_premix_files_( &lin, &linmc, &lrin,
+                &lrout, &lrcvr, infilecoded, &charlen, pathcoded, &pathcharlen );
+
     }
-    fclose(FP);
 
-    simulated_observations[0]  =savesol[solsz + nmax*(ncomp-1)-1+3]; 
+    // Call the simulation
+    premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
+            &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz);
 
-    if( solsz > 0 ) {
+    //// DEBUG Check if something reasonable was saved for solution
+    //printf("Grid for saved solution: (%d points)\n", *solsz);
+    //FILE * FP = fopen("sol.txt","w");
+    //for (int i=0; i<*solsz; i++) {
+    //    fprintf(FP,"%d\t", i);
+    //    for( int j=0; j<ncomp; j++){
+    //        fprintf(FP,"%10.3g\t", savesol[i + j*nmax]);
+    //    }
+    //    fprintf(FP,"\n");
+    //}
+    //fclose(FP);
+
+    // Extract the measurements - should probably put into an 'ExtractMeasurements'
+    // for consistency with CVReactor
+    if( *solsz > 0 ) {
         std::cout << "Premix generated a viable solution " << std::endl;
+        simulated_observations[0]  =savesol[*solsz + nmax*(ncomp-1)-1+3]; 
     }
     else{
         std::cout << "Premix failed to find a viable solution " << std::endl;
+    simulated_observations[0]  = -1;
     }
 
-
-    close_premix_files_( &lin, &linck, &lrin,
-            &lrout, &lrcvr );
-
-    std::cout << "Restarting from previous solution....\n" << solsz << std::endl;
-    // Now try restarting
-    sprintf(inputfile, "premix.rstr"); 
-    charlen = strlen( inputfile );
-    {
-        int infilecoded[charlen];
-        for(int i=0; i<charlen; i++){
-            infilecoded[i] = inputfile[i];
-        }
-        open_premix_files_( &lin, &linmc, &lrin,
-                &lrout, &lrcvr, infilecoded, &charlen );
-    }
-
-    premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
-            &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, &solsz);
-
-    if( solsz > 0 ) {
-        std::cout << "Premix generated a viable solution " << std::endl;
-    }
-    else{
-        std::cout << "Premix failed to find a viable solution " << std::endl;
-    }
-
-
+    // Cleanup fortran remains
     close_premix_files_( &lin, &linck, &lrin,
             &lrout, &lrcvr );
 
 
     // NEXT STEPS:
-    // 1. Make object look like CVReactor
-    //     - specify initial solution in setup, build some
-    //       infrastructure to manage a library of restart solutions
-    //     - extract flame speed for measurement
-    // 2. General cleanup
+    // General cleanup
     //     - Take out unused file handles
     //     - Split out ckinit / mcinit calls
-    //     - Compute ncomp from cklib query
-    // 3. Try with Davis mechanism
+    // Try with Davis mechanism
     //     - General code compile with Davis mechanism
     //     - See if I can get a solution
-    // 4. Make sure it is robust to changing chemical parameters
-    // 5. Put in context of sampling framework
-    // 6. Generate 'pseudo-experimental' data
-    //      - Need separate object to sample from distribution
-    // 7. Infrastructure to manage set of experiments
+    // Make sure it is robust to changing chemical parameters
+    // Put in context of sampling framework
+    // Generate 'pseudo-experimental' data
+    //      - Need separate object to sample from distribution?
+    // Infrastructure to manage set of experiments
     //      - think Marc largely has this done, check that it 
     //        is ok wrt to flame speed measurements
-    // 8. Try sampling to get distribution of 1 reaction rate
+    // Try sampling to get distribution of 1 reaction rate
     //       consistent with observation distribution
 }
 
@@ -331,12 +322,10 @@ PREMIXReactor::InitializeExperiment()
         std::cerr << "No input file specified for premixed reactor \n";
     }
 
-    sprintf(inputfile, "premix.inp_closer"); 
-
-    iwork = malloc( leniwk*sizeof(int) );
-    rwork = malloc( lenrwk*sizeof(double) );
-    cwork = malloc( lencwk*lensym*sizeof(int) );
-    lwork = malloc( lenlwk*sizeof(char) ) ;
+    iwork = new int[leniwk]; 
+    rwork = new double[lenrwk]; 
+    cwork = new int[lencwk*lensym]; 
+    lwork = new char[lenlwk]; 
 
     return;
 }
@@ -345,4 +334,28 @@ void
 PREMIXReactor::setInputFile(char * infile)
 {
     strcpy(inputfile, infile); 
+}
+
+void
+PREMIXReactor::setInputDir(char * dir)
+{
+    strcpy(path, dir); 
+}
+
+PremixSol *
+PREMIXReactor::getPremixSol()
+{
+    return theSol;
+}
+
+void
+PREMIXReactor::setPremixSol( PremixSol * sol )
+{
+    theSol = sol;
+}
+
+int
+PREMIXReactor::numComp( )
+{
+    return ncomp;
 }

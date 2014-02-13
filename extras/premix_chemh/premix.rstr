@@ -24,8 +24,8 @@ TFIX  400.
 /   unreacted fuel-oxidizer makeup
 MOLE
 /For hydrogen at phi = 0.37   (chem-H.inp+gri1.2: 15.27, MB+gri.12: 18.72)
-//REAC H2   0.134498874849
-REAC H2   0.9
+REAC H2   0.134498874849
+//REAC H2   0.9
 REAC O2   0.181755236282
 REAC N2   0.683745888869
 /   estimated product mole fractions

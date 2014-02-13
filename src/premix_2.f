@@ -4441,23 +4441,25 @@ C     end of SUBROUTINE PRPOS
       END
 
       subroutine open_premix_files( lin, linmc, lrin, lrout, lrcvr, inputfile,
-     1     strlen )
+     1     strlen, pathname, pathstrlen )
 
           integer, intent(in) :: lin, linmc, lrin, lrout, lrcvr
-          character path*150 
-          integer, intent(in) :: strlen
-          integer, intent(in) :: inputfile(strlen)
+          integer, intent(in) :: strlen, pathstrlen
+          integer, intent(in) :: inputfile(strlen), pathname(pathstrlen)
           character(strlen) :: infile
+          character(pathstrlen) :: path
 
           integer :: i
 
           do i=1,strlen
               infile(i:i) = ACHAR(inputfile(i))
-              write(*,*) infile(i:i)
           enddo
-          write(*,*) 'inputfile name: ', trim(infile)
-          !path = '../extras/premix/'
-          path = '../extras/premix_chemh/'
+          do i=1,pathstrlen
+              path(i:i) = ACHAR(pathname(i))
+          enddo
+
+          write(*,*) 'inputfile name: ', trim(path)//trim(infile)
+          !path = '../extras/premix_chemh/'
           !OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./premix.inp_closer')
           OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//trim(infile))
           OPEN(LINMC,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./tran.asc')

@@ -4,6 +4,7 @@
 #include <ChemDriver.H>
 #include <Rand.H>
 #include <iostream>
+#include <PremixSol.H>
 
 typedef PArray<ChemDriver::Parameter> Parameters;
 
@@ -64,7 +65,7 @@ CVReactor::GetMeasurementTimes() const
 }
 
 extern "C" {
-        void open_premix_files_(  int*, int*, int*, int*,int*, int *, int * );
+        void open_premix_files_(  int*, int*, int*, int*,int*, int *, int *,int*,int* );
         void close_premix_files_(  int*, int*, int*, int*,int* );
         void premix_( int*, int*, int*, int*, int*, int*,
                 int*, int*, int*, int*, int*, double*, int* );
@@ -73,17 +74,20 @@ extern "C" {
 struct PREMIXReactor
   : public SimulatedExperiment
 {
-  virtual const std::vector<Real>& GetMeasurementTimes() const;
-  virtual void GetMeasurements(std::vector<Real>& simulated_observations);
+    virtual const std::vector<Real>& GetMeasurementTimes() const;
+    virtual void GetMeasurements(std::vector<Real>& simulated_observations);
 
-  virtual void InitializeExperiment();
-  void setInputFile(char *);
+    virtual void InitializeExperiment();
+    void setInputFile(char *);
+    void setInputDir(char *);
+    void setPremixSol( PremixSol * );
+    int numComp(  );
+    PremixSol * getPremixSol();
 
-  virtual int NumMeasuredValues() const;
+    virtual int NumMeasuredValues() const;
     PREMIXReactor(ChemDriver& _cd);
-//    PREMIXReactor();
-    ~PREMIXReactor() {}
-    
+    ~PREMIXReactor();
+
     // Sizes for work arrays
     int lenlwk;
     int leniwk;
@@ -99,35 +103,27 @@ struct PREMIXReactor
     int lrcvr;
     int linck;
     int linmc;
-    
+
     // Pass this as maximum number of gridpoints
     int nmax;
 
-    void *iwork;
-    void *rwork;
-    void*cwork;
-    void*lwork;
+    void * iwork;
+    void * rwork;
+    void * cwork;
+    void * lwork;
 
     // premix.inp file to read
     char inputfile[1024];
+    char path[1024];
     //
     // Sizes of data stored in object
     int maxsolsz; 
     int ncomp;
 
     ChemDriver& cd;
-    //
-    //
-    // This is a rather dumb object
-    // Needs capacity of 
-    // (maximum number of grid points)*(solution size)
-    // where solution size includes the grid.
-    // Inside premix copy
-    // savesol[j] = X[j] where j=0,gridsize < jmax
-    // savesol[j + (n*jmax)] where n = 1,natj; natj<maxstate)
-    // Stores the premix solution to restart from
-    //double * savesol;
-    
+    PremixSol * theSol;
+    int theSolPersist;
+
 };
 
 inline
