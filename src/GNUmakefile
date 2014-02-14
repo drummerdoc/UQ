@@ -26,6 +26,11 @@ BUILD_EXEC      = TRUE
 #CHEMISTRY_MODEL = DRM19
 #CHEMISTRY_MODEL = CHEMH
 CHEMISTRY_MODEL = DAVIS
+#NB to us DAVIS chemistry need to hack c. l147 in ChemDriver_F.F
+#mcr = Nspec*(19+2*NO+NO*NLITEMAX)+(NO+15)*Nspec**2 * 2                          
+#mci = 4*Nspec + NLITEMAX * 2   
+# otherwise work arrays for tranlib are too small.
+#
 #CHEMISTRY_MODEL = LUDME
 #CHEMISTRY_MODEL = GRI30
 
