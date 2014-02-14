@@ -727,8 +727,11 @@ main (int   argc,
   pmreact->setPremixSol( restartSol );
 
   /* Set up where the input files are */
-  pmreact->setInputDir("../extras/premix_chemh/");
-  pmreact->setInputFile("premix.inp_closer");
+  //pmreact->setInputDir("../extras/premix_chemh/");
+  //pmreact->setInputFile("premix.inp_closer");
+
+  pmreact->setInputDir("../extras/Davis05_h2co/premix/");
+  pmreact->setInputFile("premix.fls1a");
 
   /* This allocates memory */
   pmreact->InitializeExperiment();
@@ -745,14 +748,15 @@ main (int   argc,
   /* Second round - different input file, with RSTR keyword */
   PREMIXReactor * pmreact2; 
   pmreact2 = new PREMIXReactor(*cd);
-  pmreact2->setInputDir("../extras/premix_chemh/");
-  pmreact2->setInputFile("premix.rstr");
+  pmreact2->setInputDir("../extras/Davis05_h2co/premix/");
+  pmreact2->setInputFile("premix.fls2a");
   pmreact2->setPremixSol(restartSol);
   pmreact2->InitializeExperiment();
 
   std::vector<Real> next_sim_obs;
   pmreact2->GetMeasurements(next_sim_obs);
   std::cout << "Restart simulated observation as: " << next_sim_obs[0] << std::endl;
+
 
   return(0);
 

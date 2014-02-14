@@ -24,7 +24,8 @@ BUILD_EXEC      = TRUE
 
 # Choose model (from list below), and pmf file
 #CHEMISTRY_MODEL = DRM19
-CHEMISTRY_MODEL = CHEMH
+#CHEMISTRY_MODEL = CHEMH
+CHEMISTRY_MODEL = DAVIS
 #CHEMISTRY_MODEL = LUDME
 #CHEMISTRY_MODEL = GRI30
 
@@ -65,6 +66,11 @@ VPATH_LOCATIONS   += $(Blocs)
 CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H
 CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp
 
+ifeq (${CHEMISTRY_MODEL}, DAVIS)
+  CHEM_MECHFILE = davis.c
+  #VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/gri/PMFs
+  VPATH_LOCATIONS += ../extras/Davis05_h2co/chemfiles/
+endif
 ifeq (${CHEMISTRY_MODEL}, DRM19)
   CHEM_MECHFILE = drm19.c
   VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/gri/PMFs
