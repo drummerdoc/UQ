@@ -178,7 +178,8 @@ C
      3                   TDR, YV, ABOVE, BELOW, BUFFER, S, SN, F, FN,
      4                   DS, A6, A, ICKWRK, IMCWRK, KSYM, CCKWRK, KR,
      5                   KI, KP, IPIVOT, ACTIVE, MARK, NAME, ITWWRK,
-     6                   RTWWRK, SSAVE, RKFT, RKRT, RSAVE, SAVESOL, SAVESZ)
+     6                   RTWWRK, SSAVE, RKFT, RKRT, RSAVE, SAVESOL, SAVESZ,
+     7                   LRSTRTORIDE)
 C
 C  START PROLOGUE
 C
@@ -253,6 +254,7 @@ C  RSAVE(*)   - real matrix, for ICASE=2, save species production rates,
 C               for ICASE=3, use RSAVE for species production rates
 C  END PROLOGUE
 C
+      INTEGER LRSTRTORIDE
 C*****precision > double
       IMPLICIT DOUBLE PRECISION (A-H, O-Z), INTEGER (I-N)
 C*****END precision > double
@@ -353,6 +355,7 @@ C
      3            SCRTCH(1, 3), KR, KI, KP, XGIVEN, TGIVEN, N1CALL,
      4            LREGRD, PCTADP, RATGTC, KERR, linflow, tinflow)
       IF (KERR) RETURN
+      if( LRSTRTORIDE = 1 ) LRSTRT=.true.
 C     RDKEY sets JJ=6
 C
       IF (LRSTRT) THEN
@@ -1471,7 +1474,7 @@ C
 !     2                   LENCWK, C)
       SUBROUTINE PREMIX (JMAX, LIN, LOUT, LINKMC, LREST, LSAVE,
      1                   LRCRVR, LENLWK, LENIWK, LENRWK,
-     2                   LENCWK, SAVESOL, SAVESZ)
+     2                   LENCWK, SAVESOL, SAVESZ, LRSTRTORIDE)
 C
 C  START PROLOGUE
 C
@@ -1494,6 +1497,7 @@ C  C(*)     - character-string array, problem workspace
 C
 C  END PROLOGUE
 C
+      INTEGER LRSTRTORIDE
 C*****precision > double
         IMPLICIT DOUBLE PRECISION (A-H, O-Z), INTEGER (I-N)
 C*****END precision > double
@@ -1570,7 +1574,7 @@ C
      5             R(NKA6), R(NA), I(ICKW), I(IMCW), C(IKS), C(ICC),
      6             I(IKR), I(IKI), I(IKP), I(IIP), L(LAC), L(LMK),
      7             C(INAME), I(NIWK), R(NRWK), R(NSSAVE), R(NRKFT),
-     8             R(NRKRT), R(NRSAVE), SAVESOL, SAVESZ)
+     8             R(NRKRT), R(NRSAVE), SAVESOL, SAVESZ, LRSTRTORIDE)
 C
 C     end of SUBROUTINE PREMIX
       RETURN

@@ -188,6 +188,7 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd)
     sprintf(inputfile, ""); 
     ncomp = cd.numSpecies() + 3;
     theSol = NULL;
+    lrstrtflag=0;
 
 }
 
@@ -240,7 +241,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
     // Call the simulation
     premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
-            &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz);
+            &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz, &lrstrtflag);
 
     //// DEBUG Check if something reasonable was saved for solution
     //printf("Grid for saved solution: (%d points)\n", *solsz);

@@ -68,7 +68,7 @@ extern "C" {
         void open_premix_files_(  int*, int*, int*, int*,int*, int *, int *,int*,int* );
         void close_premix_files_(  int*, int*, int*, int*,int* );
         void premix_( int*, int*, int*, int*, int*, int*,
-                int*, int*, int*, int*, int*, double*, int* );
+                int*, int*, int*, int*, int*, double*, int* , int*);
 }
 
 struct PREMIXReactor
@@ -115,6 +115,7 @@ struct PREMIXReactor
     // premix.inp file to read
     char inputfile[1024];
     char path[1024];
+    int lrstrtflag;
     //
     // Sizes of data stored in object
     int maxsolsz; 
