@@ -254,7 +254,6 @@ C  RSAVE(*)   - real matrix, for ICASE=2, save species production rates,
 C               for ICASE=3, use RSAVE for species production rates
 C  END PROLOGUE
 C
-      INTEGER LRSTRTORIDE
 C*****precision > double
       IMPLICIT DOUBLE PRECISION (A-H, O-Z), INTEGER (I-N)
 C*****END precision > double
@@ -304,6 +303,8 @@ C
       CHARACTER REPORT*16
 
       CHARACTER scratcha*80
+
+      INTEGER LRSTRTORIDE
 C
 C///  INITIALIZATION.
 C
@@ -355,7 +356,7 @@ C
      3            SCRTCH(1, 3), KR, KI, KP, XGIVEN, TGIVEN, N1CALL,
      4            LREGRD, PCTADP, RATGTC, KERR, linflow, tinflow)
       IF (KERR) RETURN
-      if( LRSTRTORIDE = 1 ) LRSTRT=.true.
+      if( LRSTRTORIDE .eq. 1 ) LRSTRT=.true.
 C     RDKEY sets JJ=6
 C
       IF (LRSTRT) THEN
@@ -1497,7 +1498,6 @@ C  C(*)     - character-string array, problem workspace
 C
 C  END PROLOGUE
 C
-      INTEGER LRSTRTORIDE
 C*****precision > double
         IMPLICIT DOUBLE PRECISION (A-H, O-Z), INTEGER (I-N)
 C*****END precision > double
@@ -1529,6 +1529,7 @@ C
       INTEGER SAVESZ
 C
       DATA PRVERS/'3.15'/, PRDATE/'98/03/03'/
+      INTEGER LRSTRTORIDE
 C
 C*****precision > double
       PREC = 'DOUBLE'
