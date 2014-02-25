@@ -234,7 +234,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
         for(int i=0; i<pathcharlen; i++){
             pathcoded[i] = path[i];
         }
-        open_premix_files_( &lin, &linmc, &lrin,
+        open_premix_files_( &lin, &lout, &linmc, &lrin,
                 &lrout, &lrcvr, infilecoded, &charlen, pathcoded, &pathcharlen );
 
     }
@@ -307,7 +307,7 @@ PREMIXReactor::InitializeExperiment()
     
     // Unit numbers for input/output files
     lin=10;
-    lout=6;
+    lout=45;
     lrin=14;
     lrout=15;
     lrcvr=16;

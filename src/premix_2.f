@@ -411,7 +411,7 @@ C
 C
 C     WRITE TO LSAVE WHEN SOLUTION IS COMPLETE
 C
-      write(*,*) 'PREMIX writing solution to savesol instead of file'
+      !write(*,*) 'PREMIX writing solution to savesol instead of file'
       DO J = 1, JJ
       SAVESOL( J ) = X(J)
       DO N = 1, NATJ
@@ -1386,10 +1386,10 @@ C
 C
 !      IF (ITOT.LT.LENIWK .AND. NTOT.LT.LENRWK .AND. ICTOT.LT.LENCWK)
 !     1   THEN
-         write(*,*) ' calling ckinit...'
+         !write(*,*) ' calling ckinit...'
          !CALL CKINIT()
          CALL CKINDX (I, R, MM, KK, II, NFIT)
-         write(*,*) 'Species count: ', KK
+         !write(*,*) 'Species count: ', KK
 C
          CALL CKMXTP (I, MAXTP)
          NTR = MAXTP - 1
@@ -1881,7 +1881,6 @@ C
 C              Show the solution
 
 c     HACK
-               print *,'showing...'
                !ICASE = 1
                !LVARMC = .TRUE.
                !LENRGY = .TRUE.
@@ -2608,7 +2607,7 @@ C
           RETURN
       endif
 
-      write(*,*) 'PREMIX loading solution from savesol instead of file'
+      !write(*,*) 'PREMIX loading solution from savesol instead of file'
       JJ = SAVESZ
       DO J=1, JJ
           X(J) = SAVESOL(J)
@@ -4445,10 +4444,10 @@ C     end of SUBROUTINE PRPOS
       RETURN
       END
 
-      subroutine open_premix_files( lin, linmc, lrin, lrout, lrcvr, inputfile,
+      subroutine open_premix_files( lin, lout, linmc, lrin, lrout, lrcvr, inputfile,
      1     strlen, pathname, pathstrlen )
 
-          integer, intent(in) :: lin, linmc, lrin, lrout, lrcvr
+          integer, intent(in) :: lin, linmc, lrin, lrout, lrcvr,lout
           integer, intent(in) :: strlen, pathstrlen
           integer, intent(in) :: inputfile(strlen), pathname(pathstrlen)
           character(strlen) :: infile
@@ -4463,10 +4462,10 @@ C     end of SUBROUTINE PRPOS
               path(i:i) = ACHAR(pathname(i))
           enddo
 
-          write(*,*) 'inputfile name: ', trim(path)//trim(infile)
+          !write(*,*) 'inputfile name: ', trim(path)//trim(infile)
           !path = '../extras/premix_chemh/'
-          !OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./premix.inp_closer')
           OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//trim(infile))
+          OPEN(LOUT,FORM='FORMATTED',STATUS='UNKNOWN',FILE='/dev/null')
           OPEN(LINMC,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./tran.asc')
           OPEN(LRIN,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./rest.bin')
           OPEN(LROUT,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./save.bin')
