@@ -716,46 +716,116 @@ main (int   argc,
 
   // The premix simulation
   PREMIXReactor * pmreact;
-  pmreact = new PREMIXReactor(*cd);
 
   /* RG: Set this up before calling InitializeExperiment; if it exists and is set,
    it will be used and left alone when pmreact is destoyed, if 
    not it will be created but destroyed when pmreact is. 
    There is probably a more sensible way to keep this around without
    worrying about leaking memory, but it's beyond me right now */
+
+
+  /* ----------------------------------------------------------------------------
+   * Start of flaminar flame speed experiments from Davis mechanism
+   * ----------------------------------------------------------------------------*/
+
+  std::vector<Real> sim_obs;
+
+  //// Case fls1a
+  //pmreact = new PREMIXReactor(*cd);
+  //pmreact->setPremixSol( restartSol );
+  //pmreact->setInputDir("../extras/Davis05_h2co/premix/");
+  //pmreact->setInputFile("premix.fls1a");
+  //pmreact->InitializeExperiment();
+
+  //pmreact->GetMeasurements(sim_obs);
+  //std::cout << "fls1a Simulated observation as: " << sim_obs[0] << std::endl;
+  //delete pmreact;
+  //
+  //// Case fls1b
+  //pmreact = new PREMIXReactor(*cd);
+  //pmreact->setPremixSol( restartSol );
+  //pmreact->setInputDir("../extras/Davis05_h2co/premix/");
+  //pmreact->setInputFile("premix.fls1b");
+  //pmreact->InitializeExperiment();
+
+  //pmreact->GetMeasurements(sim_obs);
+  //std::cout << "fls1b Simulated observation as: " << sim_obs[0] << std::endl;
+  //delete pmreact;
+
+  //// Case fls2a
+  //pmreact = new PREMIXReactor(*cd);
+  //pmreact->setPremixSol( restartSol );
+  //pmreact->setInputDir("../extras/Davis05_h2co/premix/");
+  //pmreact->setInputFile("premix.fls2a");
+  //pmreact->InitializeExperiment();
+
+  //pmreact->GetMeasurements(sim_obs);
+  //std::cout << "fls2a Simulated observation as: " << sim_obs[0] << std::endl;
+  //delete pmreact;
+  //
+  //// Case fls2b
+  //pmreact = new PREMIXReactor(*cd);
+  //pmreact->setPremixSol( restartSol );
+  //pmreact->setInputDir("../extras/Davis05_h2co/premix/");
+  //pmreact->setInputFile("premix.fls2b");
+  //pmreact->InitializeExperiment();
+
+  //pmreact->GetMeasurements(sim_obs);
+  //std::cout << "fls2b Simulated observation as: " << sim_obs[0] << std::endl;
+  //delete pmreact;
+  ////
+  //// Case fls3a
+  //pmreact = new PREMIXReactor(*cd);
+  //restartSol = new PremixSol(pmreact->numComp(), 1000 );
+  //pmreact->setPremixSol( restartSol );
+  //pmreact->setInputDir("../extras/Davis05_h2co/premix/");
+  //pmreact->setInputFile("premix.fls3a.ic");
+  //pmreact->InitializeExperiment();
+
+  //pmreact->GetMeasurements(sim_obs);
+  //restartSol = pmreact->getPremixSol();
+
+  //PREMIXReactor * pmreact2; 
+  //pmreact2 = new PREMIXReactor(*cd);
+  //pmreact2->setInputDir("../extras/Davis05_h2co/premix/");
+  //pmreact2->setInputFile("premix.fls3a");
+  //pmreact2->setPremixSol(restartSol);
+  //pmreact2->lrstrtflag = 1;
+  //pmreact2->InitializeExperiment();
+
+  //pmreact2->GetMeasurements(sim_obs);
+  //std::cout << "fls3a simulated observation as: " << sim_obs[0] << std::endl;
+  //delete pmreact;
+  //delete pmreact2;
+
+  // Case fls3b
+  pmreact = new PREMIXReactor(*cd);
   restartSol = new PremixSol(pmreact->numComp(), 1000 );
   pmreact->setPremixSol( restartSol );
-
-  /* Set up where the input files are */
-  //pmreact->setInputDir("../extras/premix_chemh/");
-  //pmreact->setInputFile("premix.inp_closer");
-
   pmreact->setInputDir("../extras/Davis05_h2co/premix/");
-  pmreact->setInputFile("premix.fls1a");
-
-  /* This allocates memory */
+  pmreact->setInputFile("premix.fls3b");
   pmreact->InitializeExperiment();
 
-  /* This does the simulation */
-  std::vector<Real> sim_obs;
   pmreact->GetMeasurements(sim_obs);
-  std::cout << "Simulated observation as: " << sim_obs[0] << std::endl;
-  
-  // Do it again, restarting from last solution
-  restartSol = pmreact->getPremixSol();
-  delete pmreact;
+  //restartSol = pmreact->getPremixSol();
 
-  /* Second round - different input file, with RSTR keyword */
-  PREMIXReactor * pmreact2; 
-  pmreact2 = new PREMIXReactor(*cd);
-  pmreact2->setInputDir("../extras/Davis05_h2co/premix/");
-  pmreact2->setInputFile("premix.fls2a");
-  pmreact2->setPremixSol(restartSol);
-  pmreact2->InitializeExperiment();
+  //PREMIXReactor * pmreact2; 
+  //pmreact2 = new PREMIXReactor(*cd);
+  //pmreact2->setInputDir("../extras/Davis05_h2co/premix/");
+  //pmreact2->setInputFile("premix.fls3a");
+  //pmreact2->setPremixSol(restartSol);
+  //pmreact2->lrstrtflag = 1;
+  //pmreact2->InitializeExperiment();
 
-  std::vector<Real> next_sim_obs;
-  pmreact2->GetMeasurements(next_sim_obs);
-  std::cout << "Restart simulated observation as: " << next_sim_obs[0] << std::endl;
+  //pmreact2->GetMeasurements(sim_obs);
+  std::cout << "fls3b simulated observation as: " << sim_obs[0] << std::endl;
+  //delete pmreact;
+  //delete pmreact2;
+
+  /* ----------------------------------------------------------------------------
+   * End of flaminar flame speed experiments from Davis mechanism
+   * ----------------------------------------------------------------------------*/
+  //  ------------------------------------------------------------------------
 
 
   return(0);
