@@ -4466,6 +4466,7 @@ C     end of SUBROUTINE PRPOS
           OPEN(LRIN,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./rest.bin')
           OPEN(LROUT,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./save.bin')
           OPEN(LRCVR,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./recov.bin')
+          OPEN(6,STATUS='UNKNOWN',FILE='/dev/null')
 
       end
 

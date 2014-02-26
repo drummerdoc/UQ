@@ -1,7 +1,69 @@
 #include <iostream>
+#include <map>
 
 #include <ParameterManager.H>
 #include <Rand.H>
+#include <ParmParse.H>
+
+ParameterManager::ParameterManager(ChemDriver& _cd)
+  : cd(_cd)
+{
+  prior_stats_initialized = false;
+
+  std::map<std::string,ChemDriver::REACTION_PARAMETER> PTypeMap;
+  PTypeMap["FWD_A"]     = ChemDriver::FWD_A;
+  PTypeMap["FWD_BETAA"] = ChemDriver::FWD_BETA;
+  PTypeMap["FWD_EA"]    = ChemDriver::FWD_EA;
+  PTypeMap["LOW_A"]     = ChemDriver::LOW_A;
+  PTypeMap["LOW_BETAA"] = ChemDriver::LOW_BETA;
+  PTypeMap["LOW_EA"]    = ChemDriver::LOW_EA;
+  PTypeMap["REV_A"]     = ChemDriver::REV_A;
+  PTypeMap["REV_BETAA"] = ChemDriver::REV_BETA;
+  PTypeMap["REV_EA"]    = ChemDriver::REV_EA;
+  PTypeMap["TROE_A"]    = ChemDriver::TROE_A;
+  PTypeMap["TROE_A"]    = ChemDriver::TROE_A;
+  PTypeMap["TROE_TS"]   = ChemDriver::TROE_TS;
+  PTypeMap["TROE_TSS"]  = ChemDriver::TROE_TSS;
+  PTypeMap["TROE_TSSS"] = ChemDriver::TROE_TSSS;
+  PTypeMap["SRI_A"]     = ChemDriver::SRI_A;
+  PTypeMap["SRI_B"]     = ChemDriver::SRI_B;
+  PTypeMap["SRI_C"]     = ChemDriver::SRI_C;
+  PTypeMap["SRI_D"]     = ChemDriver::SRI_D;
+  PTypeMap["SRI_E"]     = ChemDriver::SRI_E;
+
+  ParmParse pp;
+  Array<std::string> parameters;
+  int np = pp.countval("parameters");
+  BL_ASSERT(np>0);
+  pp.getarr("parameters",parameters,0,np);
+
+  std::vector<Real> lower_bound(np);
+  std::vector<Real> upper_bound(np);
+  std::vector<Real> prior_mean(np);
+  std::vector<Real> prior_std(np);
+
+  for (int i=0; i<np; ++i) {
+    std::string prefix = parameters[i];
+    ParmParse ppp(prefix.c_str());
+    int reaction_id; ppp.get("reaction_id",reaction_id);
+    if (reaction_id<0 || reaction_id > cd.numReactions()) {
+      BoxLib::Abort("Reaction ID invalid");
+    }
+
+    std::string type; ppp.get("type",type);
+    std::map<std::string,ChemDriver::REACTION_PARAMETER>::const_iterator it = PTypeMap.find(type);
+    if (it == PTypeMap.end()) {
+      BoxLib::Abort("Unrecognized reaction parameter");
+    }
+    AddParameter(reaction_id,it->second);
+
+    ppp.get("prior_mean",prior_mean[i]);
+    ppp.get("prior_std",prior_std[i]);
+    ppp.get("lower_bound",lower_bound[i]);
+    ppp.get("upper_bound",upper_bound[i]);
+  }
+  SetStatsForPrior(prior_mean,prior_std,lower_bound,upper_bound);
+}
 
 // Add parameter to active set, return default value
 Real

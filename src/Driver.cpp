@@ -15,6 +15,7 @@
 #include "omp.h"
 #endif
 
+static bool made_cd = false;
 ChemDriver *Driver::cd = 0;
 MINPACKstruct *Driver::mystruct = 0;
 Real Driver::param_eps = 1.e-4;
@@ -525,54 +526,24 @@ void MCSampler( void* p,
 
 Driver::Driver()
 {
-  cd = new ChemDriver;
-  ParmParse pp("driver");
+  if (cd == 0) {
+     cd = new ChemDriver;
+     made_cd = true;
+  }
+
+  ParmParse pp;
   param_eps = 1.e-4; pp.query("param_eps",param_eps);
   mystruct = new MINPACKstruct(*cd,param_eps);
 
   ParameterManager& parameter_manager = mystruct->parameter_manager;
   ExperimentManager& expt_manager = mystruct->expt_manager;  
-  
-  CVReactor *cv_reactor = new CVReactor(*cd);
-  expt_manager.AddExperiment(cv_reactor,"exp1");
   expt_manager.InitializeExperiments();
-
-  parameter_manager.Clear();
-  std::vector<Real> true_params;
-  // Reactions that seem to matter: 0, 15, 41, 49, 135, 137, 155 (15, 135 strongest)
-  true_params.push_back(parameter_manager.AddParameter(13,ChemDriver::FWD_EA));
-  int num_params = parameter_manager.NumParams();
-
-  int num_data = expt_manager.NumExptData();
-  std::vector<Real> true_data(num_data);
-    
-  expt_manager.GenerateTestMeasurements(true_params,true_data);
-
-  std::vector<Real> true_data_std(num_data);
-  for(int ii=0; ii<num_data; ii++){
-    true_data_std[ii] = 15;
-  }
-  expt_manager.InitializeTrueData(true_data,true_data_std);
-
+  expt_manager.InitializeTrueData(parameter_manager.TrueParameters());
   expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
-  const std::vector<Real>& perturbed_data = expt_manager.TrueDataWithObservationNoise();
-   
-  std::vector<Real> lower_bound(num_params);
-  std::vector<Real> upper_bound(num_params);
-  std::vector<Real> prior_mean(num_params);
-  std::vector<Real> prior_std(num_params);
-  for(int ii=0; ii<num_params; ii++){
-    prior_mean[ii] = 11980;
-    prior_std[ii] = 200;
-    lower_bound[ii] = 1000;
-    upper_bound[ii] = 20000;
-  }
-
-  parameter_manager.SetStatsForPrior(prior_mean,prior_std,lower_bound,upper_bound);
 }
 
 Driver::~Driver()
 {
   delete mystruct;
-  delete cd;
+  if (made_cd) delete cd;
 }

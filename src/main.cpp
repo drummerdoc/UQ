@@ -698,69 +698,6 @@ main (int   argc,
 {
   BoxLib::Initialize(argc,argv);
 
-  // Bit to test premix wrapping
-  //
-  //
-  ChemDriver *cd; 
-  cd->SetTransport(ChemDriver::CD_TRANLIB);
-  cd = new ChemDriver;
-
-  std::cout << "Chemdriver using " << cd->numSpecies() << " species\n";
-  Array<std::string> names = cd->speciesNames();
-  for(int i=0; i< cd->numSpecies(); i++ ){
-      std::cout << " Species " << i << " in cd is: " << names[i] << std::endl;
-  }
-
-  // Container to hold restart solution for premix
-  PremixSol * restartSol; 
-
-  // The premix simulation
-  PREMIXReactor * pmreact;
-  pmreact = new PREMIXReactor(*cd);
-
-  /* RG: Set this up before calling InitializeExperiment; if it exists and is set,
-   it will be used and left alone when pmreact is destoyed, if 
-   not it will be created but destroyed when pmreact is. 
-   There is probably a more sensible way to keep this around without
-   worrying about leaking memory, but it's beyond me right now */
-  restartSol = new PremixSol(pmreact->numComp(), 1000 );
-  pmreact->setPremixSol( restartSol );
-
-  /* Set up where the input files are */
-  //pmreact->setInputDir("../extras/premix_chemh/");
-  //pmreact->setInputFile("premix.inp_closer");
-
-  pmreact->setInputDir("../extras/Davis05_h2co/premix/");
-  pmreact->setInputFile("premix.fls1a");
-
-  /* This allocates memory */
-  pmreact->InitializeExperiment();
-
-  /* This does the simulation */
-  std::vector<Real> sim_obs;
-  pmreact->GetMeasurements(sim_obs);
-  std::cout << "Simulated observation as: " << sim_obs[0] << std::endl;
-  
-  // Do it again, restarting from last solution
-  restartSol = pmreact->getPremixSol();
-  delete pmreact;
-
-  /* Second round - different input file, with RSTR keyword */
-  PREMIXReactor * pmreact2; 
-  pmreact2 = new PREMIXReactor(*cd);
-  pmreact2->setInputDir("../extras/Davis05_h2co/premix/");
-  pmreact2->setInputFile("premix.fls2a");
-  pmreact2->setPremixSol(restartSol);
-  pmreact2->InitializeExperiment();
-
-  std::vector<Real> next_sim_obs;
-  pmreact2->GetMeasurements(next_sim_obs);
-  std::cout << "Restart simulated observation as: " << next_sim_obs[0] << std::endl;
-
-
-  return(0);
-
-
   Driver driver;
   ParameterManager& parameter_manager = driver.mystruct->parameter_manager;
   ExperimentManager& expt_manager = driver.mystruct->expt_manager;
@@ -769,8 +706,8 @@ main (int   argc,
   const std::vector<Real>& perturbed_data = expt_manager.TrueDataWithObservationNoise();
   const std::vector<Real>& true_data_std = expt_manager.ObservationSTD();
 
-  std::cout << "True and noisy data:\n"; 
   int num_data = true_data.size();
+  std::cout << "True and noisy data: (npts=" << num_data << ")\n"; 
   for(int ii=0; ii<num_data; ii++){
     std::cout << "  True: " << true_data[ii]
               << "  Noisy: " << perturbed_data[ii]

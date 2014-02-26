@@ -1,6 +1,7 @@
 
 # Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
 TOP = ../..
+#TOP = /home/marc/src/CCSE/BattraCCSE
 PACKAGES=./packages
 
 HOST=$(shell hostname)
@@ -165,6 +166,7 @@ LIBRARY_LOCATIONS+=${PACKAGES}/lib
 LIBRARIES += -lcminpack -llapacke -llapack -lblas
 
 # For dynamic links
+#SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapack.${SHARED_LIBRARY_SUFFIX}

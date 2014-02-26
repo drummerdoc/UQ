@@ -10,35 +10,61 @@ static Real Patm_DEF = 1;
 static Real dt_DEF   = 0.1;
 static Real Tfile_DEF = 900;
 static int  num_time_intervals_DEF = 10;
+static std::string temp_or_species_name_DEF = "temp";
+static Real CVReactorErr_DEF = 15;
+static Real PREMIXReactorErr_DEF = 10;
 
-CVReactor::CVReactor(ChemDriver& _cd)
-  : cd(_cd)
+CVReactor::CVReactor(ChemDriver& _cd, const std::string& pp_prefix)
+  : SimulatedExperiment(), cd(_cd)
 {
-  ParmParse pp;
-  Real dt = dt_DEF; pp.query("dt",dt);
+  ParmParse pp(pp_prefix.c_str());
 
-  int num_time_intervals = num_time_intervals_DEF;
-  pp.query("time_intervals",num_time_intervals);
-  measurement_times.resize(num_time_intervals);
-  for (int i=0; i<num_time_intervals; ++i) {
-    //measurement_times[i] = (i+1)*dt/num_time_intervals;
-    measurement_times[i] = .068 + (i+1)*.0013/num_time_intervals;
+  std::string expt_type; pp.get("type",expt_type);
+  if (expt_type != "CVReactor") {
+    std::string err = "Inputs incompatible with experiment type: " + pp_prefix;
+    BoxLib::Abort(err.c_str());
   }
+
+  Real data_tstart = 0; pp.query("data_tstart",data_tstart);
+  Real data_tend = dt_DEF; pp.query("data_tend",data_tend);
+  int data_num_points = num_time_intervals_DEF;
+  pp.query("data_num_points",data_num_points); BL_ASSERT(data_num_points>0);
+
+  measurement_times.resize(data_num_points);
+  Real dt = data_tend - data_tstart;  BL_ASSERT(dt>=0);
+  for (int i=0; i<data_num_points; ++i) {
+    measurement_times[i] = data_tstart + (i+1)*dt/data_num_points;
+  }
+
+  // Ordering of variables in pmf file used for initial conditions
   sCompT  = 1;
   sCompRH = 2;
   sCompR  = 3;
   sCompY  = 4;
 
-  bool do_temp = true; pp.query("do_temp",do_temp);
+  pp.get("pmf_file_name",pmf_file_name);
+
   measured_comps.resize(1);
-  if (do_temp) {
+  std::string temp_or_species_name = temp_or_species_name_DEF;
+  pp.query("temp_or_species_name",temp_or_species_name);
+  if (temp_or_species_name == "temp") {
     measured_comps[0] = sCompT;
   }
   else {
-    measured_comps[0] = sCompY+cd.index("OH");
+    int comp = cd.index(temp_or_species_name);
+    if (comp < 0) {
+      std::string err = "Invalid species/temp for: " + pp_prefix;
+      BoxLib::Abort(err.c_str());
+    }
+    measured_comps[0] = sCompY+comp;
   }
   num_measured_values = measurement_times.size() * measured_comps.size();
 
+  Tfile = Tfile_DEF; pp.query("Tfile",Tfile);
+  Patm = Patm_DEF; pp.query("Patm",Patm);
+
+  measurement_error = CVReactorErr_DEF;
+  pp.query("measurement_error",measurement_error);
 }
 
 CVReactor::CVReactor(const CVReactor& rhs)
@@ -58,8 +84,17 @@ CVReactor::CVReactor(const CVReactor& rhs)
 }
 
 void
+CVReactor::GetMeasurementError(std::vector<Real>& observation_error)
+{
+  for (int i=0; i<NumMeasuredValues(); ++i) {
+    observation_error[i] = measurement_error;
+  }
+}
+
+void
 CVReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
+  BL_ASSERT(is_initialized);
   Reset();
   const Box& box = funcCnt.box();
   int Nspec = cd.numSpecies();
@@ -120,23 +155,22 @@ Real
 CVReactor::ExtractMeasurement() const
 {
   // Return the final temperature of the cell that was evolved
-  //return s_final(s_final.box().smallEnd(),sCompT);
+  BL_ASSERT(is_initialized);
   return s_final(s_final.box().smallEnd(),measured_comps[0]);
 }
 
 void
 CVReactor::Reset()
 {
-  funcCnt.setVal(0);
+  if (is_initialized)
+    funcCnt.setVal(0);
 }
 
 void
 CVReactor::InitializeExperiment()
 {
-  ParmParse pp;
-  std::string pmf_file="dme.fab"; pp.query("pmf_file",pmf_file);
   std::ifstream is;
-  is.open(pmf_file.c_str());
+  is.open(pmf_file_name.c_str());
   FArrayBox fileFAB;
   fileFAB.readFrom(is);
   is.close();
@@ -147,19 +181,19 @@ CVReactor::InitializeExperiment()
   const int nComp = nSpec + 4;
   if (nComp != fileFAB.nComp()) {
     std::cout << "pmf file is not compatible with the mechanism compiled into this code" << '\n';
+    std::cout << "pmf file number of species: " << fileFAB.nComp() - 4 << '\n';
+    std::cout << "expecting: " << nSpec << '\n';
     BoxLib::Abort();
   }
 
   // Find location
   bool found = false;
   IntVect iv=box.smallEnd();
-  Real Tfile = Tfile_DEF; pp.query("Tfile",Tfile);
   for (IntVect End=box.bigEnd(); iv<=End && !found; box.next(iv)) {
     if (fileFAB(iv,sCompT)>=Tfile) found = true;
   }
 
   Box bx(iv,iv);
-  Patm = Patm_DEF; pp.query("Patm",Patm);
   s_init.resize(bx,fileFAB.nComp()); s_init.copy(fileFAB);
   funcCnt.resize(bx,1);
   
@@ -178,114 +212,113 @@ CVReactor::InitializeExperiment()
 
   s_save.resize(bx,s_init.nComp());
   s_save.copy(s_init);
+
+  is_initialized = true;
 }
 
 
-PREMIXReactor::PREMIXReactor(ChemDriver& _cd)
-  : cd(_cd)
+PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
+  : SimulatedExperiment(), cd(_cd)
 {
+  ParmParse pp(pp_prefix.c_str());
 
-    sprintf(inputfile, ""); 
-    ncomp = cd.numSpecies() + 3;
-    theSol = NULL;
+  ncomp = cd.numSpecies() + 3;
 
+  measurement_error = PREMIXReactorErr_DEF;
+  pp.query("measurement_error",measurement_error);
+
+  int num_sol_pts = 1000; pp.query("num_sol_pts",num_sol_pts);
+  premix_sol = new PremixSol(ncomp,num_sol_pts);
+
+  pp.get("premix_input_path",premix_input_path);
+  pp.get("premix_input_file",premix_input_file);
 }
 
 PREMIXReactor::~PREMIXReactor()
 {
-    delete iwork;
-    delete rwork;
-    delete cwork;
-    delete lwork;
-    if( theSolPersist == 0 ){
-        delete theSol;
-    }
+  delete premix_sol;
+}
+
+void
+PREMIXReactor::GetMeasurementError(std::vector<Real>& observation_error)
+{
+  for (int i=0; i<NumMeasuredValues(); ++i) {
+    observation_error[i] = measurement_error;
+  }
 }
 
 void
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
-    // This set to return a single value - the flame speed
-    simulated_observations.resize(1);
+  // This set to return a single value - the flame speed
+  simulated_observations.resize(1);
 
-    // If a PremixSol hasn't been set up yet, make one
-    if( theSol == NULL ){
-        theSol = new PremixSol(ncomp, maxsolsz );
-        theSolPersist = 0; // If we make it here, destroy it when this object is destroyed
-    }
-    else{
-        theSolPersist = 1; // If it was already here, leave it alone when this is done
-    }
-    double * savesol = theSol->solvec; 
-    int * solsz = &(theSol->ngp);
+  BL_ASSERT(premix_sol != 0);
+  double * savesol = premix_sol->solvec; 
+  int * solsz = &(premix_sol->ngp);
 
-    // Messing about to be able to pass input file names to fortran. blech.
-    int charlen = strlen( inputfile );
-    int pathcharlen = strlen( path );
-    //std::cout << "Opening inputfile:"<<inputfile<<"/length:"<<charlen<<std::endl;
+  // Pass input dir + file names to fortran
+  int charlen = premix_input_file.size();
+  int pathcharlen = premix_input_path.size();
 
-    {
-        int infilecoded[charlen];
-        for(int i=0; i<charlen; i++){
-            infilecoded[i] = inputfile[i];
-        }
-        int pathcoded[pathcharlen];
-        for(int i=0; i<pathcharlen; i++){
-            pathcoded[i] = path[i];
-        }
-        open_premix_files_( &lin, &linmc, &lrin,
-                &lrout, &lrcvr, infilecoded, &charlen, pathcoded, &pathcharlen );
+  int infilecoded[charlen];
+  for(int i=0; i<charlen; i++){
+    infilecoded[i] = premix_input_file[i];
+  }
+  int pathcoded[pathcharlen];
+  for(int i=0; i<pathcharlen; i++){
+    pathcoded[i] = premix_input_path[i];
+  }
+  open_premix_files_( &lin, &linmc, &lrin,
+                      &lrout, &lrcvr, infilecoded, &charlen, pathcoded, &pathcharlen );
 
-    }
+  // Call the simulation
+  premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
+          &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz);
 
-    // Call the simulation
-    premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
-            &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz);
-
-    //// DEBUG Check if something reasonable was saved for solution
-    //printf("Grid for saved solution: (%d points)\n", *solsz);
-    //FILE * FP = fopen("sol.txt","w");
-    //for (int i=0; i<*solsz; i++) {
-    //    fprintf(FP,"%d\t", i);
-    //    for( int j=0; j<ncomp; j++){
-    //        fprintf(FP,"%10.3g\t", savesol[i + j*nmax]);
-    //    }
-    //    fprintf(FP,"\n");
-    //}
-    //fclose(FP);
-
-    // Extract the measurements - should probably put into an 'ExtractMeasurements'
-    // for consistency with CVReactor
-    if( *solsz > 0 ) {
-        std::cout << "Premix generated a viable solution " << std::endl;
-        simulated_observations[0]  =savesol[*solsz + nmax*(ncomp-1)-1+3]; 
-    }
-    else{
-        std::cout << "Premix failed to find a viable solution " << std::endl;
+  //// DEBUG Check if something reasonable was saved for solution
+  //printf("Grid for saved solution: (%d points)\n", *solsz);
+  //FILE * FP = fopen("sol.txt","w");
+  //for (int i=0; i<*solsz; i++) {
+  //    fprintf(FP,"%d\t", i);
+  //    for( int j=0; j<ncomp; j++){
+  //        fprintf(FP,"%10.3g\t", savesol[i + j*nmax]);
+  //    }
+  //    fprintf(FP,"\n");
+  //}
+  //fclose(FP);
+  
+  // Extract the measurements - should probably put into an 'ExtractMeasurements'
+  // for consistency with CVReactor
+  if( *solsz > 0 ) {
+    //std::cout << "Premix generated a viable solution " << std::endl;
+    simulated_observations[0]  = savesol[*solsz + nmax*(ncomp-1)-1+3]; 
+  }
+  else{
+    //std::cout << "Premix failed to find a viable solution " << std::endl;
     simulated_observations[0]  = -1;
-    }
+  }
 
-    // Cleanup fortran remains
-    close_premix_files_( &lin, &linck, &lrin,
-            &lrout, &lrcvr );
+  // Cleanup fortran remains
+  close_premix_files_( &lin, &linck, &lrin, &lrout, &lrcvr );
 
 
-    // NEXT STEPS:
-    // General cleanup
-    //     - Take out unused file handles
-    //     - Split out ckinit / mcinit calls
-    // Try with Davis mechanism
-    //     - General code compile with Davis mechanism
-    //     - See if I can get a solution
-    // Make sure it is robust to changing chemical parameters
-    // Put in context of sampling framework
-    // Generate 'pseudo-experimental' data
-    //      - Need separate object to sample from distribution?
-    // Infrastructure to manage set of experiments
-    //      - think Marc largely has this done, check that it 
-    //        is ok wrt to flame speed measurements
-    // Try sampling to get distribution of 1 reaction rate
-    //       consistent with observation distribution
+  // NEXT STEPS:
+  // General cleanup
+  //     - Take out unused file handles
+  //     - Split out ckinit / mcinit calls
+  // Try with Davis mechanism
+  //     - General code compile with Davis mechanism
+  //     - See if I can get a solution
+  // Make sure it is robust to changing chemical parameters
+  // Put in context of sampling framework
+  // Generate 'pseudo-experimental' data
+  //      - Need separate object to sample from distribution?
+  // Infrastructure to manage set of experiments
+  //      - think Marc largely has this done, check that it 
+  //        is ok wrt to flame speed measurements
+  // Try sampling to get distribution of 1 reaction rate
+  //       consistent with observation distribution
 }
 
 void
@@ -295,7 +328,7 @@ PREMIXReactor::InitializeExperiment()
     std::cout << "Initializing chemkin structure to wrap premix\n";
     
     // Pass this as maximum number of gridpoints
-    nmax=1000;
+    nmax=premix_sol->maxgp;
 
     // Sizes for work arrays
     lenlwk=4055;
@@ -314,48 +347,23 @@ PREMIXReactor::InitializeExperiment()
     linmc=35;
 
     // Sizes of data stored in object
-    maxsolsz = 1000;
+    maxsolsz = nmax;
     //ncomp = 12;
 
     // Check input file
-    if( strcmp(inputfile,"")==0 ){
+    if( premix_input_file.empty() ){
         std::cerr << "No input file specified for premixed reactor \n";
     }
-
-    iwork = new int[leniwk]; 
-    rwork = new double[lenrwk]; 
-    cwork = new int[lencwk*lensym]; 
-    lwork = new char[lenlwk]; 
-
-    return;
 }
 
-void
-PREMIXReactor::setInputFile(char * infile)
+const PremixSol&
+PREMIXReactor::getPremixSol() const
 {
-    strcpy(inputfile, infile); 
-}
-
-void
-PREMIXReactor::setInputDir(char * dir)
-{
-    strcpy(path, dir); 
-}
-
-PremixSol *
-PREMIXReactor::getPremixSol()
-{
-    return theSol;
-}
-
-void
-PREMIXReactor::setPremixSol( PremixSol * sol )
-{
-    theSol = sol;
+  return *premix_sol;
 }
 
 int
-PREMIXReactor::numComp( )
+PREMIXReactor::numComp() const
 {
-    return ncomp;
+  return ncomp;
 }

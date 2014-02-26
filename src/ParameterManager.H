@@ -5,7 +5,7 @@
 
 struct ParameterManager
 {
-  ParameterManager(ChemDriver& _cd) : cd(_cd) {prior_stats_initialized = false;}
+  ParameterManager(ChemDriver& _cd);
 
   // Add parameter to active set, return default value
   Real AddParameter(int reaction, const ChemDriver::REACTION_PARAMETER& rp);

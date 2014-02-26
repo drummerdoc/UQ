@@ -11,7 +11,7 @@
 struct MINPACKstruct
 {
   MINPACKstruct(ChemDriver& cd, Real _param_eps)
-  : parameter_manager(cd), expt_manager(parameter_manager),
+    : parameter_manager(cd), expt_manager(parameter_manager,cd),
     param_eps(_param_eps), num_work_arrays(4), work_array_len(-1) {}
 
   struct LAPACKstruct

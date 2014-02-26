@@ -1,7 +1,33 @@
 #include <iostream>
 #include <ExperimentManager.H>
 #include <Rand.H>
+#include <ParmParse.H>
   
+ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd)
+  : parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0)
+{
+  ParmParse pp;
+  int nExpts = pp.countval("experiments");
+  Array<std::string> experiments;
+  pp.getarr("experiments",experiments,0,nExpts);
+  for (int i=0; i<nExpts; ++i) {
+    std::string prefix = experiments[i];
+    ParmParse ppe(prefix.c_str());
+    std::string type; ppe.get("type",type);
+    if (type == "CVReactor") {
+      CVReactor *cv_reactor = new CVReactor(cd,experiments[i]);
+      AddExperiment(cv_reactor,experiments[i]);
+    }
+    else if (type == "PREMIXReactor") {
+      PREMIXReactor *premix_reactor = new PREMIXReactor(cd,experiments[i]);
+      AddExperiment(premix_reactor,experiments[i]);
+    }
+    else {
+      BoxLib::Abort("Unknown experiment type");
+    }
+  }
+}
+
 void
 ExperimentManager::Clear()
 {
@@ -37,18 +63,28 @@ ExperimentManager::InitializeExperiments()
 }
 
 void
-ExperimentManager::InitializeTrueData(const std::vector<Real>& _true_data,
-                                      const std::vector<Real>& _true_data_std)
+ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
 {
-  BL_ASSERT(_true_data.size() == _true_data_std.size());
-  num_expt_data = _true_data.size();
-  true_data = _true_data;
-  true_std = _true_data_std;
-  true_std_inv2.resize(true_std.size());
-  for (int i=0, N=true_std.size(); i<N; ++i) {
-    BL_ASSERT(true_std[i] != 0);
-    true_std_inv2[i] = 1 / (true_std[i] * true_std[i]);
-  }
+  GenerateTestMeasurements(true_parameters,true_data);
+
+  std::cout << "ITD: " << true_data[0] << std::endl;
+
+  true_std.resize(NumExptData());
+  true_std_inv2.resize(NumExptData());
+  for (int i=0; i<expts.size(); ++i) {
+    expts[i].GetMeasurements(raw_data[i]);
+    int offset = data_offsets[i];
+    int nd = raw_data[i].size();
+    for (int j=0; j<nd; ++j) {
+      true_data[offset + j] = raw_data[i][j];
+    }
+    expts[i].GetMeasurementError(raw_data[i]);
+    true_std_inv2.resize(nd);
+    for (int j=0; j<nd; ++j) {
+      true_std[offset + j] = raw_data[i][j];
+      true_std_inv2[offset + j] = 1 / (true_std[offset + j] * true_std[offset + j]);
+    }
+  }    
   perturbed_data.resize(0);
 }
 
@@ -73,12 +109,12 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   for (int i=0; i<test_params.size(); ++i) {
     parameter_manager[i] = test_params[i];      
   }
+  test_measurements.resize(NumExptData());
   for (int i=0; i<expts.size(); ++i) {
     expts[i].GetMeasurements(raw_data[i]);
     int offset = data_offsets[i];
 
     int s = raw_data[i].size();
-
     for (int j=0; j<s; ++j) {
       test_measurements[offset + j] = raw_data[i][j];
     }

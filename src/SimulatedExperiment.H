@@ -10,25 +10,28 @@ typedef PArray<ChemDriver::Parameter> Parameters;
 
 struct SimulatedExperiment
 {
-  SimulatedExperiment() {}
-  SimulatedExperiment(const SimulatedExperiment& rhs);
-  ~SimulatedExperiment() {}
-  virtual const std::vector<Real>& GetMeasurementTimes() const = 0;
+  SimulatedExperiment() : is_initialized(false) {}
+  virtual ~SimulatedExperiment() {}
   virtual void GetMeasurements(std::vector<Real>& simulated_observations) = 0;
+  virtual void GetMeasurementError(std::vector<Real>& observation_error) = 0;
   virtual int NumMeasuredValues() const = 0;
   virtual void InitializeExperiment() = 0;
+  bool Initialized() const {return is_initialized;}
+protected:
+  bool is_initialized;
 };
 
 
 struct CVReactor
   : public SimulatedExperiment
 {
-  CVReactor(ChemDriver& _cd);
+  CVReactor(ChemDriver& _cd, const std::string& pp_prefix);
   CVReactor(const CVReactor& rhs);
-  ~CVReactor() {}
+  virtual ~CVReactor() {}
 
   virtual const std::vector<Real>& GetMeasurementTimes() const;
   virtual void GetMeasurements(std::vector<Real>& simulated_observations);
+  virtual void GetMeasurementError(std::vector<Real>& observation_error);
 
   virtual void InitializeExperiment();
 
@@ -43,11 +46,13 @@ private:
 
   std::vector<Real> measurement_times;
   std::vector<int> measured_comps;
+  Real measurement_error;
   int num_measured_values;
 
   FArrayBox s_init, s_final, C_0, funcCnt, s_save; 
   int sCompY, sCompT, sCompR, sCompRH;
-  Real Patm;
+  Real Patm, Tfile;
+  std::string pmf_file_name;
 };
 
 inline
@@ -74,19 +79,17 @@ extern "C" {
 struct PREMIXReactor
   : public SimulatedExperiment
 {
-    virtual const std::vector<Real>& GetMeasurementTimes() const;
+    PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix);
+
     virtual void GetMeasurements(std::vector<Real>& simulated_observations);
+    virtual void GetMeasurementError(std::vector<Real>& observation_error);
 
     virtual void InitializeExperiment();
-    void setInputFile(char *);
-    void setInputDir(char *);
-    void setPremixSol( PremixSol * );
-    int numComp(  );
-    PremixSol * getPremixSol();
+    int numComp() const;
+    const PremixSol& getPremixSol() const;
 
     virtual int NumMeasuredValues() const;
-    PREMIXReactor(ChemDriver& _cd);
-    ~PREMIXReactor();
+    virtual ~PREMIXReactor();
 
     // Sizes for work arrays
     int lenlwk;
@@ -113,17 +116,17 @@ struct PREMIXReactor
     void * lwork;
 
     // premix.inp file to read
-    char inputfile[1024];
-    char path[1024];
+    std::string premix_input_file;
+    std::string premix_input_path;
+
     //
     // Sizes of data stored in object
     int maxsolsz; 
     int ncomp;
 
     ChemDriver& cd;
-    PremixSol * theSol;
-    int theSolPersist;
-
+    PremixSol* premix_sol;
+    Real measurement_error;
 };
 
 inline
@@ -133,15 +136,5 @@ PREMIXReactor::NumMeasuredValues() const
     // 1 value comes out - flame speed
     return 1;
 }
-
-inline
-const std::vector<Real>&
-PREMIXReactor::GetMeasurementTimes() const
-{
-  std::cerr << "Not implmented GetMeasurementTimes()! \n";
-  std::vector<Real> measurement_times;
-  return measurement_times;
-}
-
 
 #endif // _SimulatedExperiment_

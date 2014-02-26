@@ -6,7 +6,7 @@
 
 struct ExperimentManager
 {
-  ExperimentManager(ParameterManager& pmgr) : parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0) {}
+  ExperimentManager(ParameterManager& pmgr, ChemDriver& cd);
   
   void AddExperiment(SimulatedExperiment* expt,
                      const std::string& expt_id);
@@ -17,8 +17,7 @@ struct ExperimentManager
 
   int NumExptData() const;
 
-  void InitializeTrueData(const std::vector<Real>& _true_data,
-                          const std::vector<Real>& _true_data_std);
+  void InitializeTrueData(const std::vector<Real>& true_parameters);
 
   void GenerateExptData();
 
