@@ -178,7 +178,8 @@ C
      3                   TDR, YV, ABOVE, BELOW, BUFFER, S, SN, F, FN,
      4                   DS, A6, A, ICKWRK, IMCWRK, KSYM, CCKWRK, KR,
      5                   KI, KP, IPIVOT, ACTIVE, MARK, NAME, ITWWRK,
-     6                   RTWWRK, SSAVE, RKFT, RKRT, RSAVE, SAVESOL, SAVESZ)
+     6                   RTWWRK, SSAVE, RKFT, RKRT, RSAVE, SAVESOL, SAVESZ,
+     7                   LRSTRTORIDE)
 C
 C  START PROLOGUE
 C
@@ -302,6 +303,8 @@ C
       CHARACTER REPORT*16
 
       CHARACTER scratcha*80
+
+      INTEGER LRSTRTORIDE
 C
 C///  INITIALIZATION.
 C
@@ -353,6 +356,7 @@ C
      3            SCRTCH(1, 3), KR, KI, KP, XGIVEN, TGIVEN, N1CALL,
      4            LREGRD, PCTADP, RATGTC, KERR, linflow, tinflow)
       IF (KERR) RETURN
+      if( LRSTRTORIDE .eq. 1 ) LRSTRT=.true.
 C     RDKEY sets JJ=6
 C
       IF (LRSTRT) THEN
@@ -407,7 +411,7 @@ C
 C
 C     WRITE TO LSAVE WHEN SOLUTION IS COMPLETE
 C
-      write(*,*) 'PREMIX writing solution to savesol instead of file'
+      !write(*,*) 'PREMIX writing solution to savesol instead of file'
       DO J = 1, JJ
       SAVESOL( J ) = X(J)
       DO N = 1, NATJ
@@ -1382,10 +1386,10 @@ C
 C
 !      IF (ITOT.LT.LENIWK .AND. NTOT.LT.LENRWK .AND. ICTOT.LT.LENCWK)
 !     1   THEN
-         write(*,*) ' calling ckinit...'
+         !write(*,*) ' calling ckinit...'
          !CALL CKINIT()
          CALL CKINDX (I, R, MM, KK, II, NFIT)
-         write(*,*) 'Species count: ', KK
+         !write(*,*) 'Species count: ', KK
 C
          CALL CKMXTP (I, MAXTP)
          NTR = MAXTP - 1
@@ -1471,7 +1475,7 @@ C
 !     2                   LENCWK, C)
       SUBROUTINE PREMIX (JMAX, LIN, LOUT, LINKMC, LREST, LSAVE,
      1                   LRCRVR, LENLWK, LENIWK, LENRWK,
-     2                   LENCWK, SAVESOL, SAVESZ)
+     2                   LENCWK, SAVESOL, SAVESZ, LRSTRTORIDE)
 C
 C  START PROLOGUE
 C
@@ -1525,6 +1529,7 @@ C
       INTEGER SAVESZ
 C
       DATA PRVERS/'3.15'/, PRDATE/'98/03/03'/
+      INTEGER LRSTRTORIDE
 C
 C*****precision > double
       PREC = 'DOUBLE'
@@ -1570,7 +1575,7 @@ C
      5             R(NKA6), R(NA), I(ICKW), I(IMCW), C(IKS), C(ICC),
      6             I(IKR), I(IKI), I(IKP), I(IIP), L(LAC), L(LMK),
      7             C(INAME), I(NIWK), R(NRWK), R(NSSAVE), R(NRKFT),
-     8             R(NRKRT), R(NRSAVE), SAVESOL, SAVESZ)
+     8             R(NRKRT), R(NRSAVE), SAVESOL, SAVESZ, LRSTRTORIDE)
 C
 C     end of SUBROUTINE PREMIX
       RETURN
@@ -1876,7 +1881,6 @@ C
 C              Show the solution
 
 c     HACK
-               print *,'showing...'
                !ICASE = 1
                !LVARMC = .TRUE.
                !LENRGY = .TRUE.
@@ -2603,7 +2607,7 @@ C
           RETURN
       endif
 
-      write(*,*) 'PREMIX loading solution from savesol instead of file'
+      !write(*,*) 'PREMIX loading solution from savesol instead of file'
       JJ = SAVESZ
       DO J=1, JJ
           X(J) = SAVESOL(J)
@@ -4440,10 +4444,10 @@ C     end of SUBROUTINE PRPOS
       RETURN
       END
 
-      subroutine open_premix_files( lin, linmc, lrin, lrout, lrcvr, inputfile,
+      subroutine open_premix_files( lin, lout, linmc, lrin, lrout, lrcvr, inputfile,
      1     strlen, pathname, pathstrlen )
 
-          integer, intent(in) :: lin, linmc, lrin, lrout, lrcvr
+          integer, intent(in) :: lin, linmc, lrin, lrout, lrcvr,lout
           integer, intent(in) :: strlen, pathstrlen
           integer, intent(in) :: inputfile(strlen), pathname(pathstrlen)
           character(strlen) :: infile
@@ -4458,15 +4462,14 @@ C     end of SUBROUTINE PRPOS
               path(i:i) = ACHAR(pathname(i))
           enddo
 
-          write(*,*) 'inputfile name: ', trim(path)//trim(infile)
+          !write(*,*) 'inputfile name: ', trim(path)//trim(infile)
           !path = '../extras/premix_chemh/'
-          !OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./premix.inp_closer')
           OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//trim(infile))
+          OPEN(LOUT,FORM='FORMATTED',STATUS='UNKNOWN',FILE='/dev/null')
           OPEN(LINMC,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./tran.asc')
           OPEN(LRIN,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./rest.bin')
           OPEN(LROUT,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./save.bin')
           OPEN(LRCVR,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./recov.bin')
-          OPEN(6,STATUS='UNKNOWN',FILE='/dev/null')
 
       end
 

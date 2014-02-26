@@ -229,6 +229,7 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
 
   int num_sol_pts = 1000; pp.query("num_sol_pts",num_sol_pts);
   premix_sol = new PremixSol(ncomp,num_sol_pts);
+  lrstrtflag=0;
 
   pp.get("premix_input_path",premix_input_path);
   pp.get("premix_input_file",premix_input_file);
@@ -269,12 +270,12 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   for(int i=0; i<pathcharlen; i++){
     pathcoded[i] = premix_input_path[i];
   }
-  open_premix_files_( &lin, &linmc, &lrin,
+  open_premix_files_( &lin, &lout, &linmc, &lrin,
                       &lrout, &lrcvr, infilecoded, &charlen, pathcoded, &pathcharlen );
 
   // Call the simulation
   premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
-          &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz);
+          &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz, &lrstrtflag);
 
   //// DEBUG Check if something reasonable was saved for solution
   //printf("Grid for saved solution: (%d points)\n", *solsz);
@@ -324,9 +325,6 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 void
 PREMIXReactor::InitializeExperiment()
 {
-
-    std::cout << "Initializing chemkin structure to wrap premix\n";
-    
     // Pass this as maximum number of gridpoints
     nmax=premix_sol->maxgp;
 
@@ -339,7 +337,7 @@ PREMIXReactor::InitializeExperiment()
     
     // Unit numbers for input/output files
     lin=10;
-    lout=6;
+    lout=45;
     lrin=14;
     lrout=15;
     lrcvr=16;

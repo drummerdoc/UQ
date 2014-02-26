@@ -697,7 +697,6 @@ main (int   argc,
       char* argv[])
 {
   BoxLib::Initialize(argc,argv);
-
   Driver driver;
   ParameterManager& parameter_manager = driver.mystruct->parameter_manager;
   ExperimentManager& expt_manager = driver.mystruct->expt_manager;

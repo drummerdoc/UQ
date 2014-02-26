@@ -67,8 +67,6 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
 {
   GenerateTestMeasurements(true_parameters,true_data);
 
-  std::cout << "ITD: " << true_data[0] << std::endl;
-
   true_std.resize(NumExptData());
   true_std_inv2.resize(NumExptData());
   for (int i=0; i<expts.size(); ++i) {

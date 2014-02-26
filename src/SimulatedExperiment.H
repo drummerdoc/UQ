@@ -70,10 +70,10 @@ CVReactor::GetMeasurementTimes() const
 }
 
 extern "C" {
-        void open_premix_files_(  int*, int*, int*, int*,int*, int *, int *,int*,int* );
+        void open_premix_files_(  int*, int*, int*, int*, int*,int*, int *, int *,int*,int* );
         void close_premix_files_(  int*, int*, int*, int*,int* );
         void premix_( int*, int*, int*, int*, int*, int*,
-                int*, int*, int*, int*, int*, double*, int* );
+                int*, int*, int*, int*, int*, double*, int* , int*);
 }
 
 struct PREMIXReactor
@@ -119,6 +119,7 @@ struct PREMIXReactor
     std::string premix_input_file;
     std::string premix_input_path;
 
+    int lrstrtflag;
     //
     // Sizes of data stored in object
     int maxsolsz; 
