@@ -38,14 +38,38 @@
 
 
 # Davis set
-parameters = A9
+# parameters = A9
 
-A9.type = FWD_A
-A9.reaction_id = 1
-A9.prior_mean = 44000
-A9.prior_std = 100
-A9.lower_bound = 2000
-A9.upper_bound = 80000
+# A9.type = FWD_A
+# A9.reaction_id = 1
+# A9.prior_mean = 44000
+# A9.prior_std = 100
+# A9.lower_bound = 2000
+# A9.upper_bound = 80000
+
+parameters = p1 p2 p3
+
+p1.type = FWD_A
+p1.reaction_id = 0
+p1.prior_mean = 2.6e16
+p1.prior_std = 1.e15
+p1.lower_bound = 1.e14
+p1.upper_bound = 1.e18
+
+p2.type = FWD_A
+p2.reaction_id = 1
+p2.prior_mean = 4.2e4
+p2.prior_std = 5e3
+p2.lower_bound = 3.e4
+p2.upper_bound = 6.e4
+
+p3.type = FWD_A
+p3.reaction_id = 2
+p3.prior_mean = 1.8e8
+p3.prior_std = 5.4e7
+p3.lower_bound = 1.e8
+p3.upper_bound = 8.e8
+
 
 
 experiments = fls1a fls1b fls2a fls2b fls3a fls3b fls4a fls4b fls5a fls5b fls6a fls6b
@@ -77,7 +101,7 @@ fls2b.num_sol_pts = 1000
 fls3a.type = PREMIXReactor
 fls3a.premix_input_path = ../extras/Davis05_h2co/premix/
 fls3a.premix_input_file = premix.fls3a.ic
-fls3a.measurement_error = 5
+fls3a.measurement_error = 2
 fls3a.num_sol_pts = 1000
 
 fls3b.type = PREMIXReactor
