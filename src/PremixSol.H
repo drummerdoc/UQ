@@ -38,6 +38,26 @@ struct PremixSol
     // Stores the premix solution to restart from
     double * solvec;
 
+    PremixSol & operator=(const PremixSol &a) {                                                                                                                                           
+
+        if( &a==this ){
+            return *this;
+        }
+        ncomp = a.ncomp;
+        maxgp = a.maxgp;
+        nextra = a.nextra;
+        ngp = a.ngp;
+        if( solvec != NULL ){
+            delete solvec;
+        }
+        int sz = ncomp*maxgp + nextra;
+        solvec = new double[sz];
+        for(int i=0; i<sz; i++){
+            solvec[i] = a.solvec[i];
+        }
+        
+        return *this;
+    }
 
 
 };

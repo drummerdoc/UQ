@@ -308,6 +308,7 @@ C
 C
 C///  INITIALIZATION.
 C
+      LCNTUE = .FALSE.
       KERR = .FALSE.
       ONE = 1.0
 C*****precision > double

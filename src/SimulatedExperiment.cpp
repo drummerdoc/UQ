@@ -233,11 +233,44 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
 
   pp.get("premix_input_path",premix_input_path);
   pp.get("premix_input_file",premix_input_file);
+
+  //Check for prerequisites for this experiment
+  //    These are sometimes necessary to get a reasonable initial condition
+  //    that premix can converge from
+  int nprereq = pp.countval("prereqs");
+  std::cerr << "Experiment " <<  pp_prefix  << std::endl;
+  Array<std::string> prereq_names;
+  if( nprereq > 0 ){
+      pp.getarr("prereqs",prereq_names,0,nprereq);
+      for( int i = 0; i < nprereq; i++ ){
+          std::string prefix = prereq_names[i];
+          ParmParse pppr(prefix.c_str() );
+          std::string type; pppr.get("type", type );
+          if( type == "PREMIXReactor" ){
+              PREMIXReactor *prereq_reactor = new PREMIXReactor(cd,prereq_names[i]);
+              prereq_reactors.push_back(prereq_reactor);
+          }
+          else{
+              std::cerr << " PREMIXReactor can not use " << type << " as prereq \n";
+          }
+          BL_ASSERT( type == "PREMIXReactor" );
+      }
+      std::cerr << "Experiment " <<  pp_prefix  << " registering " << nprereq << " prerequisites " << std::endl;
+  }
+
 }
 
 PREMIXReactor::~PREMIXReactor()
 {
   delete premix_sol;
+  // Clean up the mess of prereq_reactors if there are any
+//  if( prereq_reactors.size() > 0 ){
+//      for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.end();
+//              pr!=prereq_reactors.begin(); --pr ){                                                                                
+//          delete *pr;
+//          prereq_reactors.erase(pr);
+//      }
+//  }
 }
 
 void
@@ -254,10 +287,50 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   // This set to return a single value - the flame speed
   simulated_observations.resize(1);
 
+  // When doing a fresh start, 
+  // run through prereqs. First starts fresh, subsequent start from
+  // solution from the previous.
+  // Once the prereqs are done, set restart flag so that solution
+  // will pick up from where  prereqs finished. 
+  if( lrstrtflag == 0 ){
+      //std::cerr << "No restart info... " <<std::endl;
+      //std::cout << " makepr: " << makepr << " prereq_reactors.size() " << 
+      //    prereq_reactors.size() << std::endl;
+      int lrstrt = 0;
+      if( prereq_reactors.size() > 0 ){
+      //    std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
+          for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr ){                                                                                
+              if( lrstrt == 1  ){
+                  (*pr)->solCopyIn(premix_sol);
+                  (*pr)->lrstrtflag = 1;
+     //             std::cerr <<  "restart this time" << std::endl;
+              }
+              else{
+                  (*pr)->lrstrtflag = 0;
+                  lrstrt = 1; // restart on the next time through
+  //                std::cerr <<  "restart next time" << std::endl;
+              }
+              std::vector<Real> pr_obs;
+   //           std::cerr << " Running " << (*pr)->premix_input_file  << " with restart = " << (*pr)->lrstrtflag << std::endl;
+              (*pr)->GetMeasurements(pr_obs);
+    //          std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
+              (*pr)->solCopyOut(premix_sol);
+          }
+          lrstrtflag = 1;
+      }
+  }
+  //else{
+  //    std::cerr << "Restarting from previous solution... " <<std::endl;
+  //}
   BL_ASSERT(premix_sol != 0);
   double * savesol = premix_sol->solvec; 
   int * solsz = &(premix_sol->ngp);
 
+
+  BL_ASSERT(savesol != NULL );
+  BL_ASSERT(solsz != NULL );
+
+  //std::cerr << "Restart solution size: " << *solsz << std::endl;
   // Pass input dir + file names to fortran
   int charlen = premix_input_file.size();
   int pathcharlen = premix_input_path.size();
@@ -277,6 +350,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
           &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz, &lrstrtflag);
 
+  //std::cerr << "solsz=" << *solsz << std::endl;
   //// DEBUG Check if something reasonable was saved for solution
   //printf("Grid for saved solution: (%d points)\n", *solsz);
   //FILE * FP = fopen("sol.txt","w");
@@ -294,10 +368,12 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   if( *solsz > 0 ) {
     //std::cout << "Premix generated a viable solution " << std::endl;
     simulated_observations[0]  = savesol[*solsz + nmax*(ncomp-1)-1+3]; 
+    lrstrtflag = 1;
   }
   else{
     //std::cout << "Premix failed to find a viable solution " << std::endl;
     simulated_observations[0]  = -1;
+    lrstrtflag = 0;
   }
 
   // Cleanup fortran remains
@@ -337,7 +413,7 @@ PREMIXReactor::InitializeExperiment()
     
     // Unit numbers for input/output files
     lin=10;
-    lout=45;
+    lout=6;
     lrin=14;
     lrout=15;
     lrcvr=16;
@@ -352,6 +428,16 @@ PREMIXReactor::InitializeExperiment()
     if( premix_input_file.empty() ){
         std::cerr << "No input file specified for premixed reactor \n";
     }
+
+    int i=0;
+    // Initialize all prerequisite simulations also
+    for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr ){                                                                                
+        i++;
+        (*pr)->InitializeExperiment();
+        std::cerr << "Initialized prereq " << i << " sz: " << (*pr)->nmax << std::endl;
+    }
+
+
 }
 
 const PremixSol&
@@ -364,4 +450,15 @@ int
 PREMIXReactor::numComp() const
 {
   return ncomp;
+}
+
+void 
+PREMIXReactor::solCopyIn( PremixSol * solIn ){
+    *premix_sol = *solIn;
+
+}
+
+void 
+PREMIXReactor::solCopyOut( PremixSol *  solOut){
+    *solOut = *premix_sol;
 }

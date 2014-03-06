@@ -72,7 +72,8 @@ p3.upper_bound = 8.e8
 
 
 
-experiments = fls1a fls1b fls2a fls2b fls3a fls3b fls4a fls4b fls5a fls5b fls6a fls6b
+#experiments = fls1a fls1b fls2a fls2b fls3a fls3b fls4a fls4b fls5a fls5b fls6a fls6b
+experiments = fls3a
 
 fls1a.type = PREMIXReactor
 fls1a.premix_input_path = ../extras/Davis05_h2co/premix/
@@ -103,6 +104,19 @@ fls3a.premix_input_path = ../extras/Davis05_h2co/premix/
 fls3a.premix_input_file = premix.fls3a.ic
 fls3a.measurement_error = 2
 fls3a.num_sol_pts = 1000
+fls3a.prereqs = fls3ap1 fls3ap2
+
+fls3ap1.type = PREMIXReactor
+fls3ap1.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3ap1.premix_input_file = premix.fls3a.ic
+fls3ap1.measurement_error = 5
+fls3ap1.num_sol_pts = 1000
+
+fls3ap2.type = PREMIXReactor
+fls3ap2.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3ap2.premix_input_file = premix.fls3a.ic
+fls3ap2.measurement_error = 5
+fls3ap2.num_sol_pts = 1000
 
 fls3b.type = PREMIXReactor
 fls3b.premix_input_path = ../extras/Davis05_h2co/premix/

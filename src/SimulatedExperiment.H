@@ -88,8 +88,14 @@ struct PREMIXReactor
     int numComp() const;
     const PremixSol& getPremixSol() const;
 
+    void solCopyIn( PremixSol * );
+    void solCopyOut( PremixSol * );
+
     virtual int NumMeasuredValues() const;
     virtual ~PREMIXReactor();
+
+    // Array of PREMIXReactors that are prereqs to get this solution
+    Array<PREMIXReactor*> prereq_reactors;
 
     // Sizes for work arrays
     int lenlwk;
