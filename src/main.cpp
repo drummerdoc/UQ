@@ -10,6 +10,74 @@
 
 #include <PremixSol.H>
 
+
+// To find reasonable parameter ranges
+//
+void fixParamRanges( ParameterManager & parameter_manager, ExperimentManager & expt_manager){
+
+  std::cout << " Exploring parameter ranges... \n";
+  const std::vector<Real>& true_params = parameter_manager.TrueParameters();
+  const std::vector<Real>& prior_mean = parameter_manager.PriorMean();
+  const std::vector<Real>& lower_bound = parameter_manager.LowerBound();
+  const std::vector<Real>& upper_bound = parameter_manager.UpperBound();
+  const std::vector<Real>& prior_std = parameter_manager.PriorSTD();
+
+  int num_params = true_params.size();
+
+  int num_pvals = parameter_manager.NumParams();
+  int num_dvals = expt_manager.NumExptData();
+  std::vector<Real> pvals(num_pvals);
+  std::vector<Real> dvals(num_dvals);
+  for(int ii=0; ii<num_params; ii++){
+      pvals[ii] = true_params[ii];
+  }
+
+  std::cout << "Using true values:\n"; 
+  expt_manager.GenerateTestMeasurements(pvals, dvals);
+  for(int ii=0; ii<num_dvals; ii++){
+      std::cout << " experiment " << ii << " dval: " << dvals[ii] << std::endl;
+  }
+
+
+  // Find useful parameter bounds
+  for(int jj=0; jj<num_params; jj++){
+      for(int ii=0; ii<num_params; ii++){
+          pvals[ii] = true_params[ii];
+      }
+      double kmin = 0.0;//lower_bound[jj];
+      double kmax = true_params[jj]*10.0;//upper_bound[jj];
+      double ktyp = true_params[jj];
+      
+      expt_manager.get_param_limits( &kmin, &kmax, &ktyp, (kmax-kmin)/10,
+                                     pvals, jj ); // trashes pvals
+      std::cout << " parameter " << jj << " new limits are: " << kmin << ", " << kmax << std::endl;
+      parameter_manager.setParamUpperBound(kmax,jj);
+      parameter_manager.setParamLowerBound(kmin,jj);
+  }
+
+
+  for(int jj=0; jj<num_params; jj++){
+      double dlower, dupper;
+      for(int ii=0; ii<num_params; ii++){
+          pvals[ii] = true_params[ii];
+      }
+      pvals[jj] = lower_bound[jj];
+      expt_manager.GenerateTestMeasurements(pvals, dvals);
+      dlower = dvals[0];
+
+      for(int ii=0; ii<num_params; ii++){
+          pvals[ii] = true_params[ii];
+      }
+      pvals[jj] = upper_bound[jj];
+      expt_manager.GenerateTestMeasurements(pvals, dvals);
+      dupper = dvals[0];
+
+      std::cout << " ( " << jj << " ) = " << lower_bound[jj] << "," << upper_bound[jj]
+                << " dval[0] range: " << dlower << "--" << dupper << std::endl;
+  }
+
+}
+
 static
 void 
 print_usage (int,
@@ -728,6 +796,10 @@ main (int   argc,
   Real Ftrue = NegativeLogLikelihood(true_params);
   std::cout << "Ftrue = " << Ftrue << std::endl;
   
+  fixParamRanges( parameter_manager, expt_manager );
+
+
+
   ParmParse pp;
   bool do_sample=false; pp.query("do_sample",do_sample);
   if (do_sample) {

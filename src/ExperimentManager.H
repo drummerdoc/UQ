@@ -26,6 +26,10 @@ struct ExperimentManager
 
   Real ComputeLikelihood(const std::vector<Real>& test_data) const;
 
+  bool isgoodParamVal( Real, std::vector<Real>&, int );
+  void get_param_limits( Real * kmin, Real * kmax, Real * ktyp, Real tol, 
+                       std::vector<Real> & pvals, int idx);
+
   const std::vector<Real>& TrueData() const;
   const std::vector<Real>& TrueDataWithObservationNoise() const;
   const std::vector<Real>& ObservationSTD() const;

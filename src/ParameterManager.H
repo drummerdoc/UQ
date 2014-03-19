@@ -37,6 +37,10 @@ struct ParameterManager
   const std::vector<Real>& TrueParameters() const {BL_ASSERT(true_parameters.size()>0); return true_parameters;}
   const std::vector<Real>& PriorMean() const {return prior_mean;}
   const std::vector<Real>& PriorSTD() const {return prior_std;}
+  const std::vector<Real>& UpperBound() const {return upper_bound;}
+  const std::vector<Real>& LowerBound() const {return lower_bound;}
+  void setParamLowerBound( Real val, int idx );
+  void setParamUpperBound( Real val, int idx );
 
   std::vector<Real> true_parameters;
   std::vector<Real> prior_mean;

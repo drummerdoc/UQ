@@ -134,3 +134,60 @@ ExperimentManager::ComputeLikelihood(const std::vector<Real>& test_data) const
   return L;
 }
 
+
+bool 
+ExperimentManager::isgoodParamVal( Real k, std::vector<Real> & pvals, int idx ){
+  int num_dvals = NumExptData();
+  std::vector<Real> dvals(num_dvals);
+  pvals[idx] = k;
+  GenerateTestMeasurements(pvals, dvals);
+  //std::cout << "trying p (" << idx << ") = " << k << " dval[0] = " << dvals[0] << std::endl;
+  bool res = true;
+  for(int id=0; id<num_dvals; id++ ){
+      if ( dvals[id] < 0.0 ) res = false;
+  }
+  return res;
+
+}
+
+void 
+ExperimentManager::get_param_limits( Real * kmin, Real * kmax, Real * ktyp, Real tol, 
+                       std::vector<Real> & pvals, int idx){
+
+    double k1, k2, ktest, delt;
+
+    // First check right hand value - don't bother if it's ok
+    if( !isgoodParamVal( *kmax, pvals, idx) ) {
+        k2 = *kmax;
+        k1 = *ktyp;
+        do {
+            ktest = (k2+k1)*0.5;
+            if( isgoodParamVal( ktest, pvals, idx) ){
+                k1 = ktest;
+            }
+            else{
+                k2 = ktest;
+            }
+            delt = (k2-k1);
+        } while( delt > tol);
+        *kmax = k1;
+    }
+
+    if( !isgoodParamVal( *kmin, pvals, idx ) ){
+        k1 = *kmin;
+        k2 = *ktyp;
+        do {
+            ktest = (k2+k1)*0.5;
+            if( isgoodParamVal( ktest, pvals, idx) ){
+                k2 = ktest;
+            }
+            else{
+                k1 = ktest;
+            }
+            delt = (k2-k1);
+        } while( delt > tol);
+        *kmin = k2;
+
+    }
+
+}

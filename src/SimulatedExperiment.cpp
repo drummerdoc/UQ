@@ -347,6 +347,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                       &lrout, &lrcvr, infilecoded, &charlen, pathcoded, &pathcharlen );
 
   // Call the simulation
+  //std::cout << "Calling PREMIX" << std::endl;
   premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
           &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz, &lrstrtflag);
 

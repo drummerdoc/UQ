@@ -140,3 +140,10 @@ ParameterManager::ComputePrior(const std::vector<Real>& params) const
   return std::pair<bool,Real>(sample_ok,p);
 }
 
+
+void ParameterManager::setParamLowerBound( Real val, int idx ){
+    lower_bound[idx] = val;
+}
+void ParameterManager::setParamUpperBound( Real val, int idx ){
+    upper_bound[idx] = val;
+}
