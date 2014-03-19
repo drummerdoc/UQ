@@ -1,0 +1,152 @@
+#
+# Parameters:
+#  Must provide a non-empty set of named parameters.  For each
+#  must provide type, reaction_id, prior_mean, prior_std, 
+#  lower_bound, upper_bound
+#
+# Permissible types:  FWD_A, FWD_BETA, FWD_EA,
+#                     LOW_A, LOW_BETA, LOW_EA,
+#                     REV_A, REV_BETA, REV_EA,
+#                     TROE_A, TROE_TS, TROE_TSS, TROE_TSSS,
+#                     SRI_A, SRI_B, SRI_C, SRI_D, SRI_E
+#
+# Experiments:
+#  Must provide a non-empty set of named experiments.  For each
+#  must provide type (currently, either CVReactor, or PREMIXReactor)
+#  If CVReactor, must provide: Patm, TFile, pmf_file_name, temp_or_species_name,
+#  data_num_points, data_tstart, data_tend
+
+# DME set
+parameters = Ea31
+Ea31.type = FWD_EA
+Ea31.reaction_id = 13
+Ea31.prior_mean = 11980
+Ea31.prior_std = 200
+Ea31.lower_bound = 1000
+Ea31.upper_bound = 20000
+
+experiments = ignition1
+ignition1.type = CVReactor
+ignition1.Patm = 1
+ignition1.Tfile = 900
+ignition1.data_num_points = 10
+ignition1.data_tstart = 0.058
+ignition1.data_tend = 0.068
+ignition1.temp_or_species_name = temp
+ignition1.pmf_file_name=dme_0700_1444pt.fab
+
+
+
+# Davis set
+# parameters = p1 p2 p3
+
+# p1.type = FWD_A
+# p1.reaction_id = 0
+# p1.prior_mean = 2.6e16
+# p1.prior_std = 1.e15
+# p1.lower_bound = 1.e14
+# p1.upper_bound = 1.e18
+
+# p2.type = FWD_A
+# p2.reaction_id = 1
+# p2.prior_mean = 4.2e4
+# p2.prior_std = 5e3
+# p2.lower_bound = 3.e4
+# p2.upper_bound = 6.e4
+
+# p3.type = FWD_A
+# p3.reaction_id = 2
+# p3.prior_mean = 1.8e8
+# p3.prior_std = 5.4e7
+# p3.lower_bound = 1.e8
+# p3.upper_bound = 8.e8
+
+
+
+#experiments = fls1a fls1b fls2a fls2b fls3a fls3b fls4a fls4b fls5a fls5b fls6a fls6b
+# experiments = fls3a
+
+# fls1a.type = PREMIXReactor
+# fls1a.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls1a.premix_input_file = premix.fls1a
+# fls1a.measurement_error = 10
+# fls1a.num_sol_pts = 1000
+
+# fls1b.type = PREMIXReactor
+# fls1b.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls1b.premix_input_file = premix.fls1b
+# fls1b.measurement_error = 10
+# fls1b.num_sol_pts = 1000
+
+# fls2a.type = PREMIXReactor
+# fls2a.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls2a.premix_input_file = premix.fls2a
+# fls2a.measurement_error = 15
+# fls2a.num_sol_pts = 1000
+
+# fls2b.type = PREMIXReactor
+# fls2b.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls2b.premix_input_file = premix.fls2b
+# fls2b.measurement_error = 15
+# fls2b.num_sol_pts = 1000
+
+# fls3a.type = PREMIXReactor
+# fls3a.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls3a.premix_input_file = premix.fls3a.ic
+# fls3a.measurement_error = 2
+# fls3a.num_sol_pts = 1000
+# fls3a.prereqs = fls3ap1 fls3ap2
+
+# fls3ap1.type = PREMIXReactor
+# fls3ap1.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls3ap1.premix_input_file = premix.fls3a.ic
+# fls3ap1.measurement_error = 5
+# fls3ap1.num_sol_pts = 1000
+
+# fls3ap2.type = PREMIXReactor
+# fls3ap2.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls3ap2.premix_input_file = premix.fls3a.ic
+# fls3ap2.measurement_error = 5
+# fls3ap2.num_sol_pts = 1000
+
+# fls3b.type = PREMIXReactor
+# fls3b.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls3b.premix_input_file = premix.fls3b
+# fls3b.measurement_error = 5
+# fls3b.num_sol_pts = 1000
+
+# fls4a.type = PREMIXReactor
+# fls4a.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls4a.premix_input_file = premix.fls4a
+# fls4a.measurement_error = 6
+# fls4a.num_sol_pts = 1000
+
+# fls4b.type = PREMIXReactor
+# fls4b.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls4b.premix_input_file = premix.fls4a
+# fls4b.measurement_error = 5
+# fls4b.num_sol_pts = 1000
+
+# fls5a.type = PREMIXReactor
+# fls5a.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls5a.premix_input_file = premix.fls5a
+# fls5a.measurement_error = 15
+# fls5a.num_sol_pts = 1000
+
+# fls5b.type = PREMIXReactor
+# fls5b.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls5b.premix_input_file = premix.fls5b
+# fls5b.measurement_error = 15
+# fls5b.num_sol_pts = 1000
+
+# fls6a.type = PREMIXReactor
+# fls6a.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls6a.premix_input_file = premix.fls6a
+# fls6a.measurement_error = 2
+# fls6a.num_sol_pts = 1000
+
+# fls6b.type = PREMIXReactor
+# fls6b.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls6b.premix_input_file = premix.fls6b
+# fls6b.measurement_error = 2
+# fls6b.num_sol_pts = 1000
