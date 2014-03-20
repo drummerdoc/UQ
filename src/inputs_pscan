@@ -1,0 +1,277 @@
+#
+# Parameters:
+#  Must provide a non-empty set of named parameters.  For each
+#  must provide type, reaction_id, prior_mean, prior_std, 
+#  lower_bound, upper_bound
+#
+# Permissible types:  FWD_A, FWD_BETA, FWD_EA,
+#                     LOW_A, LOW_BETA, LOW_EA,
+#                     REV_A, REV_BETA, REV_EA,
+#                     TROE_A, TROE_TS, TROE_TSS, TROE_TSSS,
+#                     SRI_A, SRI_B, SRI_C, SRI_D, SRI_E
+#
+# Experiments:
+#  Must provide a non-empty set of named experiments.  For each
+#  must provide type (currently, either CVReactor, or PREMIXReactor)
+#  If CVReactor, must provide: Patm, TFile, pmf_file_name, temp_or_species_name,
+#  data_num_points, data_tstart, data_tend
+
+# DME set
+# parameters = Ea31
+# Ea31.type = FWD_EA
+# Ea31.reaction_id = 13
+# Ea31.prior_mean = 11980
+# Ea31.prior_std = 200
+# Ea31.lower_bound = 1000
+# Ea31.upper_bound = 20000
+#
+# experiments = ignition1
+# ignition1.type = CVReactor
+# ignition1.Patm = 1
+# ignition1.Tfile = 900
+# ignition1.data_num_points = 10
+# ignition1.data_tstart = 0.058
+# ignition1.data_tend = 0.068
+# ignition1.temp_or_species_name = temp
+# ignition1.pmf_file_name=dme_0700_1444pt.fab
+
+
+
+# Davis set
+parameters = A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 A15 A16 A17 A18 A19 A20
+A1.type = FWD_A
+A1.reaction_id = 1
+A1.prior_mean = 44000
+A1.prior_std = 100
+A1.lower_bound = 2000
+A1.upper_bound = 80000
+
+A2.type = FWD_A
+A2.reaction_id = 2
+A2.prior_mean = 44000
+A2.prior_std = 100
+A2.lower_bound = 0
+A2.upper_bound = 173400000
+
+A3.type = FWD_A
+A3.reaction_id = 3
+A3.prior_mean = 44000
+A3.prior_std = 100
+A3.lower_bound = 0
+A3.upper_bound = 80000
+
+A4.type = FWD_A
+A4.reaction_id = 4
+A4.prior_mean = 1.78e+18
+A4.prior_std = 100
+A4.lower_bound = 0
+A4.upper_bound = 2.78e+18
+
+A5.type = FWD_A
+A5.reaction_id = 5
+A5.prior_mean = 44000
+A5.prior_std = 100
+A5.lower_bound = 2000
+A5.upper_bound = 80000
+
+A6.type = FWD_A
+A6.reaction_id = 6
+A6.prior_mean = 44000
+A6.prior_std = 100
+A6.lower_bound = 0
+A6.upper_bound = 173400000
+
+A7.type = FWD_A
+A7.reaction_id = 7
+A7.prior_mean = 44000
+A7.prior_std = 100
+A7.lower_bound = 0
+A7.upper_bound = 80000
+
+A8.type = FWD_A
+A8.reaction_id = 8
+A8.prior_mean = 1.78e+18
+A8.prior_std = 100
+A8.lower_bound = 0
+A8.upper_bound = 2.78e+18
+
+A9.type = FWD_A
+A9.reaction_id = 9
+A9.prior_mean = 44000
+A9.prior_std = 100
+A9.lower_bound = 2000
+A9.upper_bound = 80000
+
+A10.type = FWD_A
+A10.reaction_id = 10
+A10.prior_mean = 44000
+A10.prior_std = 100
+A10.lower_bound = 0
+A10.upper_bound = 173400000
+
+A11.type = FWD_A
+A11.reaction_id = 11
+A11.prior_mean = 44000
+A11.prior_std = 100
+A11.lower_bound = 0
+A11.upper_bound = 80000
+
+A12.type = FWD_A
+A12.reaction_id = 12
+A12.prior_mean = 1.78e+18
+A12.prior_std = 100
+A12.lower_bound = 0
+A12.upper_bound = 2.78e+18
+
+A13.type = FWD_A
+A13.reaction_id = 13
+A13.prior_mean = 44000
+A13.prior_std = 100
+A13.lower_bound = 2000
+A13.upper_bound = 80000
+
+A14.type = FWD_A
+A14.reaction_id = 14
+A14.prior_mean = 44000
+A14.prior_std = 100
+A14.lower_bound = 0
+A14.upper_bound = 173400000
+
+A15.type = FWD_A
+A15.reaction_id = 15
+A15.prior_mean = 44000
+A15.prior_std = 100
+A15.lower_bound = 0
+A15.upper_bound = 80000
+
+A16.type = FWD_A
+A16.reaction_id = 16
+A16.prior_mean = 1.78e+18
+A16.prior_std = 100
+A16.lower_bound = 0
+A16.upper_bound = 2.78e+18
+
+A17.type = FWD_A
+A17.reaction_id = 17
+A17.prior_mean = 1.78e+18
+A17.prior_std = 100
+A17.lower_bound = 0
+A17.upper_bound = 2.78e+18
+
+A18.type = FWD_A
+A18.reaction_id = 18
+A18.prior_mean = 1.78e+18
+A18.prior_std = 100
+A18.lower_bound = 0
+A18.upper_bound = 2.78e+18
+
+A19.type = FWD_A
+A19.reaction_id = 19
+A19.prior_mean = 1.78e+18
+A19.prior_std = 100
+A19.lower_bound = 0
+A19.upper_bound = 2.78e+18
+
+A20.type = FWD_A
+A20.reaction_id = 20
+A20.prior_mean = 1.78e+18
+A20.prior_std = 100
+A20.lower_bound = 0
+A20.upper_bound = 2.78e+18
+
+
+
+
+#experiments = fls1a fls1b fls2a fls2b fls3a fls3b fls4a fls4b fls5a fls5b fls6a fls6b
+experiments = fls1a_coarse
+
+fls1a.type = PREMIXReactor
+fls1a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls1a.premix_input_file = premix.fls1a
+fls1a.measurement_error = 10
+fls1a.num_sol_pts = 1000
+
+fls1a_coarse.type = PREMIXReactor
+fls1a_coarse.premix_input_path = ../extras/Davis05_h2co/premix/
+fls1a_coarse.premix_input_file = premix.fls1a_coarse
+fls1a_coarse.measurement_error = 10
+fls1a_coarse.num_sol_pts = 1000
+
+fls1b.type = PREMIXReactor
+fls1b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls1b.premix_input_file = premix.fls1b
+fls1b.measurement_error = 10
+fls1b.num_sol_pts = 1000
+
+fls2a.type = PREMIXReactor
+fls2a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls2a.premix_input_file = premix.fls2a
+fls2a.measurement_error = 15
+fls2a.num_sol_pts = 1000
+
+fls2b.type = PREMIXReactor
+fls2b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls2b.premix_input_file = premix.fls2b
+fls2b.measurement_error = 15
+fls2b.num_sol_pts = 1000
+
+fls3a.type = PREMIXReactor
+fls3a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3a.premix_input_file = premix.fls3a
+fls3a.measurement_error = 5
+fls3a.num_sol_pts = 1000
+fls3a.prereqs = fls3ap1 fls3ap2
+
+fls3ap1.type = PREMIXReactor
+fls3ap1.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3ap1.premix_input_file = premix.fls3a.ic
+fls3ap1.measurement_error = 5
+fls3ap1.num_sol_pts = 1000
+
+fls3ap2.type = PREMIXReactor
+fls3ap2.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3ap2.premix_input_file = premix.fls3a.ic
+fls3ap2.measurement_error = 5
+fls3ap2.num_sol_pts = 1000
+
+fls3b.type = PREMIXReactor
+fls3b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3b.premix_input_file = premix.fls3b
+fls3b.measurement_error = 5
+fls3b.num_sol_pts = 1000
+
+fls4a.type = PREMIXReactor
+fls4a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls4a.premix_input_file = premix.fls4a
+fls4a.measurement_error = 6
+fls4a.num_sol_pts = 1000
+
+fls4b.type = PREMIXReactor
+fls4b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls4b.premix_input_file = premix.fls4a
+fls4b.measurement_error = 5
+fls4b.num_sol_pts = 1000
+
+fls5a.type = PREMIXReactor
+fls5a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls5a.premix_input_file = premix.fls5a
+fls5a.measurement_error = 15
+fls5a.num_sol_pts = 1000
+
+fls5b.type = PREMIXReactor
+fls5b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls5b.premix_input_file = premix.fls5b
+fls5b.measurement_error = 15
+fls5b.num_sol_pts = 1000
+
+fls6a.type = PREMIXReactor
+fls6a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls6a.premix_input_file = premix.fls6a
+fls6a.measurement_error = 2
+fls6a.num_sol_pts = 1000
+
+fls6b.type = PREMIXReactor
+fls6b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls6b.premix_input_file = premix.fls6b
+fls6b.measurement_error = 2
+fls6b.num_sol_pts = 1000
