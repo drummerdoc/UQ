@@ -44,12 +44,26 @@ void fixParamRanges( ParameterManager & parameter_manager, ExperimentManager & e
       for(int ii=0; ii<num_params; ii++){
           pvals[ii] = true_params[ii];
       }
-      double kmin = 0.0;//lower_bound[jj];
-      double kmax = true_params[jj]*10.0;//upper_bound[jj];
+      //double kmin = true_params[jj]*0.01;//0.0;//lower_bound[jj];
+      double kmin, kmax;
+      double fac = 100.0;
+      if( true_params[jj] < 0.0 ){
+          kmin = true_params[jj]*fac;
+          kmax = true_params[jj]/fac;
+      }
+      else{
+          kmax = true_params[jj]*fac;
+          kmin = true_params[jj]/fac;
+      }
+      //double kmin = lower_bound[jj];
+      //double kmax = upper_bound[jj];
       double ktyp = true_params[jj];
       
+      expt_manager.GenerateTestMeasurements(pvals, dvals);
       expt_manager.get_param_limits( &kmin, &kmax, &ktyp, (kmax-kmin)/10,
                                      pvals, jj ); // trashes pvals
+      //expt_manager.get_param_interesting( &kmin, &kmax, &ktyp, (kmax-kmin)/10,
+      //                               pvals, jj ); // trashes pvals
       std::cout << " parameter " << jj << " new limits are: " << kmin << ", " << kmax << std::endl;
       parameter_manager.setParamUpperBound(kmax,jj);
       parameter_manager.setParamLowerBound(kmin,jj);
