@@ -191,7 +191,7 @@ all: ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 
 ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
 	mkdir -p ${PACKAGE}
-	$(COMP) -shared -o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
+	$(COMP) -shared -o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES} -headerpad_max_install_names
 	./fixDYLIB.sh ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 	cp ${PACKAGE}.py ${PACKAGE}
 
