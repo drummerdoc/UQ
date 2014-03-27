@@ -25,6 +25,7 @@ def lnprob(x, driver):
 
     """
     driver.count += 1
+    print "driver call number ", driver.count
     return driver.Eval(x)
 
 
@@ -34,18 +35,24 @@ driver.d = pymc.Driver(len(sys.argv), sys.argv)
 driver.count = 0
 
 # Trial evaluation - do it 3 times
-x = (173400000.0, 671.0)
-for ii in xrange(3):
-    driver.Eval(x)
+#x = (173400000.0, 671.0)
+#for ii in xrange(3):
+#    driver.Eval(x)
 
 # Size of parameter space - set up through input file
 ndim = driver.NumParams()
 print('ndim:', ndim)
 nwalkers = 10
 
-
+p = np.array([173400000.0, 671.0])
+p0 = []
+for i in xrange(nwalkers):
+    p0.append(p)
 # Choose an initial set of positions in parameter space for the walkers.
-p0 = [np.random.rand(ndim)*20+12000 for i in xrange(nwalkers)]
+# p0 = [np.random.rand(ndim)*20+12000 for i in xrange(nwalkers)]
+
+#driver.Eval(p0)
+
 
 print('Initial walker positions in parameter space (p0):', p0)
 
@@ -85,10 +92,10 @@ f.close()
 
 # Finally, you can plot the projected histograms of the samples using
 # matplotlib as follows (as long as you have it installed).
-# try:
-#     import matplotlib.pyplot as pl
-# except ImportError:
-#     print("Try installing matplotlib to generate some sweet plots...")
-# else:
-#     pl.hist(sampler.flatchain[:,0], 100)
-#     pl.show()
+try:
+    import matplotlib.pyplot as pl
+except ImportError:
+    print("Try installing matplotlib to generate some sweet plots...")
+else:
+    pl.hist(sampler.flatchain[:,0], 100)
+    pl.show()
