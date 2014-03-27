@@ -10,6 +10,9 @@ struct Driver
   ~Driver();
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
+  static int NumData();
+  static std::vector<double> PriorMean();
+  static std::vector<double> PriorStd();
 
   static ChemDriver *cd;
   static MINPACKstruct *mystruct;

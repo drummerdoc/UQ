@@ -49,6 +49,22 @@ int Driver::NumParams()
   return Driver::mystruct->parameter_manager.NumParams();
 }
 
+int Driver::NumData()
+{
+  return Driver::mystruct->expt_manager.NumExptData();
+}
+
+std::vector<double>
+Driver::PriorMean()
+{
+  return Driver::mystruct->parameter_manager.prior_mean;
+}
+
+std::vector<double>
+Driver::PriorStd()
+{
+  return Driver::mystruct->parameter_manager.prior_std;
+}
 
 Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
 {
@@ -526,11 +542,11 @@ void MCSampler( void* p,
 
 Driver::Driver(int argc, char*argv[])
 {
-    std::cout << "argc: " << argc << std::endl;
-    for(int i =0; i<argc; i++ ){
-
-        std::cout << i << "argv: " << argv[i] << std::endl;
-    }
+  std::cout << "argc: " << argc << std::endl;
+  for(int i =0; i<argc; i++ ){
+    
+    std::cout << " argv[" << i <<  "]: " << argv[i] << std::endl;
+  }
   BoxLib::Initialize(argc, argv);
   if (cd == 0) {
      cd = new ChemDriver;
@@ -552,4 +568,5 @@ Driver::~Driver()
 {
   delete mystruct;
   if (made_cd) delete cd;
+  BoxLib::Finalize();
 }

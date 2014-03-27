@@ -810,11 +810,12 @@ main (int   argc,
   Real Ftrue = NegativeLogLikelihood(true_params);
   std::cout << "Ftrue = " << Ftrue << std::endl;
   
-  fixParamRanges( parameter_manager, expt_manager );
-
-
-
   ParmParse pp;
+  bool fixRanges=false; pp.query("fixRanges",fixRanges);
+  if (fixRanges) {
+    fixParamRanges( parameter_manager, expt_manager );
+  }
+
   bool do_sample=false; pp.query("do_sample",do_sample);
   if (do_sample) {
     std::cout << "START SAMPLING"  << std::endl;

@@ -1,9 +1,11 @@
-#include <Rand.H>
+#include <Utility.H>
+#include <cmath>
 
 // ******************************************************
 // Generate uniformly distributed random number 
 Real drand() {
-  return (std::rand()+1.0)/(RAND_MAX+1.0);
+  //return (std::rand()+1.0)/(RAND_MAX+1.0);
+  return BoxLib::Random();
 }
   
 // Generate standard normal random number 

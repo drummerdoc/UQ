@@ -46,9 +46,11 @@
 
 struct Driver
 {
-    Driver(int argc, char**argv );
-    //Driver();
-    ~Driver();
-    static double LogLikelihood(const std::vector<double>& parameters);
-    static int NumParams();
+  Driver(int argc, char**argv );
+  ~Driver();
+  static double LogLikelihood(const std::vector<double>& parameters);
+  static int NumParams();
+  static int NumData();
+  static std::vector<double> PriorMean();
+  static std::vector<double> PriorStd();
 };
