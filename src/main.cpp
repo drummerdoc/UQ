@@ -778,8 +778,8 @@ int
 main (int   argc,
       char* argv[])
 {
-  BoxLib::Initialize(argc,argv);
-  Driver driver;
+//  BoxLib::Initialize(argc,argv); // RG Moved inside driver constructor
+  Driver driver(argc,argv);
   ParameterManager& parameter_manager = driver.mystruct->parameter_manager;
   ExperimentManager& expt_manager = driver.mystruct->expt_manager;
   
@@ -897,6 +897,7 @@ main (int   argc,
     std::cout << confirm_data[ii] << std::endl;
   }
 
+  return 0;
   Real Fconf = NegativeLogLikelihood(soln_params);
   std::cout << "Fconf = " << Fconf << std::endl;
 

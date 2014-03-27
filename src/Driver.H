@@ -6,7 +6,7 @@
 
 struct Driver
 {
-  Driver();
+  Driver(int, char **);
   ~Driver();
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();

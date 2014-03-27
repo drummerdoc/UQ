@@ -191,3 +191,74 @@ ExperimentManager::get_param_limits( Real * kmin, Real * kmax, Real * ktyp, Real
     }
 
 }
+
+void 
+ExperimentManager::get_param_interesting( Real * kmin, Real * kmax, Real * ktyp, Real tol, 
+                                          std::vector<Real> & pvals, int idx){
+
+    double k1, k2, ktest, delt;
+
+    // First check right hand value - don't bother if it's ok
+    if( !isgoodParamVal( *kmax, pvals, idx) ) {
+        k2 = *kmax;
+        k1 = *ktyp;
+        do {
+            ktest = (k2+k1)*0.5;
+            if( isgoodParamVal( ktest, pvals, idx) ){
+                k1 = ktest;
+            }
+            else{
+                k2 = ktest;
+            }
+            delt = (k2-k1);
+        } while( delt > tol);
+        *kmax = k1;
+    }
+
+        {
+            double dlast, dmag;
+            int num_dvals = NumExptData();
+            std::vector<Real> dvals(num_dvals);
+            pvals[idx] = *kmax;
+            GenerateTestMeasurements(pvals, dvals);
+            dlast = dmag = dvals[0];
+            k1 = *kmax;
+            tol = dmag*0.1;
+            double dk = *kmax*0.01;
+            std::cout << " looking for change bigger than : " << tol << std::endl;
+            do {
+                int num_dvals = NumExptData();
+                std::vector<Real> dvals(num_dvals);
+                pvals[idx] = k1 - dk;
+                GenerateTestMeasurements(pvals, dvals);
+
+                delt = fabs( dlast - dvals[0] );
+                dlast = dvals[0];
+                if( delt < tol ) k1 = k1 -dk;
+                std::cout << " k1, dlast: " << k1 << "; " << dlast << std::endl;
+
+            } while( delt < tol );
+        }
+        *kmax = k1;
+
+        // Start from kmax and shrink until just before interesting chanage
+
+
+    if( !isgoodParamVal( *kmin, pvals, idx ) ){
+        k1 = *kmin;
+        k2 = *ktyp;
+        do {
+            ktest = (k2+k1)*0.5;
+            if( isgoodParamVal( ktest, pvals, idx) ){
+                k2 = ktest;
+            }
+            else{
+                k1 = ktest;
+            }
+            delt = (k2-k1);
+        } while( delt > tol);
+        *kmin = k2;
+
+    }
+
+}

@@ -38,8 +38,7 @@
 
 
 # Davis set
-#parameters = A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 A15 A16 A17 A18 A19 A20
-#parameters = AA1 AA2 AA3 AA4 AA5 AA6 AA7 AA8 AA9 AA10 AA11 AA12 AA13 AA14 AA15 AA16 AA17 AA18 AA19 AA20
+#parameters = A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 A15 A16 A17 A18 A19 A20 AA1 AA2 AA3 AA4 AA5 AA6 AA7 AA8 AA9 AA10 AA11 AA12 AA13 AA14 AA15 AA16 AA17 AA18 AA19 AA20
 #parameters = A19
 parameters = AA2 A14
 A1.type = FWD_EA
@@ -326,8 +325,8 @@ AA20.upper_bound = 2.78e+18
 
 
 #experiments = fls1a fls1b fls2a fls2b fls3a fls3b fls4a fls4b fls5a fls5b fls6a fls6b
-experiments = fls1a_coarse
-#experiments = fls1a
+#experiments = fls1a_coarse
+experiments = fls1a
 
 fls1a.type = PREMIXReactor
 fls1a.premix_input_path = ../extras/Davis05_h2co/premix/

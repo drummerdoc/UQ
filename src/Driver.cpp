@@ -524,8 +524,14 @@ void MCSampler( void* p,
 }
 // END MATTI'S CODE
 
-Driver::Driver()
+Driver::Driver(int argc, char*argv[])
 {
+    std::cout << "argc: " << argc << std::endl;
+    for(int i =0; i<argc; i++ ){
+
+        std::cout << i << "argv: " << argv[i] << std::endl;
+    }
+  BoxLib::Initialize(argc, argv);
   if (cd == 0) {
      cd = new ChemDriver;
      made_cd = true;

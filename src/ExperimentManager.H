@@ -29,6 +29,8 @@ struct ExperimentManager
   bool isgoodParamVal( Real, std::vector<Real>&, int );
   void get_param_limits( Real * kmin, Real * kmax, Real * ktyp, Real tol, 
                        std::vector<Real> & pvals, int idx);
+  void get_param_interesting( Real * kmin, Real * kmax, Real * ktyp, Real tol, 
+                       std::vector<Real> & pvals, int idx);
 
   const std::vector<Real>& TrueData() const;
   const std::vector<Real>& TrueDataWithObservationNoise() const;

@@ -125,11 +125,15 @@ endif
 ifeq (${MACHINE}, Darwin) 
   SHARED_LIBRARY_SUFFIX:=dylib
   ifeq (${WHICHDARWIN}, RAY)
-    PYTHON_DIR := /opt/local/Library/Frameworks/Python.framework/Versions/Current
+    #PYTHON_DIR := /opt/local/Library/Frameworks/Python.framework/Versions/Current
+    #PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
+    PYTHON_DIR := /Users/rgrout/Library/Enthought/Canopy_64bit/User/
     PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
+	PYTHON_INCLUDES := /Applications/Canopy.app/appdata/canopy-1.3.0.1715.macosx-x86_64/Canopy.app/Contents/include/python2.7
     GFORTLIB := /opt/local/lib/gcc46/libgfortran.${SHARED_LIBRARY_SUFFIX}
     COMP            = g++-mp-4.6
     FCOMP           = gfortran-mp-4.6
+    LIBRARIES+=-lpython2.7
   endif
   ifeq (${WHICHDARWIN}, MARC)
     PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
