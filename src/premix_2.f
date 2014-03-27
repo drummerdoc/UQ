@@ -179,7 +179,7 @@ C
      4                   DS, A6, A, ICKWRK, IMCWRK, KSYM, CCKWRK, KR,
      5                   KI, KP, IPIVOT, ACTIVE, MARK, NAME, ITWWRK,
      6                   RTWWRK, SSAVE, RKFT, RKRT, RSAVE, SAVESOL, SAVESZ,
-     7                   LRSTRTORIDE)
+     7                   LRSTRTORIDE,LREGRIDORIDE)
 C
 C  START PROLOGUE
 C
@@ -304,10 +304,11 @@ C
 
       CHARACTER scratcha*80
 
-      INTEGER LRSTRTORIDE
+      INTEGER LRSTRTORIDE,LREGRIDORIDE
 C
 C///  INITIALIZATION.
 C
+      write(*,*) ' JMAX = ', JMAX, '--------------'
       LCNTUE = .FALSE.
       KERR = .FALSE.
       ONE = 1.0
@@ -357,7 +358,13 @@ C
      3            SCRTCH(1, 3), KR, KI, KP, XGIVEN, TGIVEN, N1CALL,
      4            LREGRD, PCTADP, RATGTC, KERR, linflow, tinflow)
       IF (KERR) RETURN
-      if( LRSTRTORIDE .eq. 1 ) LRSTRT=.true.
+      if( LRSTRTORIDE .eq. 1 ) then
+          LRSTRT=.true.
+          if( LREGRIDORIDE > 0 ) then
+              JJREGD = LREGRIDORIDE
+              LREGRD = .TRUE.
+          endif
+      endif
 C     RDKEY sets JJ=6
 C
       IF (LRSTRT) THEN
@@ -369,6 +376,7 @@ C           read a restart file solution (sets JJ to old solution)
             IF (KERR) RETURN
          ENDIF
 C
+         !write(*,*) ' RATGTC=', RATGTC
 c         IF (LREGRD .AND. (RSTCNT.OR.LRSTRT) .AND. (JJ.GT.JJREGD))
          IF (LREGRD .AND. (RSTCNT.OR.LRSTRT) )
 C        (sets JJ=JJREGD)
@@ -1476,7 +1484,8 @@ C
 !     2                   LENCWK, C)
       SUBROUTINE PREMIX (JMAX, LIN, LOUT, LINKMC, LREST, LSAVE,
      1                   LRCRVR, LENLWK, LENIWK, LENRWK,
-     2                   LENCWK, SAVESOL, SAVESZ, LRSTRTORIDE)
+     2                   LENCWK, SAVESOL, SAVESZ, LRSTRTORIDE,
+     3                   LREGRIDORIDE)
 C
 C  START PROLOGUE
 C
@@ -1576,7 +1585,8 @@ C
      5             R(NKA6), R(NA), I(ICKW), I(IMCW), C(IKS), C(ICC),
      6             I(IKR), I(IKI), I(IKP), I(IIP), L(LAC), L(LMK),
      7             C(INAME), I(NIWK), R(NRWK), R(NSSAVE), R(NRKFT),
-     8             R(NRKRT), R(NRSAVE), SAVESOL, SAVESZ, LRSTRTORIDE)
+     8             R(NRKRT), R(NRSAVE), SAVESOL, SAVESZ, LRSTRTORIDE,
+     9             LREGRIDORIDE )
 C
 C     end of SUBROUTINE PREMIX
       RETURN
@@ -4185,6 +4195,7 @@ C
       R0 = 1. - P
       R1 = P *R /(R+1.)
       R2 = P - R1
+!      write(*,*) 'R2=', R2, R1, P, R, R0
       TV1 = 0.
       DO 10 I = 2, JJOLD
         TV1 = TV1 + ABS( SOLD(N,I) - SOLD(N,I-1) )
@@ -4201,14 +4212,17 @@ C
 C     compute partial sums of weight function
 C
       WORK(1) = 0.
-      DO 50 I = 2, JJOLD
+      DO 50 I = 2, JJOLD-1
+      !DO 50 I = 2, JJOLD
          DX = XOLD(I) -XOLD(I-1)
          WORK(I) = DX + B1*ABS( SOLD(N,I) - SOLD(N,I-1) ) + WORK(I-1)
      1           + B2*ABS( (SOLD(N,I+1)-SOLD(N,I))/(XOLD(I+1)-XOLD(I))
      2                   - (SOLD(N,I)-SOLD(N,I-1))/(XOLD(I)-XOLD(I-1)) )
 50    CONTINUE
+      !work(JJOLD) = work(JJOLD-1)
       DO 65 I = 2, JJOLD
          WORK(I) = WORK(I)/WORK(JJOLD)
+      !   write(*,*) I, ' work(i)', work(i), DX, B1, B2, R2, TV2
 65    CONTINUE
 C
 C      interpolate onto uniform eta grid to find new x
@@ -4229,7 +4243,7 @@ C
                ISTART = I
             ENDIF
 70       CONTINUE
-         WRITE (6, *) ' *** VALUE OF ETA NOT FOUND ***'
+         WRITE (6, *) ' *** VALUE OF ETA NOT FOUND ***', ETAJ, WORK(JJOLD)
 80    CONTINUE
 C
 C        interpolate solution...
@@ -4334,10 +4348,10 @@ C
 C
       LOGICAL LBURNR, LFIXT
       DIMENSION SN(NATJ,JJ), S(NATJ,JJ), REG(JJ), X(JJ), COND(JJ),
-     1          XGIVEN(NTEMP), TGIVEN(NTEMP), SCRK(KK)
+     1          XGIVEN(*), TGIVEN(*), SCRK(KK)
 C
       WRITE (LOUT, *)
-     1'REGRIDDING FROM ',JJ,' TO ', JJREGD, ' POINTS'
+     1'REGRIDDING FROM ',JJ,' TO ', JJREGD, ' POINTS', NTEMP
 C
       LFIXT = .TRUE.
 C
@@ -4359,6 +4373,8 @@ C
 C
   100 CONTINUE
 C
+      write(*,*) ' regridding with JJREGD=', JJREGD, 'JJ=', JJ
+      RATGTC=1
       CALL REGRID (SN, S, NATJ, JJREGD, JJ, REG, X, COND, PCTADP,
      1             RATGTC, NT)
 C
@@ -4418,6 +4434,7 @@ C
   376    CONTINUE
       ENDIF
 C
+      write(*,*) 'after regrid, JJ=', JJ
       NTEMP = JJ
       DO 450 N = 1, NTEMP
 	 XGIVEN(N) = X(N)

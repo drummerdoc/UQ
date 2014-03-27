@@ -73,7 +73,8 @@ extern "C" {
         void open_premix_files_(  int*, int*, int*, int*, int*,int*, int *, int *,int*,int* );
         void close_premix_files_(  int*, int*, int*, int*,int* );
         void premix_( int*, int*, int*, int*, int*, int*,
-                int*, int*, int*, int*, int*, double*, int* , int*);
+                int*, int*, int*, int*, int*, double*, int* , int*,
+                int *);
 }
 
 struct PREMIXReactor

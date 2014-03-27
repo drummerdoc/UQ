@@ -6,6 +6,8 @@
 #include <SimulatedExperiment.H>
 #include <ParmParse.H>
 
+#include <sys/time.h>
+
 static Real Patm_DEF = 1;
 static Real dt_DEF   = 0.1;
 static Real Tfile_DEF = 900;
@@ -247,7 +249,8 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
           ParmParse pppr(prefix.c_str() );
           std::string type; pppr.get("type", type );
           if( type == "PREMIXReactor" ){
-              PREMIXReactor *prereq_reactor = new PREMIXReactor(cd,prereq_names[i]);
+              PREMIXReactor *prereq_reactor 
+                  = new PREMIXReactor(cd,prereq_names[i]);
               prereq_reactors.push_back(prereq_reactor);
           }
           else{
@@ -287,6 +290,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   // This set to return a single value - the flame speed
   simulated_observations.resize(1);
 
+  int lregrid;
+  int lrstrt = 0;
   // When doing a fresh start, 
   // run through prereqs. First starts fresh, subsequent start from
   // solution from the previous.
@@ -296,14 +301,13 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       //std::cerr << "No restart info... " <<std::endl;
       //std::cout << " makepr: " << makepr << " prereq_reactors.size() " << 
       //    prereq_reactors.size() << std::endl;
-      int lrstrt = 0;
       if( prereq_reactors.size() > 0 ){
       //    std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
           for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr ){                                                                                
               if( lrstrt == 1  ){
                   (*pr)->solCopyIn(premix_sol);
                   (*pr)->lrstrtflag = 1;
-     //             std::cerr <<  "restart this time" << std::endl;
+                  std::cerr <<  "restart this time" << std::endl;
               }
               else{
                   (*pr)->lrstrtflag = 0;
@@ -317,15 +321,43 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               (*pr)->solCopyOut(premix_sol);
           }
           lrstrtflag = 1;
+          // If restarting from a prereq, don't regrid, but otherwise
+          // regrid the solution
       }
+      lregrid = -1;
   }
-  //else{
-  //    std::cerr << "Restarting from previous solution... " <<std::endl;
-  //}
+  else{
+      std::cerr << "Restarting from previous solution... " 
+          << std::endl;
+      // Regrid when restarting from a previous solution of 
+      // this experiment
+      lregrid = 1;
+  }
   BL_ASSERT(premix_sol != 0);
   double * savesol = premix_sol->solvec; 
   int * solsz = &(premix_sol->ngp);
 
+  // Regrid to some size less than the restart solution size
+  if( lregrid > 0 ){
+      const int min_reasonable_regrid = 24;
+      int regrid_sz = *solsz/4;
+
+      // Regrid to larger of regrid_sz estimate from previous
+      // solution or some reasonable minimum, but don't regrid
+      // if that would be bigger than previous solution
+      lregrid = std::max(min_reasonable_regrid, regrid_sz); 
+      if( lregrid > *solsz ) lregrid = -1;
+
+      if( lregrid > 0 ) {
+          std::cout << "----- Setting up premix to regrid to " 
+              << lregrid <<  " from " <<  *solsz  << std::endl;
+      }
+      else{
+//          std::cout << "----- Skipping regrid to " 
+//              << lregrid <<  " (maybe because it would be too big) " 
+//              << *solsz << std::endl;
+      }
+  }
 
   BL_ASSERT(savesol != NULL );
   BL_ASSERT(solsz != NULL );
@@ -344,12 +376,22 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     pathcoded[i] = premix_input_path[i];
   }
   open_premix_files_( &lin, &lout, &linmc, &lrin,
-                      &lrout, &lrcvr, infilecoded, &charlen, pathcoded, &pathcharlen );
+                      &lrout, &lrcvr, infilecoded,
+                      &charlen, pathcoded, &pathcharlen );
 
   // Call the simulation
+  //timeval tp;
+  //timezone tz;
+  //gettimeofday(&tp, NULL);
+  //int startPMtime = tp.tv_sec;
+
   //std::cout << "Calling PREMIX" << std::endl;
   premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
-          &lenlwk, &leniwk, &lenrwk, &lencwk, savesol, solsz, &lrstrtflag);
+          &lenlwk, &leniwk, &lenrwk, &lencwk, 
+          savesol, solsz, &lrstrtflag, &lregrid);
+  //gettimeofday(&tp, NULL);
+  //int stopPMtime = tp.tv_sec;
+  //std::cout << "PREMIX call took approximately " << (stopPMtime - startPMtime) << " seconds (gettimeofday) " << std::endl;
 
   //std::cerr << "solsz=" << *solsz << std::endl;
   //// DEBUG Check if something reasonable was saved for solution
