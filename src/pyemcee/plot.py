@@ -1,5 +1,11 @@
+import sys
+
+filename='hist.dat'
+if len(sys.argv) > 1:
+    filename = sys.argv[1]
+
 import cPickle as pickle
-f=open('hist.dat','rb')
+f=open(filename,'rb')
 tmp = pickle.load(f)
 f.close()
 

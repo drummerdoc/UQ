@@ -36,6 +36,7 @@ O  OH  HCO HO2
 !
 H2O  CO  O2  H2O2  CO2
 !
+END
 REACTIONS
 !
 ! Reactions of H2/O2
