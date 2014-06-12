@@ -37,8 +37,8 @@ For mac and Linux, add the UQ_DIR to PYTHONPATH
 
 Move to the run folder and run the script:
 
-        cd pyemcee
-        python test.py
-
+        python pyemcee/test.py
+        python pyemcee/plot.py hist0.dat
+        python pyemcee/plot.py hist1.dat
 
 
