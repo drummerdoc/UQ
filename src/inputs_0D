@@ -24,7 +24,7 @@ EA6.type = FWD_EA
 EA6.reaction_id = 2
 EA6.prior_mean =  5000
 EA6.prior_std =   500
-EA6.lower_bound = 1000
+EA6.lower_bound = 100
 EA6.upper_bound = 10000
 
 A7.type = FWD_A
