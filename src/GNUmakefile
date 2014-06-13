@@ -25,8 +25,8 @@ BUILD_EXEC      = TRUE
 
 # Choose model (from list below), and pmf file
 #CHEMISTRY_MODEL = DRM19
-#CHEMISTRY_MODEL = CHEMH
-CHEMISTRY_MODEL = DAVIS
+CHEMISTRY_MODEL = CHEMH
+#CHEMISTRY_MODEL = DAVIS
 #NB to us DAVIS chemistry need to hack c. l147 in ChemDriver_F.F
 #mcr = Nspec*(19+2*NO+NO*NLITEMAX)+(NO+15)*Nspec**2 * 2                          
 #mci = 4*Nspec + NLITEMAX * 2   
@@ -117,9 +117,9 @@ cEXE_sources += ${CHEM_MECHFILE}
 ifeq ($(MACHINE), Linux)
   ifeq (${WHICHLINUX}, HEDORAH)
     PYTHON_DIR := /usr
-    PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.6
+    PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
     SHARED_LIBRARY_SUFFIX:=so
-    LIBRARIES+=-lpython2.6
+    LIBRARIES+=-lpython2.7
   endif
 endif
 ifeq (${MACHINE}, Darwin) 
@@ -166,14 +166,17 @@ INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
 
 # For static links
 LIBRARY_LOCATIONS+=${PACKAGES}/lib
-#LIBRARY_LOCATIONS+=${PACKAGES}/lib64
+LIBRARY_LOCATIONS+=${PACKAGES}/lib64
 LIBRARIES += -lcminpack -llapacke -llapack -lblas
 
 # For dynamic links
-#SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
-SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
+SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
+#SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapack.${SHARED_LIBRARY_SUFFIX}
+ifeq (${WHICHDARWIN}, RAY)
+  SHARD_LIBRARIES+= -headerpad_max_install_names
+endif
 
 PACKAGE := pyemcee
 
@@ -195,7 +198,7 @@ all: ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 
 ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
 	mkdir -p ${PACKAGE}
-	$(COMP) -shared -o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES} -headerpad_max_install_names
+	$(COMP) -shared -o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
 	./fixDYLIB.sh ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 	cp ${PACKAGE}.py ${PACKAGE}
 
