@@ -60,7 +60,8 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
 
 # Run burn-in steps
 print ('Doing burn-in...')
-pos, prob, state = sampler.run_mcmc(p0, 50)
+#pos, prob, state = sampler.run_mcmc(p0, 50)
+pos, prob, state = sampler.run_mcmc(p0, 5)
 print ('Burn-in complete, number of evals:',driver.count)
 
 # Reset the chain to remove the burn-in samples.
@@ -68,7 +69,8 @@ sampler.reset()
 
 # Starting from the final position in the burn-in chain, do sample steps.
 print ('Sampling...')
-sampler.run_mcmc(pos, 2000, rstate0=state)
+#sampler.run_mcmc(pos, 2000, rstate0=state)
+sampler.run_mcmc(pos, 10, rstate0=state)
 print ('Sampling complete, number of evals:',driver.count)
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction

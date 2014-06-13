@@ -22,12 +22,17 @@ protected:
 };
 
 
-struct CVReactor
+struct ZeroDReactor
   : public SimulatedExperiment
-{
-  CVReactor(ChemDriver& _cd, const std::string& pp_prefix);
-  CVReactor(const CVReactor& rhs);
-  virtual ~CVReactor() {}
+{  
+  enum REACTOR_TYPE
+  {
+    CONSTANT_VOLUME, 
+    CONSTANT_PRESSURE
+  };
+  ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const REACTOR_TYPE& _type);
+  ZeroDReactor(const ZeroDReactor& rhs);
+  virtual ~ZeroDReactor() {}
 
   virtual const std::vector<Real>& GetMeasurementTimes() const;
   virtual void GetMeasurements(std::vector<Real>& simulated_observations);
@@ -43,6 +48,7 @@ private:
   void Reset();
 
   ChemDriver& cd;
+  REACTOR_TYPE reactor_type;
 
   std::vector<Real> measurement_times;
   std::vector<int> measured_comps;
@@ -57,14 +63,14 @@ private:
 
 inline
 int
-CVReactor::NumMeasuredValues() const
+ZeroDReactor::NumMeasuredValues() const
 {
   return num_measured_values;
 }
 
 inline
 const std::vector<Real>&
-CVReactor::GetMeasurementTimes() const
+ZeroDReactor::GetMeasurementTimes() const
 {
   return measurement_times;
 }

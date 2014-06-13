@@ -15,8 +15,12 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd)
     ParmParse ppe(prefix.c_str());
     std::string type; ppe.get("type",type);
     if (type == "CVReactor") {
-      CVReactor *cv_reactor = new CVReactor(cd,experiments[i]);
+      ZeroDReactor *cv_reactor = new ZeroDReactor(cd,experiments[i],ZeroDReactor::CONSTANT_VOLUME);
       AddExperiment(cv_reactor,experiments[i]);
+    }
+    else if (type == "CPReactor") {
+      ZeroDReactor *cp_reactor = new ZeroDReactor(cd,experiments[i],ZeroDReactor::CONSTANT_PRESSURE);
+      AddExperiment(cp_reactor,experiments[i]);
     }
     else if (type == "PREMIXReactor") {
       PREMIXReactor *premix_reactor = new PREMIXReactor(cd,experiments[i]);

@@ -10,19 +10,20 @@
 
 static Real Patm_DEF = 1;
 static Real dt_DEF   = 0.1;
-static Real Tfile_DEF = 900;
-static int  num_time_intervals_DEF = 10;
+static Real Tfile_DEF = -1;
+static int  num_time_intervals_DEF = -1;
 static std::string temp_or_species_name_DEF = "temp";
-static Real CVReactorErr_DEF = 15;
+static Real ZeroDReactorErr_DEF = 15;
 static Real PREMIXReactorErr_DEF = 10;
 
-CVReactor::CVReactor(ChemDriver& _cd, const std::string& pp_prefix)
-  : SimulatedExperiment(), cd(_cd)
+ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const REACTOR_TYPE& _type)
+  : SimulatedExperiment(), cd(_cd), reactor_type(_type),
+    sCompY(-1), sCompT(-1), sCompR(-1), sCompRH(-1)
 {
   ParmParse pp(pp_prefix.c_str());
 
   std::string expt_type; pp.get("type",expt_type);
-  if (expt_type != "CVReactor") {
+  if (expt_type != "CVReactor" && expt_type != "CPReactor") {
     std::string err = "Inputs incompatible with experiment type: " + pp_prefix;
     BoxLib::Abort(err.c_str());
   }
@@ -38,13 +39,60 @@ CVReactor::CVReactor(ChemDriver& _cd, const std::string& pp_prefix)
     measurement_times[i] = data_tstart + (i+1)*dt/data_num_points;
   }
 
+  //
+  // Define initial state of reactor:
+  //
+  //  Tfile > 0:  Read pmf file, use state near T=Tfile
+  //  else:
+  //   require Tinit, read in volume fractions, X, of species (by name)
+  //       (note, will linearly scale to sum(X) = 1
+  //
+  Patm = Patm_DEF; pp.get("Patm",Patm);
+
   // Ordering of variables in pmf file used for initial conditions
   sCompT  = 1;
   sCompRH = 2;
   sCompR  = 3;
   sCompY  = 4;
 
-  pp.get("pmf_file_name",pmf_file_name);
+  Tfile = Tfile_DEF; pp.query("Tfile",Tfile);
+
+  if (Tfile > 0) {
+    pp.get("pmf_file_name",pmf_file_name);
+  }
+  else {
+    int nSpec = cd.numSpecies();
+    Array<Real> volFrac(nSpec,0);
+    Real tot = 0;
+    for (int i=0; i<nSpec; ++i) {
+      const std::string& name = cd.speciesNames()[i];
+      if (pp.countval(name.c_str()) > 0) {
+        pp.get(name.c_str(),volFrac[i]);
+        tot += volFrac[i];
+      }
+    }
+    if (tot <=0 ) {
+      BoxLib::Abort("Reactor must be initialized with at least one species");
+    }
+    for (int i=0; i<nSpec; ++i) {
+      volFrac[i] *= 1/tot;
+    }
+    Real Tinit = -1; pp.get("T",Tinit);
+
+    IntVect iv(D_DECL(0,0,0));
+    Box bx(iv,iv);
+    funcCnt.resize(bx,1);
+
+    const int nComp = nSpec + 4;
+    s_init.resize(bx,nComp);
+    s_init(iv,sCompT) = Tinit;
+
+    Array<Real> Y = cd.moleFracToMassFrac(volFrac);
+    for (int i=0; i<nSpec; ++i) {
+      s_init(iv,sCompY+i) = Y[i];
+    }
+    cd.getRhoGivenPTY(s_init,Patm,s_init,s_init,bx,sCompT,sCompY,sCompR);
+  }
 
   measured_comps.resize(1);
   std::string temp_or_species_name = temp_or_species_name_DEF;
@@ -62,14 +110,11 @@ CVReactor::CVReactor(ChemDriver& _cd, const std::string& pp_prefix)
   }
   num_measured_values = measurement_times.size() * measured_comps.size();
 
-  Tfile = Tfile_DEF; pp.query("Tfile",Tfile);
-  Patm = Patm_DEF; pp.query("Patm",Patm);
-
-  measurement_error = CVReactorErr_DEF;
+  measurement_error = ZeroDReactorErr_DEF;
   pp.query("measurement_error",measurement_error);
 }
 
-CVReactor::CVReactor(const CVReactor& rhs)
+ZeroDReactor::ZeroDReactor(const ZeroDReactor& rhs)
   : cd(rhs.cd) {
   measurement_times = rhs.measurement_times;
   measured_comps = rhs.measured_comps;
@@ -83,10 +128,11 @@ CVReactor::CVReactor(const CVReactor& rhs)
   sCompR=rhs.sCompR;
   sCompRH=rhs.sCompRH;
   Patm=rhs.Patm;
+  reactor_type=rhs.reactor_type;
 }
 
 void
-CVReactor::GetMeasurementError(std::vector<Real>& observation_error)
+ZeroDReactor::GetMeasurementError(std::vector<Real>& observation_error)
 {
   for (int i=0; i<NumMeasuredValues(); ++i) {
     observation_error[i] = measurement_error;
@@ -94,7 +140,7 @@ CVReactor::GetMeasurementError(std::vector<Real>& observation_error)
 }
 
 void
-CVReactor::GetMeasurements(std::vector<Real>& simulated_observations)
+ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
   BL_ASSERT(is_initialized);
   Reset();
@@ -103,111 +149,119 @@ CVReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   int num_time_nodes = measurement_times.size();
   simulated_observations.resize(num_time_nodes);
 
-#ifdef LMC_SDC
-  FArrayBox& rYold = s_init;
-  FArrayBox& rYnew = s_final;
-  FArrayBox& rHold = s_init;
-  FArrayBox& rHnew = s_final;
-  FArrayBox& Told  = s_init;
-  FArrayBox& Tnew  = s_final;
-  FArrayBox* diag = 0;
-#else
-  FArrayBox& Yold = s_init;
-  FArrayBox& Ynew = s_final;
-  FArrayBox& Told = s_init;
-  FArrayBox& Tnew = s_final;
-#endif
+  if (reactor_type == CONSTANT_VOLUME) {
+    FArrayBox& rYold = s_init;
+    FArrayBox& rYnew = s_final;
+    FArrayBox& rHold = s_init;
+    FArrayBox& rHnew = s_final;
+    FArrayBox& Told  = s_init;
+    FArrayBox& Tnew  = s_final;
+    FArrayBox* diag = 0;
 
-
-  s_init.copy(s_save);
-  s_final.copy(s_save);
-  Real t_end = 0;
-  for (int i=0; i<num_time_nodes; ++i) {
-    Real t_start = t_end;
-    t_end = measurement_times[i];
-    Real dt = t_end - t_start;
-
-#ifdef LMC_SDC
-    cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
-                          funcCnt,box,sCompY,sCompRH,sCompT,
-                          dt,Patm,diag,true);
-    simulated_observations[i] = ExtractMeasurement();
-
-    //std::cout << "Data :  " << t_end << " " << simulated_observations[i] << std::endl;
-
-    rYold.copy(rYnew,sCompY,sCompY,Nspec);
-    rHold.copy(rHnew,sCompRH,sCompRH,Nspec);
-    Told.copy(Tnew,sCompT,sCompT,1);
-#else
-    cd.solveTransient(Ynew,Tnew,Yold,Told,funcCnt,box,
-                      sCompY,sCompT,dt,Patm);
-    simulated_observations[i] = ExtractMeasurement();
-
-    Yold.copy(Ynew,sCompY,sCompY,Nspec);
-    Told.copy(Tnew,sCompT,sCompT,1);
-#endif
+    s_init.copy(s_save);
+    s_final.copy(s_save);
+    Real t_end = 0;
+    for (int i=0; i<num_time_nodes; ++i) {
+      Real t_start = t_end;
+      t_end = measurement_times[i];
+      Real dt = t_end - t_start;
+      
+      cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
+                            funcCnt,box,sCompY,sCompRH,sCompT,
+                            dt,Patm,diag,true);
+      simulated_observations[i] = ExtractMeasurement();
+      
+      rYold.copy(rYnew,sCompY,sCompY,Nspec);
+      rHold.copy(rHnew,sCompRH,sCompRH,Nspec);
+      Told.copy(Tnew,sCompT,sCompT,1);
+    }
   }
+  else {
+    BL_ASSERT(reactor_type == CONSTANT_PRESSURE);
+    FArrayBox& Yold = s_init;
+    FArrayBox& Ynew = s_final;
+    FArrayBox& Told = s_init;
+    FArrayBox& Tnew = s_final;
 
-  //std::cout << std::endl;
-  //BoxLib::Abort();
+    s_init.copy(s_save);
+    s_final.copy(s_save);
+    Real t_end = 0;
+    for (int i=0; i<num_time_nodes; ++i) {
+      Real t_start = t_end;
+      t_end = measurement_times[i];
+      Real dt = t_end - t_start;
+
+      cd.solveTransient(Ynew,Tnew,Yold,Told,funcCnt,box,
+                        sCompY,sCompT,dt,Patm);
+      simulated_observations[i] = ExtractMeasurement();
+      
+      Yold.copy(Ynew,sCompY,sCompY,Nspec);
+      Told.copy(Tnew,sCompT,sCompT,1);
+    }
+  }
 }
 
 
 Real
-CVReactor::ExtractMeasurement() const
+ZeroDReactor::ExtractMeasurement() const
 {
-  // Return the final temperature of the cell that was evolved
+  // Return the final temperature or concentration of the cell that was evolved
   BL_ASSERT(is_initialized);
   return s_final(s_final.box().smallEnd(),measured_comps[0]);
 }
 
 void
-CVReactor::Reset()
+ZeroDReactor::Reset()
 {
-  if (is_initialized)
+  if (is_initialized) {
     funcCnt.setVal(0);
+  }
 }
 
 void
-CVReactor::InitializeExperiment()
+ZeroDReactor::InitializeExperiment()
 {
-  std::ifstream is;
-  is.open(pmf_file_name.c_str());
-  FArrayBox fileFAB;
-  fileFAB.readFrom(is);
-  is.close();
-
-  // Simple check to see if number of species is same between compiled mech and fab file
-  const Box& box = fileFAB.box();
   const int nSpec = cd.numSpecies();
   const int nComp = nSpec + 4;
-  if (nComp != fileFAB.nComp()) {
-    std::cout << "pmf file is not compatible with the mechanism compiled into this code" << '\n';
-    std::cout << "pmf file number of species: " << fileFAB.nComp() - 4 << '\n';
-    std::cout << "expecting: " << nSpec << '\n';
-    BoxLib::Abort();
-  }
 
-  // Find location
-  bool found = false;
-  IntVect iv=box.smallEnd();
-  for (IntVect End=box.bigEnd(); iv<=End && !found; box.next(iv)) {
-    if (fileFAB(iv,sCompT)>=Tfile) found = true;
-  }
+  if (Tfile > 0) {
+    std::ifstream is;
+    is.open(pmf_file_name.c_str());
+    FArrayBox fileFAB;
+    fileFAB.readFrom(is);
+    is.close();
 
-  Box bx(iv,iv);
-  s_init.resize(bx,fileFAB.nComp()); s_init.copy(fileFAB);
-  funcCnt.resize(bx,1);
+    // Simple check to see if number of species is same between compiled mech and fab file
+    if (nComp != fileFAB.nComp()) {
+      std::cout << "pmf file is not compatible with the mechanism compiled into this code" << '\n';
+      std::cout << "pmf file number of species: " << fileFAB.nComp() - 4 << '\n';
+      std::cout << "expecting: " << nSpec << '\n';
+      BoxLib::Abort();
+    }
+
+    // Find location
+    bool found = false;
+    const Box& boxF = fileFAB.box();
+    IntVect iv=boxF.smallEnd();
+    for (IntVect End=boxF.bigEnd(); iv<=End && !found; boxF.next(iv)) {
+      if (fileFAB(iv,sCompT)>=Tfile) found = true;
+    }
+
+    Box box(iv,iv);
+    s_init.resize(box,fileFAB.nComp()); s_init.copy(fileFAB);
+    s_init.mult(1.e3,sCompR,1); // to mks
+    funcCnt.resize(box,1);
+  }
+  Box bx = s_init.box();
   
-#ifdef LMC_SDC
-  s_init.mult(1.e3,sCompR,1);
-  cd.getHmixGivenTY(s_init,s_init,s_init,bx,sCompT,sCompY,sCompRH);
-  s_init.mult(s_init,sCompR,sCompRH,1);
-  for (int i=0; i<nSpec; ++i) {
-    s_init.mult(s_init,sCompR,sCompY+i,1);
+  if (reactor_type == CONSTANT_VOLUME) {
+    cd.getHmixGivenTY(s_init,s_init,s_init,bx,sCompT,sCompY,sCompRH);
+    s_init.mult(s_init,sCompR,sCompRH,1);
+    for (int i=0; i<nSpec; ++i) {
+      s_init.mult(s_init,sCompR,sCompY+i,1);
+    }
+    C_0.resize(bx,nSpec+1); C_0.setVal(0);
   }
-  C_0.resize(bx,nSpec+1); C_0.setVal(0);
-#endif
 
   s_final.resize(bx,s_init.nComp());
   s_final.copy(s_init);
@@ -287,6 +341,10 @@ PREMIXReactor::GetMeasurementError(std::vector<Real>& observation_error)
 void
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
+  BL_PROFILE("PREMIXReactor::GetMeasurements()");
+
+  BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX", myname);
+  BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX-a", myname1);
   // This set to return a single value - the flame speed
   simulated_observations.resize(1);
 
@@ -379,6 +437,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                       &lrout, &lrcvr, infilecoded,
                       &charlen, pathcoded, &pathcharlen );
 
+  BL_PROFILE_VAR_STOP(myname1);
+  BL_PROFILE_VAR_STOP(myname);
   // Call the simulation
   //timeval tp;
   //timezone tz;
@@ -405,9 +465,11 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   //    fprintf(FP,"\n");
   //}
   //fclose(FP);
+  BL_PROFILE_VAR_START(myname);
+  BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX-b", myname2);
   
   // Extract the measurements - should probably put into an 'ExtractMeasurements'
-  // for consistency with CVReactor
+  // for consistency with ZeroDReactor
   if( *solsz > 0 ) {
     //std::cout << "Premix generated a viable solution " << std::endl;
     simulated_observations[0]  = savesol[*solsz + nmax*(ncomp-1)-1+3]; 
@@ -439,6 +501,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   //        is ok wrt to flame speed measurements
   // Try sampling to get distribution of 1 reaction rate
   //       consistent with observation distribution
+  BL_PROFILE_VAR_STOP(myname2);
+  BL_PROFILE_VAR_STOP(myname);
 }
 
 void
