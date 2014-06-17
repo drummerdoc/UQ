@@ -25,8 +25,8 @@ BUILD_EXEC      = TRUE
 
 # Choose model (from list below), and pmf file
 #CHEMISTRY_MODEL = DRM19
-CHEMISTRY_MODEL = CHEMH
-#CHEMISTRY_MODEL = DAVIS
+#CHEMISTRY_MODEL = CHEMH
+CHEMISTRY_MODEL = DAVIS
 #NB to us DAVIS chemistry need to hack c. l147 in ChemDriver_F.F
 #mcr = Nspec*(19+2*NO+NO*NLITEMAX)+(NO+15)*Nspec**2 * 2                          
 #mci = 4*Nspec + NLITEMAX * 2   
@@ -166,12 +166,12 @@ INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
 
 # For static links
 LIBRARY_LOCATIONS+=${PACKAGES}/lib
-LIBRARY_LOCATIONS+=${PACKAGES}/lib64
+#LIBRARY_LOCATIONS+=${PACKAGES}/lib64
 LIBRARIES += -lcminpack -llapacke -llapack -lblas
 
 # For dynamic links
-SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
-#SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
+#SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
+SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapack.${SHARED_LIBRARY_SUFFIX}
 ifeq (${WHICHDARWIN}, RAY)

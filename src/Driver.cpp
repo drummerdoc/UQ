@@ -66,6 +66,15 @@ Driver::PriorStd()
   return Driver::mystruct->parameter_manager.prior_std;
 }
 
+std::vector<double>
+Driver::GenerateTestMeasurements(const std::vector<Real>& test_params)
+{
+  std::vector<Real> test_measurements;
+  Driver::mystruct->expt_manager.GenerateTestMeasurements(test_params,test_measurements);
+  return test_measurements;
+}
+
+
 Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);

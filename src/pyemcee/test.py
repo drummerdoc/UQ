@@ -16,6 +16,8 @@ class DriverWrap:
         return self.d.PriorMean()
     def PriorStd(self):
         return self.d.PriorStd()
+    def GenerateTestMeasurements(self, data):
+        return self.d.GenerateTestMeasurements(data)
 
 def lnprob(x, driver):
     """ Define the probability distribution that you would like to sample.
@@ -28,7 +30,8 @@ def lnprob(x, driver):
 
     """
     driver.count += 1
-    print("driver call number ", driver.count)
+    if driver.count % 1000 == 0:
+        print("driver call number ", driver.count)
     return driver.Eval(x)
 
 driver = DriverWrap()
@@ -61,6 +64,7 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
 # Run burn-in steps
 print ('Doing burn-in...')
 pos, prob, state = sampler.run_mcmc(p0, 50)
+#pos, prob, state = sampler.run_mcmc(p0, 10)
 print ('Burn-in complete, number of evals:',driver.count)
 
 # Reset the chain to remove the burn-in samples.
@@ -68,6 +72,8 @@ sampler.reset()
 
 # Starting from the final position in the burn-in chain, do sample steps.
 print ('Sampling...')
+#sampler.run_mcmc(pos, 20, rstate0=state)
+#sampler.run_mcmc(pos, 200, rstate0=state)
 sampler.run_mcmc(pos, 2000, rstate0=state)
 print ('Sampling complete, number of evals:',driver.count)
 
@@ -99,4 +105,11 @@ for i in range(ndim):
 #else:
 #    pl.hist(sampler.flatchain[:,0], 100)
 #    pl.show()
-    
+
+posterior_mean = []
+for i in range(ndim):
+    posterior_mean.append(sampler.flatchain[:,i].mean()) 
+    print('New mean:',i,posterior_mean[i])
+
+print('Sample at prior mean:',driver.GenerateTestMeasurements(prior_mean))
+print('Sample at posterior mean:',driver.GenerateTestMeasurements(posterior_mean))

@@ -92,6 +92,11 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
       s_init(iv,sCompY+i) = Y[i];
     }
     cd.getRhoGivenPTY(s_init,Patm,s_init,s_init,bx,sCompT,sCompY,sCompR);
+    if (reactor_type == CONSTANT_VOLUME) {
+      for (int i=0; i<nSpec; ++i) {
+	s_init(iv,sCompY+i) *= s_init(iv,sCompR);
+      }
+    }
   }
 
   measured_comps.resize(1);
@@ -207,6 +212,31 @@ ZeroDReactor::ExtractMeasurement() const
 {
   // Return the final temperature or concentration of the cell that was evolved
   BL_ASSERT(is_initialized);
+  if (measured_comps[0] != sCompT) {
+    int Nspec = cd.numSpecies();
+    const IntVect& iv = s_final.box().smallEnd();
+    Box box(iv,iv);
+    FArrayBox X(box,Nspec);
+    int sCompX = 0;
+    FArrayBox Y(box,Nspec);
+    if (reactor_type == CONSTANT_VOLUME) {
+      // In this case, state holds rho.Y
+      Real rho = 0;
+      for (int i=0; i<Nspec; ++i) {
+	rho += s_final(iv,sCompY+i);
+      }
+      for (int i=0; i<Nspec; ++i) {
+	Y.copy(s_final,sCompY+i,i,1);
+	Y.mult(1/rho,i,1);
+      }
+    }
+    else {
+      // In this case, state holds Y
+      Y.copy(s_final,box,sCompY,box,0,Nspec);
+    }
+    cd.massFracToMoleFrac(X,Y,box,0,sCompX);
+    return X(iv,measured_comps[0] - sCompY);
+  }
   return s_final(s_final.box().smallEnd(),measured_comps[0]);
 }
 
