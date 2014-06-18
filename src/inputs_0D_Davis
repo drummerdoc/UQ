@@ -25,7 +25,7 @@ parameters = A1 A2 A3 A4
 A1.type = FWD_A
 A1.reaction_id = 0
 A1.prior_mean =  2.644e16
-A1.prior_std =   2.e14
+A1.prior_std =   2.e13
 A1.lower_bound = 2.6e16
 A1.upper_bound = 2.7e16
 
@@ -34,7 +34,7 @@ A1.upper_bound = 2.7e16
 A2.type = FWD_A
 A2.reaction_id = 1
 A2.prior_mean =  4.589e4
-A2.prior_std =   4.e2
+A2.prior_std =   4.e1
 A2.lower_bound = 4.5e4
 A2.upper_bound = 7.5e4
 
@@ -43,7 +43,7 @@ A2.upper_bound = 7.5e4
 A3.type = FWD_A
 A3.reaction_id = 2
 A3.prior_mean =  1.734e8
-A3.prior_std =   3.e6
+A3.prior_std =   3.e5
 A3.lower_bound = 1.6e8
 A3.upper_bound = 1.8e8
 
@@ -52,7 +52,7 @@ A3.upper_bound = 1.8e8
 A4.type = FWD_A
 A4.reaction_id = 3
 A4.prior_mean =  3.973e4
-A4.prior_std =   4.e3
+A4.prior_std =   4.e2
 A4.lower_bound = 2.e4
 A4.upper_bound = 6.e4
 
