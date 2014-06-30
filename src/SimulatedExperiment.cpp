@@ -12,12 +12,27 @@ static Real Patm_DEF = 1;
 static Real dt_DEF   = 0.1;
 static Real Tfile_DEF = -1;
 static int  num_time_intervals_DEF = -1;
-static std::string temp_or_species_name_DEF = "temp";
+static std::string diagnostic_name_DEF = "temp";
 static Real ZeroDReactorErr_DEF = 15;
 static Real PREMIXReactorErr_DEF = 10;
+static Real dpdt_thresh_DEF = 10; // atm / s
+
+
+SimulatedExperiment::~SimulatedExperiment() {}
+
+int
+ZeroDReactor::NumMeasuredValues() const {return num_measured_values;}
+
+ZeroDReactor::~ZeroDReactor() {}
+
+const std::vector<Real>&
+ZeroDReactor::GetMeasurementTimes() const
+{
+  return measurement_times;
+}
 
 ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const REACTOR_TYPE& _type)
-  : SimulatedExperiment(), cd(_cd), reactor_type(_type),
+  : SimulatedExperiment(), cd(_cd), reactor_type(_type),num_measured_values(0),
     sCompY(-1), sCompT(-1), sCompR(-1), sCompRH(-1)
 {
   ParmParse pp(pp_prefix.c_str());
@@ -36,7 +51,7 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
   measurement_times.resize(data_num_points);
   Real dt = data_tend - data_tstart;  BL_ASSERT(dt>=0);
   for (int i=0; i<data_num_points; ++i) {
-    measurement_times[i] = data_tstart + (i+1)*dt/data_num_points;
+    measurement_times[i] = data_tstart + i*dt/(data_num_points-1);
   }
 
   //
@@ -88,52 +103,44 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     s_init(iv,sCompT) = Tinit;
 
     Array<Real> Y = cd.moleFracToMassFrac(volFrac);
+
     for (int i=0; i<nSpec; ++i) {
       s_init(iv,sCompY+i) = Y[i];
     }
     cd.getRhoGivenPTY(s_init,Patm,s_init,s_init,bx,sCompT,sCompY,sCompR);
-    if (reactor_type == CONSTANT_VOLUME) {
-      for (int i=0; i<nSpec; ++i) {
-	s_init(iv,sCompY+i) *= s_init(iv,sCompR);
-      }
-    }
   }
 
   measured_comps.resize(1);
-  std::string temp_or_species_name = temp_or_species_name_DEF;
-  pp.query("temp_or_species_name",temp_or_species_name);
-  if (temp_or_species_name == "temp") {
+  diagnostic_name = diagnostic_name_DEF;
+  pp.query("diagnostic_name",diagnostic_name);
+  if (diagnostic_name == "temp") {
     measured_comps[0] = sCompT;
+    num_measured_values = measurement_times.size() * measured_comps.size();
+  }
+  else if (diagnostic_name == "pressure") {
+    measured_comps[0] = -1; // Pressure
+    num_measured_values = measurement_times.size() * measured_comps.size();
+  }
+  else if (diagnostic_name == "pressure_rise") {
+    transient_thresh = dpdt_thresh_DEF;
+    pp.query("dpdt_thresh",transient_thresh);
+    measured_comps[0] = -1; // Pressure
+    num_measured_values = measured_comps.size();
   }
   else {
-    int comp = cd.index(temp_or_species_name);
+    int comp = cd.index(diagnostic_name);
     if (comp < 0) {
       std::string err = "Invalid species/temp for: " + pp_prefix;
       BoxLib::Abort(err.c_str());
     }
-    measured_comps[0] = sCompY+comp;
+    else {
+      measured_comps[0] = sCompY+comp;
+      num_measured_values = measurement_times.size() * measured_comps.size();
+    }
   }
-  num_measured_values = measurement_times.size() * measured_comps.size();
 
   measurement_error = ZeroDReactorErr_DEF;
   pp.query("measurement_error",measurement_error);
-}
-
-ZeroDReactor::ZeroDReactor(const ZeroDReactor& rhs)
-  : cd(rhs.cd) {
-  measurement_times = rhs.measurement_times;
-  measured_comps = rhs.measured_comps;
-  num_measured_values = num_measured_values;
-  s_init.resize(rhs.s_init.box(),rhs.s_init.nComp()); s_init.copy(rhs.s_init);
-  s_final.resize(rhs.s_final.box(),rhs.s_final.nComp()); s_final.copy(rhs.s_final);
-  C_0.resize(rhs.C_0.box(),rhs.C_0.nComp()); C_0.copy(rhs.C_0);
-  funcCnt.resize(rhs.funcCnt.box(),rhs.funcCnt.nComp()); funcCnt.copy(rhs.funcCnt);
-  sCompY=rhs.sCompY;
-  sCompT=rhs.sCompT;
-  sCompR=rhs.sCompR;
-  sCompRH=rhs.sCompRH;
-  Patm=rhs.Patm;
-  reactor_type=rhs.reactor_type;
 }
 
 void
@@ -151,8 +158,11 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   Reset();
   const Box& box = funcCnt.box();
   int Nspec = cd.numSpecies();
+
   int num_time_nodes = measurement_times.size();
-  simulated_observations.resize(num_time_nodes);
+  simulated_observations.resize(NumMeasuredValues());
+
+  bool sample_evolution = diagnostic_name != "pressure_rise";
 
   if (reactor_type == CONSTANT_VOLUME) {
     FArrayBox& rYold = s_init;
@@ -166,7 +176,21 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     s_init.copy(s_save);
     s_final.copy(s_save);
     Real t_end = 0;
-    for (int i=0; i<num_time_nodes; ++i) {
+    int i = 0;
+    if (t_end == measurement_times[i] && sample_evolution) {
+      simulated_observations[i] = ExtractMeasurement();
+      i++;
+    }
+
+    Real p_new, p_old, dpdt_old;
+    if (diagnostic_name == "pressure_rise") {
+      p_new = ExtractMeasurement();
+      dpdt_old = 0;
+      i++;
+    }
+
+    bool finished = false;
+    for ( ; i<num_time_nodes && !finished; ++i) {
       Real t_start = t_end;
       t_end = measurement_times[i];
       Real dt = t_end - t_start;
@@ -174,7 +198,26 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
                             funcCnt,box,sCompY,sCompRH,sCompT,
                             dt,Patm,diag,true);
-      simulated_observations[i] = ExtractMeasurement();
+
+      if (sample_evolution) {
+        simulated_observations[i] = ExtractMeasurement();
+      }
+
+      if (diagnostic_name == "pressure_rise") {
+	p_old = p_new;
+	p_new = ExtractMeasurement();
+	Real dpdt = (p_new - p_old) / dt;
+#if 0
+	std::cout << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
+		  << p_old << " " << p_new << std::endl;
+#endif
+	finished = dpdt > transient_thresh;
+	if (finished) {
+	  simulated_observations[0] = t_start + dt*(transient_thresh - dpdt_old)/(dpdt - dpdt_old);
+	  simulated_observations[0] *= 1.e6;
+	}
+	dpdt_old = dpdt;
+      }
       
       rYold.copy(rYnew,sCompY,sCompY,Nspec);
       rHold.copy(rHnew,sCompRH,sCompRH,Nspec);
@@ -191,14 +234,21 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     s_init.copy(s_save);
     s_final.copy(s_save);
     Real t_end = 0;
-    for (int i=0; i<num_time_nodes; ++i) {
+    int i = 0;
+    if (t_end == measurement_times[i] && sample_evolution) {
+      simulated_observations[i] = ExtractMeasurement();
+      i++;
+    }
+    for ( ; i<num_time_nodes; ++i) {
       Real t_start = t_end;
       t_end = measurement_times[i];
       Real dt = t_end - t_start;
 
       cd.solveTransient(Ynew,Tnew,Yold,Told,funcCnt,box,
                         sCompY,sCompT,dt,Patm);
-      simulated_observations[i] = ExtractMeasurement();
+      if (sample_evolution) {
+        simulated_observations[i] = ExtractMeasurement();
+      }
       
       Yold.copy(Ynew,sCompY,sCompY,Nspec);
       Told.copy(Tnew,sCompT,sCompT,1);
@@ -206,38 +256,63 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   }
 }
 
+void
+ZeroDReactor::ComputeMassFraction(FArrayBox& Y) const
+{
+  int Nspec = cd.numSpecies();
+  Box box = s_final.box();
+  Y.resize(box,Nspec);
+  if (reactor_type == CONSTANT_VOLUME) { // In this case, state holds rho.Y
+    for (IntVect iv=box.smallEnd(), End=box.bigEnd(); iv<=End; box.next(iv)) {
+      Real rho = 0;
+      for (int i=0; i<Nspec; ++i) {
+        rho += s_final(iv,sCompY+i);
+      }
+      for (int i=0; i<Nspec; ++i) {
+        Y.copy(s_final,sCompY+i,i,1);
+        Y.mult(1/rho,i,1);
+      }
+    }
+  }
+  else { // In this case, state holds Y
+    Y.copy(s_final,box,sCompY,box,0,Nspec);
+  }
+}
 
 Real
 ZeroDReactor::ExtractMeasurement() const
 {
-  // Return the final temperature or concentration of the cell that was evolved
   BL_ASSERT(is_initialized);
-  if (measured_comps[0] != sCompT) {
-    int Nspec = cd.numSpecies();
-    const IntVect& iv = s_final.box().smallEnd();
-    Box box(iv,iv);
-    FArrayBox X(box,Nspec);
-    int sCompX = 0;
-    FArrayBox Y(box,Nspec);
-    if (reactor_type == CONSTANT_VOLUME) {
-      // In this case, state holds rho.Y
-      Real rho = 0;
-      for (int i=0; i<Nspec; ++i) {
-	rho += s_final(iv,sCompY+i);
-      }
-      for (int i=0; i<Nspec; ++i) {
-	Y.copy(s_final,sCompY+i,i,1);
-	Y.mult(1/rho,i,1);
-      }
-    }
-    else {
-      // In this case, state holds Y
-      Y.copy(s_final,box,sCompY,box,0,Nspec);
-    }
-    cd.massFracToMoleFrac(X,Y,box,0,sCompX);
-    return X(iv,measured_comps[0] - sCompY);
+
+  if (measured_comps[0] == sCompT) { // Return temperature
+    return s_final(s_final.box().smallEnd(),measured_comps[0]);
   }
-  return s_final(s_final.box().smallEnd(),measured_comps[0]);
+  else if ((measured_comps[0] < 0) && (reactor_type == CONSTANT_PRESSURE)) {
+    return Patm;
+  }
+
+  FArrayBox Y;
+  ComputeMassFraction(Y);
+  const Box& box = Y.box();
+  int Nspec = cd.numSpecies();
+
+  if (measured_comps[0] < 0) { // Return pressure
+    // CONSTANT_VOLUME case, state holds rho.Y
+    FArrayBox rhop(box,2);
+    rhop.setVal(0,0);
+    for (IntVect iv=box.smallEnd(), End=box.bigEnd(); iv<=End; box.next(iv)) {
+      for (int i=0; i<Nspec; ++i) {
+        rhop(iv,0) += s_final(iv,sCompY+i);
+      }
+    }      
+    cd.getPGivenRTY(rhop,rhop,s_final,Y,box,0,sCompT,0,1);
+    return rhop(box.smallEnd(),1) / 101325;
+  }
+  
+  // Compute mole fraction
+  FArrayBox X(box,Nspec);
+  cd.massFracToMoleFrac(X,Y,box,0,0);
+  return X(box.smallEnd(),measured_comps[0] - sCompY);
 }
 
 void

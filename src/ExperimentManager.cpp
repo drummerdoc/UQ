@@ -32,6 +32,37 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd)
   }
 }
 
+int
+ExperimentManager::NumExptData() const
+{
+  return num_expt_data;
+}
+
+const std::vector<Real>&
+ExperimentManager::TrueData() const
+{
+  return true_data;
+}
+
+const std::vector<Real>&
+ExperimentManager::ObservationSTD() const
+{
+  return true_std;
+}
+
+const std::vector<Real>&
+ExperimentManager::TrueDataWithObservationNoise() const
+{
+  return perturbed_data;
+}
+
+const
+SimulatedExperiment&
+ExperimentManager::Experiment(int i) const
+{
+  return expts[i];
+}
+
 void
 ExperimentManager::Clear()
 {
@@ -47,7 +78,7 @@ ExperimentManager::AddExperiment(SimulatedExperiment* expt,
                                  const std::string&   expt_id)
 {
   int num_expts_old = expts.size();
-  expts.resize(num_expts_old+1);
+  expts.resize(num_expts_old+1,PArrayManage);
   expts.set(num_expts_old, expt);
   int num_new_values = expts[num_expts_old].NumMeasuredValues();
   raw_data.resize(num_expts_old+1,std::vector<Real>(num_new_values));
@@ -74,6 +105,12 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
   true_std.resize(NumExptData());
   true_std_inv2.resize(NumExptData());
   for (int i=0; i<expts.size(); ++i) {
+
+    BL_ASSERT(expts.defined(i));
+    const SimulatedExperiment& expt = expts[i];
+    int n = expt.NumMeasuredValues();
+    BL_ASSERT(n <= raw_data[i].size());
+
     expts[i].GetMeasurements(raw_data[i]);
     int offset = data_offsets[i];
     int nd = raw_data[i].size();
@@ -112,12 +149,12 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
     parameter_manager[i] = test_params[i];      
   }
   test_measurements.resize(NumExptData());
+
   for (int i=0; i<expts.size(); ++i) {
     expts[i].GetMeasurements(raw_data[i]);
     int offset = data_offsets[i];
 
-    int s = raw_data[i].size();
-    for (int j=0; j<s; ++j) {
+    for (int j=0, n=expts[i].NumMeasuredValues(); j<n; ++j) {
       test_measurements[offset + j] = raw_data[i][j];
     }
   }    

@@ -55,41 +55,4 @@ private:
 
 };
 
-inline
-int
-ExperimentManager::NumExptData() const
-{
-  return num_expt_data;
-}
-
-inline
-const std::vector<Real>&
-ExperimentManager::TrueData() const
-{
-  return true_data;
-}
-
-inline
-const std::vector<Real>&
-ExperimentManager::ObservationSTD() const
-{
-  return true_std;
-}
-
-inline
-const std::vector<Real>&
-ExperimentManager::TrueDataWithObservationNoise() const
-{
-  return perturbed_data;
-}
-
-inline
-const
-SimulatedExperiment&
-ExperimentManager::Experiment(int i) const
-{
-  return expts[i];
-}
-
-
 #endif // _ExperimentManager_
