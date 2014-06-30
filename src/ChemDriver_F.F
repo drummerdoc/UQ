@@ -1217,24 +1217,6 @@ C
          SUM = SUM + H * WDOT * WT
       END DO
       ZP(1) = -SUM / (RHO*CPB)
-
-#if 0
-      print*, 'Z:'
-      do k = 1, Nspec+1
-         write(6,996) Z(K)
-      end do
-      print*, 'ZP:'
-      do k = 1, Nspec+1
-         write(6,996) ZP(K)
-      end do
-      print*, 'WDOT:'
-      do k = 1, Nspec
-         write(6,996) WDOTS(K)
-      end do
-
-996   format(e30.22)
-#endif
-
       END
 
       subroutine conpJY(N, TN, Y, SAVF, NFE, FTEM, ML,
