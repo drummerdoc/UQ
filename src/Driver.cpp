@@ -67,6 +67,12 @@ Driver::PriorStd()
 }
 
 std::vector<double>
+Driver::EnsembleStd()
+{
+  return Driver::mystruct->parameter_manager.ensemble_std;
+}
+
+std::vector<double>
 Driver::GenerateTestMeasurements(const std::vector<Real>& test_params)
 {
   std::vector<Real> test_measurements;
@@ -551,11 +557,6 @@ void MCSampler( void* p,
 
 Driver::Driver(int argc, char*argv[])
 {
-  std::cout << "argc: " << argc << std::endl;
-  for(int i =0; i<argc; i++ ){
-    
-    std::cout << " argv[" << i <<  "]: " << argv[i] << std::endl;
-  }
   BoxLib::Initialize(argc, argv);
   if (cd == 0) {
      cd = new ChemDriver;

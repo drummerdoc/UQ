@@ -17,7 +17,8 @@ struct ParameterManager
   int NumParams() const;
 
   void SetStatsForPrior(const std::vector<Real>& mean,
-                        const std::vector<Real>& std,
+                        const std::vector<Real>& prior_std,
+                        const std::vector<Real>& ensemble_std,
                         const std::vector<Real>& lower_bound,
                         const std::vector<Real>& upper_bound);
 
@@ -37,6 +38,7 @@ struct ParameterManager
   const std::vector<Real>& TrueParameters() const {BL_ASSERT(true_parameters.size()>0); return true_parameters;}
   const std::vector<Real>& PriorMean() const {return prior_mean;}
   const std::vector<Real>& PriorSTD() const {return prior_std;}
+  const std::vector<Real>& EnsembleSTD() const {return ensemble_std;}
   const std::vector<Real>& UpperBound() const {return upper_bound;}
   const std::vector<Real>& LowerBound() const {return lower_bound;}
   void setParamLowerBound( Real val, int idx );
@@ -45,6 +47,7 @@ struct ParameterManager
   std::vector<Real> true_parameters;
   std::vector<Real> prior_mean;
   std::vector<Real> prior_std;
+  std::vector<Real> ensemble_std;
   std::vector<Real> lower_bound;
   std::vector<Real> upper_bound;
 };

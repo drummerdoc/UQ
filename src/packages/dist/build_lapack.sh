@@ -11,7 +11,7 @@ export builddir=${PWD}/${fullname}-${BUILD_TYPE}
 export destdir=${PWD}/..
 
 mkdir -p "${builddir}"
-tar -C "${builddir}" -xf "${tardir}"/${fullname}.tgz
+tar -C "${builddir}" -xzf "${tardir}"/${fullname}.tgz
 cd "${builddir}/${fullname}"
 
 export HOST=`hostname`

@@ -16,6 +16,8 @@ class DriverWrap:
         return self.d.PriorMean()
     def PriorStd(self):
         return self.d.PriorStd()
+    def EnsembleStd(self):
+        return self.d.EnsembleStd()
     def GenerateTestMeasurements(self, data):
         return self.d.GenerateTestMeasurements(data)
 
@@ -42,17 +44,19 @@ ndim = driver.NumParams()
 ndata = driver.NumData()
 prior_mean = driver.PriorMean()
 prior_std = driver.PriorStd()
+ensemble_std = driver.EnsembleStd()
 
 print('Number of Parameters:',ndim)
 print('Number of Data:',ndata)
-print('Prior Mean/Std: ')
-print(zip(prior_mean,prior_std))
+print('prior means:  '+ str(prior_mean))
+print('prior std: '+ str(prior_std))
+print('ensemble std: '+ str(ensemble_std))
 
 nwalkers = 10
 print('Number of Walkers:',nwalkers)
 
 # Choose an initial set of positions for the walkers.
-p0 = [prior_mean + np.random.rand(ndim) * prior_std for i in xrange(nwalkers)]
+p0 = [prior_mean + np.random.rand(ndim) * ensemble_std for i in xrange(nwalkers)]
 
 print('Initial walker parameters: ')
 for walker in p0:
@@ -63,7 +67,7 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
 
 # Run burn-in steps
 print ('Doing burn-in...')
-pos, prob, state = sampler.run_mcmc(p0, 50)
+pos, prob, state = sampler.run_mcmc(p0, 100)
 #pos, prob, state = sampler.run_mcmc(p0, 10)
 print ('Burn-in complete, number of evals:',driver.count)
 
@@ -74,7 +78,7 @@ sampler.reset()
 print ('Sampling...')
 #sampler.run_mcmc(pos, 20, rstate0=state)
 #sampler.run_mcmc(pos, 200, rstate0=state)
-sampler.run_mcmc(pos, 2000, rstate0=state)
+sampler.run_mcmc(pos, 50000, rstate0=state)
 print ('Sampling complete, number of evals:',driver.count)
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction
