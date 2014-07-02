@@ -10,7 +10,7 @@ typedef PArray<ChemDriver::Parameter> Parameters;
 
 struct SimulatedExperiment
 {
-  SimulatedExperiment() : is_initialized(false) {}
+  SimulatedExperiment();
   virtual ~SimulatedExperiment();
   virtual void GetMeasurements(std::vector<Real>& simulated_observations) = 0;
   virtual void GetMeasurementError(std::vector<Real>& observation_error) = 0;
@@ -18,10 +18,12 @@ struct SimulatedExperiment
   virtual void InitializeExperiment() = 0;
   bool Initialized() const {return is_initialized;}
   const std::string& DiagnosticName() const {return diagnostic_name;}
+  const std::string& LogFile() const {return log_file;}
 
 protected:
   bool is_initialized;
   std::string diagnostic_name;
+  std::string log_file;
 };
 
 

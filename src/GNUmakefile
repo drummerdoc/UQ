@@ -46,7 +46,8 @@ BOXLIB_HOME = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/src_common
 
-EBASE = main
+#EBASE = main
+EBASE = EvalExpt
 
 include ${BOXLIB_HOME}/Tools/C_mk/Make.defs 
 fincludes=${includes}
@@ -129,7 +130,7 @@ ifeq (${MACHINE}, Darwin)
     #PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
     PYTHON_DIR := /Users/rgrout/Library/Enthought/Canopy_64bit/User/
     PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
-	PYTHON_INCLUDES := /Applications/Canopy.app/appdata/canopy-1.3.0.1715.macosx-x86_64/Canopy.app/Contents/include/python2.7
+    PYTHON_INCLUDES := /Applications/Canopy.app/appdata/canopy-1.3.0.1715.macosx-x86_64/Canopy.app/Contents/include/python2.7
     GFORTLIB := /opt/local/lib/gcc46/libgfortran.${SHARED_LIBRARY_SUFFIX}
     COMP            = g++-mp-4.6
     FCOMP           = gfortran-mp-4.6
@@ -152,10 +153,9 @@ ifeq (${MACHINE}, Darwin)
 endif
 #
 # Where chemkin/premix bits are
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
-  INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
-  fEXE_sources += premix_2.f twopnt.f \
-				  mach.f refine.f cktime.f misc_math.f 
+VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
+INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
+fEXE_sources += premix_2.f twopnt.f mach.f refine.f cktime.f misc_math.f
 
 
 MY_SHARED_LIBRARY_SUFFIX:=so
@@ -166,12 +166,23 @@ INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
 
 # For static links
 LIBRARY_LOCATIONS+=${PACKAGES}/lib
-#LIBRARY_LOCATIONS+=${PACKAGES}/lib64
+ifeq ($(MACHINE), Linux)
+  ifeq (${WHICHLINUX}, HEDORAH)
+    LIBRARY_LOCATIONS+=${PACKAGES}/lib64
+  endif
+endif
 LIBRARIES += -lcminpack -llapacke -llapack -lblas
 
 # For dynamic links
-#SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
-SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
+ifeq ($(MACHINE), Linux)
+  ifeq (${WHICHLINUX}, HEDORAH)
+    SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
+  else
+    SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
+  endif
+else
+  SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
+endif
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapack.${SHARED_LIBRARY_SUFFIX}
 ifeq (${WHICHDARWIN}, RAY)
@@ -188,8 +199,6 @@ vpath %.F   $(VPATH_LOCATIONS)
 vpath %.f   $(VPATH_LOCATIONS)
 vpath %.f90 $(VPATH_LOCATIONS)
 
-EBASE=main
-
 ifeq ($(BUILD_EXEC), TRUE)
   test: exec
 endif
@@ -205,7 +214,7 @@ ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempD
 ${PACKAGE}_wrap.cpp: ${PACKAGE}.i
 	swig -python -c++ -I. $(includes) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
 
-exec: main.o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
+exec: ${EBASE}.o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 	@echo Linking $@ ...
 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) \
 		-o  $(addsuffix $(optionsSuffix).ex, $(EBASE)) $^ ${SHARED_LIBRARIES} ${libraries}

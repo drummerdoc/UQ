@@ -16,7 +16,11 @@ static std::string diagnostic_name_DEF = "temp";
 static Real ZeroDReactorErr_DEF = 15;
 static Real PREMIXReactorErr_DEF = 10;
 static Real dpdt_thresh_DEF = 10; // atm / s
+static std::string log_file_DEF = "NULL"; // if this, no log
 
+
+SimulatedExperiment::SimulatedExperiment()
+  :  is_initialized(false), log_file(log_file_DEF) {}
 
 SimulatedExperiment::~SimulatedExperiment() {}
 
@@ -141,6 +145,10 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
 
   measurement_error = ZeroDReactorErr_DEF;
   pp.query("measurement_error",measurement_error);
+
+  if (pp.countval("log_file")>0) {
+    pp.get("log_file",log_file);
+  }
 }
 
 void
@@ -163,6 +171,12 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   simulated_observations.resize(NumMeasuredValues());
 
   bool sample_evolution = diagnostic_name != "pressure_rise";
+
+  std::ofstream ofs;
+  bool log_this = (log_file != log_file_DEF);
+  if (log_this) {
+    ofs.open(log_file.c_str());
+  }
 
   if (reactor_type == CONSTANT_VOLUME) {
     FArrayBox& rYold = s_init;
@@ -207,13 +221,13 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 	p_old = p_new;
 	p_new = ExtractMeasurement();
 	Real dpdt = (p_new - p_old) / dt;
-#if 0
-	std::cout << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
-		  << p_old << " " << p_new << std::endl;
-#endif
-	finished = dpdt > transient_thresh;
+        if (log_this) {
+          ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
+              << p_old << " " << p_new << std::endl;
+        }
+	finished = dpdt > transient_thresh && dpdt < dpdt_old;
 	if (finished) {
-	  simulated_observations[0] = t_start + dt*(transient_thresh - dpdt_old)/(dpdt - dpdt_old);
+	  simulated_observations[0] = t_start;
 	  simulated_observations[0] *= 1.e6;
 	}
 	dpdt_old = dpdt;
@@ -253,6 +267,10 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       Yold.copy(Ynew,sCompY,sCompY,Nspec);
       Told.copy(Tnew,sCompT,sCompT,1);
     }
+  }
+
+  if (log_this) {
+    ofs.close();
   }
 }
 
