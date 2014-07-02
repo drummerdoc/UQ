@@ -10,15 +10,20 @@ typedef PArray<ChemDriver::Parameter> Parameters;
 
 struct SimulatedExperiment
 {
-  SimulatedExperiment() : is_initialized(false) {}
-  virtual ~SimulatedExperiment() {}
+  SimulatedExperiment();
+  virtual ~SimulatedExperiment();
   virtual void GetMeasurements(std::vector<Real>& simulated_observations) = 0;
   virtual void GetMeasurementError(std::vector<Real>& observation_error) = 0;
   virtual int NumMeasuredValues() const = 0;
   virtual void InitializeExperiment() = 0;
   bool Initialized() const {return is_initialized;}
+  const std::string& DiagnosticName() const {return diagnostic_name;}
+  const std::string& LogFile() const {return log_file;}
+
 protected:
   bool is_initialized;
+  std::string diagnostic_name;
+  std::string log_file;
 };
 
 
@@ -31,8 +36,7 @@ struct ZeroDReactor
     CONSTANT_PRESSURE
   };
   ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const REACTOR_TYPE& _type);
-  ZeroDReactor(const ZeroDReactor& rhs);
-  virtual ~ZeroDReactor() {}
+  virtual ~ZeroDReactor();
 
   virtual const std::vector<Real>& GetMeasurementTimes() const;
   virtual void GetMeasurements(std::vector<Real>& simulated_observations);
@@ -42,7 +46,10 @@ struct ZeroDReactor
 
   virtual int NumMeasuredValues() const;
 
-private:
+  Real TransientThresh() const {return transient_thresh;}
+  void ComputeMassFraction(FArrayBox& Y) const;
+
+protected:
   // Compute observation from evolution
   Real ExtractMeasurement() const;
   void Reset();
@@ -59,21 +66,11 @@ private:
   int sCompY, sCompT, sCompR, sCompRH;
   Real Patm, Tfile;
   std::string pmf_file_name;
+  Real transient_thresh;
+
+private:
+  ZeroDReactor(const ZeroDReactor& rhs);
 };
-
-inline
-int
-ZeroDReactor::NumMeasuredValues() const
-{
-  return num_measured_values;
-}
-
-inline
-const std::vector<Real>&
-ZeroDReactor::GetMeasurementTimes() const
-{
-  return measurement_times;
-}
 
 extern "C" {
         void open_premix_files_(  int*, int*, int*, int*, int*,int*, int *, int *,int*,int* );
