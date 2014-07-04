@@ -125,6 +125,11 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     measured_comps[0] = -1; // Pressure
     num_measured_values = measurement_times.size() * measured_comps.size();
   }
+  else if (diagnostic_name == "max_pressure") {
+    measured_comps[0] = -1; // Pressure
+    pp.query("p_thresh",transient_thresh);
+    num_measured_values = measurement_times.size() * measured_comps.size();
+  }
   else if (diagnostic_name == "pressure_rise") {
     transient_thresh = dpdt_thresh_DEF;
     pp.query("dpdt_thresh",transient_thresh);
@@ -170,7 +175,8 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   int num_time_nodes = measurement_times.size();
   simulated_observations.resize(NumMeasuredValues());
 
-  bool sample_evolution = diagnostic_name != "pressure_rise";
+  bool sample_evolution = diagnostic_name != "pressure_rise"
+    && diagnostic_name != "max_pressure";
 
   std::ofstream ofs;
   bool log_this = (log_file != log_file_DEF);
@@ -197,7 +203,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     }
 
     Real p_new, p_old, dpdt_old;
-    if (diagnostic_name == "pressure_rise") {
+    if (diagnostic_name == "pressure_rise" || diagnostic_name == "max_pressure") {
       p_new = ExtractMeasurement();
       dpdt_old = 0;
       i++;
@@ -231,6 +237,19 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 	  simulated_observations[0] *= 1.e6;
 	}
 	dpdt_old = dpdt;
+      }
+      else if (diagnostic_name == "max_pressure") {
+	p_old = p_new;
+	p_new = ExtractMeasurement();
+        if (log_this) {
+          ofs << i << " " << 0.5*(t_start+t_end) << " " 
+              << p_old << " " << p_new << " " << (p_new - p_old)/dt << std::endl;
+        }
+	finished = p_old > transient_thresh && (p_new - p_old)/dt < transient_thresh;
+	if (finished) {
+	  simulated_observations[0] = t_start;
+	  simulated_observations[0] *= 1.e6;
+	}
       }
       
       rYold.copy(rYnew,sCompY,sCompY,Nspec);

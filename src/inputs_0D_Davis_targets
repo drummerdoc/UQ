@@ -56,38 +56,53 @@ A4.prior_std =   4.e2
 A4.lower_bound = 2.e4
 A4.upper_bound = 6.e4
 
-experiments = flow_reactor1 flow_reactor2
+experiments = flow_reactor1a flow_reactor1b
+experiments = flow_reactor2a
 
 # Target ign1a in Davis paper
-flow_reactor1.type = CVReactor
-flow_reactor1.Patm = 1.729
-flow_reactor1.T  = 1051
-flow_reactor1.H2 = .0667
-flow_reactor1.O2 = .0333
-flow_reactor1.AR = .9000
-flow_reactor1.data_num_points = 1001
-flow_reactor1.data_tstart = 0.
-flow_reactor1.data_tend = 400e-6
-flow_reactor1.diagnostic_name = pressure_rise
-flow_reactor1.measurement_error = 1.e-6
-flow_reactor1.dpdt_thresh = 20
-#flow_reactor1.log_file = junk
-
+flow_reactor1a.type = CVReactor
+flow_reactor1a.Patm = 1.729
+flow_reactor1a.T  = 1051
+flow_reactor1a.H2 = .0667
+flow_reactor1a.O2 = .0333
+flow_reactor1a.AR = .9000
+flow_reactor1a.data_num_points = 1001
+flow_reactor1a.data_tstart = 0.
+flow_reactor1a.data_tend = 400e-6
+flow_reactor1a.diagnostic_name = pressure_rise
+flow_reactor1a.measurement_error = 1.e-6
+flow_reactor1a.dpdt_thresh = 20
+#flow_reactor1a.log_file = junk
 
 # Target ign1b in Davis paper
-flow_reactor2.type = CVReactor
-flow_reactor2.Patm = 2.008
-flow_reactor2.T  = 1312
-flow_reactor2.H2 = .0667
-flow_reactor2.O2 = .0333
-flow_reactor2.AR = .9000
-flow_reactor2.data_num_points = 1001
-flow_reactor2.data_tstart = 0.
-flow_reactor2.data_tend = 200e-6
-flow_reactor2.diagnostic_name = pressure_rise
-flow_reactor2.measurement_error = 1.e-6
-flow_reactor2.dpdt_thresh = 20
-#flow_reactor2.log_file = junk
+flow_reactor1b.type = CVReactor
+flow_reactor1b.Patm = 2.008
+flow_reactor1b.T  = 1312
+flow_reactor1b.H2 = .0667
+flow_reactor1b.O2 = .0333
+flow_reactor1b.AR = .9000
+flow_reactor1b.data_num_points = 1001
+flow_reactor1b.data_tstart = 0.
+flow_reactor1b.data_tend = 200e-6
+flow_reactor1b.diagnostic_name = pressure_rise
+flow_reactor1b.measurement_error = 1.e-6
+flow_reactor1b.dpdt_thresh = 20
+#flow_reactor1b.log_file = junk
+
+# Target ign2a in Davis paper
+flow_reactor2a.type = CVReactor
+flow_reactor2a.Patm = 0.518
+flow_reactor2a.T  = 1033
+flow_reactor2a.H2 = .20
+flow_reactor2a.O2 = .10
+flow_reactor2a.AR = .70
+flow_reactor2a.data_num_points = 1001
+flow_reactor2a.data_tstart = 0.
+flow_reactor2a.data_tend = 1000e-6
+flow_reactor2a.diagnostic_name = max_pressure
+flow_reactor2a.measurement_error = 1.e-6
+flow_reactor2a.p_thresh = 0.6
+flow_reactor2a.log_file = junk
 
 # # Fig 7d in Davis paper
 # flow_reactor1.type = CVReactor
