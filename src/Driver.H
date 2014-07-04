@@ -13,6 +13,7 @@ struct Driver
   static int NumData();
   static std::vector<double> PriorMean();
   static std::vector<double> PriorStd();
+  static std::vector<double> EnsembleStd();
   static std::vector<double> GenerateTestMeasurements(const std::vector<Real>& test_params);
 
   static ChemDriver *cd;

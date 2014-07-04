@@ -41,6 +41,7 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
   std::vector<Real> upper_bound(np);
   std::vector<Real> prior_mean(np);
   std::vector<Real> prior_std(np);
+  std::vector<Real> ensemble_std(np);
 
   for (int i=0; i<np; ++i) {
     std::string prefix = parameters[i];
@@ -59,10 +60,11 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
 
     ppp.get("prior_mean",prior_mean[i]);
     ppp.get("prior_std",prior_std[i]);
+    ppp.get("ensemble_std",ensemble_std[i]);
     ppp.get("lower_bound",lower_bound[i]);
     ppp.get("upper_bound",upper_bound[i]);
   }
-  SetStatsForPrior(prior_mean,prior_std,lower_bound,upper_bound);
+  SetStatsForPrior(prior_mean,prior_std, ensemble_std,lower_bound,upper_bound);
 }
 
 // Add parameter to active set, return default value
@@ -103,12 +105,14 @@ ParameterManager::Clear()
 
 void
 ParameterManager::SetStatsForPrior(const std::vector<Real>& _mean,
-                                   const std::vector<Real>& _std,
+                                   const std::vector<Real>& _prior_std,
+                                   const std::vector<Real>& _ensemble_std,
                                    const std::vector<Real>& _lower_bound,
                                    const std::vector<Real>& _upper_bound)
 {
   prior_mean = _mean;
-  prior_std = _std;
+  prior_std = _prior_std;
+  ensemble_std = _ensemble_std;
   lower_bound = _lower_bound;
   upper_bound = _upper_bound;
   prior_stats_initialized = true;

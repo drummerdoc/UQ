@@ -1,7 +1,8 @@
 try:
-    from mpi4py import MPI    
+    #from mpi4py import MPI    
+    import mpi4py    
 except:
-    print 'WARNING: Unable to import mpi3py'
+    print 'WARNING: Unable to import mpi4py'
 
 try:
     from boxlib import *

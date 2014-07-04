@@ -16,7 +16,7 @@ builddir=${PWD}/${fullname}-${BUILD_TYPE}
 destdir=${PWD}/..
 
 mkdir -p "${builddir}"
-tar -C "${builddir}" -xf "${tardir}"/${fullname}.tar.gz
+tar -C "${builddir}" -xzf "${tardir}"/${fullname}.tar.gz
 
 cd "${builddir}/${fullname}"
 

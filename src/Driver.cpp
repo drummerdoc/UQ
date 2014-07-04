@@ -67,6 +67,12 @@ Driver::PriorStd()
 }
 
 std::vector<double>
+Driver::EnsembleStd()
+{
+  return Driver::mystruct->parameter_manager.ensemble_std;
+}
+
+std::vector<double>
 Driver::GenerateTestMeasurements(const std::vector<Real>& test_params)
 {
   std::vector<Real> test_measurements;
