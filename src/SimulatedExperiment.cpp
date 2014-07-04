@@ -128,7 +128,7 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
   else if (diagnostic_name == "max_pressure") {
     measured_comps[0] = -1; // Pressure
     pp.query("p_thresh",transient_thresh);
-    num_measured_values = measurement_times.size() * measured_comps.size();
+    num_measured_values = measured_comps.size();
   }
   else if (diagnostic_name == "pressure_rise") {
     transient_thresh = dpdt_thresh_DEF;
