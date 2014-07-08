@@ -6,13 +6,21 @@ BUILDING THE CODE
 You'll need to build a couple of external package first, prior to building this code
 (maybe I'll put the build of these into the main build someday....not today though).
 
-The external stuff is in the "packages" folder in this folder, including lapack and 
-cminpack.  Both use CMake to build.  We'll do the build and install using a couple
-of scripts that set things up correctly.  
+The external stuff is in the "packages" folder in this folder, including lapack,
+cminpack, and a self-contained python build for Linux.  Both lapack and cminpack use CMake to build.
+We'll do the build and install using a couple of scripts that set things up correctly.  
 
 cd packages/dist
 ./build_lapack
 ./build_cminpack
+
+If on a 64-bit Linux system, you might save some headaches by installing the local python
+build (rather than futzing with the system python libs that might be too old to help you).
+If you want to try, do
+
+bash Anaconda-2.0.1-Linux-x86_64.sh
+
+inside the packages/dist folder and answer all the prompts.
 
 Finally, ensure that "TOP" is defined in ${UQ_DIR}/GNUmakefile to point to the folder containing 
 CCSE's BoxLib and Combustion git repositories, and then type "make" in ${UQ_DIR}.  Note, depending
