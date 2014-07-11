@@ -16,8 +16,8 @@ import cPickle
 
 #   Inputs
 nwalkers      = 10
-nBurnIn       = 10         # Number of burn-in samples before starting to take data
-nChainLength  = 5000       # Number of MCMC resamplings in the data run, after burn in
+nBurnIn       = 100        # Number of burn-in samples before starting to take data
+nChainLength  = 10000      # Number of MCMC resamplings in the data run, after burn in
 outFilePrefix = "Results_" # Prefix to output file names, to be appended with eval #
 outFilePeriod = 5000       # Number of samples between calls to write data
 runlogPeriod  = 1000       # Number of samples between info messages written to screen
@@ -153,7 +153,7 @@ print("Mean acceptance fraction:", np.mean(sampler.acceptance_fraction))
 #    print("You can install acor: http://github.com/dfm/acor")
 
 fmt = "%0"+str(nDigits)+"d"
-outFileName = outFilePrefix + (fmt % driver.count) + ".dat"
+outFileName = outFilePrefix + (fmt % driver.count)
 PickleResults(sampler,outFileName)
 
 posterior_mean = []
