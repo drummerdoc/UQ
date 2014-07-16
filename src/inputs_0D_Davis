@@ -72,7 +72,7 @@ flow_reactor1.N2 = .9821
 flow_reactor1.data_num_points = 11
 flow_reactor1.data_tstart = 0.
 flow_reactor1.data_tend = 1.0
-flow_reactor1.temp_or_species_name = H2
+flow_reactor1.diagnostic_name = H2
 flow_reactor1.measurement_error = 1.e-6
 
 # Fig 7c in Davis paper, time data includes the time-shift used in the original data fit
@@ -85,7 +85,7 @@ flow_reactor2.N2 = .9856
 flow_reactor2.data_num_points = 11
 flow_reactor2.data_tstart = 0.32
 flow_reactor2.data_tend = 0.68
-flow_reactor2.temp_or_species_name = H2
+flow_reactor2.diagnostic_name = H2
 flow_reactor2.measurement_error = 1.e-6
 
 
