@@ -472,6 +472,106 @@ void SetReactionData(int id, const struct ReactionData * rhs)
 /* Initializes static database */
 void CKINIT()
 {
+    // (0):  H + O2 <=> O + OH
+    R[8].fwd_A     = 26440000000000000;
+    R[8].fwd_beta  = -0.67069999999999996;
+    R[8].fwd_Ea    = 17041;
+    R[8].prefactor_units  = 1.0000000000000002e-06;
+    R[8].activation_units = 0.50321666580471969;
+    R[8].phase_units      = 1e-12;
+    R[8].is_PD = 0;
+
+    // (1):  O + H2 <=> H + OH
+    R[9].fwd_A     = 45890;
+    R[9].fwd_beta  = 2.7000000000000002;
+    R[9].fwd_Ea    = 6260;
+    R[9].prefactor_units  = 1.0000000000000002e-06;
+    R[9].activation_units = 0.50321666580471969;
+    R[9].phase_units      = 1e-12;
+    R[9].is_PD = 0;
+
+    // (2):  OH + H2 <=> H + H2O
+    R[10].fwd_A     = 173400000;
+    R[10].fwd_beta  = 1.51;
+    R[10].fwd_Ea    = 3430;
+    R[10].prefactor_units  = 1.0000000000000002e-06;
+    R[10].activation_units = 0.50321666580471969;
+    R[10].phase_units      = 1e-12;
+    R[10].is_PD = 0;
+
+    // (3):  OH + OH <=> O + H2O
+    R[11].fwd_A     = 39730;
+    R[11].fwd_beta  = 2.3999999999999999;
+    R[11].fwd_Ea    = -2110;
+    R[11].prefactor_units  = 1.0000000000000002e-06;
+    R[11].activation_units = 0.50321666580471969;
+    R[11].phase_units      = 1e-12;
+    R[11].is_PD = 0;
+
+    // (4):  H + H + M <=> H2 + M
+    R[3].fwd_A     = 1.78e+18;
+    R[3].fwd_beta  = -1;
+    R[3].fwd_Ea    = 0;
+    R[3].prefactor_units  = 1.0000000000000002e-12;
+    R[3].activation_units = 0.50321666580471969;
+    R[3].phase_units      = 1e-12;
+    R[3].is_PD = 0;
+
+    // (5):  H + H + H2 <=> H2 + H2
+    R[12].fwd_A     = 90000000000000000;
+    R[12].fwd_beta  = -0.59999999999999998;
+    R[12].fwd_Ea    = 0;
+    R[12].prefactor_units  = 1.0000000000000002e-12;
+    R[12].activation_units = 0.50321666580471969;
+    R[12].phase_units      = 1e-18;
+    R[12].is_PD = 0;
+
+    // (6):  H + H + H2O <=> H2 + H2O
+    R[13].fwd_A     = 5.624e+19;
+    R[13].fwd_beta  = -1.25;
+    R[13].fwd_Ea    = 0;
+    R[13].prefactor_units  = 1.0000000000000002e-12;
+    R[13].activation_units = 0.50321666580471969;
+    R[13].phase_units      = 1e-18;
+    R[13].is_PD = 0;
+
+    // (7):  H + H + CO2 <=> H2 + CO2
+    R[14].fwd_A     = 5.5e+20;
+    R[14].fwd_beta  = -2;
+    R[14].fwd_Ea    = 0;
+    R[14].prefactor_units  = 1.0000000000000002e-12;
+    R[14].activation_units = 0.50321666580471969;
+    R[14].phase_units      = 1e-18;
+    R[14].is_PD = 0;
+
+    // (8):  H + OH + M <=> H2O + M
+    R[4].fwd_A     = 4.4e+22;
+    R[4].fwd_beta  = -2;
+    R[4].fwd_Ea    = 0;
+    R[4].prefactor_units  = 1.0000000000000002e-12;
+    R[4].activation_units = 0.50321666580471969;
+    R[4].phase_units      = 1e-12;
+    R[4].is_PD = 0;
+
+    // (9):  O + H + M <=> OH + M
+    R[5].fwd_A     = 9.428e+18;
+    R[5].fwd_beta  = -1;
+    R[5].fwd_Ea    = 0;
+    R[5].prefactor_units  = 1.0000000000000002e-12;
+    R[5].activation_units = 0.50321666580471969;
+    R[5].phase_units      = 1e-12;
+    R[5].is_PD = 0;
+
+    // (10):  O + O + M <=> O2 + M
+    R[6].fwd_A     = 1.2e+17;
+    R[6].fwd_beta  = -1;
+    R[6].fwd_Ea    = 0;
+    R[6].prefactor_units  = 1.0000000000000002e-12;
+    R[6].activation_units = 0.50321666580471969;
+    R[6].phase_units      = 1e-12;
+    R[6].is_PD = 0;
+
+    // (11):  H + O2 (+M) <=> HO2 (+M)
     R[0].fwd_A     = 5116000000000;
     R[0].fwd_beta  = 0.44;
     R[0].fwd_Ea    = 0;
@@ -487,6 +587,16 @@ void CKINIT()
     R[0].phase_units      = 1e-12;
     R[0].is_PD = 1;
 
+    // (12):  H2 + O2 <=> HO2 + H
+    R[15].fwd_A     = 591600;
+    R[15].fwd_beta  = 2.4329999999999998;
+    R[15].fwd_Ea    = 53502;
+    R[15].prefactor_units  = 1.0000000000000002e-06;
+    R[15].activation_units = 0.50321666580471969;
+    R[15].phase_units      = 1e-12;
+    R[15].is_PD = 0;
+
+    // (13):  OH + OH (+M) <=> H2O2 (+M)
     R[1].fwd_A     = 111000000000000;
     R[1].fwd_beta  = -0.37;
     R[1].fwd_Ea    = 0;
@@ -503,6 +613,115 @@ void CKINIT()
     R[1].phase_units      = 1e-12;
     R[1].is_PD = 1;
 
+    // (14):  HO2 + H <=> O + H2O
+    R[16].fwd_A     = 3970000000000;
+    R[16].fwd_beta  = 0;
+    R[16].fwd_Ea    = 671;
+    R[16].prefactor_units  = 1.0000000000000002e-06;
+    R[16].activation_units = 0.50321666580471969;
+    R[16].phase_units      = 1e-12;
+    R[16].is_PD = 0;
+
+    // (15):  HO2 + H <=> OH + OH
+    R[17].fwd_A     = 74850000000000;
+    R[17].fwd_beta  = 0;
+    R[17].fwd_Ea    = 295;
+    R[17].prefactor_units  = 1.0000000000000002e-06;
+    R[17].activation_units = 0.50321666580471969;
+    R[17].phase_units      = 1e-12;
+    R[17].is_PD = 0;
+
+    // (16):  HO2 + O <=> OH + O2
+    R[18].fwd_A     = 40000000000000;
+    R[18].fwd_beta  = 0;
+    R[18].fwd_Ea    = 0;
+    R[18].prefactor_units  = 1.0000000000000002e-06;
+    R[18].activation_units = 0.50321666580471969;
+    R[18].phase_units      = 1e-12;
+    R[18].is_PD = 0;
+
+    // (17):  HO2 + OH <=> O2 + H2O
+    R[19].fwd_A     = 23750000000000;
+    R[19].fwd_beta  = 0;
+    R[19].fwd_Ea    = -500;
+    R[19].prefactor_units  = 1.0000000000000002e-06;
+    R[19].activation_units = 0.50321666580471969;
+    R[19].phase_units      = 1e-12;
+    R[19].is_PD = 0;
+
+    // (18):  HO2 + OH <=> O2 + H2O
+    R[20].fwd_A     = 10000000000000000;
+    R[20].fwd_beta  = 0;
+    R[20].fwd_Ea    = 17330;
+    R[20].prefactor_units  = 1.0000000000000002e-06;
+    R[20].activation_units = 0.50321666580471969;
+    R[20].phase_units      = 1e-12;
+    R[20].is_PD = 0;
+
+    // (19):  HO2 + HO2 <=> O2 + H2O2
+    R[21].fwd_A     = 130000000000;
+    R[21].fwd_beta  = 0;
+    R[21].fwd_Ea    = -1630;
+    R[21].prefactor_units  = 1.0000000000000002e-06;
+    R[21].activation_units = 0.50321666580471969;
+    R[21].phase_units      = 1e-12;
+    R[21].is_PD = 0;
+
+    // (20):  HO2 + HO2 <=> O2 + H2O2
+    R[22].fwd_A     = 365800000000000;
+    R[22].fwd_beta  = 0;
+    R[22].fwd_Ea    = 12000;
+    R[22].prefactor_units  = 1.0000000000000002e-06;
+    R[22].activation_units = 0.50321666580471969;
+    R[22].phase_units      = 1e-12;
+    R[22].is_PD = 0;
+
+    // (21):  H2O2 + H <=> HO2 + H2
+    R[23].fwd_A     = 6050000;
+    R[23].fwd_beta  = 2;
+    R[23].fwd_Ea    = 5200;
+    R[23].prefactor_units  = 1.0000000000000002e-06;
+    R[23].activation_units = 0.50321666580471969;
+    R[23].phase_units      = 1e-12;
+    R[23].is_PD = 0;
+
+    // (22):  H2O2 + H <=> OH + H2O
+    R[24].fwd_A     = 24100000000000;
+    R[24].fwd_beta  = 0;
+    R[24].fwd_Ea    = 3970;
+    R[24].prefactor_units  = 1.0000000000000002e-06;
+    R[24].activation_units = 0.50321666580471969;
+    R[24].phase_units      = 1e-12;
+    R[24].is_PD = 0;
+
+    // (23):  H2O2 + O <=> OH + HO2
+    R[25].fwd_A     = 9630000;
+    R[25].fwd_beta  = 2;
+    R[25].fwd_Ea    = 3970;
+    R[25].prefactor_units  = 1.0000000000000002e-06;
+    R[25].activation_units = 0.50321666580471969;
+    R[25].phase_units      = 1e-12;
+    R[25].is_PD = 0;
+
+    // (24):  H2O2 + OH <=> HO2 + H2O
+    R[26].fwd_A     = 2000000000000;
+    R[26].fwd_beta  = 0;
+    R[26].fwd_Ea    = 427;
+    R[26].prefactor_units  = 1.0000000000000002e-06;
+    R[26].activation_units = 0.50321666580471969;
+    R[26].phase_units      = 1e-12;
+    R[26].is_PD = 0;
+
+    // (25):  H2O2 + OH <=> HO2 + H2O
+    R[27].fwd_A     = 2.6700000000000001e+41;
+    R[27].fwd_beta  = -7;
+    R[27].fwd_Ea    = 37600;
+    R[27].prefactor_units  = 1.0000000000000002e-06;
+    R[27].activation_units = 0.50321666580471969;
+    R[27].phase_units      = 1e-12;
+    R[27].is_PD = 0;
+
+    // (26):  CO + O (+M) <=> CO2 (+M)
     R[2].fwd_A     = 13620000000;
     R[2].fwd_beta  = 0;
     R[2].fwd_Ea    = 2384;
@@ -514,206 +733,7 @@ void CKINIT()
     R[2].phase_units      = 1e-12;
     R[2].is_PD = 1;
 
-    R[3].fwd_A     = 1.78e+18;
-    R[3].fwd_beta  = -1;
-    R[3].fwd_Ea    = 0;
-    R[3].prefactor_units  = 1.0000000000000002e-12;
-    R[3].activation_units = 0.50321666580471969;
-    R[3].phase_units      = 1e-12;
-    R[3].is_PD = 0;
-
-    R[4].fwd_A     = 4.4e+22;
-    R[4].fwd_beta  = -2;
-    R[4].fwd_Ea    = 0;
-    R[4].prefactor_units  = 1.0000000000000002e-12;
-    R[4].activation_units = 0.50321666580471969;
-    R[4].phase_units      = 1e-12;
-    R[4].is_PD = 0;
-
-    R[5].fwd_A     = 9.428e+18;
-    R[5].fwd_beta  = -1;
-    R[5].fwd_Ea    = 0;
-    R[5].prefactor_units  = 1.0000000000000002e-12;
-    R[5].activation_units = 0.50321666580471969;
-    R[5].phase_units      = 1e-12;
-    R[5].is_PD = 0;
-
-    R[6].fwd_A     = 1.2e+17;
-    R[6].fwd_beta  = -1;
-    R[6].fwd_Ea    = 0;
-    R[6].prefactor_units  = 1.0000000000000002e-12;
-    R[6].activation_units = 0.50321666580471969;
-    R[6].phase_units      = 1e-12;
-    R[6].is_PD = 0;
-
-    R[7].fwd_A     = 1.87e+17;
-    R[7].fwd_beta  = -1;
-    R[7].fwd_Ea    = 17000;
-    R[7].prefactor_units  = 1.0000000000000002e-06;
-    R[7].activation_units = 0.50321666580471969;
-    R[7].phase_units      = 1e-6;
-    R[7].is_PD = 0;
-
-    R[8].fwd_A     = 26440000000000000;
-    R[8].fwd_beta  = -0.67069999999999996;
-    R[8].fwd_Ea    = 17041;
-    R[8].prefactor_units  = 1.0000000000000002e-06;
-    R[8].activation_units = 0.50321666580471969;
-    R[8].phase_units      = 1e-12;
-    R[8].is_PD = 0;
-
-    R[9].fwd_A     = 45890;
-    R[9].fwd_beta  = 2.7000000000000002;
-    R[9].fwd_Ea    = 6260;
-    R[9].prefactor_units  = 1.0000000000000002e-06;
-    R[9].activation_units = 0.50321666580471969;
-    R[9].phase_units      = 1e-12;
-    R[9].is_PD = 0;
-
-    R[10].fwd_A     = 173400000;
-    R[10].fwd_beta  = 1.51;
-    R[10].fwd_Ea    = 3430;
-    R[10].prefactor_units  = 1.0000000000000002e-06;
-    R[10].activation_units = 0.50321666580471969;
-    R[10].phase_units      = 1e-12;
-    R[10].is_PD = 0;
-
-    R[11].fwd_A     = 39730;
-    R[11].fwd_beta  = 2.3999999999999999;
-    R[11].fwd_Ea    = -2110;
-    R[11].prefactor_units  = 1.0000000000000002e-06;
-    R[11].activation_units = 0.50321666580471969;
-    R[11].phase_units      = 1e-12;
-    R[11].is_PD = 0;
-
-    R[12].fwd_A     = 90000000000000000;
-    R[12].fwd_beta  = -0.59999999999999998;
-    R[12].fwd_Ea    = 0;
-    R[12].prefactor_units  = 1.0000000000000002e-12;
-    R[12].activation_units = 0.50321666580471969;
-    R[12].phase_units      = 1e-18;
-    R[12].is_PD = 0;
-
-    R[13].fwd_A     = 5.624e+19;
-    R[13].fwd_beta  = -1.25;
-    R[13].fwd_Ea    = 0;
-    R[13].prefactor_units  = 1.0000000000000002e-12;
-    R[13].activation_units = 0.50321666580471969;
-    R[13].phase_units      = 1e-18;
-    R[13].is_PD = 0;
-
-    R[14].fwd_A     = 5.5e+20;
-    R[14].fwd_beta  = -2;
-    R[14].fwd_Ea    = 0;
-    R[14].prefactor_units  = 1.0000000000000002e-12;
-    R[14].activation_units = 0.50321666580471969;
-    R[14].phase_units      = 1e-18;
-    R[14].is_PD = 0;
-
-    R[15].fwd_A     = 591600;
-    R[15].fwd_beta  = 2.4329999999999998;
-    R[15].fwd_Ea    = 53502;
-    R[15].prefactor_units  = 1.0000000000000002e-06;
-    R[15].activation_units = 0.50321666580471969;
-    R[15].phase_units      = 1e-12;
-    R[15].is_PD = 0;
-
-    R[16].fwd_A     = 3970000000000;
-    R[16].fwd_beta  = 0;
-    R[16].fwd_Ea    = 671;
-    R[16].prefactor_units  = 1.0000000000000002e-06;
-    R[16].activation_units = 0.50321666580471969;
-    R[16].phase_units      = 1e-12;
-    R[16].is_PD = 0;
-
-    R[17].fwd_A     = 74850000000000;
-    R[17].fwd_beta  = 0;
-    R[17].fwd_Ea    = 295;
-    R[17].prefactor_units  = 1.0000000000000002e-06;
-    R[17].activation_units = 0.50321666580471969;
-    R[17].phase_units      = 1e-12;
-    R[17].is_PD = 0;
-
-    R[18].fwd_A     = 40000000000000;
-    R[18].fwd_beta  = 0;
-    R[18].fwd_Ea    = 0;
-    R[18].prefactor_units  = 1.0000000000000002e-06;
-    R[18].activation_units = 0.50321666580471969;
-    R[18].phase_units      = 1e-12;
-    R[18].is_PD = 0;
-
-    R[19].fwd_A     = 23750000000000;
-    R[19].fwd_beta  = 0;
-    R[19].fwd_Ea    = -500;
-    R[19].prefactor_units  = 1.0000000000000002e-06;
-    R[19].activation_units = 0.50321666580471969;
-    R[19].phase_units      = 1e-12;
-    R[19].is_PD = 0;
-
-    R[20].fwd_A     = 10000000000000000;
-    R[20].fwd_beta  = 0;
-    R[20].fwd_Ea    = 17330;
-    R[20].prefactor_units  = 1.0000000000000002e-06;
-    R[20].activation_units = 0.50321666580471969;
-    R[20].phase_units      = 1e-12;
-    R[20].is_PD = 0;
-
-    R[21].fwd_A     = 130000000000;
-    R[21].fwd_beta  = 0;
-    R[21].fwd_Ea    = -1630;
-    R[21].prefactor_units  = 1.0000000000000002e-06;
-    R[21].activation_units = 0.50321666580471969;
-    R[21].phase_units      = 1e-12;
-    R[21].is_PD = 0;
-
-    R[22].fwd_A     = 365800000000000;
-    R[22].fwd_beta  = 0;
-    R[22].fwd_Ea    = 12000;
-    R[22].prefactor_units  = 1.0000000000000002e-06;
-    R[22].activation_units = 0.50321666580471969;
-    R[22].phase_units      = 1e-12;
-    R[22].is_PD = 0;
-
-    R[23].fwd_A     = 6050000;
-    R[23].fwd_beta  = 2;
-    R[23].fwd_Ea    = 5200;
-    R[23].prefactor_units  = 1.0000000000000002e-06;
-    R[23].activation_units = 0.50321666580471969;
-    R[23].phase_units      = 1e-12;
-    R[23].is_PD = 0;
-
-    R[24].fwd_A     = 24100000000000;
-    R[24].fwd_beta  = 0;
-    R[24].fwd_Ea    = 3970;
-    R[24].prefactor_units  = 1.0000000000000002e-06;
-    R[24].activation_units = 0.50321666580471969;
-    R[24].phase_units      = 1e-12;
-    R[24].is_PD = 0;
-
-    R[25].fwd_A     = 9630000;
-    R[25].fwd_beta  = 2;
-    R[25].fwd_Ea    = 3970;
-    R[25].prefactor_units  = 1.0000000000000002e-06;
-    R[25].activation_units = 0.50321666580471969;
-    R[25].phase_units      = 1e-12;
-    R[25].is_PD = 0;
-
-    R[26].fwd_A     = 2000000000000;
-    R[26].fwd_beta  = 0;
-    R[26].fwd_Ea    = 427;
-    R[26].prefactor_units  = 1.0000000000000002e-06;
-    R[26].activation_units = 0.50321666580471969;
-    R[26].phase_units      = 1e-12;
-    R[26].is_PD = 0;
-
-    R[27].fwd_A     = 2.6700000000000001e+41;
-    R[27].fwd_beta  = -7;
-    R[27].fwd_Ea    = 37600;
-    R[27].prefactor_units  = 1.0000000000000002e-06;
-    R[27].activation_units = 0.50321666580471969;
-    R[27].phase_units      = 1e-12;
-    R[27].is_PD = 0;
-
+    // (27):  CO + OH <=> CO2 + H
     R[28].fwd_A     = 800000000000;
     R[28].fwd_beta  = 0.14000000000000001;
     R[28].fwd_Ea    = 7352;
@@ -722,6 +742,7 @@ void CKINIT()
     R[28].phase_units      = 1e-12;
     R[28].is_PD = 0;
 
+    // (28):  CO + OH <=> CO2 + H
     R[29].fwd_A     = 87840000000;
     R[29].fwd_beta  = 0.029999999999999999;
     R[29].fwd_Ea    = -16;
@@ -730,6 +751,7 @@ void CKINIT()
     R[29].phase_units      = 1e-12;
     R[29].is_PD = 0;
 
+    // (29):  CO + O2 <=> CO2 + O
     R[30].fwd_A     = 1119000000000;
     R[30].fwd_beta  = 0;
     R[30].fwd_Ea    = 47700;
@@ -738,6 +760,7 @@ void CKINIT()
     R[30].phase_units      = 1e-12;
     R[30].is_PD = 0;
 
+    // (30):  CO + HO2 <=> CO2 + OH
     R[31].fwd_A     = 30100000000000;
     R[31].fwd_beta  = 0;
     R[31].fwd_Ea    = 23000;
@@ -746,6 +769,7 @@ void CKINIT()
     R[31].phase_units      = 1e-12;
     R[31].is_PD = 0;
 
+    // (31):  HCO + H <=> CO + H2
     R[32].fwd_A     = 120000000000000;
     R[32].fwd_beta  = 0;
     R[32].fwd_Ea    = 0;
@@ -754,6 +778,7 @@ void CKINIT()
     R[32].phase_units      = 1e-12;
     R[32].is_PD = 0;
 
+    // (32):  HCO + O <=> CO + OH
     R[33].fwd_A     = 30000000000000;
     R[33].fwd_beta  = 0;
     R[33].fwd_Ea    = 0;
@@ -762,6 +787,7 @@ void CKINIT()
     R[33].phase_units      = 1e-12;
     R[33].is_PD = 0;
 
+    // (33):  HCO + O <=> CO2 + H
     R[34].fwd_A     = 30000000000000;
     R[34].fwd_beta  = 0;
     R[34].fwd_Ea    = 0;
@@ -770,6 +796,7 @@ void CKINIT()
     R[34].phase_units      = 1e-12;
     R[34].is_PD = 0;
 
+    // (34):  HCO + OH <=> CO + H2O
     R[35].fwd_A     = 30200000000000;
     R[35].fwd_beta  = 0;
     R[35].fwd_Ea    = 0;
@@ -778,6 +805,16 @@ void CKINIT()
     R[35].phase_units      = 1e-12;
     R[35].is_PD = 0;
 
+    // (35):  HCO + M <=> CO + H + M
+    R[7].fwd_A     = 1.87e+17;
+    R[7].fwd_beta  = -1;
+    R[7].fwd_Ea    = 17000;
+    R[7].prefactor_units  = 1.0000000000000002e-06;
+    R[7].activation_units = 0.50321666580471969;
+    R[7].phase_units      = 1e-6;
+    R[7].is_PD = 0;
+
+    // (36):  HCO + H2O <=> CO + H + H2O
     R[36].fwd_A     = 2.244e+18;
     R[36].fwd_beta  = -1;
     R[36].fwd_Ea    = 17000;
@@ -786,6 +823,7 @@ void CKINIT()
     R[36].phase_units      = 1e-12;
     R[36].is_PD = 0;
 
+    // (37):  HCO + O2 <=> CO + HO2
     R[37].fwd_A     = 12040000000;
     R[37].fwd_beta  = 0.80700000000000005;
     R[37].fwd_Ea    = -727;
@@ -3860,7 +3898,7 @@ void productionRate(double * restrict wdot, double * restrict sc, double T)
 void comp_k_f(double * restrict tc, double invT, double * restrict k_f)
 {
 #ifdef __INTEL_COMPILER
-     #pragma simd
+    #pragma simd
 #endif
     for (int i=0; i<38; ++i) {
         k_f[i] = prefactor_units[i] * fwd_A[i]
@@ -9305,7 +9343,7 @@ void GET_T_GIVEN_EY(double * restrict e, double * restrict y, int * iwrk, double
 #endif
     double ein  = *e;
     double tmin = 250;/*max lower bound for thermo def */
-    double tmax = 3500;/*min upper bound for thermo def */
+    double tmax = 4000;/*min upper bound for thermo def */
     double e1,emin,emax,cv,t1,dt;
     int i;/* loop counter */
     CKUBMS(&tmin, y, iwrk, rwrk, &emin);
@@ -10723,6 +10761,7 @@ O  OH  HCO HO2
 !
 H2O  CO  O2  H2O2  CO2
 !
+END
 REACTIONS
 !
 ! Reactions of H2/O2
@@ -10835,13 +10874,10 @@ OH                S 9/01O   1H   1    0    0G   200.000  6000.000   1000.00    1
  2.86472886E+00 1.05650448E-03-2.59082758E-07 3.05218674E-11-1.33195876E-15    2
  3.71885774E+03 5.70164073E+00 4.12530561E+00-3.22544939E-03 6.52764691E-06    3
 -5.79853643E-09 2.06237379E-12 3.38153812E+03-6.90432960E-01 4.51532273E+03    4
-<<<<<<< HEAD
-=======
 OH-OLD            RUS 78O   1H   1   00   00G   200.000  3500.000  1000.000    1
  3.09288767E+00 5.48429716E-04 1.26505228E-07-8.79461556E-11 1.17412376E-14    2
  3.85865700E+03 4.47669610E+00 3.99201543E+00-2.40131752E-03 4.61793841E-06    3
 -3.88113333E-09 1.36411470E-12 3.61508056E+03-1.03925458E-01 8.81310600E+03    4
->>>>>>> 96047fcebbc048e76be07737f734966d562c3001
 H2O               L 8/89H   2O   1   00   00G   200.000  3500.000  1000.000    1
  3.03399249E+00 2.17691804E-03-1.64072518E-07-9.70419870E-11 1.68200992E-14    2
 -3.00042971E+04 4.96677010E+00 4.19864056E+00-2.03643410E-03 6.52040211E-06    3

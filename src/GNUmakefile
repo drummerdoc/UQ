@@ -125,6 +125,12 @@ ifeq ($(MACHINE), Linux)
     SHARED_LIBRARY_SUFFIX:=so
     LIBRARIES+=-lpython2.7
   endif
+  ifeq (${WHICHLINUX}, MOTHRA)
+    PYTHON_DIR := /home/marc/src/CCSE/UQ/src/packages/build/pypa-virtualenv-fceb355/pyenv
+    PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.6
+    SHARED_LIBRARY_SUFFIX:=so
+    LIBRARIES+=-lpython2.6
+  endif
 endif
 
 ifeq (${MACHINE}, Darwin) 
@@ -177,19 +183,13 @@ INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
 # For static links
 LIBRARY_LOCATIONS+=${PACKAGES}/lib
 ifeq ($(MACHINE), Linux)
-  ifeq (${WHICHLINUX}, HEDORAH)
-    LIBRARY_LOCATIONS+=${PACKAGES}/lib64
-  endif
+  LIBRARY_LOCATIONS+=${PACKAGES}/lib64
 endif
 LIBRARIES += -lcminpack -llapacke -llapack -lblas
 
 # For dynamic links
 ifeq ($(MACHINE), Linux)
-  ifeq (${WHICHLINUX}, HEDORAH)
-    SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
-  else
-    SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
-  endif
+  SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
 else
   SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
 endif

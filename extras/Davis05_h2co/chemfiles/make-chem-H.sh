@@ -1,4 +1,4 @@
-CHEMTOOLSDIR=/home/marc/src/CCSE/Combustion/Chemistry/tools
+CHEMTOOLSDIR=/scratch2/marc/src/CCSE/Combustion/Chemistry/tools
 #CHEMTOOLSDIR=/Users/rgrout/Code/rev-controlled/LBNL/Combustion/Chemistry/tools
 
 CHEMINP=mech.inp
