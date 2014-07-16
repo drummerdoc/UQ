@@ -1,6 +1,6 @@
 
 # Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
-TOP = ../..
+TOP = ../../..
 #TOP = /home/marc/src/CCSE/BattraCCSE
 PACKAGES=./packages
 
@@ -8,6 +8,9 @@ HOST=$(shell hostname)
 ifeq (${HOST},stc-23736s)
 TOP = /Users/rgrout/Code/rev-controlled/LBNL
 WHICHDARWIN=RAY
+endif
+ifeq ($(findstring jonathans-mbp-3, $(HOST)), jonathans-mbp-3)
+WHICHDARWIN=JG
 endif
 
 PRECISION       = DOUBLE
@@ -123,6 +126,7 @@ ifeq ($(MACHINE), Linux)
     LIBRARIES+=-lpython2.7
   endif
 endif
+
 ifeq (${MACHINE}, Darwin) 
   SHARED_LIBRARY_SUFFIX:=dylib
   ifeq (${WHICHDARWIN}, RAY)
@@ -148,9 +152,15 @@ ifeq (${MACHINE}, Darwin)
     GFORTLIB := /opt/local/lib/gcc47/libgfortran.${SHARED_LIBRARY_SUFFIX}
     LIBRARIES+=-lpython2.7
   endif
+  ifeq (${WHICHDARWIN}, JG)
+    PYTHON_DIR := /usr/local/Cellar/python/2.7.7_2/Frameworks/Python.framework/Versions/Current
+    PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
+    GFORTLIB := /usr/local/gfortran/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
+  endif
   SHARED_LIBRARIES += ${PYTHON_DIR}/lib/libpython2.7.${SHARED_LIBRARY_SUFFIX} ${GFORTLIB}
   PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
 endif
+
 #
 # Where chemkin/premix bits are
 VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
