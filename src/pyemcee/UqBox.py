@@ -17,11 +17,11 @@ import cPickle
 #   Inputs
 nwalkers      = 10
 nBurnIn       = 100        # Number of burn-in samples before starting to take data
-nChainLength  = 10000      # Number of MCMC resamplings in the data run, after burn in
+nChainLength  = 1000       # Number of MCMC resamplings in the data run, after burn in
 outFilePrefix = "Results_" # Prefix to output file names, to be appended with eval #
-outFilePeriod = 5000       # Number of samples between calls to write data
-runlogPeriod  = 1000       # Number of samples between info messages written to screen
-nDigits       = int(np.log10( nwalkers*(1+nBurnIn+nChainLength))) + 1 # Number of digits in appended number
+outFilePeriod = 200        # Number of samples between calls to write data
+runlogPeriod  = 100        # Number of samples between info messages written to screen
+nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended number
 
 # Pickle entire sample chain (cummulative, and therefore not exactly ideal, but simple)
 def PickleResults(driver,filename):
@@ -32,7 +32,8 @@ def PickleResults(driver,filename):
                 'ndata',
                 'nwalkers',
                 'nBurnIn',
-                'nChainLength']
+                'nChainLength',
+                'iters']
 
     OutDict = dict()     # a python dictionary with variable names and values
     for name in OutNames:
@@ -84,21 +85,11 @@ def lnprob(x, driver):
         space
 
     """
-    driver.count += 1
-    if driver.count % runlogPeriod == 0:
-        print("driver called ", driver.count, "times")
-
-    if driver.count % outFilePeriod == 0:
-        fmt = "%0"+str(nDigits)+"d"
-        outFileName = outFilePrefix + (fmt % driver.count)
-        PickleResults(sampler,outFileName)
-        
     return driver.Eval(x)
 
 # Build the persistent class containing the driver object
 driver = DriverWrap()
 driver.d = pymc.Driver(len(sys.argv), sys.argv)
-driver.count = 0
 
 ndim = driver.NumParams()
 ndata = driver.NumData()
@@ -113,6 +104,9 @@ print('prior std: '+ str(prior_std))
 print('ensemble std: '+ str(ensemble_std))
 
 # Choose an initial set of positions for the walkers.
+
+np.random.seed(17)
+
 p0 = [prior_mean + np.random.rand(ndim) * ensemble_std for i in xrange(nwalkers)]
 
 print('Initial walker parameters: ')
@@ -126,35 +120,29 @@ driver.sampler = sampler
 # Run burn-in steps
 print ('Doing burn-in...')
 pos, prob, state = sampler.run_mcmc(p0, nBurnIn)
-#pos, prob, state = sampler.run_mcmc(p0, 10)
-print ('Burn-in complete, number of evals:',driver.count)
 
 # Reset the chain to remove the burn-in samples.
 sampler.reset()
 
 # Starting from the final position in the burn-in chain, do sample steps.
 print ('Sampling...')
-#sampler.run_mcmc(pos, 20, rstate0=state)
-#sampler.run_mcmc(pos, 200, rstate0=state)
-sampler.run_mcmc(pos, nChainLength, rstate0=state)
-print ('Sampling complete, number of evals:',driver.count)
+iters = 0
+for result in sampler.sample(pos, iterations=nChainLength):
+    iters = iters + 1
+
+    if iters % runlogPeriod == 0:
+        print(str(iters)+" walker sweeps complete")
+
+    if iters % outFilePeriod == 0:
+        fmt = "%0"+str(nDigits)+"d"
+        outFileName = outFilePrefix + (fmt % iters)
+        PickleResults(sampler,outFileName)
+        
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction
 # has an entry for each walker so, in this case, it is a 250-dimensional
 # vector.
 print("Mean acceptance fraction:", np.mean(sampler.acceptance_fraction))
-
-# If you have installed acor (http://github.com/dfm/acor), you can estimate
-# the autocorrelation time for the chain. The autocorrelation time is also
-# a vector with 10 entries (one for each dimension of parameter space).
-#try:
-#    print("Autocorrelation time:", sampler.acor)
-#except ImportError:
-#    print("You can install acor: http://github.com/dfm/acor")
-
-fmt = "%0"+str(nDigits)+"d"
-outFileName = outFilePrefix + (fmt % driver.count)
-PickleResults(sampler,outFileName)
 
 posterior_mean = []
 for i in range(ndim):
