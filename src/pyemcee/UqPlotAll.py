@@ -69,11 +69,12 @@ pl.figure()
 v0 = np.reshape( x[:,0:iters,0], [nwalkers*iters])
 v1 = np.reshape( x[:,0:iters,1], [nwalkers*iters])
 
-stride = 1
+Nscatter = 4997                     # Approx number of points on scatter plot
+stride = max(1, nwalkers*iters / Nscatter)
 v0p = v0[0:nwalkers*iters:stride]   # subsample for plotting
 v1p = v1[0:nwalkers*iters:stride]
 
-pl.plot(v0p,v1p,'.')
+pl.plot(v0p,v1p,'.',markersize=2)
 pl.xlabel('var 0')
 pl.ylabel('var 1')
 pl.title('scatterplot, var 0 vs. var 1')
@@ -81,7 +82,7 @@ pl.grid('on')
 pl.savefig(infile + '_Scatterplot.pdf')
 
 pl.figure()
-stride = 29
+stride = 1
 v0p = v0[0:nwalkers*iters:stride]   # subsample for plotting
 v1p = v1[0:nwalkers*iters:stride]
 pl.hist2d( v0p,v1p, bins=80)

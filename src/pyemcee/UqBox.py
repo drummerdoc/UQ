@@ -17,9 +17,9 @@ import cPickle
 #   Inputs
 nwalkers      = 10
 nBurnIn       = 100        # Number of burn-in samples before starting to take data
-nChainLength  = 1000       # Number of MCMC resamplings in the data run, after burn in
+nChainLength  = 5000       # Number of MCMC resamplings in the data run, after burn in
 outFilePrefix = "Results_" # Prefix to output file names, to be appended with eval #
-outFilePeriod = 200        # Number of samples between calls to write data
+outFilePeriod = 1000       # Number of samples between calls to write data
 runlogPeriod  = 100        # Number of samples between info messages written to screen
 nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended number
 
@@ -27,13 +27,15 @@ nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended n
 def PickleResults(driver,filename):
     print("Writing output: "+filename)
     x = sampler.chain
+    state_of_mtrand_gen = np.random.get_state()
     OutNames = ['x',    # The names here must be the exact variable names
                 'ndim',
                 'ndata',
                 'nwalkers',
                 'nBurnIn',
                 'nChainLength',
-                'iters']
+                'iters',
+                'state_of_mtrand_gen']
 
     OutDict = dict()     # a python dictionary with variable names and values
     for name in OutNames:
@@ -107,7 +109,7 @@ print('ensemble std: '+ str(ensemble_std))
 
 np.random.seed(17)
 
-p0 = [prior_mean + np.random.rand(ndim) * ensemble_std for i in xrange(nwalkers)]
+p0 = [prior_mean + np.random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
 
 print('Initial walker parameters: ')
 for walker in p0:
