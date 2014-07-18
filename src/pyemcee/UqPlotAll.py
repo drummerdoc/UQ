@@ -66,22 +66,34 @@ pl.grid('on')
 pl.savefig(infile + '_AcorWalkers.pdf')
 
 pl.figure()
+
+def doScatter(i,j,Nscatter,pl):
+  print('Making scatterplot, var %d vs. var %d' % (i,j))
+  
+  v0 = np.reshape( x[:,0:iters,i], [nwalkers*iters])
+  v1 = np.reshape( x[:,0:iters,j], [nwalkers*iters])
+
+  stride = max(1, nwalkers*iters / Nscatter)
+  v0p = v0[0:nwalkers*iters:stride]   # subsample for plotting
+  v1p = v1[0:nwalkers*iters:stride]
+
+  pl.plot(v0p,v1p,'.',markersize=2)
+  pl.xlabel('var '+str(i))
+  pl.xlabel('var '+str(j))
+  pl.title('scatterplot, var %d vs. var %d' % (i,j))
+  pl.grid('on')
+  pl.savefig(infile + '_%d_v_%d_Scatterplot.pdf' % (i,j))
+
+
+Nscatter = 4997                     # Approx number of points on scatter plot
+doScatter(0,1,Nscatter,pl)
+
+    
+
+pl.figure()
 v0 = np.reshape( x[:,0:iters,0], [nwalkers*iters])
 v1 = np.reshape( x[:,0:iters,1], [nwalkers*iters])
 
-Nscatter = 4997                     # Approx number of points on scatter plot
-stride = max(1, nwalkers*iters / Nscatter)
-v0p = v0[0:nwalkers*iters:stride]   # subsample for plotting
-v1p = v1[0:nwalkers*iters:stride]
-
-pl.plot(v0p,v1p,'.',markersize=2)
-pl.xlabel('var 0')
-pl.ylabel('var 1')
-pl.title('scatterplot, var 0 vs. var 1')
-pl.grid('on')
-pl.savefig(infile + '_Scatterplot.pdf')
-
-pl.figure()
 stride = 1
 v0p = v0[0:nwalkers*iters:stride]   # subsample for plotting
 v1p = v1[0:nwalkers*iters:stride]

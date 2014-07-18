@@ -107,17 +107,16 @@ print('ensemble std: '+ str(ensemble_std))
 
 # Choose an initial set of positions for the walkers.
 
-np.random.seed(17)
-
-p0 = [prior_mean + np.random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
-
-print('Initial walker parameters: ')
-for walker in p0:
-    print(walker)
-
 # Initialize the sampler with the chosen specs.
 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
 driver.sampler = sampler
+
+sampler._random =  np.random.mtrand.RandomState(seed=17)
+p0 = [prior_mean + sampler._random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
+        
+print('Initial walker parameters: ')
+for walker in p0:
+    print(walker)
 
 # Run burn-in steps
 print ('Doing burn-in...')
@@ -129,7 +128,7 @@ sampler.reset()
 # Starting from the final position in the burn-in chain, do sample steps.
 print ('Sampling...')
 iters = 0
-for result in sampler.sample(pos, iterations=nChainLength):
+for result in driver.sampler.sample(pos, iterations=nChainLength):
     iters = iters + 1
 
     if iters % runlogPeriod == 0:
@@ -139,7 +138,7 @@ for result in sampler.sample(pos, iterations=nChainLength):
         fmt = "%0"+str(nDigits)+"d"
         outFileName = outFilePrefix + (fmt % iters)
         PickleResults(sampler,outFileName)
-        
+
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction
 # has an entry for each walker so, in this case, it is a 250-dimensional
