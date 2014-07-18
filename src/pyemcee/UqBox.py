@@ -21,12 +21,13 @@ nChainLength  = 5000       # Number of MCMC resamplings in the data run, after b
 outFilePrefix = "Results_" # Prefix to output file names, to be appended with eval #
 outFilePeriod = 1000       # Number of samples between calls to write data
 runlogPeriod  = 100        # Number of samples between info messages written to screen
+seed          = 17
 nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended number
 
 # Pickle entire sample chain (cummulative, and therefore not exactly ideal, but simple)
 def PickleResults(driver,filename):
     print("Writing output: "+filename)
-    x = sampler.chain
+    x = driver.sampler.chain
     state_of_mtrand_gen = np.random.get_state()
     OutNames = ['x',    # The names here must be the exact variable names
                 'ndim',
@@ -108,11 +109,11 @@ print('ensemble std: '+ str(ensemble_std))
 # Choose an initial set of positions for the walkers.
 
 # Initialize the sampler with the chosen specs.
-sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
-driver.sampler = sampler
+driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
+driver.sampler._random =  np.random.mtrand.RandomState(seed=seed) # overwrite state of rand with seeded one
 
-sampler._random =  np.random.mtrand.RandomState(seed=17)
-p0 = [prior_mean + sampler._random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
+# Generate initial samples
+p0 = [prior_mean + driver.sampler._random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
         
 print('Initial walker parameters: ')
 for walker in p0:
@@ -120,10 +121,10 @@ for walker in p0:
 
 # Run burn-in steps
 print ('Doing burn-in...')
-pos, prob, state = sampler.run_mcmc(p0, nBurnIn)
+pos, prob, state = driver.sampler.run_mcmc(p0, nBurnIn)
 
 # Reset the chain to remove the burn-in samples.
-sampler.reset()
+driver.sampler.reset()
 
 # Starting from the final position in the burn-in chain, do sample steps.
 print ('Sampling...')
@@ -137,16 +138,16 @@ for result in driver.sampler.sample(pos, iterations=nChainLength):
     if iters % outFilePeriod == 0:
         fmt = "%0"+str(nDigits)+"d"
         outFileName = outFilePrefix + (fmt % iters)
-        PickleResults(sampler,outFileName)
+        PickleResults(driver.sampler,outFileName)
 
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction
 # has an entry for each walker so, in this case, it is a 250-dimensional
 # vector.
-print("Mean acceptance fraction:", np.mean(sampler.acceptance_fraction))
+print("Mean acceptance fraction:", np.mean(driver.sampler.acceptance_fraction))
 
 posterior_mean = []
 for i in range(ndim):
-    posterior_mean.append(sampler.flatchain[:,i].mean()) 
+    posterior_mean.append(driver.sampler.flatchain[:,i].mean()) 
     print('New mean:',i,posterior_mean[i])
 
