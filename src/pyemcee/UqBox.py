@@ -138,7 +138,7 @@ for result in driver.sampler.sample(pos, iterations=nChainLength):
     if iters % outFilePeriod == 0:
         fmt = "%0"+str(nDigits)+"d"
         outFileName = outFilePrefix + (fmt % iters)
-        PickleResults(driver.sampler,outFileName)
+        PickleResults(driver,outFileName)
 
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction
