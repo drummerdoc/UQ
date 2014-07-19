@@ -12,7 +12,7 @@ struct SimulatedExperiment
 {
   SimulatedExperiment();
   virtual ~SimulatedExperiment();
-  virtual void GetMeasurements(std::vector<Real>& simulated_observations) = 0;
+  virtual bool GetMeasurements(std::vector<Real>& simulated_observations) = 0;
   virtual void GetMeasurementError(std::vector<Real>& observation_error) = 0;
   virtual int NumMeasuredValues() const = 0;
   virtual void InitializeExperiment() = 0;
@@ -39,7 +39,7 @@ struct ZeroDReactor
   virtual ~ZeroDReactor();
 
   virtual const std::vector<Real>& GetMeasurementTimes() const;
-  virtual void GetMeasurements(std::vector<Real>& simulated_observations);
+  virtual bool GetMeasurements(std::vector<Real>& simulated_observations);
   virtual void GetMeasurementError(std::vector<Real>& observation_error);
 
   virtual void InitializeExperiment();
@@ -52,6 +52,7 @@ struct ZeroDReactor
 protected:
   // Compute observation from evolution
   Real ExtractMeasurement() const;
+  bool ValidMeasurement(Real data) const;
   void Reset();
 
   ChemDriver& cd;
@@ -85,7 +86,7 @@ struct PREMIXReactor
 {
     PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix);
 
-    virtual void GetMeasurements(std::vector<Real>& simulated_observations);
+    virtual bool GetMeasurements(std::vector<Real>& simulated_observations);
     virtual void GetMeasurementError(std::vector<Real>& observation_error);
 
     virtual void InitializeExperiment();
@@ -98,6 +99,7 @@ struct PREMIXReactor
     virtual int NumMeasuredValues() const;
     virtual ~PREMIXReactor();
 
+    bool ValidMeasurement(Real data) const;
     // Array of PREMIXReactors that are prereqs to get this solution
     Array<PREMIXReactor*> prereq_reactors;
 

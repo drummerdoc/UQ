@@ -25,10 +25,10 @@ parameters = A1 A2 A3 A4
 A1.type = FWD_A
 A1.reaction_id = 0
 A1.prior_mean =  2.644e16
-A1.prior_std =   2.e15
+A1.prior_std =   1.e16
 A1.ensemble_std =   2.e13
-A1.lower_bound = 2.6e16
-A1.upper_bound = 2.7e16
+A1.lower_bound = 1e15
+A1.upper_bound = 1e17
 
 # Reaction 2 in the Davis paper is reaction 9 in the fuego file
 # FWD_A has a GRI30 value of 3.87e4, and a Davis-optimized value of 4.589e4
@@ -37,7 +37,7 @@ A2.reaction_id = 1
 A2.prior_mean =  4.589e4
 A2.prior_std =   4.e2
 A2.ensemble_std =   4.e1
-A2.lower_bound = 4.5e4
+A2.lower_bound = 4.4e4
 A2.upper_bound = 7.5e4
 
 # Reaction 3 in the Davis paper is reaction 10 in the fuego file
@@ -45,20 +45,20 @@ A2.upper_bound = 7.5e4
 A3.type = FWD_A
 A3.reaction_id = 2
 A3.prior_mean =  1.734e8
-A3.prior_std =   3.e7
+A3.prior_std =   1.e8
 A3.ensemble_std =   3.e5
-A3.lower_bound = 1.6e8
-A3.upper_bound = 1.8e8
+A3.lower_bound = 1e0
+A3.upper_bound = 1e10
 
 # Reaction 4 in the Davis paper is reaction 11 in the fuego file
 # FWD_A has a GRI30 value of 3.57e4, and a Davis-optimized value of 3.973e4
 A4.type = FWD_A
 A4.reaction_id = 3
 A4.prior_mean =  3.973e4
-A4.prior_std =   4.e4
+A4.prior_std =   4.e3
 A4.ensemble_std =   4.e2
-A4.lower_bound = 2.e4
-A4.upper_bound = 6.e4
+A4.lower_bound = 1.e0
+A4.upper_bound = 5.e5
 
 experiments = flow_reactor1 flow_reactor2
 

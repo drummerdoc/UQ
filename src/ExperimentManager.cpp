@@ -141,7 +141,7 @@ ExperimentManager::GenerateExptData()
   }
 }
 
-void
+bool
 ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params,
                                             std::vector<Real>&       test_measurements)
 {
@@ -150,14 +150,16 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   }
   test_measurements.resize(NumExptData());
 
-  for (int i=0; i<expts.size(); ++i) {
-    expts[i].GetMeasurements(raw_data[i]);
-    int offset = data_offsets[i];
+  bool ok = true;
+  for (int i=0; i<expts.size() && ok; ++i) {
+    ok = expts[i].GetMeasurements(raw_data[i]);
 
-    for (int j=0, n=expts[i].NumMeasuredValues(); j<n; ++j) {
+    int offset = data_offsets[i];
+    for (int j=0, n=expts[i].NumMeasuredValues() && ok; j<n; ++j) {
       test_measurements[offset + j] = raw_data[i][j];
     }
-  }    
+  }
+  return ok;
 }
 
 Real

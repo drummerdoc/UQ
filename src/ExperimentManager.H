@@ -21,7 +21,7 @@ struct ExperimentManager
 
   void GenerateExptData();
 
-  void GenerateTestMeasurements(const std::vector<Real>& test_params,
+  bool GenerateTestMeasurements(const std::vector<Real>& test_params,
                                 std::vector<Real>&       test_measurements);
 
   Real ComputeLikelihood(const std::vector<Real>& test_data) const;

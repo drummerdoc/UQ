@@ -164,7 +164,14 @@ ZeroDReactor::GetMeasurementError(std::vector<Real>& observation_error)
   }
 }
 
-void
+bool
+ZeroDReactor::ValidMeasurement(Real data) const
+{
+  // A reasonable test whether result is p, T, X or time
+  return ( data > 0 && data < 1.e5 );
+}
+
+bool
 ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
   BL_ASSERT(is_initialized);
@@ -199,6 +206,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     int i = 0;
     if (t_end == measurement_times[i] && sample_evolution) {
       simulated_observations[i] = ExtractMeasurement();
+      if (! ValidMeasurement(simulated_observations[i])) {
+        return false;
+      }
       i++;
     }
 
@@ -221,6 +231,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
       if (sample_evolution) {
         simulated_observations[i] = ExtractMeasurement();
+        if (! ValidMeasurement(simulated_observations[i])) {
+          return false;
+        }
       }
 
       if (diagnostic_name == "pressure_rise") {
@@ -234,6 +247,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 	finished = dpdt > transient_thresh && dpdt < dpdt_old;
 	if (finished) {
 	  simulated_observations[0] = t_start;
+          if (! ValidMeasurement(simulated_observations[i])) {
+            return false;
+          }
 	  simulated_observations[0] *= 1.e6;
 	}
 	dpdt_old = dpdt;
@@ -248,6 +264,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 	finished = p_old > transient_thresh && (p_new - p_old)/dt < transient_thresh;
 	if (finished) {
 	  simulated_observations[0] = t_start;
+          if (! ValidMeasurement(simulated_observations[i])) {
+            return false;
+          }
 	  simulated_observations[0] *= 1.e6;
 	}
       }
@@ -270,6 +289,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     int i = 0;
     if (t_end == measurement_times[i] && sample_evolution) {
       simulated_observations[i] = ExtractMeasurement();
+      if (! ValidMeasurement(simulated_observations[i])) {
+        return false;
+      }
       i++;
     }
     for ( ; i<num_time_nodes; ++i) {
@@ -281,6 +303,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                         sCompY,sCompT,dt,Patm);
       if (sample_evolution) {
         simulated_observations[i] = ExtractMeasurement();
+        if (! ValidMeasurement(simulated_observations[i])) {
+          return false;
+        }
       }
       
       Yold.copy(Ynew,sCompY,sCompY,Nspec);
@@ -291,6 +316,8 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   if (log_this) {
     ofs.close();
   }
+
+  return true;
 }
 
 void
@@ -480,7 +507,15 @@ PREMIXReactor::GetMeasurementError(std::vector<Real>& observation_error)
   }
 }
 
-void
+bool
+PREMIXReactor::ValidMeasurement(Real data) const
+{
+  // A reasonable test for data = flame speed
+  return ( data > 0 && data < 1.e5 );
+}
+
+
+bool
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
   BL_PROFILE("PREMIXReactor::GetMeasurements()");
@@ -516,7 +551,10 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               }
               std::vector<Real> pr_obs;
    //           std::cerr << " Running " << (*pr)->premix_input_file  << " with restart = " << (*pr)->lrstrtflag << std::endl;
-              (*pr)->GetMeasurements(pr_obs);
+              bool ok = (*pr)->GetMeasurements(pr_obs);
+              if (!ok) {
+                return false;
+              }
     //          std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
               (*pr)->solCopyOut(premix_sol);
           }
@@ -614,7 +652,10 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   // for consistency with ZeroDReactor
   if( *solsz > 0 ) {
     //std::cout << "Premix generated a viable solution " << std::endl;
-    simulated_observations[0]  = savesol[*solsz + nmax*(ncomp-1)-1+3]; 
+    simulated_observations[0]  = savesol[*solsz + nmax*(ncomp-1)-1+3];
+    if (! ValidMeasurement(simulated_observations[0])) {
+      return false;
+    }
     lrstrtflag = 1;
   }
   else{
@@ -645,6 +686,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   //       consistent with observation distribution
   BL_PROFILE_VAR_STOP(myname2);
   BL_PROFILE_VAR_STOP(myname);
+
+  return true;
 }
 
 void

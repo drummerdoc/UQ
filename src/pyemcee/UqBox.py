@@ -19,7 +19,7 @@ nwalkers      = 10
 nBurnIn       = 100        # Number of burn-in samples before starting to take data
 nChainLength  = 5000       # Number of MCMC resamplings in the data run, after burn in
 outFilePrefix = "Results_" # Prefix to output file names, to be appended with eval #
-outFilePeriod = 1000       # Number of samples between calls to write data
+outFilePeriod = 500       # Number of samples between calls to write data
 runlogPeriod  = 100        # Number of samples between info messages written to screen
 seed          = 17
 nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended number
@@ -28,15 +28,13 @@ nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended n
 def PickleResults(driver,filename):
     print("Writing output: "+filename)
     x = driver.sampler.chain
-    state_of_mtrand_gen = np.random.get_state()
     OutNames = ['x',    # The names here must be the exact variable names
                 'ndim',
                 'ndata',
                 'nwalkers',
                 'nBurnIn',
                 'nChainLength',
-                'iters',
-                'state_of_mtrand_gen']
+                'iters']
 
     OutDict = dict()     # a python dictionary with variable names and values
     for name in OutNames:
@@ -88,7 +86,10 @@ def lnprob(x, driver):
         space
 
     """
-    return driver.Eval(x)
+    result = driver.Eval(x)
+    if result == -1.e12:
+        return -np.inf
+    return result
 
 # Build the persistent class containing the driver object
 driver = DriverWrap()

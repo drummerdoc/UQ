@@ -19,7 +19,8 @@ static bool made_cd = false;
 ChemDriver *Driver::cd = 0;
 MINPACKstruct *Driver::mystruct = 0;
 Real Driver::param_eps = 1.e-4;
-Real BAD_SAMPLE_FLAG = -10000;
+Real BAD_SAMPLE_FLAG = 1.e12;
+Real BAD_DATA_FLAG = 1.e12;
 
 Real 
 funcF(void* p, const std::vector<Real>& pvals)
@@ -28,14 +29,28 @@ funcF(void* p, const std::vector<Real>& pvals)
   s->ResizeWork();
 
   std::pair<bool,Real> Fa = s->parameter_manager.ComputePrior(pvals);
+  if (0 && !Fa.first) {
+    std::cout << "Bad param {" << std::endl;
+    for (int i=0; i<pvals.size(); ++i) {
+      std::cout << pvals[i] << " ";
+    }
+    std::cout << "}" << std::endl;
+  }
   if (!Fa.first) return BAD_SAMPLE_FLAG;
 
   std::vector<Real> dvals(s->expt_manager.NumExptData());
-  s->expt_manager.GenerateTestMeasurements(pvals,dvals);
+  bool ok = s->expt_manager.GenerateTestMeasurements(pvals,dvals);
+
+  if (0 && !ok) {
+    std::cout << "Bad data {" << std::endl;
+    for (int i=0; i<dvals.size(); ++i) {
+      std::cout << dvals[i] << " ";
+    }
+    std::cout << "}" << std::endl;
+  }
+
+  if (!ok) return BAD_DATA_FLAG;
   Real Fb = s->expt_manager.ComputeLikelihood(dvals);
-
-  //std::cout << pvals[0] << " " << Fa.second + Fb << std::endl;
-
   return (Fa.second  +  Fb);
 }
 
