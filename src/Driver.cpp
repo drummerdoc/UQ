@@ -19,8 +19,8 @@ static bool made_cd = false;
 ChemDriver *Driver::cd = 0;
 MINPACKstruct *Driver::mystruct = 0;
 Real Driver::param_eps = 1.e-4;
-Real BAD_SAMPLE_FLAG = 1.e12;
-Real BAD_DATA_FLAG = 1.e12;
+Real BAD_SAMPLE_FLAG = -1;
+Real BAD_DATA_FLAG = -2;
 
 Real 
 funcF(void* p, const std::vector<Real>& pvals)
@@ -28,29 +28,21 @@ funcF(void* p, const std::vector<Real>& pvals)
   MINPACKstruct *s = (MINPACKstruct*)(p);
   s->ResizeWork();
 
+  // Get prior component of likelihood
   std::pair<bool,Real> Fa = s->parameter_manager.ComputePrior(pvals);
-  if (0 && !Fa.first) {
-    std::cout << "Bad param {" << std::endl;
-    for (int i=0; i<pvals.size(); ++i) {
-      std::cout << pvals[i] << " ";
-    }
-    std::cout << "}" << std::endl;
+  if (!Fa.first) {
+    return BAD_SAMPLE_FLAG; // Parameter OOB
   }
-  if (!Fa.first) return BAD_SAMPLE_FLAG;
 
+  // Get data component of likelihood
   std::vector<Real> dvals(s->expt_manager.NumExptData());
   bool ok = s->expt_manager.GenerateTestMeasurements(pvals,dvals);
-
-  if (0 && !ok) {
-    std::cout << "Bad data {" << std::endl;
-    for (int i=0; i<dvals.size(); ++i) {
-      std::cout << dvals[i] << " ";
-    }
-    std::cout << "}" << std::endl;
+  if (!ok) {
+    return BAD_DATA_FLAG; // Experiment evaluator failed
   }
-
-  if (!ok) return BAD_DATA_FLAG;
   Real Fb = s->expt_manager.ComputeLikelihood(dvals);
+
+  // Return sum of pieces
   return (Fa.second  +  Fb);
 }
 

@@ -19,7 +19,7 @@ nwalkers      = 10
 nBurnIn       = 100        # Number of burn-in samples before starting to take data
 nChainLength  = 5000       # Number of MCMC resamplings in the data run, after burn in
 outFilePrefix = "Results_" # Prefix to output file names, to be appended with eval #
-outFilePeriod = 500       # Number of samples between calls to write data
+outFilePeriod = 500        # Number of samples between calls to write data
 runlogPeriod  = 100        # Number of samples between info messages written to screen
 seed          = 17
 nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended number
@@ -87,7 +87,7 @@ def lnprob(x, driver):
 
     """
     result = driver.Eval(x)
-    if result == -1.e12:
+    if result > 0:
         return -np.inf
     return result
 
@@ -140,6 +140,11 @@ for result in driver.sampler.sample(pos, iterations=nChainLength):
         fmt = "%0"+str(nDigits)+"d"
         outFileName = outFilePrefix + (fmt % iters)
         PickleResults(driver,outFileName)
+
+if iters % outFilePeriod != 0:
+    fmt = "%0"+str(nDigits)+"d"
+    outFileName = outFilePrefix + (fmt % iters)
+    PickleResults(driver,outFileName)
 
 
 # Print out the mean acceptance fraction. In general, acceptance_fraction

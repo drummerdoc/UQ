@@ -153,9 +153,8 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   bool ok = true;
   for (int i=0; i<expts.size() && ok; ++i) {
     ok = expts[i].GetMeasurements(raw_data[i]);
-
     int offset = data_offsets[i];
-    for (int j=0, n=expts[i].NumMeasuredValues() && ok; j<n; ++j) {
+    for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
       test_measurements[offset + j] = raw_data[i][j];
     }
   }
