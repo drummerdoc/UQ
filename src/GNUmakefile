@@ -9,7 +9,7 @@ ifeq (${HOST},stc-23736s)
 TOP = /Users/rgrout/Code/rev-controlled/LBNL
 WHICHDARWIN=RAY
 endif
-ifeq ($(findstring jonathans-mbp-3, $(HOST)), jonathans-mbp-3)
+ifeq ($(findstring Jonathans, $(HOST)), Jonathans)
 WHICHDARWIN=JG
 endif
 
