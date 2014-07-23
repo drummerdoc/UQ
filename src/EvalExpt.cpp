@@ -1,14 +1,11 @@
 #include <Driver.H>
-#include <ChemDriver.H>
 
 #include <iomanip>
 #include <iostream>
 #include <fstream>
 
 #include <ParmParse.H>
-#include <SimulatedExperiment.H>
 
-#include <PremixSol.H>
 int
 main (int   argc,
       char* argv[])

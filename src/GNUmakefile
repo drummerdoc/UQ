@@ -25,6 +25,7 @@ USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
 BUILD_EXEC      = TRUE
+VERBOSE         = TRUE
 
 # Choose model (from list below), and pmf file
 #CHEMISTRY_MODEL = DRM19
@@ -209,6 +210,10 @@ vpath %.F   $(VPATH_LOCATIONS)
 vpath %.f   $(VPATH_LOCATIONS)
 vpath %.f90 $(VPATH_LOCATIONS)
 
+ifeq ($(VERBOSE), TRUE)
+  SUCCESS_MSG := SUCCESS
+endif
+
 ifeq ($(BUILD_EXEC), TRUE)
   test: exec
 endif
@@ -229,6 +234,7 @@ exec: ${EBASE}.o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
 	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) \
 		-o  $(addsuffix $(optionsSuffix).ex, $(EBASE)) $^ ${SHARED_LIBRARIES} ${libraries}
 	./fixDYLIBexe.sh $(addsuffix $(optionsSuffix).ex, $(EBASE))
+	@echo ${SUCCESS_MSG}
 
 realclean::
 	rm -rf dat dat1 dat2 dat3 ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} ${PACKAGE}_wrap.cpp ${PACKAGE}.py *.pyc d f o
