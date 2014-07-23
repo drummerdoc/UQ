@@ -48,13 +48,27 @@ pl.legend()
 pl.grid('on')
 pl.savefig(infile + '_AcorVars.pdf')
 
+#  Compute and plot auto-correlation functions,
+
+#       First for variable 0, somewalkers walkers
+
 pl.figure()
-maxWalker = min(5,nwalkers)
+maxWalker = min(6,nwalkers)
 var       = 0
+
 for walker in range(0,maxWalker):
   C = ac.acor( x[ walker, 0:iters , var], maxLag)
   labelString = "walker " + str(walker)
-  pl.plot( hAxis, C, label = labelString)
+  pl.plot( hAxis, C, label = labelString, linewidth = .5)
+
+#         Then for all walkers, and plot the average auto-correlation function
+
+C_all = np.zeros([nwalkers,maxLag])
+
+for walker in range(0,nwalkers):
+  C_all[walker,:] = ac.acor( x[ walker, 0:iters , var], maxLag)
+Cav = np.average( C_all, axis=0)
+pl.plot( hAxis, Cav, label = 'Average', linewidth = 2.0, color = 'k')
 
 titleString = "Autocorrelations for variable " + str(var)
 titleString = titleString + ", T = " + str(nChainLength)
