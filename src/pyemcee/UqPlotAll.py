@@ -40,7 +40,7 @@ for k in range(0,ndim):
   pl.plot( hAxis, C, label = labelString)
 
 titleString = "Autocorrelations for first walker"
-titleString = titleString + ", T = " + str(nChainLength)
+titleString = titleString + ", T = " + str(iters)
 titleString = titleString + ", L = " + str(nwalkers)
 
 pl.title(titleString)
@@ -71,7 +71,7 @@ Cav = np.average( C_all, axis=0)
 pl.plot( hAxis, Cav, label = 'Average', linewidth = 2.0, color = 'k')
 
 titleString = "Autocorrelations for variable " + str(var)
-titleString = titleString + ", T = " + str(nChainLength)
+titleString = titleString + ", T = " + str(iters)
 titleString = titleString + ", L = " + str(nwalkers)
 
 pl.title(titleString)
@@ -91,7 +91,7 @@ data = np.vstack(v)
 
 # Plot it.
 figure = triangle.corner(data.transpose())
-figure.savefig(infile+"_Triangle.png")
+figure.savefig(infile+"_Triangle.pdf")
 
 
 # def doScatter(i,j,Nscatter,pl):
