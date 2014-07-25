@@ -88,5 +88,5 @@ flow_reactor2.data_tend = 0.68
 flow_reactor2.diagnostic_name = H2
 flow_reactor2.measurement_error = 1.e-6
 
-outfile=evalOut.fab
+
 
