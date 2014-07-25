@@ -21,5 +21,22 @@ main (int   argc,
   for(int ii=0; ii<num_data; ii++){
     std::cout << true_data[ii] << std::endl;
   }
+
+  ParmParse pp;
+  if (pp.countval("outfile") > 0) {
+    std::string outfile; pp.get("outfile",outfile);
+    Box box(IntVect(D_DECL(0,0,0)),
+            IntVect(D_DECL(true_data.size()-1,0,0)));
+    FArrayBox outfab(box,1);
+    for(int ii=0; ii<num_data; ii++){
+      IntVect iv(D_DECL(ii,0,0));
+      outfab(iv,0) = true_data[ii];
+    }
+    std::cout << "Writing data to " << outfile << std::endl;
+    std::ofstream ofs;
+    ofs.open(outfile.c_str());
+    outfab.writeOn(ofs);
+    ofs.close();
+  }
 }
 

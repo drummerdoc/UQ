@@ -15,7 +15,6 @@ endif
 
 PRECISION       = DOUBLE
 DEBUG           = TRUE
-#DEBUG           = FALSE
 DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
@@ -24,8 +23,9 @@ USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
-BUILD_EXEC      = TRUE
-VERBOSE         = TRUE
+BUILD_EXEC      = FALSE
+VERBOSE         = FALSE
+DO_REGTEST      = FALSE
 
 # Choose model (from list below), and pmf file
 #CHEMISTRY_MODEL = DRM19
@@ -45,22 +45,27 @@ ifeq (${USE_SDC}, TRUE)
 endif
 CFLAGS += -std=c99
 
+EBASE = main
+
+ifeq (${DO_REGTEST}, TRUE)
+  include RegTest.mak
+endif
+
+
+ifeq (${BUILD_EXEC}, TRUE)
+  USE_SHARED_LIBS := FALSE
+  CEXE_sources += ${EBASE}.cpp
+else
+  USE_SHARED_LIBS := TRUE
+endif
+
 # Set paths to BoxLib and Chemistry
 BOXLIB_HOME = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/src_common
 
-#EBASE = main
-EBASE = EvalExpt
-
 include ${BOXLIB_HOME}/Tools/C_mk/Make.defs 
 fincludes=${includes}
-
-# build to link to shared libs
-FFLAGS   += -fPIC
-fFLAGS   += -fPIC
-CFLAGS   += -fPIC
-CXXFLAGS += -fPIC
 
 Bdirs   += ${CHEMISTRY_DIR}/src
 Bdirs   += ${BOXLIB_HOME}/Src/C_BaseLib
@@ -119,53 +124,61 @@ ifeq (${CHEMISTRY_MODEL}, LUDME)
 endif
 cEXE_sources += ${CHEM_MECHFILE}
 
-ifeq ($(MACHINE), Linux)
-  ifeq (${WHICHLINUX}, HEDORAH)
-    PYTHON_DIR := /usr
-    PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
-    SHARED_LIBRARY_SUFFIX:=so
-    LIBRARIES+=-lpython2.7
-  endif
-  ifeq (${WHICHLINUX}, MOTHRA)
-    PYTHON_DIR := /home/marc/src/CCSE/UQ/src/packages/build/pypa-virtualenv-fceb355/pyenv
-    PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.6
-    SHARED_LIBRARY_SUFFIX:=so
-    LIBRARIES+=-lpython2.6
-  endif
-endif
+ifeq (${USE_SHARED_LIBS}, TRUE)
+  # build to link to shared libs
+  FFLAGS   += -fPIC
+  fFLAGS   += -fPIC
+  CFLAGS   += -fPIC
+  CXXFLAGS += -fPIC
 
-ifeq (${MACHINE}, Darwin) 
-  SHARED_LIBRARY_SUFFIX:=dylib
-  ifeq (${WHICHDARWIN}, RAY)
-    #PYTHON_DIR := /opt/local/Library/Frameworks/Python.framework/Versions/Current
-    #PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
-    PYTHON_DIR := /Users/rgrout/Library/Enthought/Canopy_64bit/User/
-    PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
-    PYTHON_INCLUDES := /Applications/Canopy.app/appdata/canopy-1.3.0.1715.macosx-x86_64/Canopy.app/Contents/include/python2.7
-    GFORTLIB := /opt/local/lib/gcc46/libgfortran.${SHARED_LIBRARY_SUFFIX}
-    COMP            = g++-mp-4.6
-    FCOMP           = gfortran-mp-4.6
-    LIBRARIES+=-lpython2.7
+  ifeq ($(MACHINE), Linux)
+    ifeq (${WHICHLINUX}, HEDORAH)
+      PYTHON_DIR := /usr
+      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
+      SHARED_LIBRARY_SUFFIX:=so
+      LIBRARIES+=-lpython2.7
+    endif
+    ifeq (${WHICHLINUX}, MOTHRA)
+      PYTHON_DIR := /home/marc/src/CCSE/UQ/src/packages/build/pypa-virtualenv-fceb355/pyenv
+      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.6
+      SHARED_LIBRARY_SUFFIX:=so
+      LIBRARIES+=-lpython2.6
+    endif
   endif
-  ifeq (${WHICHDARWIN}, MARC)
-    PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
-    PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
-    GFORTLIB := /usr/local/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
-    LIBRARIES+=-lpython2.7
+
+  ifeq (${MACHINE}, Darwin) 
+    SHARED_LIBRARY_SUFFIX:=dylib
+    ifeq (${WHICHDARWIN}, RAY)
+      #PYTHON_DIR := /opt/local/Library/Frameworks/Python.framework/Versions/Current
+      #PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
+      PYTHON_DIR := /Users/rgrout/Library/Enthought/Canopy_64bit/User/
+      PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
+      PYTHON_INCLUDES := /Applications/Canopy.app/appdata/canopy-1.3.0.1715.macosx-x86_64/Canopy.app/Contents/include/python2.7
+      GFORTLIB := /opt/local/lib/gcc46/libgfortran.${SHARED_LIBRARY_SUFFIX}
+      COMP            = g++-mp-4.6
+      FCOMP           = gfortran-mp-4.6
+      LIBRARIES+=-lpython2.7
+    endif
+    ifeq (${WHICHDARWIN}, MARC)
+      PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
+      PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
+      GFORTLIB := /usr/local/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
+      LIBRARIES+=-lpython2.7
+    endif
+    ifeq (${WHICHDARWIN}, MATTI)
+      PYTHON_DIR := /System/Library/Frameworks/Python.framework/Versions/2.7
+      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
+      GFORTLIB := /opt/local/lib/gcc47/libgfortran.${SHARED_LIBRARY_SUFFIX}
+      LIBRARIES+=-lpython2.7
+    endif
+    ifeq (${WHICHDARWIN}, JG)
+      PYTHON_DIR := /usr/local/Cellar/python/2.7.7_2/Frameworks/Python.framework/Versions/Current
+      PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
+      GFORTLIB := /usr/local/gfortran/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
+    endif
+    SHARED_LIBRARIES += ${PYTHON_DIR}/lib/libpython2.7.${SHARED_LIBRARY_SUFFIX} ${GFORTLIB}
+    PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
   endif
-  ifeq (${WHICHDARWIN}, MATTI)
-    PYTHON_DIR := /System/Library/Frameworks/Python.framework/Versions/2.7
-    PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
-    GFORTLIB := /opt/local/lib/gcc47/libgfortran.${SHARED_LIBRARY_SUFFIX}
-    LIBRARIES+=-lpython2.7
-  endif
-  ifeq (${WHICHDARWIN}, JG)
-    PYTHON_DIR := /usr/local/Cellar/python/2.7.7_2/Frameworks/Python.framework/Versions/Current
-    PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
-    GFORTLIB := /usr/local/gfortran/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
-  endif
-  SHARED_LIBRARIES += ${PYTHON_DIR}/lib/libpython2.7.${SHARED_LIBRARY_SUFFIX} ${GFORTLIB}
-  PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
 endif
 
 #
@@ -175,9 +188,7 @@ INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 fEXE_sources += premix_2.f twopnt.f mach.f refine.f cktime.f misc_math.f
 
 
-MY_SHARED_LIBRARY_SUFFIX:=so
 INCLUDE_LOCATIONS += ${PYTHON_INCLUDES}
-
 INCLUDE_LOCATIONS+=${PACKAGES}/include
 INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
 
@@ -214,29 +225,30 @@ ifeq ($(VERBOSE), TRUE)
   SUCCESS_MSG := SUCCESS
 endif
 
-ifeq ($(BUILD_EXEC), TRUE)
-  test: exec
+ifeq (${BUILD_EXEC}, TRUE)
+  DEFAULT_TARGET := exec
+else
+  DEFAULT_TARGET := shared_lib
 endif
 
-all: ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
+all: ${DEFAULT_TARGET}
 
-${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
+
+${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
 	mkdir -p ${PACKAGE}
-	$(COMP) -shared -o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
-	./fixDYLIB.sh ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
+	$(COMP) -shared -o ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
+	./fixDYLIB.sh ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}
 	cp ${PACKAGE}.py ${PACKAGE}
 
 ${PACKAGE}_wrap.cpp: ${PACKAGE}.i
 	swig -python -c++ -I. $(includes) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
 
-exec: ${EBASE}.o ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX}
-	@echo Linking $@ ...
-	$(SILENT) $(PRELINK) $(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) \
-		-o  $(addsuffix $(optionsSuffix).ex, $(EBASE)) $^ ${SHARED_LIBRARIES} ${libraries}
-	./fixDYLIBexe.sh $(addsuffix $(optionsSuffix).ex, $(EBASE))
+exec: ${executable}
 	@echo ${SUCCESS_MSG}
 
+shared_lib: ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}
+
 realclean::
-	rm -rf dat dat1 dat2 dat3 ${PACKAGE}/_${PACKAGE}.${MY_SHARED_LIBRARY_SUFFIX} ${PACKAGE}_wrap.cpp ${PACKAGE}.py *.pyc d f o
+	rm -rf dat dat1 dat2 dat3 ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX} ${PACKAGE}_wrap.cpp ${PACKAGE}.py *.pyc d f o
 
 include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
