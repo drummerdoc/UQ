@@ -1,16 +1,34 @@
-
 # Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
 TOP = ../../..
-#TOP = /home/marc/src/CCSE/BattraCCSE
-PACKAGES=./packages
+
+# Put these here until all of them get propagated into the BoxLib make system
 
 HOST=$(shell hostname)
+MACHINE=$(shell uname)
+
 ifeq (${HOST},stc-23736s)
-TOP = /Users/rgrout/Code/rev-controlled/LBNL
-WHICHDARWIN=RAY
+  TOP = /Users/rgrout/Code/rev-controlled/LBNL
+  WHICHDARWIN=RAY
 endif
 ifeq ($(findstring Jonathans, $(HOST)), Jonathans)
-WHICHDARWIN=JG
+  WHICHDARWIN=JG
+endif
+
+UNAMEN := $(shell uname -n)
+ifeq ($(MACHINE), Linux)
+  ifeq ($(findstring hedorah, $(UNAMEN)), hedorah)
+    WHICHLINUX := HEDORAH
+    TOP = ../..
+  endif
+  ifeq ($(findstring mothra, $(UNAMEN)), mothra)
+    WHICHLINUX := MOTHRA
+  endif
+endif
+ifeq (${MACHINE}, Darwin) 
+  ifeq ($(findstring MarcsLaptop, $(UNAMEN)), MarcsLaptop)
+    WHICHDARWIN:=MARC
+    TOP = ../..
+  endif
 endif
 
 PRECISION       = DOUBLE
@@ -187,7 +205,7 @@ VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 fEXE_sources += premix_2.f twopnt.f mach.f refine.f cktime.f misc_math.f
 
-
+PACKAGES=./packages
 INCLUDE_LOCATIONS += ${PYTHON_INCLUDES}
 INCLUDE_LOCATIONS+=${PACKAGES}/include
 INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
