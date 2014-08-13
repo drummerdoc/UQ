@@ -1,0 +1,66 @@
+.feature-wide {
+	background: #90b2c2 url('../../images/blue.png') top center;
+	border-bottom: 6px solid #00223f;
+}
+
+.video-feature-wide {
+    background: url("../../images/footer-widgets-blue.png") repeat-x scroll center top transparent;
+    border-bottom: 6px solid #00223f;
+}
+
+.nivo-controlNav a {
+	background: url("../../images/sliders/bullets-blue.png") no-repeat 0px -3px;
+}
+
+.footer-wide {
+	background: #003969 url('../../images/footer-widgets-blue.png') top center repeat-x;
+	border-bottom: 6px solid #00223f;
+}
+
+.masthead-wide {
+	background: #90b2c2 url('../../images/blue.png') top center;
+	border-bottom: 6px solid #094b84;
+}
+
+#footer ul li {
+    border-bottom: 1px solid #00396a;
+}
+
+#content .ptitle-wrap p.entry-meta {
+    background: #1260a1 url("../../images/meta-bg.png") 0 0 repeat-x;
+}
+
+#content .ptitle-wrap p.entry-meta .arccom {
+   /* background: #044276 url("../../images/meta-bg-2.png") 0 0 repeat-x;*/
+   background: #115D9D;
+}
+ 
+.pagination .current {
+	color: #ffffff;
+	background: #115d9d;
+	border: 1px solid #115d9d;
+}
+
+#content .ptitle-wrap p.entry-meta a {
+	color: #fcffd9;
+}
+
+#content .ptitle-wrap p.entry-meta a:hover {
+	color: #cccccc;
+}
+
+#digislider2-feature-wrap a.pager-link {
+    background: url("../../images/sliders/bullets-blue.png") no-repeat 0 -3px;
+}
+
+#digislider2-feature-wrap a.pager-active {
+    background: url("../../images/sliders/bullets-blue.png") no-repeat 0 -23px;
+}
+
+.work-nav-wrap {
+	background: url("../../images/meta-bg.png") repeat-x 0 0 #1260a1;
+}
+
+.show  {
+    background: url("../../images/meta-bg-2.png") repeat-x 0 0 #044276;
+}

@@ -1,0 +1,112 @@
+\documentclass{article}
+
+\begin{document}
+\begin{center}
+\Large Comments, Jonathan Goodman, July, 2014 \normalsize
+\end{center}
+
+\noindent {\bf ElasticConstants.pdf:} Miguel A. Aguilo Laura Swiler, Angel Urbina, 
+``AN OVERVIEW OF INVERSE MATERIAL IDENTIFICATION WITHIN THE FRAMEWORKS OF DETERMINISTIC AND STOCHASTIC PARAMETER ESTIMATION'', 
+International Journal for Uncertainty Quantification, 3 (4): 289Ð319 (2013)
+
+\begin{enumerate}
+\item Specific problem: recover spatially varying elastic modulus from measurements.
+
+\item Two kinds of parameter estimation: deterministic and stochastic.
+Stochastic gives uncertainty estimates.
+Bayesian: ``... multiple solutions of the unknown may be consistent with the observations.''
+
+\item References for elliptic inverse problems.
+
+\item Likelihood function takes into account {\em ECE}, ``error in the constitutive equation''.
+
+\item Represent the spatially varying elastic modulus using radial basis functions with
+unknown centers and length parameters and coefficients.
+Ill conditioned in radial basis coefficients $\longrightarrow$ regularize.
+
+\item Kaipio, J. and Somersalo, E., {\em Statistical and Computational Inverse Problems}, Springer, 
+NewYork, 2005.
+
+\item Numerics: fake data, 1D, multiplicitive Gaussian observation noise, small, known variance.
+
+\item MCMC, delayed rejection adaptive algorithm http://www.helsinki.fi/?mjlaine/dram/
+
+\item Haario, H., Laine, M., Mira, A., and Saksman, E., DRAM:EfficientadaptiveMCMC, Stat.Comput., 
+16(4):339Ð354, 2006.
+
+\item Estimated auto-correlation function from MCMC data.  
+Standard likelihood gives auto-correlation time in the thousands.
+The ECE likelihood $\tau$ is only 100 or so.
+Run length 20,000 samples, first 5,000 discarded (burn in).
+
+\item 15 observation values, 5 radial basis functions (common length scale, uniformly spaced centers?)
+Some of the results seem to accurate to be represented with 5 radial basis functions of any kind.
+
+\end{enumerate}
+
+\noindent {\bf TemponeAbstract.pdf:} Daesang Kim, Fabrizio Bisetti, Quan Long, Raul Tempone, 
+and Omar Knio, {\em Spectral Uncertainty Quantification and Optimal Bayesian Experimental Design of Combustion Reaction Systems using Sparse Adaptive Polynomial Chaos Expansion}, conference abstract, 2014
+
+\begin{enumerate}
+
+\item Polynomial chaos 
+
+\item Hydrogen flame parameters, then methane system parameters
+
+\end{enumerate}
+
+\noindent {\bf AIAA.pdf:} Paul G. Constantine, Alireza Doostan, Qiqi Wang, Gianluca Iaccarino, 
+{\em A Surrogate Accelerated Bayesian Inverse Analysis of the HyShot II Flight Data}, 
+AIAA 2011-2037, 52nd AIAA/ASME/ASCE/AHS/ASC Structures, Structural Dynamics and Materials Conference 19th AIAA 2011-2037 4 - 7 April 2011, Denver, Colorado
+
+\begin{enumerate}
+
+\item Hypersonic RANS viscous flow with combustion, model of a scramjet, 11 pressure measurements,
+6 estimated parameters: speed, angle of attack, altitude, top wall temperature, bottom wall temperature,
+one turbulence variable, fake data.  
+
+\item Full fluid (RANS) solve for a likelihood call, or a surrogate m.odel.  1800 fluid solves.
+
+\item Silva, D. and Skilling, J., Data Analysis: A Bayesian Tutorial, Oxford University Press, 2006.
+
+\item Compared surrogate models, polynomial chaos, Gaussian process, Beylkin low rank approx -- about
+the same.  Crummy numerics.
+
+\end{enumerate}
+
+\noindent {\bf BramanOliverRaman.pdf:} Kalen Braman, Todd A. Oliver, Venkat Raman, 
+{\em Bayesian analysis of syngas chemistry models}, 
+Combustion Theory and Modelling, 2013Vol. 17, No. 5, 858Ð887
+
+\begin{enumerate}
+
+\item Full Bayesian posterior sampling for combustion chemical kinetics parameters.  
+
+\item Lots of references for UQ in chemical reaction fitting.
+
+\item ``It is important to note that the different parameters are correlated, and that varying one 
+without adjusting the rest is not meaningful.''
+
+\item T. Russi, A. Packard, R. Feeley, and M. Frenklach, ``Sensitivity analysis of uncertainty in model prediction'', J. Phys. Chem. A 112 (2008), pp. 2579Ð2588. Available at http://dx.doi.org/10.1021/jp076861c.
+
+\item Adaptive multi-level sampling algorithm, refs [28,29], related to sequential sampling?
+QUESO library.
+
+\item Uses our Davis mechanism, and two others.
+
+\item Only pre-exponential factors included in Bayesian parameter sets, not activation energies.
+
+\item Calibrates to flame speed data, 18 measurements in all.
+
+\item Select parameters based on some kind of a-priori sensitivity analysis.
+
+\item Simulations done with CHEMKIN and PREMIX
+
+\item 15,000 processor hours, ... the majority of the computational time is spent computing the 
+flame speed.
+
+\end{enumerate}
+
+
+
+\end{document}
