@@ -1,0 +1,180 @@
+#
+# Parameters:
+#  Must provide a non-empty set of named parameters.  For each
+#  must provide type, reaction_id, prior_mean, prior_std, 
+#  lower_bound, upper_bound
+#
+# Permissible types:  FWD_A, FWD_BETA, FWD_EA,
+#                     LOW_A, LOW_BETA, LOW_EA,
+#                     REV_A, REV_BETA, REV_EA,
+#                     TROE_A, TROE_TS, TROE_TSS, TROE_TSSS,
+#                     SRI_A, SRI_B, SRI_C, SRI_D, SRI_E
+#
+# Experiments:
+#  Must provide a non-empty set of named experiments.  For each
+#  must provide type (currently, either CVReactor, or PREMIXReactor)
+#  If CVReactor, must provide: Patm, TFile, pmf_file_name, temp_or_species_name,
+#  data_num_points, data_tstart, data_tend
+
+
+# Davis
+parameters = A1 A2 A3 A4 A5 A6 A7 A8
+
+# Reaction 1 in the Davis paper is reaction 8 in the fuego file
+# FWD_A has a GRI30 value of 2.65e16, and a Davis-optimized value of 2.644e16
+A1.type = FWD_A
+A1.reaction_id = 0
+A1.prior_mean =  2.644e16
+#A1.prior_std =   2.e15
+A1.prior_std =   2.e16
+A1.ensemble_std =   2.e13
+A1.lower_bound = 2.6e16
+#A1.upper_bound = 2.7e16
+A1.upper_bound = 2.9e16
+
+# Reaction 2 in the Davis paper is reaction 9 in the fuego file
+# FWD_A has a GRI30 value of 3.87e4, and a Davis-optimized value of 4.589e4
+A2.type = FWD_A
+A2.reaction_id = 1
+A2.prior_mean =  4.589e4
+#A2.prior_std =   4.e3
+A2.prior_std =   4.e4
+A2.ensemble_std =   4.e1
+#A2.lower_bound = 4.5e4
+#A2.lower_bound = 1.5e4
+A2.lower_bound = 1.0e4
+A2.upper_bound = 7.5e4
+
+# Reaction 3 in the Davis paper is reaction 10 in the fuego file
+# FWD_A has a GRI30 value of 2.16e8, and a Davis-optimized value of 1.734e8
+A3.type = FWD_A
+A3.reaction_id = 2
+A3.prior_mean =  1.734e8
+#A3.prior_std =   3.e7
+A3.prior_std =   2.e8
+A3.ensemble_std =   2.e5
+A3.lower_bound = 1.6e8
+A3.upper_bound = 1.8e8
+
+# Reaction 4 in the Davis paper is reaction 11 in the fuego file
+# FWD_A has a GRI30 value of 3.57e4, and a Davis-optimized value of 3.973e4
+A4.type = FWD_A
+A4.reaction_id = 3
+A4.prior_mean =  3.973e4
+A4.prior_std =   4.e4
+A4.ensemble_std =   4.e1
+A4.lower_bound = 2.e4
+A4.upper_bound = 6.e4
+
+# Reaction 8 in the Davis paper is reaction 3 in the fuego file
+# FWD_A has a GRI30 value of 1.20e17, not changes in Davis
+A5.type = FWD_A
+A5.reaction_id = 10
+A5.prior_mean =  1.20e17
+#A5.prior_std =   1.e17
+A5.prior_std =   1.2e17
+A5.ensemble_std =   1.e14
+#A5.lower_bound = 0.5e17
+#A5.lower_bound = 0.1e17
+#A5.lower_bound = 1.0e16
+#A5.lower_bound = -1.0e17
+A5.lower_bound = 0.0e17
+A5.upper_bound = 4.e17
+
+# Reaction 6 in the Davis paper is reaction 4 in the fuego file
+# FWD_A has a GRI30 value of 2.2e22, and a Davis-optimized value of 4.4e22
+A6.type = FWD_A
+A6.reaction_id = 8
+A6.prior_mean =  4.4e22
+#A6.prior_std =   4.e21
+A6.prior_std =   4.e22
+A6.ensemble_std =   4.e19
+A6.lower_bound = 1.e22
+A6.upper_bound = 8.e22
+
+# Reaction 7 in the Davis paper is reaction 5 in the fuego file
+# FWD_A has a GRI30 value of 4.71e18, and a Davis-optimized value of 9.24e18
+A7.type = FWD_A
+A7.reaction_id = 9
+A7.prior_mean =  9.24e18
+#A7.prior_std =   9.e17
+A7.prior_std =   9.e18
+A7.ensemble_std =   4.e15
+#A7.lower_bound = 2.e18
+#A7.upper_bound = 20.e18
+A7.lower_bound = 0.e18
+A7.upper_bound = 1.e20
+
+# Reaction 10 in the Davis paper is reaction 15 in the fuego file
+# FWD_A has a GRI30 value of 7.4e5, and a Davis-optimized value of 5.92e5
+A8.type = FWD_A
+A8.reaction_id = 12
+A8.prior_mean =  5.92e5
+#A8.prior_std =   5.92e4
+A8.prior_std =   5.92e5
+A8.ensemble_std =   5.e2
+#A8.lower_bound = 2.e5
+#A8.lower_bound = 1.e5
+A8.lower_bound = 1.e4
+A8.upper_bound = 8.e5
+
+experiments = flow_reactor1 flow_reactor2 flow_reactor1a flow_reactor1b
+
+# Fig 7d in Davis paper
+flow_reactor1.type = CPReactor
+flow_reactor1.Patm = 15.7
+flow_reactor1.T = 914
+flow_reactor1.H2 = .0118
+flow_reactor1.O2 = .0061
+flow_reactor1.N2 = .9821
+flow_reactor1.data_num_points = 11
+flow_reactor1.data_tstart = 0.
+flow_reactor1.data_tend = 1.0
+flow_reactor1.diagnostic_name = H2
+flow_reactor1.measurement_error = 1.e-6
+
+# Fig 7c in Davis paper, time data includes the time-shift used in the original data fit
+flow_reactor2.type = CPReactor
+flow_reactor2.Patm = 3.02
+flow_reactor2.T = 934
+flow_reactor2.H2 = .0095
+flow_reactor2.O2 = .0049
+flow_reactor2.N2 = .9856
+flow_reactor2.data_num_points = 11
+flow_reactor2.data_tstart = 0.32
+flow_reactor2.data_tend = 0.68
+flow_reactor2.diagnostic_name = H2
+flow_reactor2.measurement_error = 1.e-6
+
+# Target ign1a in Davis paper
+flow_reactor1a.type = CVReactor
+flow_reactor1a.Patm = 1.729
+flow_reactor1a.T  = 1051
+flow_reactor1a.H2 = .0667
+flow_reactor1a.O2 = .0333
+flow_reactor1a.AR = .9000
+flow_reactor1a.data_num_points = 1001
+flow_reactor1a.data_tstart = 0.
+flow_reactor1a.data_tend = 400e-6
+flow_reactor1a.diagnostic_name = pressure_rise
+flow_reactor1a.measurement_error = 1.e-6
+flow_reactor1a.dpdt_thresh = 20
+#flow_reactor1a.log_file = junk
+
+# Target ign1b in Davis paper
+flow_reactor1b.type = CVReactor
+flow_reactor1b.Patm = 2.008
+flow_reactor1b.T  = 1312
+flow_reactor1b.H2 = .0667
+flow_reactor1b.O2 = .0333
+flow_reactor1b.AR = .9000
+flow_reactor1b.data_num_points = 1001
+flow_reactor1b.data_tstart = 0.
+flow_reactor1b.data_tend = 200e-6
+flow_reactor1b.diagnostic_name = pressure_rise
+flow_reactor1b.measurement_error = 1.e-6
+flow_reactor1b.dpdt_thresh = 20
+#flow_reactor1b.log_file = junk
+
+
+
