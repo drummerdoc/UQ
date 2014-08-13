@@ -45,8 +45,27 @@ struct MINPACKstruct
       }
       else {
         /* Call middle-level interface */
+#if 1
+        std::cout << "H = [ ";
+        for (int r=0; r<n; ++r) {
+          std::cout << "   ";
+          for (int c=0; c<n; ++c) {
+            std::cout << a[r*n+c] << " ";
+          }
+          std::cout << std::endl;
+        }
+        std::cout << "]\n";
+#endif
         info = LAPACKE_dsyev_work(matrix_order,jobz,uplo,n,a.dataPtr(),lda,s.dataPtr(),
                                   work.dataPtr(),lwork);
+#if 1
+        std::cout << "Eigenvalues of Hessian = { ";
+        for (int j=0; j<n; ++j) {
+          std::cout << s[j] << " ";
+        }
+        std::cout << "}\n";
+#endif
+
       }
       BL_ASSERT(info == 0);
       return info;
@@ -57,8 +76,8 @@ struct MINPACKstruct
 
       jobu  = 'a';             // 'a' -> all M columns of U are returned
       jobvt = 'a';             // 'a' -> all N rows of V**T are returned
-      jobz  = 'v';             // 'V' -> return vectors and values 'N' otherwise
-      uplo  = 'u';             // 'U' -> A is upper-triangular
+      jobz  = 'v';             // 'v' -> return vectors and values 'N' otherwise
+      uplo  = 'l';             // 'l' -> A is lower-triangular
       m     = work_array_len;  // Number of rows of matrix
       n     = work_array_len;  // Number of columns of matrix
       a.resize(n*m);           // The matrix A

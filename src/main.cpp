@@ -10,6 +10,11 @@
 
 #include <PremixSol.H>
 
+#define real __cminpack_real__
+static real sqrt2Inv = 1/std::sqrt(2);
+static int GOOD_EVAL_FLAG = 0;
+static int BAD_DATA_FLAG = 1;
+static int BAD_EXPT_FLAG = 2;
 
 // To find reasonable parameter ranges
 //
@@ -17,10 +22,8 @@ void fixParamRanges( ParameterManager & parameter_manager, ExperimentManager & e
 
   std::cout << " Exploring parameter ranges... \n";
   const std::vector<Real>& true_params = parameter_manager.TrueParameters();
-  const std::vector<Real>& prior_mean = parameter_manager.PriorMean();
   const std::vector<Real>& lower_bound = parameter_manager.LowerBound();
   const std::vector<Real>& upper_bound = parameter_manager.UpperBound();
-  const std::vector<Real>& prior_std = parameter_manager.PriorSTD();
 
   int num_params = true_params.size();
 
@@ -92,16 +95,6 @@ void fixParamRanges( ParameterManager & parameter_manager, ExperimentManager & e
 
 }
 
-static
-void 
-print_usage (int,
-             char* argv[])
-{
-  std::cerr << "usage:\n";
-  std::cerr << argv[0] << " pmf_file=<input fab file name> [options] \n";
-  exit(1);
-}
-
 //
 // The function minimized by minpack
 //
@@ -112,6 +105,7 @@ NegativeLogLikelihood(const std::vector<double>& parameters)
   return -Driver::LogLikelihood(parameters);
 }
 
+static
 Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
@@ -168,7 +162,7 @@ get_INVSQRT(void *p, const std::vector<Real>& X)
   // The matrix
   std::vector<Real>& a = lapack.a;
 
-  // Fill the upper matrix
+  // Fill the lower matrix
   MyMat H(num_vals);
   for( int ii=0; ii<num_vals; ii++ ){
     H[ii].resize(num_vals);
@@ -202,11 +196,15 @@ get_INVSQRT(void *p, const std::vector<Real>& X)
   return std::pair<MyMat,MyMat>(H,invsqrt);
 }
 
+#define CEN_DIFF
+#undef FWD_DIFF
+
+#ifdef CEN_DIFF
 //
 // Compute the derivative of the function funcF with respect to 
 // the Kth variable (centered finite differences)
 //
-Real
+static Real
 der_cfd(void* p, const std::vector<Real>& X, int K) {
   MINPACKstruct *s = (MINPACKstruct*)(p);
   std::vector<Real>& xdX1 = s->Work(0);
@@ -230,12 +228,14 @@ der_cfd(void* p, const std::vector<Real>& X, int K) {
 
   return (fx1-fx2)/(xdX1[K]-xdX2[K]);
 }
+#endif
 
+#ifdef FWD_DIFF
 //
 // Compute the derivative of the function funcF with respect to 
 // the Kth variable (forward finite differences)
 //
-Real
+static Real
 der_ffd(void* p, const std::vector<Real>& X, int K) {
   MINPACKstruct *s = (MINPACKstruct*)(p);
   std::vector<Real>& xdX = s->Work(0);
@@ -256,16 +256,21 @@ der_ffd(void* p, const std::vector<Real>& X, int K) {
 
   return (fx1-fx2)/(xdX[K]-X[K]);
 }
+#endif
 
 //
 // Gradient of function to minimize, using finite differences
 //
-void grad(void * p, const std::vector<Real>& X, std::vector<Real>& gradF) {
+static void grad(void * p, const std::vector<Real>& X, std::vector<Real>& gradF) {
   MINPACKstruct *s = (MINPACKstruct*)(p);
   int num_vals = s->parameter_manager.NumParams();
   for (int ii=0;ii<num_vals;ii++){
-    //gradF[ii] = der_ffd(p,X,ii); 
+#ifdef FWD_DIFF
+    gradF[ii] = der_ffd(p,X,ii); 
+#endif
+#ifdef CEN_DIFF
     gradF[ii] = der_cfd(p,X,ii);
+#endif
   } 
 }
 
@@ -273,6 +278,7 @@ void grad(void * p, const std::vector<Real>& X, std::vector<Real>& gradF) {
 // This is what we give to MINPACK
 // It computes the gradient of the function to be minimized
 //
+static
 int FCN(void       *p,    
         int	   NP,
         const Real *X,
@@ -291,12 +297,201 @@ int FCN(void       *p,
     FVEC[i] = Fv[i];
   }
   if (IFLAGP==1) {
-    std::cout << "parameter, grad = " << X[0] << ", " << FVEC[0] << std::endl; 
+    std::cout << "parameter = { ";
+    for (int i=0; i<NP; ++i) {
+      std::cout << X[i] << " ";
+    }
+    std::cout << "}, grad =  {";
+    for (int i=0; i<NP; ++i) {
+      std::cout << FVEC[i] << " ";
+    }
+    std::cout << "}\n";
   }
   return 0;
 }
 
+static int eval_nlls_data(void *p, const std::vector<Real>& pvals, real *fvec)
+{
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  ExperimentManager& em = s->expt_manager;
+  const std::vector<Real>& observation_std = em.ObservationSTD();
+  const std::vector<Real>& perturbed_data = em.TrueDataWithObservationNoise();
+  std::vector<Real> dvals(em.NumExptData());
+  bool expts_ok = s->expt_manager.GenerateTestMeasurements(pvals,dvals);
+
+  if (!expts_ok) { // Bad experiment
+    return BAD_EXPT_FLAG;
+  }
+
+  for (int i=0; i<em.NumExptData(); ++i) {
+    fvec[i] = sqrt2Inv * (perturbed_data[i] - dvals[i]) / observation_std[i];
+  }
+
+  return GOOD_EVAL_FLAG;
+}
+
+static int eval_nlls_funcs(void *p, int m, int n, const real *x, real *fvec)
+{
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  ParameterManager& pm = s->parameter_manager;
+  ExperimentManager& em = s->expt_manager;
+  BL_ASSERT(n == pm.NumParams());
+  int nd = m - n;
+  BL_ASSERT(nd == em.NumExptData());
+
+  const std::vector<Real>& prior_mean = pm.PriorMean();
+  const std::vector<Real>& prior_std = pm.PriorSTD();
+  const std::vector<Real>& upper_bound = pm.UpperBound();
+  const std::vector<Real>& lower_bound = pm.LowerBound();
+  std::vector<Real> pvals(n);
+
+  bool sample_oob = false;
+  for (int i=0; i<n && !sample_oob; ++i) {
+    pvals[i] = x[i];
+    sample_oob |= (pvals[i] < lower_bound[i] || pvals[i] > upper_bound[i]);
+    fvec[i] = sqrt2Inv * (prior_mean[i] - pvals[i]) / prior_std[i];
+  }
+
+  if (sample_oob) { // Bad data
+    return BAD_DATA_FLAG;
+  }
+
+  return eval_nlls_data(p,pvals,&(fvec[n]));
+}
+
+static
+int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac, 
+            int ldfjac, int iflag)
+{
+  if (iflag == 0) {
+    return 0;
+  }
+  else if (iflag == 1) { // Evaluate functions only, do not touch FJAC
+    int eflag = eval_nlls_funcs(p,m,n,x,fvec);
+    if (eflag != GOOD_EVAL_FLAG) {
+      if (eflag == BAD_DATA_FLAG) {
+        MINPACKstruct *s = (MINPACKstruct*)(p);
+        ParameterManager& pm = s->parameter_manager;
+        const std::vector<Real>& upper_bound = pm.UpperBound();
+        const std::vector<Real>& lower_bound = pm.LowerBound();
+        std::cout << "Bad parameters" << std::endl;
+        for (int i=0; i<n; ++i) {
+          if (x[i] < lower_bound[i] || x[i] > upper_bound[i]) {
+            std::cout << "    parameter " << i << " oob: " << x[i] << " " << lower_bound[i] << " " << upper_bound[i] << std::endl;
+          }
+        }
+      }
+      BoxLib::Abort("HANDLE BAD EVAL FLAG");
+    }
+  }
+  else if (iflag == 2) { // Evaluate jacobian only, do not touch FVEC
+
+    MINPACKstruct *s = (MINPACKstruct*)(p);
+    ParameterManager& pm = s->parameter_manager;
+    ExperimentManager& em = s->expt_manager;
+    BL_ASSERT(n == pm.NumParams());
+    const std::vector<Real>& prior_std = pm.PriorSTD();
+    const std::vector<Real>& upper_bound = pm.UpperBound();
+    const std::vector<Real>& lower_bound = pm.LowerBound();
+
+    std::vector<Real> pvals(n);
+    bool sample_oob = false;
+    for (int i=0; i<n && !sample_oob; ++i) {
+      pvals[i] = x[i];
+      sample_oob |= (pvals[i] < lower_bound[i] || pvals[i] > upper_bound[i]);
+    }
+    if (sample_oob) { // Bad data
+      BoxLib::Abort("Bad sample data");
+    }
+
+    std::vector<Real> f0tmp(em.NumExptData());
+    int ret0 = eval_nlls_data(p,pvals,&(f0tmp[0]));
+    BL_ASSERT(ret0 == GOOD_EVAL_FLAG);
+
+    std::vector<Real> ftmp(em.NumExptData());
+    for (int i=0; i<n; ++i) {
+      fjac[(n+1)*i] = - sqrt2Inv / prior_std[i];
+
+      Real typ = std::max(s->parameter_manager.TypicalValue(i), std::abs(pvals[i]));
+      Real h = typ * s->param_eps;
+      pvals[i] += h;
+      int ret = eval_nlls_data(p,pvals,&(ftmp[0]));
+      BL_ASSERT(ret == GOOD_EVAL_FLAG);
+
+      for (int j=0; j<n; ++j) {
+        fjac[(n+i)*n + j] = (ftmp[j] - f0tmp[j]) / h;
+      }
+
+      pvals[i] = x[i];
+    }
+
+  }
+  else {
+    BoxLib::Abort("Bad iflag value");
+  }
+  return 0;
+}
+
+static
+int NLLSFCN_NOJ(void *p, int m, int n, const real *x, real *fvec, int iflag)
+{
+  int eflag = eval_nlls_funcs(p,m,n,x,fvec);
+  if (eflag != GOOD_EVAL_FLAG) {
+    if (eflag == BAD_DATA_FLAG) {
+      MINPACKstruct *s = (MINPACKstruct*)(p);
+      ParameterManager& pm = s->parameter_manager;
+      const std::vector<Real>& upper_bound = pm.UpperBound();
+      const std::vector<Real>& lower_bound = pm.LowerBound();
+      std::cout << "Bad parameters" << std::endl;
+      for (int i=0; i<n; ++i) {
+        if (x[i] < lower_bound[i] || x[i] > upper_bound[i]) {
+          std::cout << "    parameter " << i << " oob: " << x[i] << " " << lower_bound[i] << " " << upper_bound[i] << std::endl;
+        }
+      }
+    }
+    BoxLib::Abort("HANDLE BAD EVAL FLAG");
+  }
+
+  if (iflag == 0) {
+    Real sum = 0;
+    for (int i=0; i<m; ++i) {
+      sum += fvec[i] * fvec[i];
+    }
+    std::cout << "X: { ";
+    for (int i=0; i<n; ++i) {
+      std::cout << x[i] << " ";
+    }
+    std::cout << "} FUNC: " << sum << std::endl;
+  }
+  return 0;
+}
+
+static
+Real SumSquareFuncs(const std::vector<double>& soln_params)
+{
+  MINPACKstruct *s = Driver::mystruct;
+  ExperimentManager& em = s->expt_manager;
+  ParameterManager& pm = s->parameter_manager;
+  int n = pm.NumParams();
+  int m = em.NumExptData() + n;
+  std::vector<double> fvec(m);
+
+  int iflag = 1;
+  //double fjac;
+  //int ldfjac = 1;
+  //int ok = NLLSFCN((void *)s,m,n,&(soln_params[0]),&(fvec[0]),&fjac,ldfjac,iflag);
+  int ok = NLLSFCN_NOJ((void *)s,m,n,&(soln_params[0]),&(fvec[0]),iflag);
+  BL_ASSERT(ok ==  GOOD_EVAL_FLAG);
+
+  Real sum = 0;
+  for (int i=0; i<m; ++i) {
+    sum += fvec[i] * fvec[i];
+  }
+  return sum;
+}
+
 // Call minpack
+static
 void minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
@@ -314,13 +509,13 @@ void minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln)
   int MODE = 2;
   if (MODE==2) {
     for (int i=0; i<num_vals; ++i) {
-      DIAG[i] = std::abs(s->parameter_manager[i].DefaultValue());
+      DIAG[i] = std::abs(1/s->parameter_manager[i].DefaultValue());
     }
   }
   Real EPSFCN=1e-6;
   std::vector<Real> FJAC(num_vals*num_vals);
 
-  Real XTOL=1.e-6;
+  Real XTOL=1.e-8;
   Real FACTOR=100;
   std::vector< std::vector<Real> > WA(4, std::vector<Real>(num_vals));
 
@@ -367,8 +562,203 @@ void minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln)
   }
 };
 
-// MATTI'S CODE, USE WITH EXTREME CAUTION
+static
+void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& soln)
+{
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  int n = s->parameter_manager.NumParams();
+  int m = n + s->expt_manager.NumExptData();
+  std::vector<Real> fvec(m);
+  soln = guess;
 
+  Real eps=1.001;
+  for (int i=0; i<n; ++i) {
+    soln[i] *= eps;
+  }
+  soln[0] *= 1/(eps*eps);
+
+#if 0
+  std::vector<Real> diag(n);
+  int mode = 2;
+  if (mode==2) {
+    for (int i=0; i<n; ++i) {
+      diag[i] = std::abs(s->parameter_manager[i].DefaultValue());
+    }
+  }
+
+  int nprint = 1;
+  int maxfev = 1000;
+  Real factor=100;
+  int ldfjac = m;
+  Real ftol = sqrt(__cminpack_func__(dpmpar)(1));
+  Real xtol = sqrt(__cminpack_func__(dpmpar)(1));
+  Real gtol = 0;
+  std::vector<int> ipvt(n);
+  std::vector<Real> qtf(n);
+  std::vector<Real> wa1(n);
+  std::vector<Real> wa2(n);
+  std::vector<Real> wa3(n);
+  std::vector<Real> wa4(m);
+  std::vector<Real> fjac(m*n);
+  int nfev, njev;
+  /*
+    the purpose of lmder is to minimize the sum of the squares of
+    m nonlinear functions in n variables by a modification of
+    the levenberg-marquardt algorithm. the user must provide a
+    subroutine which calculates the functions and the jacobian. */
+
+  int info = lmder(NLLSFCN,p,m,n,&(soln[0]),&(fvec[0]),&(fjac[0]),ldfjac,
+                   ftol,xtol,gtol, maxfev, &(diag[0]),
+                   mode,factor,nprint,&nfev,&njev,&(ipvt[0]),&(qtf[0]), 
+                   &(wa1[0]),&(wa2[0]),&(wa3[0]),&(wa4[0]));
+
+  std::string msg;
+  switch (info)
+  {
+  case 0:  msg = "improper input parameters."; break;
+  case 1:  msg = "actual & predicted rel reductions in sum of squares <= ftol."; break;
+  case 2:  msg = "relative error between consecutive iterates <= xtol."; break;
+  case 3:  msg = "conditions for info = 1 and info = 2 both hold."; break;
+  case 4:  msg = "cos angle between fvec and any col in J in abs is <= gtol."; break;
+  case 5:  msg = "nfev >= maxfev"; break;
+  case 6:  msg = "ftol is too small. no further reduction possible"; break;
+  case 7:  msg = "xtol is too small. no further improvement in x is possible"; break;
+  case 8:  msg = "gtol is too small. fvec orthogonal to cols of J to macheps"; break;
+  default: msg = "unknown error.";
+  }
+
+  if (info ==0 || info>4) {
+    BoxLib::Abort(msg.c_str());
+  }
+  else {
+    std::cout << "minpack terminated: " << msg << std::endl;
+  }
+#else
+
+
+  // Minpack-internally generated derivatives
+
+#if 0
+  /* 
+     the purpose of lmdif1 is to minimize the sum of the squares of
+     m nonlinear functions in n variables by a modification of the
+     levenberg-marquardt algorithm. this is done by using the more
+     general least-squares solver lmdif. the user must provide a
+     subroutine which calculates the functions. the jacobian is
+     then calculated by a forward-difference approximation. */
+
+  std::vector<int> iwa(n);
+  int lwa = m*n+5*n+m;
+  std::vector<Real> wa(lwa);
+  Real tol = 1.e-8;
+  int info = lmdif1(NLLSFCN_NOJ,p,m,n,&(soln[0]),&(fvec[0]),
+                    tol,&(iwa[0]),&(wa[0]),lwa);
+  std::string msg;
+  switch (info)
+  {
+  case 0:  msg = "improper input parameters."; break;
+  case 1:  msg = "relative error in the sum of squares is <= tol."; break;
+  case 2:  msg = "relative error between x and the solution is <= tol."; break;
+  case 3:  msg = "conditions for info = 1 and info = 2 both hold."; break;
+  case 4:  msg = "fvec is orthogonal to J cols to machine precision."; break;
+  case 5:  msg = "nfev >= 200*(n+1)"; break;
+  case 6:  msg = "tol is too small. no further reduction possible"; break;
+  case 7:  msg = "tol is too small. no further improvement in x is possible"; break;
+  default: msg = "unknown error.";
+  }
+
+  if (info ==0 || info>4) {
+    BoxLib::Abort(msg.c_str());
+  }
+
+#else
+  /*
+    the purpose of lmdif is to minimize the sum of the squares of
+    m nonlinear functions in n variables by a modification of
+    the levenberg-marquardt algorithm. the user must provide a
+    subroutine which calculates the functions. the jacobian is
+    then calculated by a forward-difference approximation. */
+  
+  int nfev, maxfev = 200*(n+1);
+  Real factor=100;
+  int ldfjac = m;
+  Real ftol = sqrt(__cminpack_func__(dpmpar)(1));
+  Real xtol = sqrt(__cminpack_func__(dpmpar)(1));
+  Real gtol = 0;
+  Real epsfcn = 0;
+
+  std::cout << "TOL: " << ftol << std::endl;
+
+  /* 
+     Test 1: minpack converged if EuclideanNorm(F) <= (1+ftol)*EuclideanNorm(F), F=F(xsol)
+
+     If ftol = 10**(-K), then the final residual norm EuclideanNorm(F) has K sigfigs, 
+     and info is set = 1.  Danger: smaller components of D*X may have large relerrs,
+     but if MODE=1, then the accuracy of the components of X is usually related to 
+     their sensitivity.  Recommend: ftol = sqrt(macheps)
+
+
+     Test 2: minpack converged if EuclideanNorm(D*(x-xsol)) <= xtol*EuclideanNorm(D*xsol)
+
+     If xtol = 10**(-K), then the larger components of D*X have K sigfigs and
+     info is set = 2.  Danger: smaller components of D*X may have large relerrs,
+     but if MODE=1, then the accuracy of the components of X is usually related to 
+     their sensitivity.  Recommend: xtol = sqrt(macheps)
+   */
+  std::vector<Real> diag(n);
+  int mode = 2;
+  if (mode==2) {
+    for (int i=0; i<n; ++i) {
+      diag[i] = std::abs(1/s->parameter_manager[i].DefaultValue());
+    }
+  }
+  int nprint = 1;
+  std::vector<Real> fjac(m*n);
+  std::vector<int> ipvt(n);
+  std::vector<Real> qtf(n);
+  std::vector<Real> wa1(n), wa2(n), wa3(n), wa4(m);
+
+  int info = lmdif(NLLSFCN_NOJ,p,m,n,&(soln[0]),&(fvec[0]),ftol,xtol,gtol,maxfev,epsfcn,
+                   &(diag[0]),mode,factor,nprint,&nfev,&(fjac[0]),
+                   ldfjac,&(ipvt[0]),&(qtf[0]),&(wa1[0]),&(wa2[0]),&(wa3[0]),&(wa4[0]));
+
+  std::string msg;
+  switch (info)
+  {
+  case 0:  msg = "improper input parameters."; break;
+  case 1:  msg = "both actual and predicted relative reductions in sum of squares <= ftol"; break;
+  case 2:  msg = "relative error between two consecutive iterates <= xtol."; break;
+  case 3:  msg = "conditions for info = 1 and info = 2 both hold."; break;
+  case 4:  msg = "the cosine of the angle between fvec and any column of the jacobian <= gtol in absolute value."; break;
+  case 5:  msg = "number of calls to fcn >= maxfev"; break;
+  case 6:  msg = "ftol is too small. no further reduction in the sum of squares is possible."; break;
+  case 7:  msg = "xtol is too small. no further improvement in the approximate solution x is possible."; break;
+  case 8:  msg = "gtol is too small. fvec is orthogonal to the columns of the jacobian to machine precision."; break;
+  default: msg = "unknown error.";
+  }
+
+  if (info ==0 || info>4) {
+    BoxLib::Abort(msg.c_str());
+  }
+#endif
+
+
+  std::cout << "minpack terminated: " << msg << std::endl;
+#endif
+
+  Real Ffinal = NegativeLogLikelihood(soln);
+  std::cout << "Ffinal: " << Ffinal << std::endl;
+
+  int IFLAGP = 0;
+  FCN(p,n,&(soln[0]),&(fvec[0]),IFLAGP);
+  std::cout << "X, FVEC: " << std::endl;
+  for(int ii=0; ii<n; ii++){
+    std::cout << soln[ii] << " " << fvec[ii] << std::endl;
+  }
+};
+
+// MATTI'S CODE, USE WITH EXTREME CAUTION
+static
 void NormalizeWeights(std::vector<Real>& w){
   int NOS = w.size();
   Real SumWeights = 0;
@@ -380,6 +770,7 @@ void NormalizeWeights(std::vector<Real>& w){
   }
 }
 
+static
 Real EffSampleSize(std::vector<Real>& w, int NOS){
    // Approximate effective sample size
    Real SumSquaredWeights = 0;
@@ -390,7 +781,7 @@ Real EffSampleSize(std::vector<Real>& w, int NOS){
    return Neff;
 }
 
-
+static
 void Mean(std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
   int num_params = samples[1].size();
@@ -404,6 +795,7 @@ void Mean(std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples){
 }
 
 
+static
 void WeightedMean(std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
   int num_params = samples[1].size();
@@ -416,6 +808,7 @@ void WeightedMean(std::vector<Real>& CondMean, std::vector<Real>& w, std::vector
 }
 
 
+static
 void Var(std::vector<Real>& Var,std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
   int num_params = samples[1].size();
@@ -429,6 +822,7 @@ void Var(std::vector<Real>& Var,std::vector<Real>& Mean, std::vector<std::vector
 }
 
 
+static
 void WeightedVar(std::vector<Real>& CondVar,std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
   int num_params = samples[1].size();	
@@ -441,6 +835,7 @@ void WeightedVar(std::vector<Real>& CondVar,std::vector<Real>& CondMean, std::ve
 }
 
 
+static
 void WriteSamplesWeights(std::vector<std::vector<Real> >& samples, std::vector<Real>& w){
   int NOS = samples.size();
   int num_params = samples[1].size();
@@ -463,6 +858,7 @@ void WriteSamplesWeights(std::vector<std::vector<Real> >& samples, std::vector<R
 }
 
 
+static
 void Resampling(std::vector<std::vector<Real> >& Xrs,std::vector<Real>& w,std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
   int num_params = samples[1].size();
@@ -490,6 +886,7 @@ void Resampling(std::vector<std::vector<Real> >& Xrs,std::vector<Real>& w,std::v
 }
 
 
+static
 void WriteResampledSamples(std::vector<std::vector<Real> >& Xrs){
   int NOS = Xrs.size();
   int num_params = Xrs[1].size();
@@ -509,6 +906,7 @@ void WriteResampledSamples(std::vector<std::vector<Real> >& Xrs){
 #include "omp.h"
 #endif
 
+static
 void MCSampler( void* p,
 		std::vector<std::vector<Real> >& samples,
 		std::vector<Real>& w,
@@ -526,10 +924,23 @@ void MCSampler( void* p,
   std::cout <<  " " << std::endl;
   std::cout <<  "STARTING BRUTE FORCE MC SAMPLING " << std::endl;
   std::cout <<  "Number of samples: " << NOS << std::endl;
+
+  const std::vector<Real>& upper_bound = str->parameter_manager.UpperBound();
+  const std::vector<Real>& lower_bound = str->parameter_manager.LowerBound();
+
   for(int ii=0; ii<NOS; ii++){
     BL_ASSERT(samples[ii].size()==num_params);
     for(int jj=0; jj<num_params; jj++){
       samples[ii][jj] = prior_mean[jj] + prior_std[jj]*randn();
+      bool sample_oob = (samples[ii][jj] < lower_bound[jj] || samples[ii][jj] > upper_bound[jj]);
+
+      while (sample_oob) {
+        std::cout <<  "sample is out of bounds, parameter " << jj
+                  << " val,lb,ub: " << samples[ii][jj]
+                  << ", " << lower_bound[jj] << ", " << upper_bound[jj] << std::endl;
+        samples[ii][jj] = prior_mean[jj] + prior_std[jj]*randn();
+        sample_oob = (samples[ii][jj] < lower_bound[jj] || samples[ii][jj] > upper_bound[jj]);
+      }
     }
   }
 
@@ -549,14 +960,21 @@ void MCSampler( void* p,
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
+  int logPeriod = 1000;
   for (int ithread = 0; ithread < tnum; ithread++) {
     int iBegin = trange[ithread];
     int iEnd = (ithread==tnum-1 ? NOS : trange[ithread+1]);
 
     for(int ii=iBegin; ii<iEnd; ii++){
-      str->expt_manager.GenerateTestMeasurements(samples[ii],sample_data);
-      //w[ii] = exp(-str->expt_manager.ComputeLikelihood(sample_data));
-      w[ii] = str->expt_manager.ComputeLikelihood(sample_data);
+
+      if (ithread == 0) {
+        if ( (ii - iBegin)%logPeriod == 0 ) {
+          std::cout << " Completed "<< ii - iBegin << " samples on thread 0" << std::endl;          
+        }
+      }
+
+      bool ok = str->expt_manager.GenerateTestMeasurements(samples[ii],sample_data);
+      w[ii] = (ok ? str->expt_manager.ComputeLikelihood(sample_data) : -1);
     }
   }
 
@@ -567,18 +985,20 @@ void MCSampler( void* p,
     wmin = std::min(w[ii],wmin);
   }
   for(int ii=1; ii<NOS; ii++){
-    w[ii] = std::exp(-(w[ii] - wmin));
-    std::cout << "wbefore = "<< w[ii] << std::endl;
+    w[ii] = (w[ii] == -1 ? 0 : std::exp(-(w[ii] - wmin)));
+    //std::cout << "wbefore = "<< w[ii] << std::endl;
   }
 #endif
 
   // Normalize weights, print to terminal
   NormalizeWeights(w);
+#if 0
   for(int ii=0; ii<NOS; ii++){
     for(int jj=0; jj<num_params; jj++){
       std::cout << "Sample " << samples[ii][jj] <<  " weight = "<< w[ii] << std::endl;
     }
   }
+#endif
   
   // Approximate effective sample size	
   Real Neff = EffSampleSize(w,NOS);
@@ -628,6 +1048,7 @@ void MCSampler( void* p,
   std::cout <<  " " << std::endl;
 }
 
+static
 Real F0(const std::vector<Real>& sample,
         const std::vector<Real>& mu,
         const MyMat& H,
@@ -643,6 +1064,7 @@ Real F0(const std::vector<Real>& sample,
   return phi + 0.5*F0;
 }
 
+static
 void SlightlyBetterSampler( void* p,
                             std::vector<std::vector<Real> >& samples,
                             std::vector<Real>& w,
@@ -666,13 +1088,31 @@ void SlightlyBetterSampler( void* p,
   std::cout <<  "STARTING SLIGHTLY BETTER MC SAMPLING " << std::endl;
   std::cout <<  "Number of samples: " << NOS << std::endl;
 
+  const std::vector<Real>& upper_bound = str->parameter_manager.UpperBound();
+  const std::vector<Real>& lower_bound = str->parameter_manager.LowerBound();
+
   for(int ii=0; ii<NOS; ii++){
     BL_ASSERT(samples[ii].size()==num_params);
+
     for(int jj=0; jj<num_params; jj++){
       samples[ii][jj] = mu[jj];
       for(int kk=0; kk<num_params; kk++){
         samples[ii][jj] += invsqrt[jj][kk]*randn();
       }
+      bool sample_oob = (samples[ii][jj] < lower_bound[jj] || samples[ii][jj] > upper_bound[jj]);
+
+      while (sample_oob) {
+        std::cout <<  "sample is out of bounds, parameter " << jj
+                  << " val,lb,ub: " << samples[ii][jj]
+                  << ", " << lower_bound[jj] << ", " << upper_bound[jj] << std::endl;
+
+        samples[ii][jj] = mu[jj];
+        for(int kk=0; kk<num_params; kk++){
+          samples[ii][jj] += invsqrt[jj][kk]*randn();
+        }
+        sample_oob = (samples[ii][jj] < lower_bound[jj] || samples[ii][jj] > upper_bound[jj]);
+      }
+
     }
     Fo[ii] = F0(samples[ii],mu,H,phi);
   }
@@ -862,10 +1302,27 @@ main (int   argc,
     exit(0);
   }
 
-
-
   Real F = NegativeLogLikelihood(prior_mean);
   std::cout << "F = " << F << std::endl;
+
+  // Dump out F(xa,xb)
+#if 0
+  std::ofstream ofs; ofs.open("eval.dat");
+  int NN=21;
+  ofs << "VARIABLES= X Y Z\n";
+  ofs << "ZONE I=" << NN  << "J=" << NN << '\n';
+
+  for (int i=0; i<NN; ++i) {
+    for (int j=0; j<NN; ++j) {
+      std::vector<Real> eval_data = prior_mean;
+      eval_data[1] *= 1 + (i - NN/2)*.004;
+      eval_data[3] *= 1 + (j - NN/2)*.5;
+      ofs << i << " " << j << " " << NegativeLogLikelihood(eval_data) << std::endl;
+    }
+  }
+  ofs.close();
+  return 0;
+#endif
 
 #if 1
   std::cout << " starting MINPACK "<< std::endl;
@@ -884,23 +1341,27 @@ main (int   argc,
   }
 
   std::vector<Real> soln_params(num_params);
-  minimize((void*)(driver.mystruct), guess_params, soln_params);
+  minimizeNLLS((void*)(driver.mystruct), guess_params, soln_params);
 
   std::cout << "Final parameters: " << std::endl;
   for(int ii=0; ii<num_params; ii++){
     std::cout << parameter_manager[ii] << std::endl;
   }
 
+#if 1
   std::vector<Real> confirm_data(num_data);
   expt_manager.GenerateTestMeasurements(soln_params,confirm_data);
   std::cout << "Confirm data: " << std::endl;
   for(int ii=0; ii<num_data; ii++){
     std::cout << confirm_data[ii] << std::endl;
   }
+#endif
 
-  return 0;
   Real Fconf = NegativeLogLikelihood(soln_params);
   std::cout << "Fconf = " << Fconf << std::endl;
+
+  Real Fcheck = SumSquareFuncs(soln_params);
+  std::cout << "Fcheck = " << Fcheck << std::endl;
 
   std::vector<Real> Gconf(num_params); 
   std::cout << "Gconf: " << std::endl;
@@ -908,6 +1369,7 @@ main (int   argc,
   for(int ii=0; ii<num_params; ii++){
     std::cout << Gconf[ii] << std::endl;
   }
+  //return 0;
 #endif
 
   std::pair<MyMat,MyMat> mats = get_INVSQRT((void*)driver.mystruct, true_params);
@@ -918,7 +1380,7 @@ main (int   argc,
   int NOS = 10; pp.query("NOS",NOS);
   std::vector<Real> w(NOS);
   std::vector<std::vector<Real> > samples(NOS, std::vector<Real>(num_params,-1));
-#if 1
+#if 0
   MCSampler((void*)(driver.mystruct),samples,w,prior_mean,prior_std);
 #else
   SlightlyBetterSampler((void*)(driver.mystruct),samples,w,soln_params,H,invsqrt,Fconf);
