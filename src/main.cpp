@@ -127,8 +127,8 @@ Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
   Real typI = std::max(s->parameter_manager.TypicalValue(i), std::abs(X[i]));
   Real typJ = std::max(s->parameter_manager.TypicalValue(j), std::abs(X[j]));
 
-  Real hI = typI * s->param_eps;
-  Real hJ = typJ * s->param_eps;
+  Real hI = typI * s->param_eps * 100;
+  Real hJ = typJ * s->param_eps * 100;
 
   XpIpJ[i] += hI;
   XpIpJ[j] += hJ;
@@ -605,7 +605,7 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
   std::vector<Real> fvec(m);
   soln = guess;
 
-#if 0
+#if 1
   std::vector<Real> diag(n);
   int mode = 2;
   if (mode==2) {
