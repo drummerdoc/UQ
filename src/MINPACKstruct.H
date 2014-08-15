@@ -46,7 +46,7 @@ struct MINPACKstruct
       else {
         /* Call middle-level interface */
 #if 1
-        std::cout << "H = [ ";
+        std::cout << "H = [\n";
         for (int r=0; r<n; ++r) {
           std::cout << "   ";
           for (int c=0; c<n; ++c) {
@@ -77,7 +77,7 @@ struct MINPACKstruct
       jobu  = 'a';             // 'a' -> all M columns of U are returned
       jobvt = 'a';             // 'a' -> all N rows of V**T are returned
       jobz  = 'v';             // 'v' -> return vectors and values 'N' otherwise
-      uplo  = 'l';             // 'l' -> A is lower-triangular
+      uplo  = 'u';             // 'u' -> A is upper-triangular
       m     = work_array_len;  // Number of rows of matrix
       n     = work_array_len;  // Number of columns of matrix
       a.resize(n*m);           // The matrix A

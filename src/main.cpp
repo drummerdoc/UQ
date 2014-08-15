@@ -162,13 +162,17 @@ get_INVSQRT(void *p, const std::vector<Real>& X)
   // The matrix
   std::vector<Real>& a = lapack.a;
 
-  // Fill the lower matrix
+  // Fill the upper matrix
   MyMat H(num_vals);
   for( int ii=0; ii<num_vals; ii++ ){
     H[ii].resize(num_vals);
+    for (int j=0; j<num_vals; ++j) {
+      a[j + ii*num_vals] = -1;
+      H[ii][j] = -1;
+    }
     for( int jj=ii; jj<num_vals; jj++ ){
-      a[ii + jj*num_vals] = mixed_partial_centered( p, X, ii, jj);
-      H[ii][jj] = a[ii + jj*num_vals];
+      a[jj + ii*num_vals] = mixed_partial_centered( p, X, ii, jj);
+      H[ii][jj] = a[jj + ii*num_vals];
     }
   }
 
@@ -364,6 +368,15 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
             int ldfjac, int iflag)
 {
   if (iflag == 0) {
+    Real sum = 0;
+    for (int i=0; i<m; ++i) {
+      sum += fvec[i] * fvec[i];
+    }
+    std::cout << "X: { ";
+    for (int i=0; i<n; ++i) {
+      std::cout << x[i] << " ";
+    }
+    std::cout << "} FUNC: " << sum << std::endl;
     return 0;
   }
   else if (iflag == 1) { // Evaluate functions only, do not touch FJAC
@@ -410,7 +423,15 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
 
     std::vector<Real> ftmp(em.NumExptData());
     for (int i=0; i<n; ++i) {
-      fjac[(n+1)*i] = - sqrt2Inv / prior_std[i];
+      for (int j=0; j<n; ++j) {
+        //fjac[n*i + j] = 0; // Row major
+        fjac[m*i + j] = 0; // column major
+      }
+      //fjac[(n+1)*i] = - sqrt2Inv / prior_std[i]; // Row major
+      fjac[(m+1)*i] = - sqrt2Inv / prior_std[i]; // Column major
+    }
+    int nd = m - n;
+    for (int i=0; i<n; ++i) {
 
       Real typ = std::max(s->parameter_manager.TypicalValue(i), std::abs(pvals[i]));
       Real h = typ * s->param_eps;
@@ -418,12 +439,25 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
       int ret = eval_nlls_data(p,pvals,&(ftmp[0]));
       BL_ASSERT(ret == GOOD_EVAL_FLAG);
 
-      for (int j=0; j<n; ++j) {
-        fjac[(n+i)*n + j] = (ftmp[j] - f0tmp[j]) / h;
+      Real hInv = 1/h;
+      for (int j=0; j<nd; ++j) {
+        //fjac[(n+j)*n + i] = (ftmp[j] - f0tmp[j]) * hInv; // Row major
+        fjac[i*m+n+j] = (ftmp[j] - f0tmp[j]) * hInv; // Column major
       }
-
       pvals[i] = x[i];
     }
+
+#if 0
+    std::cout << "My J: " << m << " " << n << "\n";
+    for (int j=0; j<m; ++j) {
+      for (int i=0; i<n; ++i) {
+        //std::cout << -1/(std::sqrt(2)*fjac[j*n+i]) << " "; // Row major
+        std::cout << -1/(std::sqrt(2)*fjac[i*m+j]) << " "; // Column major
+      }
+      std::cout << "\n";
+    }
+    BoxLib::Abort();
+#endif
 
   }
   else {
@@ -571,18 +605,12 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
   std::vector<Real> fvec(m);
   soln = guess;
 
-  Real eps=1.001;
-  for (int i=0; i<n; ++i) {
-    soln[i] *= eps;
-  }
-  soln[0] *= 1/(eps*eps);
-
 #if 0
   std::vector<Real> diag(n);
   int mode = 2;
   if (mode==2) {
     for (int i=0; i<n; ++i) {
-      diag[i] = std::abs(s->parameter_manager[i].DefaultValue());
+      diag[i] = std::abs(1/s->parameter_manager[i].DefaultValue());
     }
   }
 
@@ -607,10 +635,32 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
     the levenberg-marquardt algorithm. the user must provide a
     subroutine which calculates the functions and the jacobian. */
 
+  std::cout << "****** USING lmder "<< std::endl;
   int info = lmder(NLLSFCN,p,m,n,&(soln[0]),&(fvec[0]),&(fjac[0]),ldfjac,
                    ftol,xtol,gtol, maxfev, &(diag[0]),
                    mode,factor,nprint,&nfev,&njev,&(ipvt[0]),&(qtf[0]), 
                    &(wa1[0]),&(wa2[0]),&(wa3[0]),&(wa4[0]));
+
+  MINPACKstruct::LAPACKstruct& lapack = s->lapack_struct;
+  std::vector<Real>& a = lapack.a;
+  for (int r=0; r<n; ++r) {
+    for (int c=0; c<n; ++c) {
+      a[r*n+c] = fjac[r*n+c];
+    }
+  }
+
+  __cminpack_func__(covar)(n,&(a[0]),n,&(ipvt[0]),xtol,&(wa1[0]));
+
+  // Get vector of eigenvalues of inverse(J^T . J)
+  lapack_int info_la = lapack.DSYEV_wrap();
+  BL_ASSERT(info_la == 0);
+
+  const std::vector<Real>& singular_values = lapack.s;
+  std::cout << "Eigenvalues of J^T . J = { ";
+  for (int j=0; j<n; ++j) {
+    std::cout << 1/singular_values[j] << " ";
+  }
+  std::cout << "}\n";
 
   std::string msg;
   switch (info)
@@ -650,7 +700,8 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
   std::vector<int> iwa(n);
   int lwa = m*n+5*n+m;
   std::vector<Real> wa(lwa);
-  Real tol = 1.e-8;
+  Real tol = sqrt(__cminpack_func__(dpmpar)(1));
+  std::cout << "****** USING lmdif1 "<< std::endl;
   int info = lmdif1(NLLSFCN_NOJ,p,m,n,&(soln[0]),&(fvec[0]),
                     tol,&(iwa[0]),&(wa[0]),lwa);
   std::string msg;
@@ -685,9 +736,11 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
   Real ftol = sqrt(__cminpack_func__(dpmpar)(1));
   Real xtol = sqrt(__cminpack_func__(dpmpar)(1));
   Real gtol = 0;
-  Real epsfcn = 0;
+  Real epsfcn = sqrt(__cminpack_func__(dpmpar)(1));
+  ParmParse pp;
+  pp.query("epsfcn",epsfcn);
 
-  std::cout << "TOL: " << ftol << std::endl;
+  std::cout << "ftol: " << ftol << ", epsfcn: " << epsfcn << std::endl;
 
   /* 
      Test 1: minpack converged if EuclideanNorm(F) <= (1+ftol)*EuclideanNorm(F), F=F(xsol)
@@ -718,9 +771,31 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
   std::vector<Real> qtf(n);
   std::vector<Real> wa1(n), wa2(n), wa3(n), wa4(m);
 
+  std::cout << "****** USING lmdif "<< std::endl;
   int info = lmdif(NLLSFCN_NOJ,p,m,n,&(soln[0]),&(fvec[0]),ftol,xtol,gtol,maxfev,epsfcn,
                    &(diag[0]),mode,factor,nprint,&nfev,&(fjac[0]),
                    ldfjac,&(ipvt[0]),&(qtf[0]),&(wa1[0]),&(wa2[0]),&(wa3[0]),&(wa4[0]));
+
+  MINPACKstruct::LAPACKstruct& lapack = s->lapack_struct;
+  std::vector<Real>& a = lapack.a;
+  for (int r=0; r<n; ++r) {
+    for (int c=0; c<n; ++c) {
+      a[r*n+c] = fjac[r*n+c];
+    }
+  }
+
+  __cminpack_func__(covar)(n,&(a[0]),n,&(ipvt[0]),xtol,&(wa1[0]));
+
+  // Get vector of eigenvalues of inverse(J^T . J)
+  lapack_int info_la = lapack.DSYEV_wrap();
+  BL_ASSERT(info_la == 0);
+
+  const std::vector<Real>& singular_values = lapack.s;
+  std::cout << "Eigenvalues of J^T . J = { ";
+  for (int j=0; j<n; ++j) {
+    std::cout << 1/singular_values[j] << " ";
+  }
+  std::cout << "}\n";
 
   std::string msg;
   switch (info)
@@ -1328,17 +1403,83 @@ main (int   argc,
   std::cout << " starting MINPACK "<< std::endl;
   // Call minpack
   std::vector<Real> guess_params(num_params);
+#if 1
+  Real eps=1.001;
+  for (int i=0; i<num_params; ++i) {
+    guess_params[i] = prior_mean[i]*eps;
+  }
+  guess_params[0] *= 1/(eps*eps);
+#else
+  for(int i=0; i<num_params; i++){
+    guess_params[i] = prior_mean[i];
+  }
+#endif
   std::cout << "Guess parameters: " << std::endl;
-  for(int ii=0; ii<num_params; ii++){
-    guess_params[ii] = prior_mean[ii];
-    std::cout << guess_params[ii] << std::endl;
+  for(int i=0; i<num_params; i++){
+    std::cout << guess_params[i] << std::endl;
   }
-  std::vector<Real> guess_data(num_data);
-  expt_manager.GenerateTestMeasurements(guess_params,guess_data);
-  std::cout << "Guess data: " << std::endl;
-  for(int ii=0; ii<num_data; ii++){
-    std::cout << guess_data[ii] << std::endl;
+
+  if (0) {
+    std::vector<Real> guess_data(num_data);
+    expt_manager.GenerateTestMeasurements(guess_params,guess_data);
+    std::cout << "Guess data: " << std::endl;
+    for(int ii=0; ii<num_data; ii++){
+      std::cout << guess_data[ii] << std::endl;
+    }
   }
+
+
+  if (0) {
+    int n = num_params;
+    int m = n + num_data;
+    int ldfjac = m;
+    std::vector<Real> X(n); X=guess_params;
+    std::vector<Real> XP(n);
+    std::vector<Real> FJAC(n*m);
+    std::vector<Real> FVEC(m), FVECP(m), ERR(m);
+
+    int mode = 1;
+    __cminpack_func__(chkder)(m,n,&(X[0]),&(FVEC[0]),&(FJAC[0]),ldfjac,&(XP[0]),&(FVECP[0]),mode,&(ERR[0]));
+
+    NLLSFCN((void*)(driver.mystruct),m,n,&(X[0]),&(FVEC[0]),&(FJAC[0]),ldfjac,1);
+    NLLSFCN((void*)(driver.mystruct),m,n,&(X[0]),&(FVEC[0]),&(FJAC[0]),ldfjac,2);
+    NLLSFCN((void*)(driver.mystruct),m,n,&(XP[0]),&(FVECP[0]),&(FJAC[0]),ldfjac,1);
+      
+    mode = 2;
+    __cminpack_func__(chkder)(m,n,&(X[0]),&(FVEC[0]),&(FJAC[0]),ldfjac,&(XP[0]),&(FVECP[0]),mode,&(ERR[0]));
+
+    for (int i=0; i<n; ++i) {
+      XP[i] = (XP[i] - X[i])/X[i];
+    }
+    std::cout << "Delta X / X: " << std::endl;
+    for (int i=0; i<n; ++i) {
+      std::cout << i << " " << XP[i] << std::endl;
+    }
+
+    for (int i=0; i<m; ++i) {
+      FVECP[i] -= FVEC[i];
+    }
+
+    std::cout << "F: " << std::endl;
+    for (int i=0; i<m; ++i) {
+      std::cout << i << " " << FVEC[i] << std::endl;
+    }
+
+    std::cout << "Delta F: " << std::endl;
+    for (int i=0; i<m; ++i) {
+      std::cout << i << " " << FVECP[i] << std::endl;
+    }
+
+    std::cout << "ERR: " << std::endl;
+    for (int i=0; i<m; ++i) {
+      std::cout << i << " " << ERR[i] << std::endl;
+    }
+
+    return 0;
+
+  }
+
+
 
   std::vector<Real> soln_params(num_params);
   minimizeNLLS((void*)(driver.mystruct), guess_params, soln_params);
@@ -1372,7 +1513,8 @@ main (int   argc,
   //return 0;
 #endif
 
-  std::pair<MyMat,MyMat> mats = get_INVSQRT((void*)driver.mystruct, true_params);
+  std::pair<MyMat,MyMat> mats = get_INVSQRT((void*)driver.mystruct, soln_params);
+  return 0;
   const MyMat& H = mats.first;
   const MyMat& invsqrt = mats.second;
 
