@@ -88,5 +88,8 @@ flow_reactor2.data_tend = 0.68
 flow_reactor2.diagnostic_name = H2
 flow_reactor2.measurement_error = 1.e-6
 
+ht.vode_rtol = 1.e-12
+ht.vode_atol = 1.e-12
+param_eps = 1.e-2
 
 

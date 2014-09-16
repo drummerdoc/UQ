@@ -109,6 +109,10 @@ static
 Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
+
+  Real hI = std::max(s->parameter_manager.TypicalValue(i), std::abs(X[i]));
+  Real hJ = std::max(s->parameter_manager.TypicalValue(j), std::abs(X[j]));
+
   BL_ASSERT(s->work_array_len >= X.size());
   std::vector<Real>& XpIpJ = s->Work(0);
   std::vector<Real>& XmIpJ = s->Work(1);
@@ -124,12 +128,6 @@ Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
    XmImJ [ii] = X[ii];
   }
                 
-  Real typI = std::max(s->parameter_manager.TypicalValue(i), std::abs(X[i]));
-  Real typJ = std::max(s->parameter_manager.TypicalValue(j), std::abs(X[j]));
-
-  Real hI = typI * s->param_eps * 100;
-  Real hJ = typJ * s->param_eps * 100;
-
   XpIpJ[i] += hI;
   XpIpJ[j] += hJ;
 
@@ -146,6 +144,16 @@ Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
   Real fpImJ = NegativeLogLikelihood(XpImJ);
   Real fmIpJ = NegativeLogLikelihood(XmIpJ);
   Real fmImJ = NegativeLogLikelihood(XmImJ);
+
+  /*
+    Real f = NegativeLogLikelihood(X);
+    std::cout << "Hessian eval " << i << " " << j
+    << " 00: " << f
+    << " ++: " << fpIpJ
+    << " +-: " << fpImJ
+    << " -+: " << fmIpJ
+    << " --: " << fmImJ << std::endl;
+  */
 
   return 1.0/(4.0*hI*hJ) * ( fpIpJ - fpImJ - fmIpJ + fmImJ );  
 }
@@ -421,7 +429,8 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
     int ret0 = eval_nlls_data(p,pvals,&(f0tmp[0]));
     BL_ASSERT(ret0 == GOOD_EVAL_FLAG);
 
-    std::vector<Real> ftmp(em.NumExptData());
+    std::vector<Real> fptmp(em.NumExptData());
+    std::vector<Real> fmtmp(em.NumExptData());
     for (int i=0; i<n; ++i) {
       for (int j=0; j<n; ++j) {
         //fjac[n*i + j] = 0; // Row major
@@ -430,33 +439,112 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
       //fjac[(n+1)*i] = - sqrt2Inv / prior_std[i]; // Row major
       fjac[(m+1)*i] = - sqrt2Inv / prior_std[i]; // Column major
     }
-    int nd = m - n;
-    for (int i=0; i<n; ++i) {
 
+
+    int nd = m - n;
+
+
+#if 0
+    for (int i=0; i<n; ++i) {
+        
+      std::vector<bool> this_one_good(nd);
+      for (int j=0; j<nd; ++j) {
+        this_one_good[j] = false;
+      }
+      Array<Real> val_on_first_pass(nd);
+      Array<int> num_reqd(nd,0);
+      int NiterMAX = 50;
+      bool more_work = true;
+      bool done;
+
+      for (int Niter=0; Niter<NiterMAX && more_work; ++Niter) {
+
+        Real typ = std::max(s->parameter_manager.TypicalValue(i), std::abs(pvals[i]));
+        Real h = typ * s->param_eps * std::pow(3,Niter);
+        pvals[i] += h;
+        
+        int ret = eval_nlls_data(p,pvals,&(fptmp[0]));
+        BL_ASSERT(ret == GOOD_EVAL_FLAG);
+        
+        Real hInv = 1/h;
+        for (int j=0; j<nd; ++j) {
+
+          if (Niter==0) {
+            val_on_first_pass[j] = fptmp[j] - f0tmp[j];
+          }
+          else {
+
+            Real this_pass = fptmp[j] - f0tmp[j];
+            if (!this_one_good[j] && this_pass > 10*val_on_first_pass[j]) {
+              this_one_good[j] = true;
+              num_reqd[j] = Niter;
+              fjac[i*m+n+j] = this_pass * hInv; // Column major              
+              //std::cout << "J vals: " << i << " " << j << " " << fptmp[j] << " " << num_reqd[j] << std::endl;
+            }
+          }
+        }
+
+        pvals[i] = x[i];
+
+        done = true;
+        for (int i=1; i<nd; ++i) { // HACK
+          done &= this_one_good[i];
+        }
+        more_work = !done || Niter==NiterMAX-1;
+
+      }
+      
+      // Verify we found good stuff for everyone
+      if (!done) {
+        for (int i=0; i<nd; ++i) {
+          std::cout << "i " << i << " good: " << this_one_good[i] << std::endl;
+        }
+        BoxLib::Abort("No good twiddle found for someone");
+      }
+
+    }
+#elif 0
+    for (int i=0; i<n; ++i) {
+        
       Real typ = std::max(s->parameter_manager.TypicalValue(i), std::abs(pvals[i]));
       Real h = typ * s->param_eps;
       pvals[i] += h;
-      int ret = eval_nlls_data(p,pvals,&(ftmp[0]));
+        
+      int ret = eval_nlls_data(p,pvals,&(fptmp[0]));
       BL_ASSERT(ret == GOOD_EVAL_FLAG);
-
+        
       Real hInv = 1/h;
       for (int j=0; j<nd; ++j) {
-        //fjac[(n+j)*n + i] = (ftmp[j] - f0tmp[j]) * hInv; // Row major
-        fjac[i*m+n+j] = (ftmp[j] - f0tmp[j]) * hInv; // Column major
+        fjac[i*m+n+j] = (fptmp[j] - f0tmp[j]) * hInv; // Column major
+        //std::cout << "J vals: " << i << " " << j << " " << fptmp[j] << std::endl;
       }
-      pvals[i] = x[i];
-    }
 
-#if 0
-    std::cout << "My J: " << m << " " << n << "\n";
-    for (int j=0; j<m; ++j) {
-      for (int i=0; i<n; ++i) {
-        //std::cout << -1/(std::sqrt(2)*fjac[j*n+i]) << " "; // Row major
-        std::cout << -1/(std::sqrt(2)*fjac[i*m+j]) << " "; // Column major
-      }
-      std::cout << "\n";
+      pvals[i] = x[i];
+
     }
-    BoxLib::Abort();
+#elif 1
+    for (int i=0; i<n; ++i) {
+        
+      Real typ = std::max(s->parameter_manager.TypicalValue(i), std::abs(pvals[i]));
+      Real h = typ * s->param_eps;
+
+      pvals[i] = x[i] + h;
+      int ret = eval_nlls_data(p,pvals,&(fptmp[0]));
+      BL_ASSERT(ret == GOOD_EVAL_FLAG);
+        
+      pvals[i] = x[i] - h;
+      ret = eval_nlls_data(p,pvals,&(fmtmp[0]));
+      BL_ASSERT(ret == GOOD_EVAL_FLAG);
+        
+      Real hInv = 1/h;
+      for (int j=0; j<nd; ++j) {
+        fjac[i*m+n+j] = (fptmp[j] - fmtmp[j]) * hInv * 0.5; // Column major
+        //std::cout << "J vals: " << i << " " << j << " " << fptmp[j] << std::endl;
+      }
+
+      pvals[i] = x[i];
+
+    }
 #endif
 
   }
@@ -1380,25 +1468,6 @@ main (int   argc,
   Real F = NegativeLogLikelihood(prior_mean);
   std::cout << "F = " << F << std::endl;
 
-  // Dump out F(xa,xb)
-#if 0
-  std::ofstream ofs; ofs.open("eval.dat");
-  int NN=21;
-  ofs << "VARIABLES= X Y Z\n";
-  ofs << "ZONE I=" << NN  << "J=" << NN << '\n';
-
-  for (int i=0; i<NN; ++i) {
-    for (int j=0; j<NN; ++j) {
-      std::vector<Real> eval_data = prior_mean;
-      eval_data[1] *= 1 + (i - NN/2)*.004;
-      eval_data[3] *= 1 + (j - NN/2)*.5;
-      ofs << i << " " << j << " " << NegativeLogLikelihood(eval_data) << std::endl;
-    }
-  }
-  ofs.close();
-  return 0;
-#endif
-
 #if 1
   std::cout << " starting MINPACK "<< std::endl;
   // Call minpack
@@ -1513,7 +1582,43 @@ main (int   argc,
   //return 0;
 #endif
 
-  std::pair<MyMat,MyMat> mats = get_INVSQRT((void*)driver.mystruct, soln_params);
+  //std::pair<MyMat,MyMat> mats = get_INVSQRT((void*)driver.mystruct, soln_params);
+  std::pair<MyMat,MyMat> mats = get_INVSQRT((void*)driver.mystruct, prior_mean);
+
+  int n = num_params;
+  int m = num_data + n;
+  int ldfjac = m;
+  std::vector<Real> FVEC(m);
+  std::vector<Real> FJAC(m*n);
+  NLLSFCN((void*)(driver.mystruct),m,n,&(prior_mean[0]),&(FVEC[0]),&(FJAC[0]),ldfjac,2);
+
+  std::vector<Real> JTJ(n*n);
+  for (int i=0; i<n; ++i) {
+    for (int j=0; j<n; ++j) {
+      JTJ[j*n+i] = 0;
+    }
+  }
+
+  std::cout << "J" << std::endl;
+  for (int j=0; j<m; ++j) {
+    for (int i=0; i<n; ++i) {
+      std::cout << FJAC[i*m+j] << " ";
+    }
+    std::cout << std::endl;
+  }
+
+  std::cout << "JTJ" << std::endl;
+  for (int i=0; i<n; ++i) {
+    for (int j=0; j<n; ++j) {
+      for (int ii=0; ii<m; ++ii) {
+        //JTJ[i*n+j] += FJAC[ii*m+i] * FJAC[ii*m+j];
+        JTJ[j*n+i] += FJAC[i*m+ii] * FJAC[j*m+ii];
+      }
+      std::cout << i << " " << j << " " << JTJ[i*n+j] << std::endl;
+    }
+  }
+
+
   return 0;
   const MyMat& H = mats.first;
   const MyMat& invsqrt = mats.second;

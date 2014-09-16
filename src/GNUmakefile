@@ -42,6 +42,7 @@ USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
 BUILD_EXEC      = FALSE
+BUILD_EXEC      = TRUE
 VERBOSE         = FALSE
 DO_REGTEST      = FALSE
 
@@ -64,6 +65,7 @@ endif
 CFLAGS += -std=c99
 
 EBASE = main
+#EBASE = EvalExpt
 
 ifeq (${DO_REGTEST}, TRUE)
   include RegTest.mak

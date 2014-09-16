@@ -135,9 +135,12 @@ ExperimentManager::GenerateExptData()
   BL_ASSERT(true_std.size() == num_expt_data);
   BL_ASSERT(true_data.size() == num_expt_data);
   // FIXME: Make more general
+
+  //std::cout << "***************** WARNING: ZEROING DATA NOISE TO ENSURE MINIMUM IS AT PRIOR!!!!" << std::endl;
   for(int ii=0; ii<num_expt_data; ii++){
     Real small = true_std[ii];
     perturbed_data[ii] = std::max(small,true_data[ii] + true_std[ii] * randn());
+    //perturbed_data[ii] = true_data[ii];
   }
 }
 
