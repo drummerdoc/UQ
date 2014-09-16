@@ -110,8 +110,11 @@ Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
 
-  Real hI = std::max(s->parameter_manager.TypicalValue(i), std::abs(X[i]));
-  Real hJ = std::max(s->parameter_manager.TypicalValue(j), std::abs(X[j]));
+  Real typI = std::max(s->parameter_manager.TypicalValue(i), std::abs(X[i]));
+  Real typJ = std::max(s->parameter_manager.TypicalValue(j), std::abs(X[j]));
+
+  Real hI = typI * s->param_eps * 10;
+  Real hJ = typJ * s->param_eps * 10;
 
   BL_ASSERT(s->work_array_len >= X.size());
   std::vector<Real>& XpIpJ = s->Work(0);
