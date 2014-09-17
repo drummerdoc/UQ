@@ -8,6 +8,8 @@
 
 #include <sys/time.h>
 
+#include <ParallelDescriptor.H>
+
 static Real Patm_DEF = 1;
 static Real dt_DEF   = 0.1;
 static Real Tfile_DEF = -1;
@@ -23,6 +25,8 @@ SimulatedExperiment::SimulatedExperiment()
   :  is_initialized(false), log_file(log_file_DEF) {}
 
 SimulatedExperiment::~SimulatedExperiment() {}
+
+void SimulatedExperiment::CopyData(int src, int dest, int tag){}
 
 int
 ZeroDReactor::NumMeasuredValues() const {return num_measured_values;}
@@ -699,6 +703,31 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
   return true;
 }
+
+/*
+ * CopyData
+ * this is to copy the state of the experiment necessary for
+ * restart (or anything not present after InitializeExperiment call )
+ * so that experiment can be moved
+ */
+void PREMIXReactor::CopyData(int src, int dest, int tag) {
+
+  // things to copy:
+  // 1. Solution vector
+  // 2. Number of gridpoints
+
+  if (ParallelDescriptor::MyProc() == src) {
+    ParallelDescriptor::Send(&(premix_sol->maxgp), 1, dest, tag);
+    ParallelDescriptor::Send(premix_sol->solvec, premix_sol->maxgp, 
+                              dest, tag);
+  }
+  else if (ParallelDescriptor::MyProc() == dest) {
+    ParallelDescriptor::Recv(&(premix_sol->maxgp), 1, src, tag );
+    ParallelDescriptor::Recv((premix_sol->solvec), premix_sol->maxgp, 
+                              src, tag);
+  }
+}
+
 
 void
 PREMIXReactor::InitializeExperiment()

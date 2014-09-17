@@ -177,6 +177,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   typedef enum { WORK, STOP } workercommand_t;
   const int control_tag = 0;
   const int data_tag = 1;
+  const int extra_tag = 2;
 
   MPI_Comm wcomm = ParallelDescriptor::Communicator();
 
@@ -210,6 +211,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
         // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
         //   " starting on experiment number " << which_experiment << std::endl;
+        expts[which_experiment].CopyData(master,ParallelDescriptor::MyProc(),extra_tag);
 
         // Do the work
         if (expts[which_experiment].GetMeasurements(raw_data[which_experiment])) {
@@ -229,6 +231,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         ParallelDescriptor::Send(&which_experiment,1,master,data_tag);
         ParallelDescriptor::Send(&intok, 1, master, data_tag);
         ParallelDescriptor::Send(raw_data[which_experiment], master, data_tag);
+        expts[which_experiment].CopyData(ParallelDescriptor::MyProc(),master,extra_tag);
         // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
         //   " finished sending data back " << which_experiment << std::endl;
       }
@@ -263,7 +266,10 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
         // Delegate next experiment to this worker
         ParallelDescriptor::Send(&Nexperiments_dispatched,1,current_worker,data_tag);
+        expts[Nexperiments_dispatched].CopyData(master,current_worker,extra_tag);
+
         Nexperiments_dispatched++;
+
       }
       else if (worker_status == HAVE_RESULTS) {
         // Fetch the results
@@ -272,6 +278,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         ParallelDescriptor::Recv( &intok, 1, current_worker, data_tag );
         int n = expts[exp_num].NumMeasuredValues();
         ParallelDescriptor::Recv( raw_data[exp_num],  current_worker, data_tag );
+        expts[exp_num].CopyData(current_worker,master, extra_tag);
 
         // Use local data about where the results go to copy the output into the 
         // test_measurements array
@@ -301,9 +308,10 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         // Deal with the results, then get - hopefully - "READY" and tell worker to stop
         int exp_num;
         ParallelDescriptor::Recv(&exp_num, 1, i, data_tag);
-        ParallelDescriptor::Recv( &intok, 1, i, data_tag );
+        ParallelDescriptor::Recv(&intok, 1, i, data_tag);
         int n = expts[exp_num].NumMeasuredValues();
         ParallelDescriptor::Recv( raw_data[exp_num],  i, data_tag );
+        expts[exp_num].CopyData(i,master, extra_tag);
         int offset = data_offsets[exp_num];
 
         for (int j=0; j<n && (intok==1); ++j) {
@@ -338,7 +346,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   if (ParallelDescriptor::MyProc() == master) {
     for (int i=0; i<expts.size() && ok; ++i) {
       int offset = data_offsets[i];
-      std::cout << "Experiment " << i << " result: " << test_measurements[offset];
+      std::cout << "Experiment " << i << " result: " << test_measurements[offset] << std::endl;
     }
   }
   return true;

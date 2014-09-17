@@ -19,6 +19,7 @@ struct SimulatedExperiment
   bool Initialized() const {return is_initialized;}
   const std::string& DiagnosticName() const {return diagnostic_name;}
   const std::string& LogFile() const {return log_file;}
+  virtual void CopyData(int src, int dest, int tag);
 
 protected:
   bool is_initialized;
@@ -88,6 +89,8 @@ struct PREMIXReactor
 
     virtual bool GetMeasurements(std::vector<Real>& simulated_observations);
     virtual void GetMeasurementError(std::vector<Real>& observation_error);
+
+    virtual void CopyData(int src, int dest, int tag);
 
     virtual void InitializeExperiment();
     int numComp() const;
