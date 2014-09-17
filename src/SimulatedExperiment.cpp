@@ -527,6 +527,16 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
   int lregrid;
   int lrstrt = 0;
+
+#ifndef PREMIX_RESTART
+  /*
+   * Something about the restart makes the solution less
+   * robust, even if it's faster. Taking this out for now.
+   * (It was supposed to try to restart if it had a previously 
+   * successful solution for this experiment)
+   */
+  lrstrtflag = 0; 
+#endif
   // When doing a fresh start, 
   // run through prereqs. First starts fresh, subsequent start from
   // solution from the previous.
@@ -555,7 +565,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               if (!ok) {
                 return false;
               }
-    //          std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
+              //  std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
               (*pr)->solCopyOut(premix_sol);
           }
           lrstrtflag = 1;

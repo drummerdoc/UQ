@@ -87,6 +87,44 @@ Driver::GenerateTestMeasurements(const std::vector<Real>& test_params)
   return test_measurements;
 }
 
+/*
+ *
+ * Constructor for parallel world
+ *
+ */
+Driver::Driver(int argc, char*argv[], MPI_Comm mpi_comm )
+{
+  BoxLib::Initialize(argc, argv, true, mpi_comm);
+  if (cd == 0) {
+     cd = new ChemDriver;
+     made_cd = true;
+  }
+
+
+  ParmParse pp;
+  param_eps = 1.e-4; pp.query("param_eps",param_eps);
+  mystruct = new MINPACKstruct(*cd,param_eps);
+
+  ParameterManager& parameter_manager = mystruct->parameter_manager;
+  ExperimentManager& expt_manager = mystruct->expt_manager;  
+  expt_manager.InitializeExperiments();
+
+#ifndef DEBUG
+  expt_manager.InitializeTrueData(parameter_manager.TrueParameters());
+  expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
+#else
+  // For debugging parallel work queue only
+  std::vector<Real> test_measurements, test_params;
+  expt_manager.GenerateTestMeasurements(test_params,test_measurements);
+#endif
+
+}
+
+/*
+ *
+ * Constructor for serial world
+ *
+ */
 Driver::Driver(int argc, char*argv[])
 {
   BoxLib::Initialize(argc, argv);

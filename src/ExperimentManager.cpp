@@ -2,6 +2,7 @@
 #include <ExperimentManager.H>
 #include <Rand.H>
 #include <ParmParse.H>
+#include <ParallelDescriptor.H>
   
 ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd)
   : parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0)
@@ -154,14 +155,206 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   test_measurements.resize(NumExptData());
 
   bool ok = true;
-  for (int i=0; i<expts.size() && ok; ++i) {
-    ok = expts[i].GetMeasurements(raw_data[i]);
-    int offset = data_offsets[i];
-    for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
-      test_measurements[offset + j] = raw_data[i][j];
+  int intok = -1;
+
+
+#ifdef BL_USE_MPI
+  // Task parallel option over experiments - serial option follows below
+  std::cout << "Have " << ParallelDescriptor::NProcs() << " procs " << std::endl;
+
+  bool am_worker = false;
+  int master = 0;
+  if (ParallelDescriptor::MyProc() == master) {
+    am_worker = false;
+  }
+  else {
+    am_worker = true;
+  }
+  int first_worker = 1;
+  int last_worker = ParallelDescriptor::NProcs() - 1;
+
+  typedef enum { READY, HAVE_RESULTS } workerstatus_t;
+  typedef enum { WORK, STOP } workercommand_t;
+  const int control_tag = 0;
+  const int data_tag = 1;
+
+  MPI_Comm wcomm = ParallelDescriptor::Communicator();
+
+  if (am_worker) {
+    bool more_work = true;
+
+    // Workers sit in a loop that goes: send ready, get command, act on command, send
+    // ready again
+    do {
+      workerstatus_t mystatus; 
+      workercommand_t mycommand;
+
+      // Send signal that worker is ready to do work
+      mystatus = READY;
+      MPI_Send(&mystatus, 1, MPI_INTEGER, master, control_tag, wcomm);
+
+      // Get command from master
+      MPI_Recv(&mycommand,1, MPI_INTEGER, master, control_tag, wcomm, MPI_STATUS_IGNORE);
+      //ParallelDescriptor::Recv(&mycommand, 1, master, control_tag);
+
+      // Act on commands
+      if (mycommand==STOP) {
+        more_work = false;
+      }
+
+      else if (mycommand==WORK) {
+
+        // After command to work needs to come instructions on what to do
+        int which_experiment = -1;
+        ParallelDescriptor::Recv(&which_experiment,1,master,data_tag);
+
+        // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+        //   " starting on experiment number " << which_experiment << std::endl;
+
+        // Do the work
+        if (expts[which_experiment].GetMeasurements(raw_data[which_experiment])) {
+          intok = 1;
+        }
+        else {
+          intok = -1;
+        }
+        // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+        //  " finished experiment number " << which_experiment << std::endl;
+
+        // Send back the result
+        mystatus = HAVE_RESULTS;
+        MPI_Send(&mystatus, 1, MPI_INTEGER, master, control_tag, wcomm);
+        //ParallelDescriptor::Send(&mystatus,1,master,control_tag);
+        
+        ParallelDescriptor::Send(&which_experiment,1,master,data_tag);
+        ParallelDescriptor::Send(&intok, 1, master, data_tag);
+        ParallelDescriptor::Send(raw_data[which_experiment], master, data_tag);
+        // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+        //   " finished sending data back " << which_experiment << std::endl;
+      }
+      else {
+        BoxLib::Abort("Unknown command recvd");
+      }
+    } while (more_work);
+
+  }
+  // Master rank sits in a loop and sends out work until all of the tasks are 
+  // done
+  else {
+    workerstatus_t worker_status; 
+    workercommand_t worker_command;
+    int current_worker = -1;
+
+    int Nexperiments_dispatched = 0;
+    int Nexperiments_finished = 0;
+
+    do {
+      // Look for a message from a worker  
+      MPI_Status status;
+      MPI_Probe(MPI_ANY_SOURCE, control_tag, wcomm, &status);
+      current_worker = status.MPI_SOURCE;
+      MPI_Recv(&worker_status, 1, MPI_INTEGER, current_worker, control_tag, 
+               wcomm, MPI_STATUS_IGNORE);
+
+      if (worker_status == READY) {
+        worker_command = WORK;
+        MPI_Send(&worker_command, 1, MPI_INTEGER, current_worker, control_tag, wcomm);
+       // ParallelDescriptor::Send(&worker_command,1,current_worker,control_tag);
+
+        // Delegate next experiment to this worker
+        ParallelDescriptor::Send(&Nexperiments_dispatched,1,current_worker,data_tag);
+        Nexperiments_dispatched++;
+      }
+      else if (worker_status == HAVE_RESULTS) {
+        // Fetch the results
+        int exp_num;
+        ParallelDescriptor::Recv(&exp_num,1,current_worker,data_tag);
+        ParallelDescriptor::Recv( &intok, 1, current_worker, data_tag );
+        int n = expts[exp_num].NumMeasuredValues();
+        ParallelDescriptor::Recv( raw_data[exp_num],  current_worker, data_tag );
+
+        // Use local data about where the results go to copy the output into the 
+        // test_measurements array
+        int offset = data_offsets[exp_num];
+        for (int j=0; j<n && (intok==1); ++j) {
+          test_measurements[offset + j] = raw_data[exp_num][j];
+        }
+        Nexperiments_finished++;
+
+      } else {
+        BoxLib::Abort("Unknown status from worker");
+      }
+
+    } while (Nexperiments_dispatched < expts.size());
+
+    // All tasks sent out at this point - tell all workers to stop, getting
+    // final set of results if necessary
+    for (int i=first_worker; i<=last_worker; i++) {
+
+      MPI_Recv(&worker_status, 1, MPI_INTEGER, i, control_tag, wcomm, MPI_STATUS_IGNORE);
+
+      if (worker_status == READY) {
+        worker_command = STOP;
+        MPI_Send(&worker_command, 1, MPI_INTEGER, i, control_tag, wcomm);
+      } 
+      else if(worker_status == HAVE_RESULTS) {
+        // Deal with the results, then get - hopefully - "READY" and tell worker to stop
+        int exp_num;
+        ParallelDescriptor::Recv(&exp_num, 1, i, data_tag);
+        ParallelDescriptor::Recv( &intok, 1, i, data_tag );
+        int n = expts[exp_num].NumMeasuredValues();
+        ParallelDescriptor::Recv( raw_data[exp_num],  i, data_tag );
+        int offset = data_offsets[exp_num];
+
+        for (int j=0; j<n && (intok==1); ++j) {
+          test_measurements[offset + j] = raw_data[exp_num][j];
+        }
+        Nexperiments_finished++;
+
+        MPI_Recv(&worker_status, 1, MPI_INTEGER, i, control_tag, wcomm, MPI_STATUS_IGNORE);
+        worker_command = STOP;
+        MPI_Send(&worker_command, 1, MPI_INTEGER, i, control_tag, wcomm);
+
+      } 
+      else { 
+        BoxLib::Abort("Bad status from worker on cleanup loop");
+      }
+    }
+
+    // Done. 
+
+    std::cout << "Sent out work for " << Nexperiments_dispatched 
+      << " experiments and had " << Nexperiments_finished 
+      << " of them done " << std::endl;
+
+    if (Nexperiments_dispatched != Nexperiments_finished) {
+        BoxLib::Abort("Not all dispatched experiments returned");
+    }
+
+  }
+  ParallelDescriptor::Barrier();
+
+
+  if (ParallelDescriptor::MyProc() == master) {
+    for (int i=0; i<expts.size() && ok; ++i) {
+      int offset = data_offsets[i];
+      std::cout << "Experiment " << i << " result: " << test_measurements[offset];
     }
   }
-  return ok;
+  return true;
+  
+#else
+  // Serial tasks 
+    for (int i=0; i<expts.size() && ok; ++i) {
+      ok = expts[i].GetMeasurements(raw_data[i]);
+      int offset = data_offsets[i];
+      for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
+        test_measurements[offset + j] = raw_data[i][j];
+      }
+    }
+    return ok;
+
+#endif
 }
 
 Real

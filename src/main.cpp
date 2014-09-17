@@ -9,6 +9,7 @@
 #include <SimulatedExperiment.H>
 
 #include <PremixSol.H>
+#include <ParallelDescriptor.H>
 
 #define real __cminpack_real__
 static real sqrt2Inv = 1/std::sqrt(2);
@@ -1384,8 +1385,13 @@ int
 main (int   argc,
       char* argv[])
 {
-//  BoxLib::Initialize(argc,argv); // RG Moved inside driver constructor
+#ifdef BL_USE_MPI
+  MPI_Init (&argc, &argv);
+  Driver driver(argc,argv,MPI_COMM_WORLD);
+#else
   Driver driver(argc,argv);
+#endif
+
   ParameterManager& parameter_manager = driver.mystruct->parameter_manager;
   ExperimentManager& expt_manager = driver.mystruct->expt_manager;
   
@@ -1645,5 +1651,9 @@ main (int   argc,
   }
 #endif
   BoxLib::Finalize();
+
+#ifdef BL_USE_MPI
+  MPI_Finalize();
+#endif
 }
 
