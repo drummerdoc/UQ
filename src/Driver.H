@@ -21,6 +21,7 @@ struct Driver
   static ChemDriver *cd;
   static MINPACKstruct *mystruct;
   static Real param_eps;
+  bool mpi_initialized;
 };
 
 #endif

@@ -122,12 +122,18 @@ Driver::Driver(int argc, char*argv[], MPI_Comm mpi_comm )
 
 /*
  *
- * Constructor for serial world
+ * Constructor for serial world or parallel world where MPI is not initialized yet
  *
  */
 Driver::Driver(int argc, char*argv[])
 {
+#ifdef BL_USE_MPI
+  MPI_Init (&argc, &argv);
+  mpi_initialized = true;
+  BoxLib::Initialize(argc, argv, MPI_COMM_WORLD);
+#else
   BoxLib::Initialize(argc, argv);
+#endif
   if (cd == 0) {
      cd = new ChemDriver;
      made_cd = true;
@@ -149,4 +155,9 @@ Driver::~Driver()
   delete mystruct;
   if (made_cd) delete cd;
   BoxLib::Finalize();
+#ifdef BL_USE_MPI
+  if (mpi_initialized) {
+    MPI_Finalize();
+  }
+#endif
 }

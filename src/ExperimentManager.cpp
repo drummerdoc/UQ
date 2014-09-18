@@ -149,6 +149,12 @@ bool
 ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params,
                                             std::vector<Real>&       test_measurements)
 {
+
+#ifdef BL_USE_MPI
+// All ranks use the parameters installed in the root
+  ParallelDescriptor::Bcast(const_cast<Real*>(&test_params[0]), test_params.size(), 0);
+#endif
+
   for (int i=0; i<test_params.size(); ++i) {
     parameter_manager[i] = test_params[i];      
   }
@@ -160,8 +166,9 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
 #ifdef BL_USE_MPI
   // Task parallel option over experiments - serial option follows below
-  std::cout << "Have " << ParallelDescriptor::NProcs() << " procs " << std::endl;
-
+  if (ParallelDescriptor::IOProcessor() ){
+    std::cout << "Have " << ParallelDescriptor::NProcs() << " procs " << std::endl;
+  }
   bool am_worker = false;
   int master = 0;
   if (ParallelDescriptor::MyProc() == master) {
@@ -341,6 +348,10 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
   }
   ParallelDescriptor::Barrier();
+  // All ranks should have the same result as at root to ensure they take a reasonable
+  // path through sample space when driven by an external sampler
+  ParallelDescriptor::Bcast(const_cast<Real*>(&test_measurements[0]), 
+                            test_measurements.size(), 0);
 
 
   if (ParallelDescriptor::MyProc() == master) {
