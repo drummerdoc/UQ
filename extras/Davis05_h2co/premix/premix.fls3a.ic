@@ -5,7 +5,7 @@
 FREE
 ENRG
 / Multicomponent
-/MULT
+MULT
 / Thermal diffusion
 /TDIF
 /  initial flow-rate estimate
@@ -61,7 +61,7 @@ END
 /
 GRAD   0.9
 CURV   0.9
-CNTN
+/ CNTN
 END
 /
 GRAD   0.7
