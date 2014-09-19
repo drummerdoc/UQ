@@ -19,6 +19,10 @@ if [ "${HOST}" == "stc-23736s" ]; then
   export CC='gcc-mp-4.6'
   export FC='gfortran-mp-4.6'
 fi
+if [ "${HOST}" == "gimantis" ]; then
+  export CC='gcc'
+  export FC='gfortran'
+fi
 
 cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
       -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \

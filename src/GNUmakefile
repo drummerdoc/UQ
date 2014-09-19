@@ -1,5 +1,5 @@
 # Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
-TOP = ../../..
+TOP = ../..
 
 # Put these here until all of them get propagated into the BoxLib make system
 
@@ -23,6 +23,9 @@ ifeq ($(MACHINE), Linux)
   ifeq ($(findstring mothra, $(UNAMEN)), mothra)
     WHICHLINUX := MOTHRA
   endif
+  ifeq ($(findstring gimantis, $(UNAMEN)), gimantis)
+    WHICHLINUX := GIMANTIS
+  endif
 endif
 ifeq (${MACHINE}, Darwin) 
   ifeq ($(findstring MarcsLaptop, $(UNAMEN)), MarcsLaptop)
@@ -41,8 +44,8 @@ USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
-BUILD_EXEC      = FALSE
 BUILD_EXEC      = TRUE
+BUILD_EXEC      = FALSE
 VERBOSE         = FALSE
 DO_REGTEST      = FALSE
 
@@ -163,6 +166,13 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.6
       SHARED_LIBRARY_SUFFIX:=so
       LIBRARIES+=-lpython2.6
+    endif
+    ifeq (${WHICHLINUX}, GIMANTIS)
+      PYTHON_DIR := /home/marc/anaconda/pkgs/python-2.7.7-0
+      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
+      SHARED_LIBRARY_SUFFIX:=so
+      LIBRARIES+=-lpython2.7
+      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
     endif
   endif
 
