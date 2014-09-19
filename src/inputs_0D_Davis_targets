@@ -60,7 +60,13 @@ A4.ensemble_std =   4.e2
 A4.lower_bound = 2.e4
 A4.upper_bound = 6.e4
 
-experiments = flow_reactor1a flow_reactor1b flow_reactor2a
+experiments = flow_reactor1a flow_reactor1b flow_reactor2a flow_reactor2b  flow_reactor3a flow_reactor4a flow_reactor4b flow_reactor5a flow_reactor6a flow_reactor6b flow_reactor6c flow_reactor6d
+
+
+
+
+
+
 
 # Target ign1a in Davis paper
 flow_reactor1a.type = CVReactor
@@ -69,10 +75,10 @@ flow_reactor1a.T  = 1051
 flow_reactor1a.H2 = .0667
 flow_reactor1a.O2 = .0333
 flow_reactor1a.AR = .9000
-flow_reactor1a.data_num_points = 1001
+flow_reactor1a.data_num_points = 100001
 flow_reactor1a.data_tstart = 0.
-flow_reactor1a.data_tend = 400e-6
-flow_reactor1a.diagnostic_name = pressure_rise
+flow_reactor1a.data_tend = 400e-5
+flow_reactor1a.diagnostic_name = onset_pressure_rise
 flow_reactor1a.measurement_error = 1.e-6
 flow_reactor1a.dpdt_thresh = 20
 #flow_reactor1a.log_file = junk
@@ -86,8 +92,8 @@ flow_reactor1b.O2 = .0333
 flow_reactor1b.AR = .9000
 flow_reactor1b.data_num_points = 1001
 flow_reactor1b.data_tstart = 0.
-flow_reactor1b.data_tend = 200e-6
-flow_reactor1b.diagnostic_name = pressure_rise
+flow_reactor1b.data_tend = 200e-5
+flow_reactor1b.diagnostic_name = onset_pressure_rise
 flow_reactor1b.measurement_error = 1.e-6
 flow_reactor1b.dpdt_thresh = 20
 #flow_reactor1b.log_file = junk
@@ -99,13 +105,148 @@ flow_reactor2a.T  = 1033
 flow_reactor2a.H2 = .20
 flow_reactor2a.O2 = .10
 flow_reactor2a.AR = .70
-flow_reactor2a.data_num_points = 1001
+flow_reactor2a.data_num_points = 120000
 flow_reactor2a.data_tstart = 0.
-flow_reactor2a.data_tend = 1000e-6
-flow_reactor2a.diagnostic_name = max_pressure
+flow_reactor2a.data_tend = 400e-5
+#flow_reactor2a.diagnostic_name = max_pressure
+flow_reactor2a.diagnostic_name = onset_pressure_rise
 flow_reactor2a.measurement_error = 1.e-6
 flow_reactor2a.p_thresh = 0.6
-#flow_reactor2a.log_file = junk
+#
+# Target ign2b in Davis paper
+flow_reactor2b.type = CVReactor
+flow_reactor2b.Patm = 0.493
+flow_reactor2b.T  = 1510
+flow_reactor2b.H2 = .20
+flow_reactor2b.O2 = .10
+flow_reactor2b.AR = .70
+flow_reactor2b.data_num_points = 60000
+flow_reactor2b.data_tstart = 0.
+flow_reactor2b.data_tend = 100e-5
+#flow_reactor2b.diagnostic_name = max_pressure
+flow_reactor2b.diagnostic_name = onset_pressure_rise
+flow_reactor2b.measurement_error = 1.e-6
+flow_reactor2b.p_thresh = 0.6
+#
+# Target ign3a in Davis paper
+flow_reactor3a.type = CVReactor
+flow_reactor3a.Patm = 33.0
+flow_reactor3a.T  = 1754
+flow_reactor3a.H2 = .005
+flow_reactor3a.O2 = .025
+flow_reactor3a.AR = .997
+flow_reactor3a.data_num_points = 30000
+flow_reactor3a.data_tstart = 0.
+flow_reactor3a.data_tend = 50e-5
+flow_reactor3a.diagnostic_name = max_OH
+flow_reactor3a.measurement_error = 1.e-6
+flow_reactor3a.dOH_thresh = 1.0e-6
+#
+
+# Target ign4a in Davis paper
+flow_reactor4a.type = CVReactor
+flow_reactor4a.Patm = 33.0
+flow_reactor4a.T  = 1189
+flow_reactor4a.H2 = .02
+flow_reactor4a.O2 = .01
+flow_reactor4a.AR = .97
+flow_reactor4a.data_num_points = 30000
+flow_reactor4a.data_tstart = 0.
+flow_reactor4a.data_tend = 50e-5
+flow_reactor4a.diagnostic_name = max_OH
+flow_reactor4a.measurement_error = 1.e-6
+flow_reactor4a.dOH_thresh = 1.0e-6
 
 
 
+# Target ign4b in Davis paper
+flow_reactor4b.type = CVReactor
+flow_reactor4b.Patm = 33.0
+flow_reactor4b.T  = 1300
+flow_reactor4b.H2 = .02
+flow_reactor4b.O2 = .01
+flow_reactor4b.AR = .97
+flow_reactor4b.data_num_points = 30000
+flow_reactor4b.data_tstart = 0.
+flow_reactor4b.data_tend = 50e-5
+flow_reactor4b.diagnostic_name = max_OH
+flow_reactor4b.measurement_error = 1.e-6
+flow_reactor4b.dOH_thresh = 1.0e-6
+#
+# Target ign5a in Davis paper
+flow_reactor5a.type = CVReactor
+flow_reactor5a.Patm = 64.0
+flow_reactor5a.T  = 1524
+flow_reactor5a.H2 = 0.001
+flow_reactor5a.O2 = 0.0005
+flow_reactor5a.AR = 0.9985
+flow_reactor5a.data_num_points = 30000
+flow_reactor5a.data_tstart = 0.
+flow_reactor5a.data_tend = 50e-5
+flow_reactor5a.diagnostic_name = max_OH
+flow_reactor5a.measurement_error = 1.e-6
+flow_reactor5a.dOH_thresh = 1.0e-6
+#
+# Target ign6a in Davis paper
+flow_reactor6a.type = CVReactor
+flow_reactor6a.Patm = 1.492
+flow_reactor6a.T  = 2160
+flow_reactor6a.H2 = 0.0005
+flow_reactor6a.O2 = 0.01
+flow_reactor6a.CO = 0.1217
+flow_reactor6a.AR = 0.8678
+flow_reactor6a.data_num_points = 6000
+flow_reactor6a.data_tstart = 0.
+flow_reactor6a.data_tend = 50e-5
+flow_reactor6a.diagnostic_name = onset_CO2
+flow_reactor6a.measurement_error = 1.e-6
+flow_reactor6a.CO2_thresh = 1.0e-6
+#
+# Target ign6b in Davis paper
+flow_reactor6b.type = CVReactor
+flow_reactor6b.Patm = 1.492
+flow_reactor6b.T  = 2160
+flow_reactor6b.H2 = 0.0005
+flow_reactor6b.O2 = 0.01
+flow_reactor6b.CO = 0.1217
+flow_reactor6b.AR = 0.8678
+flow_reactor6b.data_num_points = 6000
+flow_reactor6b.data_tstart = 0.
+flow_reactor6b.data_tend = 50e-5
+flow_reactor6b.diagnostic_name = thresh_O
+flow_reactor6b.measurement_error = 1.e-6
+#flow_reactor6b.O_thresh = 2.597835994e-05
+flow_reactor6b.O_thresh = 5.264032951e-05
+#
+# Target ign6c in Davis paper
+flow_reactor6c.type = CVReactor
+flow_reactor6c.Patm = 1.949
+flow_reactor6c.T  = 2625
+flow_reactor6c.H2 = 0.0005
+flow_reactor6c.O2 = 0.01
+flow_reactor6c.CO = 0.1217
+flow_reactor6c.AR = 0.8678
+flow_reactor6c.data_num_points = 3000
+flow_reactor6c.data_tstart = 0.
+flow_reactor6c.data_tend = 50e-5
+flow_reactor6c.diagnostic_name = onset_CO2
+flow_reactor6c.measurement_error = 1.e-6
+flow_reactor6c.CO2_thresh = 1.0e-6
+#
+# Target ign6d in Davis paper
+flow_reactor6d.type = CVReactor
+flow_reactor6d.Patm = 1.949
+flow_reactor6d.T  = 2625
+flow_reactor6d.H2 = 0.0005
+flow_reactor6d.O2 = 0.01
+flow_reactor6d.CO = 0.1217
+flow_reactor6d.AR = 0.8678
+flow_reactor6d.data_num_points = 3000
+flow_reactor6d.data_tstart = 0.
+flow_reactor6d.data_tend = 50e-5
+flow_reactor6d.diagnostic_name = thresh_O
+flow_reactor6d.measurement_error = 1.e-6
+flow_reactor6d.O_thresh = 5.264032951e-05
+
+ht.vode_rtol = 1.e-12
+ht.vode_atol = 1.e-12

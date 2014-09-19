@@ -1406,10 +1406,22 @@ main (int   argc,
               << "  Noisy: " << perturbed_data[ii]
               << "  Standard deviation: " << true_data_std[ii] << std::endl;
   }
-   
+
   const std::vector<Real>& true_params = parameter_manager.TrueParameters();
   const std::vector<Real>& prior_mean = parameter_manager.PriorMean();
   const std::vector<Real>& prior_std = parameter_manager.PriorSTD();
+
+  // Block to run run 1 sample and quit
+#if 0
+  std::vector<Real> sim_exp_results;
+  expt_manager.GenerateTestMeasurements(true_params,sim_exp_results);
+  for (int ii=0; ii<sim_exp_results.size(); ++ii) {
+      std::cout << "  Experiment " << ii << " observed result: " 
+                << sim_exp_results[ii] << std::endl;
+  }
+  std::cout << " Terminating after just running 1 pass " << std::endl;
+  exit(-1);
+#endif
   
   std::cout << "True and prior mean:\n"; 
   int num_params = true_params.size();

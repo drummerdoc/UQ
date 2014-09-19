@@ -18,6 +18,7 @@ static std::string diagnostic_name_DEF = "temp";
 static Real ZeroDReactorErr_DEF = 15;
 static Real PREMIXReactorErr_DEF = 10;
 static Real dpdt_thresh_DEF = 10; // atm / s
+static Real dOH_thresh_DEF = 1.0e-4; // Arbitrary default
 static std::string log_file_DEF = "NULL"; // if this, no log
 
 
@@ -140,6 +141,48 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     measured_comps[0] = -1; // Pressure
     num_measured_values = measured_comps.size();
   }
+  else if (diagnostic_name == "onset_pressure_rise") {
+    transient_thresh = dpdt_thresh_DEF;
+    pp.query("dpdt_thresh",transient_thresh);
+    measured_comps[0] = -1; // Pressure
+    num_measured_values = measured_comps.size();
+  }
+  else if (diagnostic_name == "max_OH" || diagnostic_name == "inflect_OH" || diagnostic_name == "onset_OH") {
+    transient_thresh = dpdt_thresh_DEF;
+    pp.query("dOH_thresh",transient_thresh);
+    int nSpec = cd.numSpecies();
+    for (int i=0; i<nSpec; ++i){
+      const std::string& name = cd.speciesNames()[i];
+      if (name=="OH") {
+          measured_comps[0] = i + sCompY;
+      }
+    }
+    num_measured_values = measured_comps.size();
+  }
+  else if (diagnostic_name == "thresh_O") {
+    transient_thresh = dpdt_thresh_DEF;
+    pp.query("O_thresh",transient_thresh);
+    int nSpec = cd.numSpecies();
+    for (int i=0; i<nSpec; ++i){
+      const std::string& name = cd.speciesNames()[i];
+      if (name=="O") {
+          measured_comps[0] = i + sCompY;
+      }
+    }
+    num_measured_values = measured_comps.size();
+  }
+  else if (diagnostic_name == "onset_CO2") {
+    transient_thresh = dpdt_thresh_DEF;
+    pp.query("CO2_thresh",transient_thresh);
+    int nSpec = cd.numSpecies();
+    for (int i=0; i<nSpec; ++i){
+      const std::string& name = cd.speciesNames()[i];
+      if (name=="CO2") {
+          measured_comps[0] = i + sCompY;
+      }
+    }
+    num_measured_values = measured_comps.size();
+  }
   else {
     int comp = cd.index(diagnostic_name);
     if (comp < 0) {
@@ -183,11 +226,18 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   const Box& box = funcCnt.box();
   int Nspec = cd.numSpecies();
 
+  // std::cout << " Running ZeroDReactor "  << diagnostic_name << std::endl;
   int num_time_nodes = measurement_times.size();
   simulated_observations.resize(NumMeasuredValues());
 
   bool sample_evolution = diagnostic_name != "pressure_rise"
-    && diagnostic_name != "max_pressure";
+    && diagnostic_name != "max_pressure" 
+    && diagnostic_name != "max_OH" 
+    && diagnostic_name != "thresh_O" 
+    && diagnostic_name != "inflect_OH" 
+    && diagnostic_name != "onset_OH" 
+    && diagnostic_name != "onset_CO2" 
+    && diagnostic_name != "onset_pressure_rise";
 
   std::ofstream ofs;
   bool log_this = (log_file != log_file_DEF);
@@ -216,14 +266,27 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       i++;
     }
 
-    Real p_new, p_old, dpdt_old;
-    if (diagnostic_name == "pressure_rise" || diagnostic_name == "max_pressure") {
+    Real p_new, p_old, dpdt_old, p_old2, t_startlast, d2pdt2_old, OH_old, OH_new;
+    Real max_curv;
+    if (diagnostic_name == "pressure_rise" 
+            || diagnostic_name == "onset_pressure_rise"
+            || diagnostic_name == "max_pressure"  
+            || diagnostic_name == "inflect_OH"  
+            || diagnostic_name == "thresh_O"  
+            || diagnostic_name == "onset_OH"  
+            || diagnostic_name == "onset_CO2"  
+            || diagnostic_name == "max_OH" ) {
       p_new = ExtractMeasurement();
+      OH_new = ExtractMeasurement();
       dpdt_old = 0;
+      d2pdt2_old = 0;
+      OH_old = 0;
       i++;
     }
 
     bool finished = false;
+    t_startlast = 0.;
+    bool first = true;
     for ( ; i<num_time_nodes && !finished; ++i) {
       Real t_start = t_end;
       t_end = measurement_times[i];
@@ -240,44 +303,210 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
         }
       }
 
-      if (diagnostic_name == "pressure_rise") {
-	p_old = p_new;
-	p_new = ExtractMeasurement();
-	Real dpdt = (p_new - p_old) / dt;
-        if (log_this) {
-          ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
-              << p_old << " " << p_new << std::endl;
-        }
-	finished = dpdt > transient_thresh && dpdt < dpdt_old;
-	if (finished) {
-	  simulated_observations[0] = t_start;
-          if (! ValidMeasurement(simulated_observations[i])) {
-            return false;
+      if (diagnostic_name == "onset_pressure_rise") {
+          if (first) {
+              std::cout << "using onset pressure rise diagnostic" << std::endl;
+              first = false;
           }
-	  simulated_observations[0] *= 1.e6;
-	}
-	dpdt_old = dpdt;
+          p_old = p_new;
+          p_old2 = p_old;
+          p_new = ExtractMeasurement();
+
+          Real dpdt = (p_new -  p_old2) / (2*dt); // At p_old
+          if (log_this) {
+              ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
+                  << p_old << " " << p_new << std::endl;
+          }
+          //std::cout << "called solveTransient and found d2pdt2 " <<  
+          //    d2pdt2 << "; threshold=" << transient_thresh << std::endl;
+          finished = dpdt > transient_thresh && dpdt < dpdt_old;
+          if (finished) {
+              simulated_observations[0] = t_startlast;
+              if (! ValidMeasurement(simulated_observations[0])) {
+                  return false;
+              }
+              simulated_observations[0] *= 1.e6;
+              //std::cout << "called solveTransient and found " <<  
+              //    simulated_observations[0]  << std::endl;
+          }
+          dpdt_old = dpdt;
+      }
+
+      else if (diagnostic_name == "pressure_rise") {
+          if (first) {
+              std::cout << "using pressure rise diagnostic" << std::endl;
+              first = false;
+          }
+          p_old = p_new;
+          p_new = ExtractMeasurement();
+          Real dpdt = (p_new - p_old) / dt;
+          if (log_this) {
+              ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
+                  << p_old << " " << p_new << std::endl;
+          }
+          finished = dpdt > transient_thresh && dpdt < dpdt_old;
+          if (finished) {
+              simulated_observations[0] = t_start;
+              if (! ValidMeasurement(simulated_observations[0])) {
+                  return false;
+              }
+              simulated_observations[0] *= 1.e6;
+          }
+          dpdt_old = dpdt;
       }
       else if (diagnostic_name == "max_pressure") {
-	p_old = p_new;
-	p_new = ExtractMeasurement();
-        if (log_this) {
-          ofs << i << " " << 0.5*(t_start+t_end) << " " 
-              << p_old << " " << p_new << " " << (p_new - p_old)/dt << std::endl;
-        }
-	finished = p_old > transient_thresh && (p_new - p_old)/dt < transient_thresh;
-	if (finished) {
-	  simulated_observations[0] = t_start;
-          if (! ValidMeasurement(simulated_observations[i])) {
-            return false;
+          p_old = p_new;
+          p_new = ExtractMeasurement();
+          if (log_this) {
+              ofs << i << " " << 0.5*(t_start+t_end) << " " 
+                  << p_old << " " << p_new << " " << (p_new - p_old)/dt << std::endl;
           }
-	  simulated_observations[0] *= 1.e6;
-	}
+          finished = p_old > transient_thresh && (p_new - p_old)/dt < transient_thresh;
+          if (finished) {
+              simulated_observations[0] = t_start;
+              if (! ValidMeasurement(simulated_observations[0])) {
+                  return false;
+              }
+              simulated_observations[0] *= 1.e6;
+          }
+      }
+
+      else if (diagnostic_name == "max_OH") {
+          OH_old = OH_new;
+          OH_new = ExtractMeasurement();
+          if (log_this) {
+              ofs << i << " " << 0.5*(t_start+t_end) << " " 
+                  << OH_old << " " << OH_new << " " << (OH_new - OH_old)/dt << std::endl;
+          }
+          // std::cout << "called solveTransient and found OH " <<  
+          //     OH_old << "; threshold=" << transient_thresh << " t=" << t_start*1e6 << "new " << OH_new << "slope: " << (OH_new - OH_old)/dt << std::endl;
+          finished = OH_old > transient_thresh && (OH_new - OH_old)/dt < 0;
+          if (finished) {
+              simulated_observations[0] = t_start;
+              if (! ValidMeasurement(simulated_observations[0])) {
+                  return false;
+              }
+              simulated_observations[0] *= 1.e6;
+          }
+      }
+
+      else if (diagnostic_name == "inflect_OH") {
+          if (first) {
+              std::cout << "using inflection OH diagnostic" << std::endl;
+              first = false;
+          }
+          p_old = p_new;
+          p_old2 = p_old;
+          p_new = ExtractMeasurement();
+
+          Real d2pdt2 = (p_new - 2.0*p_old + p_old2) / (dt*dt); // At p_old
+          if( d2pdt2 > max_curv ) {
+              max_curv = d2pdt2;
+          }
+          if (log_this) {
+              ofs << i << " " << 0.5*(t_start+t_end) << " " << d2pdt2 << "  "
+                  << p_old << " " << p_new << std::endl;
+          }
+          //std::cout << "called solveTransient and found OH curvature " <<  
+          //    d2pdt2 << "; threshold=" << transient_thresh << " t=" << t_startlast*1e6 << std::endl;
+          finished = max_curv > transient_thresh && d2pdt2 < 0.05*max_curv; // max_curv*0.001;
+          if (finished) {
+              simulated_observations[0] = t_startlast;
+              if (! ValidMeasurement(simulated_observations[0])) {
+                  return false;
+              }
+              simulated_observations[0] *= 1.e6;
+              //std::cout << "called solveTransient and found " <<  
+              //    simulated_observations[0]  << std::endl;
+          }
+          d2pdt2_old = d2pdt2;
+      }
+      if (diagnostic_name == "onset_OH") {
+          if (first) {
+              std::cout << "using onset OH rise diagnostic" << std::endl;
+              first = false;
+          }
+          p_old = p_new;
+          p_old2 = p_old;
+          p_new = ExtractMeasurement();
+
+          Real dpdt = (p_new -  p_old2) / (2*dt); // At p_old
+          if (log_this) {
+              ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
+                  << p_old << " " << p_new << std::endl;
+          }
+          //std::cout << "called solveTransient and found d2pdt2 " <<  
+          //    d2pdt2 << "; threshold=" << transient_thresh << std::endl;
+          finished = dpdt > transient_thresh && dpdt < dpdt_old;
+          if (finished) {
+              simulated_observations[0] = t_startlast;
+              if (! ValidMeasurement(simulated_observations[0])) {
+                  return false;
+              }
+              simulated_observations[0] *= 1.e6;
+              //std::cout << "called solveTransient and found " <<  
+              //    simulated_observations[0]  << std::endl;
+          }
+          dpdt_old = dpdt;
+      }
+      if (diagnostic_name == "onset_CO2") {
+          if (first) {
+              std::cout << "using onset CO2 rise diagnostic" << std::endl;
+              first = false;
+          }
+          p_old = p_new;
+          p_old2 = p_old;
+          p_new = ExtractMeasurement();
+
+          Real d2pdt2 = (p_new -  p_old2) / (2*dt); // At p_old
+          if (log_this) {
+              ofs << i << " " << 0.5*(t_start+t_end) << " " << d2pdt2 << "  "
+                  << p_old << " " << p_new << std::endl;
+          }
+          //std::cout << "called solveTransient and found d2pdt2 " <<  
+          //    d2pdt2 << "; threshold=" << transient_thresh << std::endl;
+          finished = d2pdt2 > transient_thresh && d2pdt2 < d2pdt2_old;
+          if (finished) {
+              simulated_observations[0] = t_startlast;
+              if (! ValidMeasurement(simulated_observations[0])) {
+                  return false;
+              }
+              simulated_observations[0] *= 1.e6;
+              //std::cout << "called solveTransient and found " <<  
+              //    simulated_observations[0]  << std::endl;
+          }
+          d2pdt2_old = d2pdt2;
+      }
+      if (diagnostic_name == "thresh_O") {
+          if (first) {
+              std::cout << "using threshold on O diagnostic" << std::endl;
+              first = false;
+          }
+          p_new = ExtractMeasurement();
+
+          if (log_this) {
+              ofs << i << " " << 0.5*(t_start+t_end) << " " << p_new << "  "
+                  << p_old << " " << p_new << std::endl;
+          }
+          std::cout << "called solveTransient and found O " <<  
+              p_new << "; threshold=" << transient_thresh << " at t = " << t_start*1.e6 << std::endl;
+          finished = p_new > transient_thresh;
+          if (finished) {
+              simulated_observations[0] = t_start;
+              if (! ValidMeasurement(simulated_observations[0])) {
+                  return false;
+              }
+              simulated_observations[0] *= 1.e6;
+              //std::cout << "called solveTransient and found " <<  
+              //    simulated_observations[0]  << std::endl;
+          }
       }
       
       rYold.copy(rYnew,sCompY,sCompY,Nspec);
       rHold.copy(rHnew,sCompRH,sCompRH,Nspec);
       Told.copy(Tnew,sCompT,sCompT,1);
+
+      t_startlast = t_start;
     }
   }
   else {
