@@ -1,12 +1,12 @@
 / Centered differencing 
-/ CDIF
+/CDIF
 /  freely propagating flame
 FREE
 ENRG
 / Multicomponent
-/MULT
+MULT
 / Thermal diffusion
-/TDIF
+/ TDIF
 /  initial flow-rate estimate
 FLRT  .07   ! gm/cm**2-sec
 /   atmospheric pressure
@@ -35,11 +35,11 @@ INTM  H2O2  0.0001
 INTM   H    0.01
 INTM   OH   0.01
 /   convergence tolerance for Newton
-ATOL  1.E-9
-RTOL  1.E-4
+ATOL  1.E-8
+RTOL  1.E-5
 /   convergence tolerance for timestepping
-ATIM  1.E-5
-RTIM  1.E-5
+ATIM  1.E-3
+RTIM  1.E-3
 /   maximum printing
 PRNT    1
 /   time step control
@@ -59,10 +59,17 @@ TEMP  10.0   2300.
 CNTN
 END
 /
+// CDIF
+CNTN
+END
 GRAD   0.9
 CURV   0.9
 CNTN
 END
+//ATOL  1.E-8
+//RTOL  1.E-5
+//CNTN
+//END
 /
 GRAD   0.7
 CURV   0.7
@@ -71,11 +78,16 @@ END
 /
 GRAD   0.15
 CURV   0.15
-//CNTN
+CNTN
 END
-CDIF
-//CNTN
-END
+/CDIF
+/CNTN
+/END
 GRAD   0.05
 CURV   0.01
+CNTN
+END
+GRAD 0.01
+CURV 0.01
+/CNTN
 END

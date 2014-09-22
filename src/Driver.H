@@ -3,10 +3,12 @@
 
 #include <ExperimentManager.H>
 #include <MINPACKstruct.H>
+#include <ParallelDescriptor.H>
 
 struct Driver
 {
   Driver(int, char **);
+  Driver(int, char **, MPI_Comm mpi_comm);
   ~Driver();
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
@@ -19,6 +21,7 @@ struct Driver
   static ChemDriver *cd;
   static MINPACKstruct *mystruct;
   static Real param_eps;
+  bool mpi_initialized;
 };
 
 #endif
