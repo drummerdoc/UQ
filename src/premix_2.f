@@ -270,7 +270,7 @@ C
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C
-      CHARACTER CCKWRK(LENCCK)*(*), KSYM(KK)*(*), NAME(NATJ)*(*),
+      CHARACTER CCKWRK(LENCCK)*(*), KSYM(KK)*(16), NAME(NATJ)*(*),
      1          ISOLUT*16, ISENSI*16, IHSENS*16, ID*9
 C
       LOGICAL ACTIVE(NATJ), IERR, LASEN, LBURNR, LCNTUE, KERR,
@@ -308,7 +308,7 @@ C
 C
 C///  INITIALIZATION.
 C
-      write(*,*) ' JMAX = ', JMAX, '--------------'
+      write(*,*) ' JMAX = ', JMAX, '--------------', 'KK=', KK
       LCNTUE = .FALSE.
       KERR = .FALSE.
       ONE = 1.0
