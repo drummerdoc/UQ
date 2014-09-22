@@ -39,13 +39,14 @@ DEBUG           = TRUE
 DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
+USE_MPI         = TRUE
 USE_MPI         = FALSE
 USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
 BUILD_EXEC      = TRUE
-BUILD_EXEC      = FALSE
+BUILD_EXEC      = TRUE
 VERBOSE         = FALSE
 DO_REGTEST      = FALSE
 
@@ -173,6 +174,7 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       SHARED_LIBRARY_SUFFIX:=so
       LIBRARIES+=-lpython2.7
       PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
+      fFLAGS += -cpp
     endif
   endif
 
@@ -184,10 +186,14 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       PYTHON_DIR := /Users/rgrout/Library/Enthought/Canopy_64bit/User/
       PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
       PYTHON_INCLUDES := /Applications/Canopy.app/appdata/canopy-1.3.0.1715.macosx-x86_64/Canopy.app/Contents/include/python2.7
+	  PYTHON_INCLUDES += /Users/rgrout/Library/Enthought/Canopy_64bit/User/lib/python2.7/site-packages/mpi4py/include/
       GFORTLIB := /opt/local/lib/gcc46/libgfortran.${SHARED_LIBRARY_SUFFIX}
       COMP            = g++-mp-4.6
       FCOMP           = gfortran-mp-4.6
+	  #COMP = mpicxx
+	  #FCOMP = mpif90
       LIBRARIES+=-lpython2.7
+      LIBRARIES+= -headerpad_max_install_names
     endif
     ifeq (${WHICHDARWIN}, MARC)
       PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
@@ -215,7 +221,8 @@ endif
 # Where chemkin/premix bits are
 VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
-fEXE_sources += premix_2.f twopnt.f mach.f refine.f cktime.f misc_math.f
+fEXE_sources += premix_2.f twopnt.f mach.f refine.f cktime.f misc_math.f 
+f90EXE_sources += premix_2_util.f90 
 
 PACKAGES=./packages
 INCLUDE_LOCATIONS += ${PYTHON_INCLUDES}
@@ -238,8 +245,9 @@ endif
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapack.${SHARED_LIBRARY_SUFFIX}
 ifeq (${WHICHDARWIN}, RAY)
-  SHARD_LIBRARIES+= -headerpad_max_install_names
+  SHARED_LIBRARIES+= -headerpad_max_install_names
 endif
+LIBRARIES+= -headerpad_max_install_names
 
 PACKAGE := pyemcee
 
@@ -271,7 +279,7 @@ ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)
 	cp ${PACKAGE}.py ${PACKAGE}
 
 ${PACKAGE}_wrap.cpp: ${PACKAGE}.i
-	swig -python -c++ -I. $(includes) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
+	swig -python -c++ -I. $(includes) -I$(SWIG_INCLUDES) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
 
 exec: ${executable}
 	@echo ${SUCCESS_MSG}
