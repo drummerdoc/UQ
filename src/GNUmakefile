@@ -173,6 +173,7 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       SHARED_LIBRARY_SUFFIX:=so
       LIBRARIES+=-lpython2.7
       PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
+      fFLAGS += -cpp
     endif
   endif
 
@@ -215,7 +216,8 @@ endif
 # Where chemkin/premix bits are
 VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
-fEXE_sources += premix_2.f twopnt.f mach.f refine.f cktime.f misc_math.f
+fEXE_sources += premix_2.f twopnt.f mach.f refine.f cktime.f misc_math.f 
+FEXE_source += premix_2_util.f90
 
 PACKAGES=./packages
 INCLUDE_LOCATIONS += ${PYTHON_INCLUDES}

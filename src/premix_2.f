@@ -264,12 +264,13 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C
+#include "cdwrk.H"
       CHARACTER CCKWRK(LENCCK)*(*), KSYM(KK)*(*), NAME(NATJ)*(*),
      1          ISOLUT*16, ISENSI*16, IHSENS*16, ID*9
 C
@@ -589,12 +590,13 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C     Integer arrays
+#include "cdwrk.H"
       DIMENSION ICKWRK(LENICK), IMCWRK(LENIMC)
 C     Real arrays
       DIMENSION WT(KK), EPS(KK), XGIVEN(NTEMP), TGIVEN(NTEMP), X(JJ),
@@ -972,12 +974,13 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C
+#include "cdwrk.H"
       logical LULNUM
       common / MARC / DFTH, CHTH, LULNUM
 
@@ -1128,12 +1131,13 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C
+#include "cdwrk.H"
       DIMENSION X(JJ), S(NATJ,JJ), YAV(KK), ICKWRK(LENICK),
      1          RCKWRK(LENRCK),
      1          IMCWRK(LENIMC), RMCWRK(LENRMC),
@@ -1220,12 +1224,13 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C
+#include "cdwrk.H"
       DIMENSION X(JJ), S(NATJ,JJ), YAV(KK), ICKWRK(LENICK),
      1          RCKWRK(LENRCK),
      1          IMCWRK(LENIMC),
@@ -1351,7 +1356,7 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
@@ -1362,6 +1367,7 @@ C
      +   NFN,  NKA6, NMCW, NRE,  NRKFT,NRKRT,NRSAVE, NS, NSCH, NSN,
      +   NTDR, NTGV, NSSAVE, NWT, NX, NXGV, NYV
 C
+#include "cdwrk.H"
       DIMENSION I(LENIWK), R(LENRWK)
       CHARACTER C(LENCWK)*(*)
 C
@@ -1518,7 +1524,7 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
@@ -1598,7 +1604,8 @@ C
      3                   ICKWRK, RCKWRK, CCKWRK, IMCWRK, RMCWRK, ITWWRK,
      4                   RTWWRK, F, FN, SSAVE, RKFT, RKRT, RSAVE, LOUT,
      5                   LRCRVR, A, CONDIT, IPIVOT, NAME, KSYM, ABOVE,
-     6                   BELOW, JMAX, MARK, ACTIVE, N1CALL, KERR, REPORT)
+     6                   BELOW, JMAX, MARK, ACTIVE, N1CALL, KERR, 
+     7                   REPORT)
 C
 C  START PROLOGUE
 C
@@ -1692,12 +1699,13 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C
+#include "cdwrk.H"
       CHARACTER VERSIO*80, SIGNAL*16, REPORT*16, NAME(NATJ)*(*),
      1          KSYM(KK)*(*), CCKWRK(LENCCK)*(*), ISOLUT*16
       LOGICAL LENRGY, ENERGY, LBURNR, BURNER, LMULTI, LVCOR, LVARMC,
@@ -2012,11 +2020,12 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
+#include "cdwrk.H"
       LOGICAL
      +   kerr, lewis, lfuel, LMOLE, lpath, lrrop, lsolve, latom, ldflx, 
      +   LMULTI, LENRGY, LTDIF, LVCOR, lheat, ldiff
@@ -2063,7 +2072,7 @@ C
      +   string*100, values*20
       integer 
      +   element, elements, field, fields, itemp1, itemp2, itemp3,
-     +   ndim, nspec, quantity
+     +   ndim, quantity
       intrinsic 
      +   len_trim
 
@@ -2600,9 +2609,10 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
 C
+#include "cdwrk.H"
       DIMENSION X(JMAX), S(NATJ,JMAX)
       CHARACTER*16 ICHR, ICKLNK, IMCLNK, ISOLUT, ISENSI, IHSENS
       PARAMETER (ICKLNK='CKLINK', IMCLNK='MCLINK', ISOLUT='SOLUTION',
@@ -2709,9 +2719,10 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
 C
+#include "cdwrk.H"
       DIMENSION ICKWRK(LENICK), RCKWRK(LENRCK),
      1          IMCWRK(LENIMC), RMCWRK(LENRMC)
       CHARACTER*(*) CCKWRK(LENCCK)
@@ -2824,12 +2835,13 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C
+#include "cdwrk.H"
       LOGICAL
      +   ERROR, LBURNR, LENRGY, LMOLE, LMULTI, LTDIF, LTIME, LVARMC,
      +   LVCOR, RETURN, KERR
@@ -3075,7 +3087,7 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
@@ -3083,6 +3095,7 @@ C
       common / prlcon / 
      +   latom, ldflx, ldiff, lewis, lfuel, lheat, lpath, lrrop, lsolve
 
+#include "cdwrk.H"
       logical LULNUM
       common / MARC / DFTH, CHTH, LULNUM
 C
@@ -3850,11 +3863,12 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
+#include "cdwrk.H"
 C     Integer arrays
       DIMENSION ICKWRK(LENICK)
 C     Real arrays
@@ -3994,12 +4008,13 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C
+#include "cdwrk.H"
       LOGICAL LBURNR, LMOLE, LUMESH, KERR
 C     Integer arrays
       DIMENSION ICKWRK(LENICK), KI(NINTM), KP(NPROD), KR(NREAC)
@@ -4243,7 +4258,8 @@ C
                ISTART = I
             ENDIF
 70       CONTINUE
-         WRITE (6, *) ' *** VALUE OF ETA NOT FOUND ***', ETAJ, WORK(JJOLD)
+         WRITE (6, *) ' *** VALUE OF ETA NOT FOUND ***', 
+     1   ETAJ, WORK(JJOLD)
 80    CONTINUE
 C
 C        interpolate solution...
@@ -4340,12 +4356,13 @@ C
       COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
      1                  LENCCK, LENIMC, LENRMC,
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREAC, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
+     3                  NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
 C
+#include "cdwrk.H"
       LOGICAL LBURNR, LFIXT
       DIMENSION SN(NATJ,JJ), S(NATJ,JJ), REG(JJ), X(JJ), COND(JJ),
      1          XGIVEN(*), TGIVEN(*), SCRK(KK)
@@ -4462,34 +4479,6 @@ C     end of SUBROUTINE PRPOS
       RETURN
       END
 
-      subroutine open_premix_files( lin, lout, linmc, lrin, lrout, lrcvr, inputfile,
-     1     strlen, pathname, pathstrlen )
-
-          integer, intent(in) :: lin, linmc, lrin, lrout, lrcvr,lout
-          integer, intent(in) :: strlen, pathstrlen
-          integer, intent(in) :: inputfile(strlen), pathname(pathstrlen)
-          character(strlen) :: infile
-          character(pathstrlen) :: path
-
-          integer :: i
-
-          do i=1,strlen
-              infile(i:i) = ACHAR(inputfile(i))
-          enddo
-          do i=1,pathstrlen
-              path(i:i) = ACHAR(pathname(i))
-          enddo
-
-          !write(*,*) 'inputfile name: ', trim(path)//trim(infile)
-          !path = '../extras/premix_chemh/'
-          OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//trim(infile))
-          OPEN(LOUT,FORM='FORMATTED',STATUS='UNKNOWN',FILE='/dev/null')
-          OPEN(LINMC,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./tran.asc')
-          OPEN(LRIN,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./rest.bin')
-          OPEN(LROUT,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./save.bin')
-          OPEN(LRCVR,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./recov.bin')
-
-      end
 
       subroutine close_premix_files( lin, linmc, lrin, lrout, lrcvr )
           integer, intent(in) :: lin,  linmc, lrin, lrout, lrcvr
