@@ -282,6 +282,7 @@ ${PACKAGE}_wrap.cpp: ${PACKAGE}.i
 	swig -python -c++ -I. $(includes) -I$(SWIG_INCLUDES) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
 
 exec: ${executable}
+	./fixDYLIBexe.sh ${executable}
 	@echo ${SUCCESS_MSG}
 
 shared_lib: ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}
