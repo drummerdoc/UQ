@@ -24,8 +24,8 @@ parameters = A1 A2 A3 A4
 # FWD_A has a GRI30 value of 2.65e16, and a Davis-optimized value of 2.644e16
 A1.type = FWD_A
 A1.reaction_id = 0
-A1.prior_mean =  2.644e16
-A1.prior_std =   1.e16
+A1.prior_mean =  2.639e+16 #2.644e16  
+A1.prior_std =   5.e15
 A1.ensemble_std =   2.e13
 A1.lower_bound = 1e15
 A1.upper_bound = 1e17
@@ -34,7 +34,7 @@ A1.upper_bound = 1e17
 # FWD_A has a GRI30 value of 3.87e4, and a Davis-optimized value of 4.589e4
 A2.type = FWD_A
 A2.reaction_id = 1
-A2.prior_mean =  4.589e4
+A2.prior_mean =  4.669e4 #4.589e4
 A2.prior_std =   4.e2
 A2.ensemble_std =   4.e1
 A2.lower_bound = 4.4e4
@@ -44,8 +44,8 @@ A2.upper_bound = 7.5e4
 # FWD_A has a GRI30 value of 2.16e8, and a Davis-optimized value of 1.734e8
 A3.type = FWD_A
 A3.reaction_id = 2
-A3.prior_mean =  1.734e8
-A3.prior_std =   1.e8
+A3.prior_mean =  1.634e8 #1.534e8 #1.734e8
+A3.prior_std =   1.e7
 A3.ensemble_std =   3.e5
 A3.lower_bound = 1e0
 A3.upper_bound = 1e10
@@ -54,7 +54,7 @@ A3.upper_bound = 1e10
 # FWD_A has a GRI30 value of 3.57e4, and a Davis-optimized value of 3.973e4
 A4.type = FWD_A
 A4.reaction_id = 3
-A4.prior_mean =  3.973e4
+A4.prior_mean =  3.173e4 #3.973e4
 A4.prior_std =   4.e3
 A4.ensemble_std =   4.e2
 A4.lower_bound = 1.e0
@@ -73,7 +73,7 @@ flow_reactor1.data_num_points = 11
 flow_reactor1.data_tstart = 0.
 flow_reactor1.data_tend = 1.0
 flow_reactor1.diagnostic_name = H2
-flow_reactor1.measurement_error = 1.e-6
+flow_reactor1.measurement_error = 1.e-4
 
 # Fig 7c in Davis paper, time data includes the time-shift used in the original data fit
 flow_reactor2.type = CPReactor
@@ -86,10 +86,9 @@ flow_reactor2.data_num_points = 11
 flow_reactor2.data_tstart = 0.32
 flow_reactor2.data_tend = 0.68
 flow_reactor2.diagnostic_name = H2
-flow_reactor2.measurement_error = 1.e-6
+flow_reactor2.measurement_error = 1.e-4
 
 ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12
-param_eps = 1.e-2
-
+param_eps = 1.e-3
 
