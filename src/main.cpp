@@ -380,16 +380,17 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
             int ldfjac, int iflag)
 {
   if (iflag == 0) {
-    Real sum = 0;
-    for (int i=0; i<m; ++i) {
-      sum += fvec[i] * fvec[i];
-    }
-    std::cout << "X: { ";
+    std::cout << "NLLSFCN status X: { ";
     for (int i=0; i<n; ++i) {
       std::cout << x[i] << " ";
     }
-    std::cout << "} FUNC: " << sum << std::endl;
-    return 0;
+    std::cout << "} ";
+
+    Real sum = 0;
+    for (int i=0; i<m; ++i) {
+      sum += fvec[i]*fvec[i];
+    }
+    std::cout << " F = " << sum << std::endl;
   }
   else if (iflag == 1) { // Evaluate functions only, do not touch FJAC
     int eflag = eval_nlls_funcs(p,m,n,x,fvec);
@@ -429,10 +430,6 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
       BoxLib::Abort("Bad sample data");
     }
 
-    std::vector<Real> f0tmp(em.NumExptData());
-    int ret0 = eval_nlls_data(p,pvals,&(f0tmp[0]));
-    BL_ASSERT(ret0 == GOOD_EVAL_FLAG);
-
     std::vector<Real> fptmp(em.NumExptData());
     std::vector<Real> fmtmp(em.NumExptData());
     for (int i=0; i<n; ++i) {
@@ -449,6 +446,10 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
 
 
 #if 0
+    std::vector<Real> f0tmp(em.NumExptData());
+    int ret0 = eval_nlls_data(p,pvals,&(f0tmp[0]));
+    BL_ASSERT(ret0 == GOOD_EVAL_FLAG);
+
     for (int i=0; i<n; ++i) {
         
       std::vector<bool> this_one_good(nd);
@@ -508,6 +509,10 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
 
     }
 #elif 0
+    std::vector<Real> f0tmp(em.NumExptData());
+    int ret0 = eval_nlls_data(p,pvals,&(f0tmp[0]));
+    BL_ASSERT(ret0 == GOOD_EVAL_FLAG);
+
     for (int i=0; i<n; ++i) {
         
       Real typ = std::max(s->parameter_manager.TypicalValue(i), std::abs(pvals[i]));
@@ -543,7 +548,6 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
       Real hInv = 1/h;
       for (int j=0; j<nd; ++j) {
         fjac[i*m+n+j] = (fptmp[j] - fmtmp[j]) * hInv * 0.5; // Column major
-        //std::cout << "J vals: " << i << " " << j << " " << fptmp[j] << std::endl;
       }
 
       pvals[i] = x[i];
@@ -1578,6 +1582,16 @@ main (int   argc,
   for(int ii=0; ii<num_params; ii++){
     std::cout << parameter_manager[ii] << std::endl;
   }
+
+#if 1
+  parameter_manager.ResetParametersToDefault();
+  std::cout << "Reset parameters: " << std::endl;
+  for(int ii=0; ii<num_params; ii++){
+    std::cout << parameter_manager[ii] << std::endl;
+  }
+#endif
+
+
 
 #if 1
   std::vector<Real> confirm_data(num_data);

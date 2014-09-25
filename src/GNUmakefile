@@ -45,7 +45,7 @@ USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
-BUILD_EXEC      = TRUE
+BUILD_EXEC      = FALSE
 BUILD_EXEC      = TRUE
 VERBOSE         = FALSE
 DO_REGTEST      = FALSE
@@ -70,6 +70,7 @@ CFLAGS += -std=c99
 
 EBASE = main
 #EBASE = EvalExpt
+#EBASE = EvalParams
 
 ifeq (${DO_REGTEST}, TRUE)
   include RegTest.mak
@@ -94,7 +95,7 @@ fincludes=${includes}
 Bdirs   += ${CHEMISTRY_DIR}/src
 Bdirs   += ${BOXLIB_HOME}/Src/C_BaseLib
 
-Blocs    = . hacked_src
+Blocs    = . 
 Bpack	+= $(foreach dir, $(Bdirs), $(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(dir))
 
@@ -108,7 +109,7 @@ CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp Experiment
 
 ifeq (${CHEMISTRY_MODEL}, DAVIS)
   CHEM_MECHFILE = davis.c
-  #VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/gri/PMFs
+  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/gri/PMFs
   VPATH_LOCATIONS += ../extras/Davis05_h2co/chemfiles/
 endif
 ifeq (${CHEMISTRY_MODEL}, DRM19)
@@ -246,8 +247,8 @@ SHARED_LIBRARIES+=${PACKAGES}/lib/liblapacke.${SHARED_LIBRARY_SUFFIX}
 SHARED_LIBRARIES+=${PACKAGES}/lib/liblapack.${SHARED_LIBRARY_SUFFIX}
 ifeq (${WHICHDARWIN}, RAY)
   SHARED_LIBRARIES+= -headerpad_max_install_names
+  LIBRARIES+= -headerpad_max_install_names
 endif
-LIBRARIES+= -headerpad_max_install_names
 
 PACKAGE := pyemcee
 

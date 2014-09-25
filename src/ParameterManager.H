@@ -8,7 +8,9 @@ struct ParameterManager
   ParameterManager(ChemDriver& _cd);
 
   // Add parameter to active set, return default value
-  Real AddParameter(int reaction, const ChemDriver::REACTION_PARAMETER& rp);
+  Real AddParameter(int                       reaction,
+                    const REACTION_PARAMETER& rp,
+                    int                       species_id);
   void Clear();
 
   // Reset internal data back to state of initialization

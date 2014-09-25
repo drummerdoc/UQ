@@ -10,26 +10,27 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
 {
   prior_stats_initialized = false;
 
-  std::map<std::string,ChemDriver::REACTION_PARAMETER> PTypeMap;
-  PTypeMap["FWD_A"]     = ChemDriver::FWD_A;
-  PTypeMap["FWD_BETAA"] = ChemDriver::FWD_BETA;
-  PTypeMap["FWD_EA"]    = ChemDriver::FWD_EA;
-  PTypeMap["LOW_A"]     = ChemDriver::LOW_A;
-  PTypeMap["LOW_BETAA"] = ChemDriver::LOW_BETA;
-  PTypeMap["LOW_EA"]    = ChemDriver::LOW_EA;
-  PTypeMap["REV_A"]     = ChemDriver::REV_A;
-  PTypeMap["REV_BETAA"] = ChemDriver::REV_BETA;
-  PTypeMap["REV_EA"]    = ChemDriver::REV_EA;
-  PTypeMap["TROE_A"]    = ChemDriver::TROE_A;
-  PTypeMap["TROE_A"]    = ChemDriver::TROE_A;
-  PTypeMap["TROE_TS"]   = ChemDriver::TROE_TS;
-  PTypeMap["TROE_TSS"]  = ChemDriver::TROE_TSS;
-  PTypeMap["TROE_TSSS"] = ChemDriver::TROE_TSSS;
-  PTypeMap["SRI_A"]     = ChemDriver::SRI_A;
-  PTypeMap["SRI_B"]     = ChemDriver::SRI_B;
-  PTypeMap["SRI_C"]     = ChemDriver::SRI_C;
-  PTypeMap["SRI_D"]     = ChemDriver::SRI_D;
-  PTypeMap["SRI_E"]     = ChemDriver::SRI_E;
+  std::map<std::string,REACTION_PARAMETER> PTypeMap;
+  PTypeMap["FWD_A"]      = FWD_A;
+  PTypeMap["FWD_BETAA"]  = FWD_BETA;
+  PTypeMap["FWD_EA"]     = FWD_EA;
+  PTypeMap["LOW_A"]      = LOW_A;
+  PTypeMap["LOW_BETAA"]  = LOW_BETA;
+  PTypeMap["LOW_EA"]     = LOW_EA;
+  PTypeMap["REV_A"]      = REV_A;
+  PTypeMap["REV_BETAA"]  = REV_BETA;
+  PTypeMap["REV_EA"]     = REV_EA;
+  PTypeMap["TROE_A"]     = TROE_A;
+  PTypeMap["TROE_A"]     = TROE_A;
+  PTypeMap["TROE_TS"]    = TROE_TS;
+  PTypeMap["TROE_TSS"]   = TROE_TSS;
+  PTypeMap["TROE_TSSS"]  = TROE_TSSS;
+  PTypeMap["SRI_A"]      = SRI_A;
+  PTypeMap["SRI_B"]      = SRI_B;
+  PTypeMap["SRI_C"]      = SRI_C;
+  PTypeMap["SRI_D"]      = SRI_D;
+  PTypeMap["SRI_E"]      = SRI_E;
+  PTypeMap["THIRD_BODY"] = THIRD_BODY;
 
   ParmParse pp;
   Array<std::string> parameters;
@@ -52,11 +53,18 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
     }
 
     std::string type; ppp.get("type",type);
-    std::map<std::string,ChemDriver::REACTION_PARAMETER>::const_iterator it = PTypeMap.find(type);
+    std::map<std::string,REACTION_PARAMETER>::const_iterator it = PTypeMap.find(type);
     if (it == PTypeMap.end()) {
       BoxLib::Abort("Unrecognized reaction parameter");
     }
-    AddParameter(reaction_id,it->second);
+
+    int id = -1;
+    if (type == "THIRD_BODY") {
+      std::string tb_name; ppp.get("tb_name",tb_name);
+      id = cd.index(tb_name);
+      BL_ASSERT(id >= 0);
+    }
+    AddParameter(reaction_id,it->second,id);
 
     ppp.get("prior_mean",prior_mean[i]);
     ppp.get("prior_std",prior_std[i]);
@@ -69,11 +77,13 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
 
 // Add parameter to active set, return default value
 Real
-ParameterManager::AddParameter(int reaction, const ChemDriver::REACTION_PARAMETER& rp)
+ParameterManager::AddParameter(int                       reaction,
+                               const REACTION_PARAMETER& rp,
+                               int                       species_id)
 {
   int len = active_parameters.size();
   active_parameters.resize(len+1,PArrayManage);
-  active_parameters.set(len, new ChemDriver::Parameter(reaction,rp));
+  active_parameters.set(len, new ChemDriver::Parameter(reaction,rp,species_id));
   prior_stats_initialized = false;
   true_parameters.resize(len+1);
   true_parameters[len] = active_parameters[len].DefaultValue();

@@ -90,6 +90,6 @@ flow_reactor2.measurement_error = 1.e-6
 
 ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12
-param_eps = 1.e-2
+param_eps = 1.e-3
 
 
