@@ -97,16 +97,30 @@ void fixParamRanges( ParameterManager & parameter_manager, ExperimentManager & e
 
 }
 
-//
+// /////////////////////////////////////////////////////////
 // The function minimized by minpack
-//
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 Real
 NegativeLogLikelihood(const std::vector<double>& parameters)
 {
   return -Driver::LogLikelihood(parameters);
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+
+
+// /////////////////////////////////////////////////////////
+// Centered differences for Hessian
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
 {
@@ -150,21 +164,27 @@ Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
   Real fmIpJ = NegativeLogLikelihood(XmIpJ);
   Real fmImJ = NegativeLogLikelihood(XmImJ);
 
-  /*
-    Real f = NegativeLogLikelihood(X);
-    std::cout << "Hessian eval " << i << " " << j
-    << " 00: " << f
-    << " ++: " << fpIpJ
-    << " +-: " << fpImJ
-    << " -+: " << fmIpJ
-    << " --: " << fmImJ << std::endl;
-  */
-
   return 1.0/(4.0*hI*hJ) * ( fpIpJ - fpImJ - fmIpJ + fmImJ );  
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+// /////////////////////////////////////////////////////////
+// MyMat definition
 typedef std::vector<std::vector<Real> > MyMat;
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+// /////////////////////////////////////////////////////////
+// Compute a square root of a matrix
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 MyMat
 Sqrt(void *p, const MyMat & H)
 {
@@ -172,61 +192,58 @@ Sqrt(void *p, const MyMat & H)
   int num_vals = str->parameter_manager.NumParams();
   MINPACKstruct::LAPACKstruct& lapack = str->lapack_struct;
 
-  // The matrix
+  // For Lapack 
   std::vector<Real>& a = lapack.a;
 
-  // Fill the upper matrix
-  //MyMat H(num_vals);
+  // Convert MyMat to Lapack readable
   for( int ii=0; ii<num_vals; ii++ ){
-    //H[ii].resize(num_vals);
     for (int j=0; j<num_vals; ++j) {
       a[j + ii*num_vals] = -1;
-      //H[ii][j] = -1;
     }
     for( int jj=ii; jj<num_vals; jj++ ){
 	    a[jj + ii*num_vals] = H[ii][jj];
-      //a[jj + ii*num_vals] = mixed_partial_centered( p, X, ii, jj);
-      //H[ii][jj] = a[jj + ii*num_vals];
     }
   }
 
-  // Do decomposition
+  // Eigenvalue decomposition
   lapack_int info = lapack.DSYEV_wrap();
   BL_ASSERT(info == 0);
 
   // Get vector of eigenvalues
-  const std::vector<Real>& singular_values = lapack.s;
-  std::vector<Real> linv(num_vals);
+  const std::vector<Real>& eigenvalues = lapack.s;
 
   // Get 1/sqrt(lambda)
+  std::vector<Real> sqrtl(num_vals);
   for (int i=0; i<num_vals; ++i) {
-    if(singular_values[i] < 1.e-7){
-      linv[i] = 0;
+    if(eigenvalues[i] < 1.e-16){
+      sqrtl[i] = 0;
     }
     else{
-      linv[i] = std::sqrt(singular_values[i]);
+      sqrtl[i] = std::sqrt(eigenvalues[i]);
     }
-  }
+  } 
 
-  for (int i=0; i<num_vals; ++i) {
-     std::cout << "Sqrt of eigenvalues of covariance of Gaussian approximation " << linv[i] << std::endl;
-  }
-
-
-  // Get sqrt
+  // Assemble sqrt
   MyMat sqrt(num_vals);
   for (int i=0; i<num_vals; ++i) {
     sqrt[i].resize(num_vals,0);
     for (int j=0; j<num_vals; ++j) {
-      sqrt[i][j] = a[i + j*num_vals] * linv[j];
+      sqrt[i][j] = a[i + j*num_vals] * sqrtl[j];
     }
   }
   return sqrt;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
 
-
+// /////////////////////////////////////////////////////////
+// Inverse of a square root of a matrix
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 MyMat
 InvSqrt(void *p, const MyMat & H)
 {
@@ -234,62 +251,58 @@ InvSqrt(void *p, const MyMat & H)
   int num_vals = str->parameter_manager.NumParams();
   MINPACKstruct::LAPACKstruct& lapack = str->lapack_struct;
 
-  // The matrix
+  // For Lapack 
   std::vector<Real>& a = lapack.a;
 
-  // Fill the upper matrix
-  //MyMat H(num_vals);
+  // Convert MyMat to Lapack readable
   for( int ii=0; ii<num_vals; ii++ ){
-    //H[ii].resize(num_vals);
     for (int j=0; j<num_vals; ++j) {
       a[j + ii*num_vals] = -1;
-      //H[ii][j] = -1;
     }
     for( int jj=ii; jj<num_vals; jj++ ){
 	    a[jj + ii*num_vals] = H[ii][jj];
-      //a[jj + ii*num_vals] = mixed_partial_centered( p, X, ii, jj);
-      //H[ii][jj] = a[jj + ii*num_vals];
     }
   }
 
-  // Do decomposition
+  // Eigenvalue decomposition
   lapack_int info = lapack.DSYEV_wrap();
   BL_ASSERT(info == 0);
 
   // Get vector of eigenvalues
-  const std::vector<Real>& singular_values = lapack.s;
-  std::vector<Real> linv(num_vals);
-
+  const std::vector<Real>& eigenvalues = lapack.s;
+ 
   // Get 1/sqrt(lambda)
+  std::vector<Real> sqrtlinv(num_vals);
   for (int i=0; i<num_vals; ++i) {
-    if(singular_values[i] < 1.e-7){
-      linv[i] = 0;
+    if(eigenvalues[i] < 1.e-30){
+      sqrtlinv[i] = 0;
     }
     else{
-      linv[i] = 1 / std::sqrt(singular_values[i]);
+      sqrtlinv[i] = 1 / std::sqrt(eigenvalues[i]);
     }
   }
 
-  for (int i=0; i<num_vals; ++i) {
-     std::cout << "Sqrt of eigenvalues of covariance of Gaussian approximation " << linv[i] << std::endl;
-  }
-
-
-  // Get invsqrt
+  // Assemble inverse of square root
   MyMat invsqrt(num_vals);
   for (int i=0; i<num_vals; ++i) {
     invsqrt[i].resize(num_vals,0);
     for (int j=0; j<num_vals; ++j) {
-      invsqrt[i][j] = a[i + j*num_vals] * linv[j];
+      invsqrt[i][j] = a[j + i*num_vals] * sqrtlinv[j];
     }
   }
   return invsqrt;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
 
-
-
+// /////////////////////////////////////////////////////////
+// Compute Hessian with finite differences
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 MyMat
 FD_Hessian(void *p, const std::vector<Real>& X)
 {
@@ -309,22 +322,27 @@ FD_Hessian(void *p, const std::vector<Real>& X)
       H[ii][j] = -1;
     }
     for( int jj=ii; jj<num_vals; jj++ ){
-      a[jj + ii*num_vals] = mixed_partial_centered( p, X, ii, jj)/2;
+      a[jj + ii*num_vals] = mixed_partial_centered( p, X, ii, jj);
       H[ii][jj] = a[jj + ii*num_vals];
     }
   }
   return H;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
 #define CEN_DIFF
 #undef FWD_DIFF
 
 #ifdef CEN_DIFF
-//
+// /////////////////////////////////////////////////////////
 // Compute the derivative of the function funcF with respect to 
 // the Kth variable (centered finite differences)
-//
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static Real
 der_cfd(void* p, const std::vector<Real>& X, int K) {
   MINPACKstruct *s = (MINPACKstruct*)(p);
@@ -349,13 +367,18 @@ der_cfd(void* p, const std::vector<Real>& X, int K) {
 
   return (fx1-fx2)/(xdX1[K]-xdX2[K]);
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 #endif
 
 #ifdef FWD_DIFF
-//
+// /////////////////////////////////////////////////////////
 // Compute the derivative of the function funcF with respect to 
 // the Kth variable (forward finite differences)
-//
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static Real
 der_ffd(void* p, const std::vector<Real>& X, int K) {
   MINPACKstruct *s = (MINPACKstruct*)(p);
@@ -377,11 +400,17 @@ der_ffd(void* p, const std::vector<Real>& X, int K) {
 
   return (fx1-fx2)/(xdX[K]-X[K]);
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 #endif
 
-//
+
+// /////////////////////////////////////////////////////////
 // Gradient of function to minimize, using finite differences
-//
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static void grad(void * p, const std::vector<Real>& X, std::vector<Real>& gradF) {
   MINPACKstruct *s = (MINPACKstruct*)(p);
   int num_vals = s->parameter_manager.NumParams();
@@ -394,11 +423,18 @@ static void grad(void * p, const std::vector<Real>& X, std::vector<Real>& gradF)
 #endif
   } 
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
-//
-// This is what we give to MINPACK
+
+// /////////////////////////////////////////////////////////
+// This is what we give to MINPACK's routine for nonlinear 
+// equations (we avoid this now).
 // It computes the gradient of the function to be minimized
-//
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 int FCN(void       *p,    
         int	   NP,
@@ -430,7 +466,19 @@ int FCN(void       *p,
   }
   return 0;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+// /////////////////////////////////////////////////////////
+// Part of the function evaluated within nonlinear least squares
+// This is the part that comes from the data and is computed
+// with finite differences
+// // /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static int eval_nlls_data(void *p, const std::vector<Real>& pvals, real *fvec)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
@@ -450,7 +498,15 @@ static int eval_nlls_data(void *p, const std::vector<Real>& pvals, real *fvec)
 
   return GOOD_EVAL_FLAG;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+// /////////////////////////////////////////////////////////
+// Functions of the nonlinear least squares problem
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static int eval_nlls_funcs(void *p, int m, int n, const real *x, real *fvec)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
@@ -479,7 +535,21 @@ static int eval_nlls_funcs(void *p, int m, int n, const real *x, real *fvec)
 
   return eval_nlls_data(p,pvals,&(fvec[n]));
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+
+// /////////////////////////////////////////////////////////
+// Nonlinear last squares function we pass to Minpack
+//
+// MARK PLEASE CHECK/CLEAN HERE
+//
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac, 
             int ldfjac, int iflag)
@@ -666,7 +736,19 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
   }
   return 0;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+
+// /////////////////////////////////////////////////////////
+// Nonlinear least squares function that does not evaluate
+// the Jacobian (Minpack will do that for us)
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 int NLLSFCN_NOJ(void *p, int m, int n, const real *x, real *fvec, int iflag)
 {
@@ -700,7 +782,17 @@ int NLLSFCN_NOJ(void *p, int m, int n, const real *x, real *fvec, int iflag)
   }
   return 0;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+// /////////////////////////////////////////////////////////
+// Sum up the squares of the functions
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 Real SumSquareFuncs(const std::vector<double>& soln_params)
 {
@@ -720,12 +812,22 @@ Real SumSquareFuncs(const std::vector<double>& soln_params)
 
   Real sum = 0;
   for (int i=0; i<m; ++i) {
-    sum += fvec[i] * fvec[i];
+    sum += (fvec[i] * fvec[i]);
   }
   return sum;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
-// Call minpack
+
+// /////////////////////////////////////////////////////////
+// Our call to minpack
+// This is the old call that does not use least squares
+// structure. 
+// Tolerances may not be set correctly.
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln)
 {
@@ -785,19 +887,15 @@ void minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln)
   	std::cout << "minpack: iteration is not making good progress, as measured by the improvement from the last ten iterations. "<< std::endl;
   }
 
-  /*
-  Real Ffinal = NegativeLogLikelihood(soln);
-  std::cout << "Ffinal: " << Ffinal << std::endl;
-
-  int IFLAGP = 0;
-  FCN(p,num_vals,&(soln[0]),&(FVEC[0]),IFLAGP);
-  std::cout << "X, FVEC: " << std::endl;
-  for(int ii=0; ii<num_vals; ii++){
-    std::cout << soln[ii] << " " << FVEC[ii] << std::endl;
-  }
-  */
 };
 
+
+// /////////////////////////////////////////////////////////
+// Our call to Minpack for nonlinear least squares
+// All tolerances were picked according to the user guide
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& soln)
 {
@@ -852,6 +950,8 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
   }
 
   // Forget about COVAR
+  // Or maybe not... Marc may re-activate to figure
+  // out consistency of how we index matrices
   /*
   __cminpack_func__(covar)(n,&(a[0]),n,&(ipvt[0]),xtol,&(wa1[0]));
 
@@ -869,7 +969,6 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
   */
 
 
-
   std::string msg;
   switch (info)
   {
@@ -883,6 +982,10 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
   case 7:  msg = "xtol is too small. no further improvement in x is possible"; break;
   case 8:  msg = "gtol is too small. fvec orthogonal to cols of J to macheps"; break;
   default: msg = "unknown error.";
+  }
+
+  for (int i=0; i<soln.size(); ++i) {
+    s->parameter_manager[i] = soln[i];      
   }
 
   if (info ==0 || info>4) {
@@ -1041,8 +1144,35 @@ void minimizeNLLS(void *p, const std::vector<Real>& guess, std::vector<Real>& so
   }
   */
 };
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+
+
+
+
+
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 // MATTI'S CODE, USE WITH EXTREME CAUTION
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+
+
+// First come a bunch of little helper functions...
+
+
+// /////////////////////////////////////////////////////////
+// Normalize weights to that their sum is 1
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void NormalizeWeights(std::vector<Real>& w){
   int NOS = w.size();
@@ -1050,20 +1180,19 @@ void NormalizeWeights(std::vector<Real>& w){
   for(int ii=0; ii<NOS; ii++){
 	SumWeights = SumWeights+w[ii];
   }
-  // std::cout << "Sum of w =" << SumWeights << std::endl;
-
   for(int ii=0; ii<NOS; ii++){
-        //std::cout << "w =" << w[ii] << std::endl;
 	w[ii] = w[ii]/SumWeights;
   }
-  Real SumWeightsCheck = 0;
-  for(int ii=0; ii<NOS; ii++){
-	SumWeightsCheck  = SumWeightsCheck +w[ii];
-  }
-  std::cout << "Sum of weights after normalization " << SumWeightsCheck << std::endl;
-
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+// /////////////////////////////////////////////////////////
+// Compute the mean of a scalar from samples
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void ScalarMean(Real& Mean, std::vector<Real> & samples){
   int NOS = samples.size();
@@ -1073,8 +1202,15 @@ void ScalarMean(Real& Mean, std::vector<Real> & samples){
   }	  
   Mean = Mean/NOS;	
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
+// /////////////////////////////////////////////////////////
+// Compute the mean of a vector from samples
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void Mean(std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
@@ -1087,8 +1223,17 @@ void Mean(std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples){
 	  Mean[ii] = Mean[ii]/NOS;
   }	
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
+
+
+// /////////////////////////////////////////////////////////
+// Compute the weighted mean of a vector from samples
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void WeightedMean(std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
@@ -1100,8 +1245,17 @@ void WeightedMean(std::vector<Real>& CondMean, std::vector<Real>& w, std::vector
 	  }
   }	
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
+
+
+// /////////////////////////////////////////////////////////
+// Compute the covariance matrix from samples
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void Var(std::vector<Real>& Var,std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
@@ -1114,8 +1268,15 @@ void Var(std::vector<Real>& Var,std::vector<Real>& Mean, std::vector<std::vector
   Var[ii] = Var[ii]/NOS;
   }
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
+// /////////////////////////////////////////////////////////
+// Compute covariance from weighted samples
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void WeightedVar(std::vector<Real>& CondVar,std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
@@ -1127,7 +1288,17 @@ void WeightedVar(std::vector<Real>& CondVar,std::vector<Real>& CondMean, std::ve
   }
   }
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+
+// /////////////////////////////////////////////////////////
+// Compute quality measure of ensemble
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 Real CompR(std::vector<Real>& w, int NOS){
    std::vector<Real> w2(NOS);
@@ -1143,7 +1314,18 @@ Real CompR(std::vector<Real>& w, int NOS){
    Real R = MeanW2/(MeanW*MeanW);
    return R;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+
+
+// /////////////////////////////////////////////////////////
+// Approximate effective sample size
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 Real EffSampleSize(std::vector<Real>& w, int NOS){
    // Approximate effective sample size
    Real SumSquaredWeights = 0;
@@ -1153,9 +1335,19 @@ Real EffSampleSize(std::vector<Real>& w, int NOS){
    Real Neff = 1/SumSquaredWeights; 
    return Neff;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
 
+
+
+// /////////////////////////////////////////////////////////
+// Write samples and weights to file
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void WriteSamplesWeights(std::vector<std::vector<Real> >& samples, std::vector<Real>& w, const char *tag){
   std::stringstream SampleStr;
@@ -1181,8 +1373,18 @@ void WriteSamplesWeights(std::vector<std::vector<Real> >& samples, std::vector<R
   of.close();
   of1.close();
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
+
+
+
+// /////////////////////////////////////////////////////////
+// Resampling
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void Resampling(std::vector<std::vector<Real> >& Xrs,std::vector<Real>& w,std::vector<std::vector<Real> >& samples){
   int NOS = samples.size();
@@ -1209,14 +1411,26 @@ void Resampling(std::vector<std::vector<Real> >& Xrs,std::vector<Real>& w,std::v
     }
   }
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
+
+
+
+// /////////////////////////////////////////////////////////
+// Write samples to file
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
-void WriteResampledSamples(std::vector<std::vector<Real> >& Xrs){
+void WriteResampledSamples(std::vector<std::vector<Real> >& Xrs, const char *tag){
+  std::stringstream SampleStr;
+  SampleStr<<tag<<"ResampledSamples.dat";
   int NOS = Xrs.size();
   int num_params = Xrs[1].size();
   std::ofstream of2;
-  of2.open("resampled_samples.dat");
+  of2.open(SampleStr.str().c_str());
   of2 << std::setprecision(20);
   for(int jj=0;jj<NOS;jj++){
 	  for(int ii=0;ii<num_params;ii++){
@@ -1226,11 +1440,59 @@ void WriteResampledSamples(std::vector<std::vector<Real> >& Xrs){
   }
   of2.close();
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+
+// /////////////////////////////////////////////////////////
+// Quadratic approximation of F
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+static
+Real F0(const std::vector<Real>& sample,
+        const std::vector<Real>& mu,
+        const MyMat& H,
+        Real phi)
+{
+  int N = sample.size();
+  Real F0 = 0;
+  for(int i=0; i<N; i++){
+    for(int j=0; j<N; j++){
+      F0 += H[i][j] * (sample[j] - mu[j]) * (sample[i] - mu[i]);
+    }
+  }  
+  return phi + 0.5*F0;
+}
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+
+
+
+
+// /////////////////////////////////////////////////////////
+//  ???????????
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 #ifdef _OPENMP
 #include "omp.h"
 #endif
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+// /////////////////////////////////////////////////////////
+// This is a weighted sampler
+// It produces samples from prior and weights them with
+// the likelihood. 
+// It will work well in problems where the prior is close to
+// the posterior
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void PriorMCSampler( void* p,
 		std::vector<std::vector<Real> >& samples,
@@ -1304,7 +1566,6 @@ void PriorMCSampler( void* p,
   }
 
 
-#if 1
   Real wmin = w[0];
   for(int ii=0; ii<NOS; ii++){
     wmin = std::min(w[ii],wmin);
@@ -1313,22 +1574,11 @@ void PriorMCSampler( void* p,
     w[ii] = (w[ii] == -1 ? 0 : std::exp(-(w[ii] - wmin)));
     //std::cout << "w before = "<< w[ii] << std::endl;
   }
-#endif
 
   // Normalize weights, print to terminal
-  Real Rbrs = CompR(w,NOS);
-  std::cout <<  "Quality measure R before resampling =  "<< Rbrs << std::endl;
-
   NormalizeWeights(w);
-#if 0
-  for(int ii=0; ii<NOS; ii++){
-    for(int jj=0; jj<num_params; jj++){
-      std::cout << "Sample " << samples[ii][jj] <<  " weight = "<< w[ii] << std::endl;
-    }
-  }
-#endif
   
-  // Approximate effective sample size	
+  // Approximate effective sample size and quality measure R	
   Real Neff = EffSampleSize(w,NOS);
   std::cout <<  " " << std::endl;
   std::cout <<  "Effective sample size = "<< Neff << std::endl;
@@ -1356,7 +1606,7 @@ void PriorMCSampler( void* p,
   // Resampling
   std::vector<std::vector<Real> > Xrs(NOS, std::vector<Real>(num_params,-1));// resampled parameters
   Resampling(Xrs,w,samples);
-  WriteResampledSamples(Xrs);
+  WriteResampledSamples(Xrs,"PriorMCSampler");
 
   // Compute conditional mean after resampling
   std::vector<Real> CondMeanRs(num_params);
@@ -1376,23 +1626,21 @@ void PriorMCSampler( void* p,
   std::cout <<  "End sampling with prior" << std::endl;
   std::cout <<  " " << std::endl;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
-static
-Real F0(const std::vector<Real>& sample,
-        const std::vector<Real>& mu,
-        const MyMat& H,
-        Real phi)
-{
-  int N = sample.size();
-  Real F0 = 0;
-  for(int i=0; i<N; i++){
-    for(int j=0; j<N; j++){
-      F0 += H[i][j] * (sample[j] - mu[j]) * (sample[i] - mu[i]);
-    }
-  }  
-  return phi + 0.5*F0;
-}
 
+
+
+// /////////////////////////////////////////////////////////
+// The linear map sampler (implicit sampling)
+//
+// IT SEEMS THAT THIS IS NOT YET PARALELLIZED AS THE 
+// PRIOR MC SAMPLER
+//
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 static
 void LinearMapSampler( void* p,
                             std::vector<std::vector<Real> >& samples,
@@ -1428,6 +1676,7 @@ void LinearMapSampler( void* p,
       for(int kk=0; kk<num_params; kk++){
         samples[ii][jj] += invsqrt[jj][kk]*randn();
       }
+      
       bool sample_oob = (samples[ii][jj] < lower_bound[jj] || samples[ii][jj] > upper_bound[jj]);
 
       while (sample_oob) {
@@ -1441,10 +1690,11 @@ void LinearMapSampler( void* p,
         }
         sample_oob = (samples[ii][jj] < lower_bound[jj] || samples[ii][jj] > upper_bound[jj]);
       }
-
+	
     }
     Fo[ii] = F0(samples[ii],mu,H,phi);
   }
+
 
 #ifdef _OPENMP
   int tnum = omp_get_max_threads();
@@ -1469,33 +1719,20 @@ void LinearMapSampler( void* p,
     for(int ii=iBegin; ii<iEnd; ii++){
       str->expt_manager.GenerateTestMeasurements(samples[ii],sample_data);
       Real F = NegativeLogLikelihood(samples[ii]);
-      w[ii] = Fo[ii] - F;
+      w[ii] = -Fo[ii] + F;
     }
   }
-
-  Real wmax = w[0];
+  Real wmin = w[0];
   for(int ii=0; ii<NOS; ii++){
-    wmax = std::max(w[ii],wmax);
+    wmin = std::min(w[ii],wmin);
   }
-  
   for(int ii=0; ii<NOS; ii++){
-    w[ii] = std::exp((w[ii] - wmax));
-    //std::cout << "ii = "<< ii << std::endl;
-    //std::cout << "w before = "<< w[ii] << std::endl;
+    w[ii] = (w[ii] == -1 ? 0 : std::exp(-(w[ii] - wmin)));
   }
-
 
   // Normalize weights, print to terminal
   NormalizeWeights(w);
   
-  /*
-  for(int ii=0; ii<NOS; ii++){
-    for(int jj=0; jj<num_params; jj++){
-      std::cout << "Sample " << samples[ii][jj] <<  " weight = "<< w[ii] << std::endl;
-    }
-  }
-  */
-
   // Approximate effective sample size	
   Real Neff = EffSampleSize(w,NOS);
   std::cout <<  " " << std::endl;
@@ -1523,7 +1760,7 @@ void LinearMapSampler( void* p,
   // Resampling
   std::vector<std::vector<Real> > Xrs(NOS, std::vector<Real>(num_params,-1));// resampled parameters
   Resampling(Xrs,w,samples);
-  WriteResampledSamples(Xrs);
+  WriteResampledSamples(Xrs,"LinearMapSampler");
 
   // Compute conditional mean after resampling
   std::vector<Real> CondMeanRs(num_params);
@@ -1544,10 +1781,29 @@ void LinearMapSampler( void* p,
   std::cout <<  "End linear map sampler" << std::endl;
   std::cout <<  " " << std::endl;
 }
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
 
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 // END MATTI'S CODE
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 
+
+
+
+
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// MAIN PROGRAM
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
 int
 main (int   argc,
       char* argv[])
@@ -1658,8 +1914,11 @@ main (int   argc,
   Real F = NegativeLogLikelihood(prior_mean);
   std::cout << "F at prior mean = " << F << std::endl;
 
+  // /////////////////////////////////////////////////////////
+  // Here we intialize and start Minpack
+  // /////////////////////////////////////////////////////////
 #if 1
-  std::cout << "Starting MINPACK "<< std::endl;
+  std::cout << "Starting Minpack "<< std::endl;
   // Call minpack
   std::vector<Real> guess_params(num_params);
 #if 0
@@ -1673,10 +1932,6 @@ main (int   argc,
     guess_params[i] = prior_mean[i];
   }
 #endif
-  std::cout << "Minpack is initialized with: " << std::endl;
-  for(int i=0; i<num_params; i++){
-    std::cout << guess_params[i] << std::endl;
-  }
 
   if (0) {
     std::vector<Real> guess_data(num_data);
@@ -1686,8 +1941,14 @@ main (int   argc,
       std::cout << guess_data[ii] << std::endl;
     }
   }
+  // ///////////////////////////////////////////////////////// 
+  // This is where the initialization ends
+  // /////////////////////////////////////////////////////////
 
 
+
+  // /////////////////////////////////////////////////////////
+  // Calling Minpack to check derivatives
   if (0) {
     int n = num_params;
     int m = n + num_data;
@@ -1737,16 +1998,37 @@ main (int   argc,
     return 0;
 
   }
+ // This is where the checking derivatives ends
+ // /////////////////////////////////////////////////////////
 
 
 
+
+
+  // /////////////////////////////////////////////////////////
+  // Calling Minpack 
+  // /////////////////////////////////////////////////////////
   std::vector<Real> soln_params(num_params);
   minimizeNLLS((void*)(driver.mystruct), guess_params, soln_params);
+  // /////////////////////////////////////////////////////////
+  // /////////////////////////////////////////////////////////
 
+  // Output final parameters 
   std::cout << "Final parameters: " << std::endl;
   for(int ii=0; ii<num_params; ii++){
     std::cout << parameter_manager[ii] << std::endl;
   }
+  // Output value of objective function at minimum
+  Real phi = NegativeLogLikelihood(soln_params);
+  std::cout << "F at numerical minimum = " << phi << std::endl;
+  // Output gradient at minimum
+  std::vector<Real> Gconf(num_params); 
+  std::cout << "Gradient at numerical minimum: " << std::endl;
+  grad((void*)(driver.mystruct),soln_params,Gconf);
+  for(int ii=0; ii<num_params; ii++){
+    std::cout << Gconf[ii] << std::endl;
+  }
+
 
 #if 0
   std::vector<Real> confirm_data(num_data);
@@ -1757,120 +2039,95 @@ main (int   argc,
   }
 #endif
 
-  Real phi = NegativeLogLikelihood(soln_params);
-  std::cout << "F at numerical minimum = " << phi << std::endl;
-
-  //Real Fcheck = SumSquareFuncs(soln_params);
-  //std::cout << "F at minimum = " << Fcheck << std::endl;
-
-  std::vector<Real> Gconf(num_params); 
-  std::cout << "Gradient at numerical minimum: " << std::endl;
-  grad((void*)(driver.mystruct),soln_params,Gconf);
-  for(int ii=0; ii<num_params; ii++){
-    std::cout << Gconf[ii] << std::endl;
-  }
   //return 0;
 #endif
 
+
+
+  // ////////////////////////////////////////////////////////////////////
+  // Linear map sampler
+  // ////////////////////////////////////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////
+  int NOS = 1000; pp.query("NOS",NOS);
+  std::vector<Real> w(NOS);
+  std::vector<std::vector<Real> > samples(NOS, std::vector<Real>(num_params,-1));
+
+  // ////////////////////////////////////////////////////////////////////
+  // Run linear map sampler with finite difference Hessian
+# if 0
+  // ////////////////////////////////////////////////////////////////////
+  // Computing the Hessian with finite differences
+  // ////////////////////////////////////////////////////////////////////
   MyMat H = FD_Hessian((void*)driver.mystruct, soln_params);
-  std::cout<< "Displaying finite difference Hessian at numerical minimum and its eigenvalues" <<std::endl;
-  MyMat InvSqrtH = Sqrt((void*)driver.mystruct, H);
+  // std::cout<< "Displaying finite difference Hessian at numerical minimum and its eigenvalues" <<std::endl;
+  MyMat InvSqrtH = InvSqrt((void*)driver.mystruct, H);
+  // Fill up lower triangle of H
+  for(int i=0;i<num_params;i++){
+	  for(int j=0;j<i;j++){
+		  H[i][j]=H[j][i];
+	  }
+  }
 
-  
+  LinearMapSampler((void*)(driver.mystruct),samples,w,soln_params,H,InvSqrtH,phi);
+  // ////////////////////////////////////////////////////////////////////
 
-  std::cout<< "Displaying J^TJ at numerical minimum and its eigenvalues" <<std::endl;
+# else 
+  // ////////////////////////////////////////////////////////////////////
+  // Run linear map sampler with Hessian from Jacobian
+
+  // ////////////////////////////////////////////////////////////////////
+  // Compute J^t J
+  // ////////////////////////////////////////////////////////////////////
+  //std::cout<< "Displaying Hessian computed from J^TJ at numerical minimum and its eigenvalues" <<std::endl;
   int n = num_params;
   int m = num_data + n;
   int ldfjac = m;
   std::vector<Real> FVEC(m);
   std::vector<Real> FJAC(m*n);
+  // Call Minpack to get Jacobian
   NLLSFCN((void*)(driver.mystruct),m,n,&(soln_params[0]),&(FVEC[0]),&(FJAC[0]),ldfjac,2);
-  
+ 
+  // Initialize J^t J
   std::vector<Real> JTJ(n*n);
   for (int i=0; i<n; ++i) {
     for (int j=0; j<n; ++j) {
       JTJ[j*n+i] = 0;
     }
   }
-
-  //std::cout << "J^TJ" << std::endl;
+  // Fill up J^t J
   for (int i=0; i<n; ++i) {
     for (int j=0; j<n; ++j) {
       for (int ii=0; ii<m; ++ii) {
-        //JTJ[i*n+j] += FJAC[ii*m+i] * FJAC[ii*m+j];
         JTJ[j*n+i] += FJAC[i*m+ii] * FJAC[j*m+ii];
       }
-      //std::cout << i << " " << j << " " << JTJ[i*n+j] << std::endl;
     }
   }
-
-
-  
-
-  // Inverse square root if  JTJ 
+  // Get Hessian from J^t J and convert to a MyMat 
   MyMat JTJMM(n); // Write into a MyMat variable
   for( int ii=0; ii<n; ii++ ){
     JTJMM[ii].resize(n);
     for (int j=0; j<n; ++j) {
-      //a[j + ii*num_vals] = -1;
-      JTJMM[ii][j] = JTJ[j + ii*n];
+      JTJMM[ii][j] = 2*JTJ[j + ii*n];
     }
     for( int jj=ii; jj<n; jj++ ){
-      //a[jj + ii*num_vals] = H[ii][jj];
-      //a[jj + ii*num_vals] = mixed_partial_centered( p, X, ii, jj);
-      H[ii][jj] = JTJ[jj + ii*n];
+      JTJMM[ii][jj] = 2*JTJ[jj + ii*n];
     }
   }
+  // Inverse of square root of approximate Hessian
   MyMat InvSqrtJTJ = InvSqrt((void*)driver.mystruct, JTJMM);
-  
 
-
-  // The matrix
-  MINPACKstruct::LAPACKstruct& lapack = driver.mystruct->lapack_struct;
-  std::vector<Real>& a = lapack.a;
-
-  //std::cout << "JTJ" << std::endl;
-  for (int i=0; i<n; ++i) {
-    for (int j=0; j<n; ++j) {
-      for (int ii=0; ii<m; ++ii) {
-        //JTJ[i*n+j] += FJAC[ii*m+i] * FJAC[ii*m+j];
-        JTJ[j*n+i] += FJAC[i*m+ii] * FJAC[j*m+ii];
-      }
-      //std::cout << i << " " << j << " " << JTJ[i*n+j] << std::endl;
-      a[j + i*n] = JTJ[i*n+j]; 
-    }
-  }
-  
-
-  // Do decomposition
-  lapack_int info = lapack.DSYEV_wrap();
-  BL_ASSERT(info == 0);
-
-  /*
-  // Get vector of eigenvalues
-  const std::vector<Real>& singular_values = lapack.s;
-  std::vector<Real> linv(n);
-
-  // Get 1/sqrt(lambda)
-  for (int i=0; i<n; ++i) {
-    linv[i] = 1 / std::sqrt(singular_values[i]);
-  }
-  */
-  
-
-#if 1
-// MATTI'S CODE, USE WITH EXTREME CAUTION
-  int NOS = 500; pp.query("NOS",NOS);
-  std::vector<Real> w(NOS);
-  std::vector<std::vector<Real> > samples(NOS, std::vector<Real>(num_params,-1));
-#if 0
-   PriorMCSampler((void*)(driver.mystruct),samples,w,prior_mean,prior_std);
-#else 
-  //LinearMapSampler((void*)(driver.mystruct),samples,w,soln_params,H,InvSqrtH,phi);
+  // Call the sampler
   LinearMapSampler((void*)(driver.mystruct),samples,w,soln_params,JTJMM,InvSqrtJTJ,phi); 	
-#endif
-// END MATTI'S CODE
+
 # endif
+// ////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////
+
+
+
+ 
 
 #if 0
   parameter_manager.ResetParametersToDefault();
@@ -1879,6 +2136,8 @@ main (int   argc,
     std::cout << parameter_manager[ii] << std::endl;
   }
 #endif
+
+
   BoxLib::Finalize();
 
 #ifdef BL_USE_MPI

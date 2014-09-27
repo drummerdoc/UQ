@@ -45,8 +45,8 @@ struct MINPACKstruct
       }
       else {
         /* Call middle-level interface */
-#if 1
-        std::cout << "H = [\n";
+#if 0
+        std::cout << "A = [\n";
         for (int r=0; r<n; ++r) {
           std::cout << "   ";
           for (int c=0; c<n; ++c) {
@@ -58,8 +58,8 @@ struct MINPACKstruct
 #endif
         info = LAPACKE_dsyev_work(matrix_order,jobz,uplo,n,a.dataPtr(),lda,s.dataPtr(),
                                   work.dataPtr(),lwork);
-#if 1
-        std::cout << "Eigenvalues of Hessian = { ";
+#if 0
+        std::cout << "Eigenvalues of A = { ";
         for (int j=0; j<n; ++j) {
           std::cout << s[j] << " ";
         }
