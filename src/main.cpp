@@ -245,7 +245,7 @@ Sqrt(void *p, const MyMat & H)
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 MyMat
-InvSqrt(void *p, const MyMat & H)
+InvSqrt(void *p, const MyMat & H, const Real CutOff)
 {
   MINPACKstruct *str = (MINPACKstruct*)(p);
   int num_vals = str->parameter_manager.NumParams();
@@ -270,11 +270,16 @@ InvSqrt(void *p, const MyMat & H)
 
   // Get vector of eigenvalues
   const std::vector<Real>& eigenvalues = lapack.s;
- 
+  
+  // Display eigenvalues
+  for (int i=0; i<num_vals; ++i) {
+	  std::cout <<  "Eigenvalue: " << eigenvalues[i] << std::endl;
+  }
+
   // Get 1/sqrt(lambda)
   std::vector<Real> sqrtlinv(num_vals);
   for (int i=0; i<num_vals; ++i) {
-    if(eigenvalues[i] < 1.e-30){
+    if(eigenvalues[i] < CutOff){
       sqrtlinv[i] = 0;
     }
     else{
@@ -1787,6 +1792,176 @@ void LinearMapSampler( void* p,
 // /////////////////////////////////////////////////////////
 
 
+
+// /////////////////////////////////////////////////////////
+// Symmetrized linear map sampler (implicit sampling)
+//
+// IT SEEMS THAT THIS IS NOT YET PARALELLIZED AS THE 
+// PRIOR MC SAMPLER
+//
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+static
+void SymmetrizedLinearMapSampler( void* p,
+                            std::vector<std::vector<Real> >& samples,
+                            std::vector<Real>& w,
+                            const std::vector<Real>& mu,
+                            const MyMat& H,
+                            const MyMat& invsqrt,
+                            Real phi)
+
+{
+  MINPACKstruct *str = (MINPACKstruct*)(p);
+  str->ResizeWork();
+	  
+  int num_params = str->parameter_manager.NumParams();
+  int NOS = samples.size();
+
+  std::vector<Real> sample_data(str->expt_manager.NumExptData());
+  std::vector<Real> s(num_params);
+  std::vector<Real> Fo(NOS);
+  std::vector<std::vector<Real> > negsamples(NOS, std::vector<Real>(num_params,-1));
+
+  
+  std::cout <<  " " << std::endl;
+  std::cout <<  "Starting symmetrized linear map sampler " << std::endl;
+  std::cout <<  "Number of samples: " << NOS << std::endl;
+
+  const std::vector<Real>& upper_bound = str->parameter_manager.UpperBound();
+  const std::vector<Real>& lower_bound = str->parameter_manager.LowerBound();
+
+  for(int ii=0; ii<NOS; ii++){
+    BL_ASSERT(samples[ii].size()==num_params);
+
+    for(int jj=0; jj<num_params; jj++){
+      samples[ii][jj] = mu[jj];
+      negsamples[ii][jj] = mu[jj];
+      for(int kk=0; kk<num_params; kk++){
+	real tmp = randn();
+        samples[ii][jj]    += invsqrt[jj][kk]*tmp;
+	negsamples[ii][jj] -= invsqrt[jj][kk]*tmp;
+      }
+      
+      bool sample_oob = (samples[ii][jj] < lower_bound[jj] || samples[ii][jj] > upper_bound[jj] || negsamples[ii][jj] < lower_bound[jj] || negsamples[ii][jj] > upper_bound[jj]);
+
+      while (sample_oob) {
+        std::cout <<  "sample is out of bounds, parameter " << jj
+                  << " val,lb,ub: " << samples[ii][jj]
+                  << ", " << lower_bound[jj] << ", " << upper_bound[jj] << std::endl;
+
+        samples[ii][jj] = mu[jj];
+        for(int kk=0; kk<num_params; kk++){
+ 	  real tmp = randn();
+          samples[ii][jj]    += invsqrt[jj][kk]*tmp;
+	  negsamples[ii][jj] -= invsqrt[jj][kk]*tmp;
+        }
+        sample_oob = (samples[ii][jj] < lower_bound[jj] || samples[ii][jj] > upper_bound[jj] || negsamples[ii][jj] < lower_bound[jj] || negsamples[ii][jj] > upper_bound[jj]);
+      }
+	
+    }
+    Fo[ii] = F0(samples[ii],mu,H,phi);
+  }
+
+
+#ifdef _OPENMP
+  int tnum = omp_get_max_threads();
+  BL_ASSERT(tnum>0);
+  std::cout <<  " number of threads: " << tnum << std::endl;
+#else
+  int tnum = 1;
+#endif
+  Real dthread = NOS / Real(tnum);
+  std::vector<int> trange(tnum);
+  for (int ithread = 0; ithread < tnum; ithread++) {
+    trange[ithread] = ithread * dthread;
+  }
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+  for (int ithread = 0; ithread < tnum; ithread++) {
+    int iBegin = trange[ithread];
+    int iEnd = (ithread==tnum-1 ? NOS : trange[ithread+1]);
+
+    for(int ii=iBegin; ii<iEnd; ii++){
+      str->expt_manager.GenerateTestMeasurements(samples[ii],sample_data);
+      Real F = NegativeLogLikelihood(samples[ii]);
+      Real negF = NegativeLogLikelihood(negsamples[ii]);
+      w[ii] = -Fo[ii] + F - std::log( 1+std::exp(F-negF) );
+      // pick -x with probability w(x)/(w(x)+w(-x))
+      Real tmp = drand();
+      if(  tmp < 1 / (1+std::exp(F-negF))){
+         samples[ii] = negsamples[ii];	      
+      }
+    }
+  }
+  Real wmin = w[0];
+  for(int ii=0; ii<NOS; ii++){
+    wmin = std::min(w[ii],wmin);
+  }
+  for(int ii=0; ii<NOS; ii++){
+    w[ii] = (w[ii] == -1 ? 0 : std::exp(-(w[ii] - wmin)));
+  }
+
+  // Normalize weights, print to terminal
+  NormalizeWeights(w);
+  
+  // Approximate effective sample size	
+  Real Neff = EffSampleSize(w,NOS);
+  std::cout <<  " " << std::endl;
+  std::cout <<  "Effective sample size = "<< Neff << std::endl;
+  Real R = CompR(w,NOS);
+  std::cout <<  "Quality measure R = "<< R << std::endl;
+
+  // Compute conditional mean
+  std::vector<Real> CondMean(num_params);
+  WeightedMean(CondMean, w, samples);
+
+  // Variance
+  std::vector<Real> CondVar(num_params);
+  WeightedVar(CondVar,CondMean, w, samples);
+
+  // Print stuff to screen
+  for(int jj=0; jj<num_params; jj++){
+	  std::cout <<  "Conditional mean = "<< CondMean[jj] << std::endl;
+	  std::cout <<  "Standard deviation = "<< sqrt(CondVar[jj]) << std::endl;
+  }
+
+  // Write samples and weights into files
+  WriteSamplesWeights(samples, w,"SymmetrizedLinearMapSampler");
+
+  // Resampling
+  std::vector<std::vector<Real> > Xrs(NOS, std::vector<Real>(num_params,-1));// resampled parameters
+  Resampling(Xrs,w,samples);
+  WriteResampledSamples(Xrs,"SymmetrizedLinearMapSampler");
+
+  // Compute conditional mean after resampling
+  std::vector<Real> CondMeanRs(num_params);
+  Mean(CondMeanRs, Xrs);
+  
+  // Variance after resampling
+  std::vector<Real> CondVarRs(num_params);
+  Var(CondVarRs, CondMeanRs, Xrs);
+
+  // Print results of resampling
+  for(int jj=0; jj<num_params; jj++){
+	  std::cout <<  "Conditional mean after resampling = "<< CondMeanRs[jj] << std::endl;
+	  std::cout <<  "Standard deviation after resampling = "<< sqrt(CondVarRs[jj]) << std::endl;
+  }
+
+
+  std::cout <<  " " << std::endl;
+  std::cout <<  "End linear map sampler" << std::endl;
+  std::cout <<  " " << std::endl;
+}
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////
+
+
+
+
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
@@ -2043,7 +2218,7 @@ main (int   argc,
 #endif
 
 
-
+# if 0// implicit sampling
   // ////////////////////////////////////////////////////////////////////
   // Linear map sampler
   // ////////////////////////////////////////////////////////////////////
@@ -2055,12 +2230,14 @@ main (int   argc,
   // ////////////////////////////////////////////////////////////////////
   // Run linear map sampler with finite difference Hessian
 # if 0
+    std::cout<< "Linear map sampler with FD-Hessian" <<std::endl;
   // ////////////////////////////////////////////////////////////////////
   // Computing the Hessian with finite differences
   // ////////////////////////////////////////////////////////////////////
   MyMat H = FD_Hessian((void*)driver.mystruct, soln_params);
   // std::cout<< "Displaying finite difference Hessian at numerical minimum and its eigenvalues" <<std::endl;
-  MyMat InvSqrtH = InvSqrt((void*)driver.mystruct, H);
+  Real CutOff = 1e-16;
+  MyMat InvSqrtH = InvSqrt((void*)driver.mystruct, H, CutOff);
   // Fill up lower triangle of H
   for(int i=0;i<num_params;i++){
 	  for(int j=0;j<i;j++){
@@ -2069,6 +2246,7 @@ main (int   argc,
   }
 
   LinearMapSampler((void*)(driver.mystruct),samples,w,soln_params,H,InvSqrtH,phi);
+  SymmetrizedLinearMapSampler((void*)(driver.mystruct),samples,w,soln_params,H,InvSqrtH,phi);
   // ////////////////////////////////////////////////////////////////////
 
 # else 
@@ -2109,15 +2287,14 @@ main (int   argc,
     for (int j=0; j<n; ++j) {
       JTJMM[ii][j] = 2*JTJ[j + ii*n];
     }
-    for( int jj=ii; jj<n; jj++ ){
-      JTJMM[ii][jj] = 2*JTJ[jj + ii*n];
-    }
   }
-  // Inverse of square root of approximate Hessian
-  MyMat InvSqrtJTJ = InvSqrt((void*)driver.mystruct, JTJMM);
 
+  // Inverse of square root of approximate Hessian
+  Real CutOff = 1e-30;
+  MyMat InvSqrtJTJ = InvSqrt((void*)driver.mystruct, JTJMM,CutOff);
   // Call the sampler
-  LinearMapSampler((void*)(driver.mystruct),samples,w,soln_params,JTJMM,InvSqrtJTJ,phi); 	
+  LinearMapSampler((void*)(driver.mystruct),samples,w,soln_params,JTJMM,InvSqrtJTJ,phi); 
+  SymmetrizedLinearMapSampler((void*)(driver.mystruct),samples,w,soln_params,JTJMM,InvSqrtJTJ,phi); 
 
 # endif
 // ////////////////////////////////////////////////////////////////////
@@ -2125,9 +2302,17 @@ main (int   argc,
 // ////////////////////////////////////////////////////////////////////
 // ////////////////////////////////////////////////////////////////////
 
-
-
- 
+# else // Run prior Monte Carlo sampling 
+  // ////////////////////////////////////////////////////////////////////
+  // Prior Monte Carlo sampler
+  // ////////////////////////////////////////////////////////////////////
+  // ////////////////////////////////////////////////////////////////////
+  int NOS = 10000; pp.query("NOS",NOS);
+  std::vector<Real> w(NOS);
+  std::vector<std::vector<Real> > samples(NOS, std::vector<Real>(num_params,-1));
+  
+  PriorMCSampler((void*)(driver.mystruct), samples, w, prior_mean, prior_std);
+# endif
 
 #if 0
   parameter_manager.ResetParametersToDefault();
