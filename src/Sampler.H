@@ -8,40 +8,40 @@ public:
   virtual void Sample(void* p, std::vector<std::vector<Real> >& samples, std::vector<Real>& w) const = 0;
 
   // Normalize weights to that their sum is 1
-  void NormalizeWeights(std::vector<Real>& w) const;
+  static void NormalizeWeights(std::vector<Real>& w);
 
   // Compute the mean of a scalar from samples
-  void ScalarMean(Real& Mean, std::vector<Real> & samples) const;
+  static void ScalarMean(Real& Mean, std::vector<Real> & samples);
 
   // Compute the mean of a vector from samples
-  void Mean(std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples) const;
+  static void Mean(std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples);
 
   // Compute the weighted mean of a vector from samples
-  void WeightedMean(std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples) const;
+  static void WeightedMean(std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples);
 
   // Compute the covariance matrix from samples
-  void Var(std::vector<Real>& Var,std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples) const;
+  static void Var(std::vector<Real>& Var,std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples);
 
   // Compute covariance from weighted samples
-  void WeightedVar(std::vector<Real>& CondVar,std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples) const;
+  static void WeightedVar(std::vector<Real>& CondVar,std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples);
 
   // Compute quality measure of ensemble
-  Real CompR(std::vector<Real>& w, int NOS) const;
+  static Real CompR(std::vector<Real>& w, int NOS);
 
   // Approximate effective sample size
-  Real EffSampleSize(std::vector<Real>& w, int NOS) const;
+  static Real EffSampleSize(std::vector<Real>& w, int NOS);
 
   // Write samples and weights to file
-  void WriteSamplesWeights(std::vector<std::vector<Real> >& samples, std::vector<Real>& w, const char *tag) const;
+  static void WriteSamplesWeights(std::vector<std::vector<Real> >& samples, std::vector<Real>& w, const char *tag);
 
   // Resampling
-  void Resampling(std::vector<std::vector<Real> >& Xrs,std::vector<Real>& w,std::vector<std::vector<Real> >& samples) const;
+  static void Resampling(std::vector<std::vector<Real> >& Xrs,std::vector<Real>& w,std::vector<std::vector<Real> >& samples);
 
   // Write samples to file
-  void WriteResampledSamples(std::vector<std::vector<Real> >& Xrs, const char *tag) const;
+  static void WriteResampledSamples(std::vector<std::vector<Real> >& Xrs, const char *tag);
 
   // Quadratic approximation of F
-  Real F0(const std::vector<Real>& sample, const std::vector<Real>& mu, const MyMat& H, Real phi) const;
+  static Real F0(const std::vector<Real>& sample, const std::vector<Real>& mu, const MyMat& H, Real phi);
 
   virtual ~Sampler() {}
 };

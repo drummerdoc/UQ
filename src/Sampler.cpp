@@ -454,7 +454,7 @@ SymmetrizedLinearMapSampler::Sample(void* p,std::vector<std::vector<Real> >& sam
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 void
-Sampler::NormalizeWeights(std::vector<Real>& w) const
+Sampler::NormalizeWeights(std::vector<Real>& w)
 {
   int NOS = w.size();
   Real SumWeights = 0;
@@ -475,7 +475,7 @@ Sampler::NormalizeWeights(std::vector<Real>& w) const
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 void
-Sampler::ScalarMean(Real& Mean, std::vector<Real> & samples) const
+Sampler::ScalarMean(Real& Mean, std::vector<Real> & samples)
 {
   int NOS = samples.size();
   Mean = 0; // initialize  
@@ -494,7 +494,7 @@ Sampler::ScalarMean(Real& Mean, std::vector<Real> & samples) const
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 void
-Sampler::Mean(std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples) const
+Sampler::Mean(std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples)
 {
   int NOS = samples.size();
   int num_params = samples[1].size();
@@ -518,7 +518,7 @@ Sampler::Mean(std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples)
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 void
-Sampler::WeightedMean(std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples) const
+Sampler::WeightedMean(std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples)
 {
   int NOS = samples.size();
   int num_params = samples[1].size();
@@ -541,7 +541,7 @@ Sampler::WeightedMean(std::vector<Real>& CondMean, std::vector<Real>& w, std::ve
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 void
-Sampler::Var(std::vector<Real>& Var,std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples) const
+Sampler::Var(std::vector<Real>& Var,std::vector<Real>& Mean, std::vector<std::vector<Real> >& samples)
 {
   int NOS = samples.size();
   int num_params = samples[1].size();
@@ -563,7 +563,7 @@ Sampler::Var(std::vector<Real>& Var,std::vector<Real>& Mean, std::vector<std::ve
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 void
-Sampler::WeightedVar(std::vector<Real>& CondVar,std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples) const
+Sampler::WeightedVar(std::vector<Real>& CondVar,std::vector<Real>& CondMean, std::vector<Real>& w, std::vector<std::vector<Real> >& samples)
 {
   int NOS = samples.size();
   int num_params = samples[1].size();	
@@ -586,7 +586,7 @@ Sampler::WeightedVar(std::vector<Real>& CondVar,std::vector<Real>& CondMean, std
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 Real
-Sampler::CompR(std::vector<Real>& w, int NOS) const
+Sampler::CompR(std::vector<Real>& w, int NOS)
 {
    std::vector<Real> w2(NOS);
    for(int ii=0; ii<NOS; ii++){
@@ -614,7 +614,7 @@ Sampler::CompR(std::vector<Real>& w, int NOS) const
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 Real
-Sampler::EffSampleSize(std::vector<Real>& w, int NOS) const
+Sampler::EffSampleSize(std::vector<Real>& w, int NOS)
 {
    // Approximate effective sample size
    Real SumSquaredWeights = 0;
@@ -638,7 +638,7 @@ Sampler::EffSampleSize(std::vector<Real>& w, int NOS) const
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 void
-Sampler::WriteSamplesWeights(std::vector<std::vector<Real> >& samples, std::vector<Real>& w, const char *tag) const
+Sampler::WriteSamplesWeights(std::vector<std::vector<Real> >& samples, std::vector<Real>& w, const char *tag)
 {
   std::stringstream SampleStr;
   SampleStr<<tag<<"Samples.dat";
@@ -676,7 +676,7 @@ Sampler::WriteSamplesWeights(std::vector<std::vector<Real> >& samples, std::vect
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 void
-Sampler::Resampling(std::vector<std::vector<Real> >& Xrs,std::vector<Real>& w,std::vector<std::vector<Real> >& samples) const
+Sampler::Resampling(std::vector<std::vector<Real> >& Xrs,std::vector<Real>& w,std::vector<std::vector<Real> >& samples)
 {
   int NOS = samples.size();
   int num_params = samples[1].size();
@@ -715,7 +715,7 @@ Sampler::Resampling(std::vector<std::vector<Real> >& Xrs,std::vector<Real>& w,st
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 void
-Sampler::WriteResampledSamples(std::vector<std::vector<Real> >& Xrs, const char *tag) const
+Sampler::WriteResampledSamples(std::vector<std::vector<Real> >& Xrs, const char *tag)
 {
   std::stringstream SampleStr;
   SampleStr<<tag<<"ResampledSamples.dat";
@@ -747,7 +747,7 @@ Real
 Sampler::F0(const std::vector<Real>& sample,
             const std::vector<Real>& mu,
             const MyMat& H,
-            Real phi) const
+            Real phi)
 {
   int N = sample.size();
   Real F0 = 0;
