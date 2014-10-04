@@ -160,11 +160,15 @@ main (int   argc,
     else if (which_sampler == "symmetrized_linear_map") {
       sampler = new SymmetrizedLinearMapSampler(soln_params,H,InvSqrtH,phi);
     }
+    else if (which_sampler == "none") {
+    }
     else {
       BoxLib::Abort("Invalid value for which_sampler");
     }
   }
-  sampler->Sample((void*)(driver.mystruct), samples, w);
+  if (sampler) {
+    sampler->Sample((void*)(driver.mystruct), samples, w);
+  }
   delete sampler;
 
   BoxLib::Finalize();

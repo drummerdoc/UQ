@@ -17,6 +17,9 @@ static int GOOD_EVAL_FLAG = 0;
 static int BAD_DATA_FLAG = 1;
 static int BAD_EXPT_FLAG = 2;
 
+#define CEN_DIFF
+#undef FWD_DIFF
+
 
 Real
 NegativeLogLikelihood(const std::vector<double>& parameters)
