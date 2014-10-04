@@ -121,6 +121,10 @@ main (int   argc,
       std::vector<Real> FVEC(m);
       std::vector<Real> FJAC(m*n);
       // Call Minpack to get Jacobian
+      BoxLib::Abort("Jacobian function not yet exposed");
+      if (!use_nlls_minimizer) {
+        BoxLib::Abort("No wrapper to get Jacobian from function supplied to non-nlls minpack...");
+      }
       //int ldfjac = m;
       //NLLSFCN((void*)(driver.mystruct),m,n,&(soln_params[0]),&(FVEC[0]),&(FJAC[0]),ldfjac,2);
  
