@@ -10,9 +10,9 @@
 // to be accessible to the MINPACK function
 struct MINPACKstruct
 {
-  MINPACKstruct(ChemDriver& cd, Real _param_eps)
-    : parameter_manager(cd), expt_manager(parameter_manager,cd),
-    param_eps(_param_eps), num_work_arrays(4), work_array_len(-1) {}
+  MINPACKstruct(ChemDriver& cd, Real _param_eps, bool use_synthetic_data)
+    : parameter_manager(cd), expt_manager(parameter_manager,cd,use_synthetic_data),
+      param_eps(_param_eps), num_work_arrays(4), work_array_len(-1) {}
 
   struct LAPACKstruct
   {

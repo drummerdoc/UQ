@@ -4,13 +4,15 @@
 #include <ParmParse.H>
 #include <ParallelDescriptor.H>
   
-ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd)
-  : parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0)
+ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool _use_synthetic_data)
+  : use_synthetic_data(_use_synthetic_data),
+    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0)
 {
   ParmParse pp;
   int nExpts = pp.countval("experiments");
   Array<std::string> experiments;
   pp.getarr("experiments",experiments,0,nExpts);
+
   for (int i=0; i<nExpts; ++i) {
     std::string prefix = experiments[i];
     ParmParse ppe(prefix.c_str());
@@ -29,6 +31,29 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd)
     }
     else {
       BoxLib::Abort("Unknown experiment type");
+    }
+
+    // Get experiment data, if not using synthetic data
+    if (!use_synthetic_data) {
+      BL_ASSERT(expts.defined(i));
+      const SimulatedExperiment& expt = expts[i];
+      int n = expt.NumMeasuredValues();
+      int offset = data_offsets[i];
+      true_data.resize(offset + n);
+
+      int nd = ppe.countval("data");
+      if (n < nd) {
+        if (ParallelDescriptor::IOProcessor()) {
+          std::cout << "Insufficient data for experiment: "
+                    << prefix << ", required number data: " <<  n  << std::endl;
+        }
+        BoxLib::Abort();
+      }
+      Array<Real> tarr(n,0);
+      ppe.getarr("data",tarr,0,n);
+      for (int j=0; j<n; ++j) {
+        true_data[offset+j] = tarr[j];
+      }
     }
   }
 }
@@ -101,7 +126,9 @@ ExperimentManager::InitializeExperiments()
 void
 ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
 {
-  GenerateTestMeasurements(true_parameters,true_data);
+  if (use_synthetic_data) {
+    GenerateTestMeasurements(true_parameters,true_data);
+  }
 
   true_std.resize(NumExptData());
   true_std_inv2.resize(NumExptData());
@@ -112,12 +139,19 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
     int n = expt.NumMeasuredValues();
     BL_ASSERT(n <= raw_data[i].size());
 
-    expts[i].GetMeasurements(raw_data[i]);
+    if (use_synthetic_data) {
+      expts[i].GetMeasurements(raw_data[i]);
+    }
+
     int offset = data_offsets[i];
     int nd = raw_data[i].size();
-    for (int j=0; j<nd; ++j) {
-      true_data[offset + j] = raw_data[i][j];
+
+    if (use_synthetic_data) {
+      for (int j=0; j<nd; ++j) {
+        true_data[offset + j] = raw_data[i][j];
+      }
     }
+
     expts[i].GetMeasurementError(raw_data[i]);
     true_std_inv2.resize(nd);
     for (int j=0; j<nd; ++j) {

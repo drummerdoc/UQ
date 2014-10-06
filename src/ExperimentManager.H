@@ -6,7 +6,7 @@
 
 struct ExperimentManager
 {
-  ExperimentManager(ParameterManager& pmgr, ChemDriver& cd);
+  ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool use_synthetic_data);
   
   void AddExperiment(SimulatedExperiment* expt,
                      const std::string& expt_id);
@@ -39,7 +39,7 @@ struct ExperimentManager
   const SimulatedExperiment& Experiment(int i) const;
 
 protected:  
-  bool initialized;
+  bool initialized, use_synthetic_data;
   ParameterManager& parameter_manager;
   PArray<SimulatedExperiment> expts;
   std::vector<std::vector<Real> > raw_data;

@@ -178,7 +178,11 @@ Driver::init(int argc, char *argv[])
 
     ParmParse pp;
     param_eps = 1.e-4; pp.query("param_eps",param_eps);
-    mystruct = new MINPACKstruct(*cd,param_eps);
+    bool use_synthetic_data = false; pp.query("use_synthetic_data",use_synthetic_data);
+    if (ParallelDescriptor::IOProcessor() && use_synthetic_data) {
+      std::cout << "*************  Using sythetic data " << std::endl;
+    }
+    mystruct = new MINPACKstruct(*cd,param_eps,use_synthetic_data);
 
     ParameterManager& parameter_manager = mystruct->parameter_manager;
     ExperimentManager& expt_manager = mystruct->expt_manager;  

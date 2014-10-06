@@ -161,7 +161,10 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       PYTHON_DIR := /usr
       PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
       SHARED_LIBRARY_SUFFIX:=so
-      LIBRARIES+=-lpython2.7
+      SHARED_LIBRARIES+=-lpython2.7
+      MPILIB := ${HOME}/lib/anaconda/lib/libmpich.${SHARED_LIBRARY_SUFFIX}
+      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
+      PYTHON_INCLUDES += ${HOME}/lib/anaconda/lib/python2.7/site-packages/mpi4py/include
     endif
     ifeq (${WHICHLINUX}, MOTHRA)
       PYTHON_DIR := /home/marc/src/CCSE/UQ/src/packages/build/pypa-virtualenv-fceb355/pyenv
