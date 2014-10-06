@@ -26,6 +26,9 @@ ifeq ($(MACHINE), Linux)
   ifeq ($(findstring gimantis, $(UNAMEN)), gimantis)
     WHICHLINUX := GIMANTIS
   endif
+  ifeq ($(findstring peregrine, ${HOSTNAME}), peregrine)
+    WHICHLINUX := PEREGRINE
+  endif
 endif
 ifeq (${MACHINE}, Darwin) 
   ifeq ($(findstring MarcsLaptop, $(UNAMEN)), MarcsLaptop)
@@ -35,7 +38,7 @@ ifeq (${MACHINE}, Darwin)
 endif
 
 PRECISION       = DOUBLE
-DEBUG           = TRUE
+DEBUG           = FALSE
 DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
@@ -180,6 +183,16 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       MPILIB := /home/rwgrout/opt/anaconda/lib/libmpich.${SHARED_LIBRARY_SUFFIX}
       PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
       PYTHON_INCLUDES += /home/rwgrout/opt/anaconda/lib/python2.7/site-packages/mpi4py/include
+      fFLAGS += -cpp
+    endif
+    ifeq (${WHICHLINUX}, PEREGRINE)
+      PYTHON_DIR := /home/rgrout/opt/anaconda/pkgs/python-2.7.7-0/
+      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
+      SHARED_LIBRARY_SUFFIX:=so
+      LIBRARIES+=-lpython2.7 -lmpi
+      MPILIB := /home/rgrout/opt/anaconda/lib/libmpich.${SHARED_LIBRARY_SUFFIX}
+      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
+      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
       fFLAGS += -cpp
     endif
   endif
