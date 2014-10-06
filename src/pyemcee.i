@@ -25,6 +25,7 @@
 }
 %{
 #  include <Driver.H>
+#include <mpi.h>
 
 #define SWIG_FILE_WITH_INIT
 
@@ -32,6 +33,8 @@
     %}
 
     %include "numpy.i"
+    %include "mpi4py.i"
+    %mpi4py_typemap(Comm, MPI_Comm);
 
     %init %{
         import_array();
@@ -46,8 +49,10 @@
 
 struct Driver
 {
-  Driver(int argc, char**argv );
+  Driver(int argc, char**argv, int mpi_later);
   ~Driver();
+  void init(int argc, char**argv);
+  void SetComm(MPI_Comm comm);
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
   static int NumData();

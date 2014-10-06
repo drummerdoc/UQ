@@ -40,14 +40,14 @@ DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
 USE_MPI         = TRUE
-USE_MPI         = FALSE
+#USE_MPI         = FALSE
 USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
 BUILD_EXEC      = FALSE
-BUILD_EXEC      = TRUE
-VERBOSE         = FALSE
+#BUILD_EXEC      = TRUE
+VERBOSE         = TRUE
 DO_REGTEST      = FALSE
 
 # Choose model (from list below), and pmf file
@@ -104,8 +104,8 @@ include $(Bpack)
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
-CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H
-CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp
+CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H Minimizer.H Sampler.H
+CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp Minimizer.cpp Sampler.cpp
 
 ifeq (${CHEMISTRY_MODEL}, DAVIS)
   CHEM_MECHFILE = davis.c
@@ -173,8 +173,10 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       PYTHON_DIR := /home/marc/anaconda/pkgs/python-2.7.7-0
       PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
       SHARED_LIBRARY_SUFFIX:=so
-      LIBRARIES+=-lpython2.7
+      LIBRARIES+=-lpython2.7 -lmpi
+      MPILIB := /home/rwgrout/opt/anaconda/lib/libmpich.${SHARED_LIBRARY_SUFFIX}
       PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
+      PYTHON_INCLUDES += /home/rwgrout/opt/anaconda/lib/python2.7/site-packages/mpi4py/include
       fFLAGS += -cpp
     endif
   endif
@@ -240,6 +242,7 @@ LIBRARIES += -lcminpack -llapacke -llapack -lblas
 # For dynamic links
 ifeq ($(MACHINE), Linux)
   SHARED_LIBRARIES+=${PACKAGES}/lib64/libcminpack.${SHARED_LIBRARY_SUFFIX}
+  SHARED_LIBRARIES+=${MPILIB}
 else
   SHARED_LIBRARIES+=${PACKAGES}/lib/libcminpack.${SHARED_LIBRARY_SUFFIX}
 endif

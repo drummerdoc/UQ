@@ -92,31 +92,43 @@ Driver::GenerateTestMeasurements(const std::vector<Real>& test_params)
  * Constructor for parallel world
  *
  */
-Driver::Driver(int argc, char*argv[], MPI_Comm mpi_comm )
-{
-  BoxLib::Initialize(argc, argv, true, mpi_comm);
-  if (cd == 0) {
-     cd = new ChemDriver;
-     made_cd = true;
-  }
+//Driver::Driver(int argc, char*argv[], MPI_Comm mpi_comm )
+//{
+//  BoxLib::Initialize(argc, argv, true, mpi_comm);
+//  if (cd == 0) {
+//     cd = new ChemDriver;
+//     made_cd = true;
+//  }
+//
+//
+//  ParmParse pp;
+//  param_eps = 1.e-4; pp.query("param_eps",param_eps);
+//  mystruct = new MINPACKstruct(*cd,param_eps);
+//
+//  ParameterManager& parameter_manager = mystruct->parameter_manager;
+//  ExperimentManager& expt_manager = mystruct->expt_manager;  
+//  expt_manager.InitializeExperiments();
+//
+//#ifndef DEBUG
+//  expt_manager.InitializeTrueData(parameter_manager.TrueParameters());
+//  expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
+//#else
+//  // For debugging parallel work queue only
+//  std::vector<Real> test_measurements, test_params;
+//  expt_manager.GenerateTestMeasurements(test_params,test_measurements);
+//#endif
+//
+//}
 
 
-  ParmParse pp;
-  param_eps = 1.e-4; pp.query("param_eps",param_eps);
-  mystruct = new MINPACKstruct(*cd,param_eps);
-
-  ParameterManager& parameter_manager = mystruct->parameter_manager;
-  ExperimentManager& expt_manager = mystruct->expt_manager;  
-  expt_manager.InitializeExperiments();
-
-#ifndef DEBUG
-  expt_manager.InitializeTrueData(parameter_manager.TrueParameters());
-  expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
-#else
-  // For debugging parallel work queue only
-  std::vector<Real> test_measurements, test_params;
-  expt_manager.GenerateTestMeasurements(test_params,test_measurements);
-#endif
+/*
+ *
+ * Set mpi communicator to use when init is called
+ *
+ */
+void
+Driver::SetComm(MPI_Comm mpi_comm) {
+    _mpi_comm = mpi_comm;
 
 }
 
@@ -125,29 +137,54 @@ Driver::Driver(int argc, char*argv[], MPI_Comm mpi_comm )
  * Constructor for serial world or parallel world where MPI is not initialized yet
  *
  */
-Driver::Driver(int argc, char*argv[])
+Driver::Driver(int argc, char*argv[], int init_later)
 {
+    // If this is set, expect to do initialization later after mpi world is setup
+    if (init_later == 1) {
+        _mpi_comm = -1;
+        return;
+    }
+    else {
+        init(argc, argv);
+    }
+}
+
+
+/*
+ *
+ * Finish up un-done initialization stuff 
+ *
+ */
+void
+Driver::init(int argc, char *argv[])
+{
+
 #ifdef BL_USE_MPI
-  MPI_Init (&argc, &argv);
-  mpi_initialized = true;
-  BoxLib::Initialize(argc, argv, MPI_COMM_WORLD);
+    if (_mpi_comm == -1) {
+        MPI_Init (&argc, &argv);
+        mpi_initialized = true;
+        BoxLib::Initialize(argc, argv, MPI_COMM_WORLD);
+    }
+    else {
+        BoxLib::Initialize(argc, argv, _mpi_comm);
+    }
 #else
-  BoxLib::Initialize(argc, argv);
+    BoxLib::Initialize(argc, argv);
 #endif
-  if (cd == 0) {
-     cd = new ChemDriver;
-     made_cd = true;
-  }
+    if (cd == 0) {
+        cd = new ChemDriver;
+        made_cd = true;
+    }
 
-  ParmParse pp;
-  param_eps = 1.e-4; pp.query("param_eps",param_eps);
-  mystruct = new MINPACKstruct(*cd,param_eps);
+    ParmParse pp;
+    param_eps = 1.e-4; pp.query("param_eps",param_eps);
+    mystruct = new MINPACKstruct(*cd,param_eps);
 
-  ParameterManager& parameter_manager = mystruct->parameter_manager;
-  ExperimentManager& expt_manager = mystruct->expt_manager;  
-  expt_manager.InitializeExperiments();
-  expt_manager.InitializeTrueData(parameter_manager.TrueParameters());
-  expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
+    ParameterManager& parameter_manager = mystruct->parameter_manager;
+    ExperimentManager& expt_manager = mystruct->expt_manager;  
+    expt_manager.InitializeExperiments();
+    expt_manager.InitializeTrueData(parameter_manager.TrueParameters());
+    expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
 }
 
 Driver::~Driver()

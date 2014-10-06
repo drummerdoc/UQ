@@ -305,7 +305,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
       if (diagnostic_name == "onset_pressure_rise") {
           if (first) {
-              std::cout << "using onset pressure rise diagnostic" << std::endl;
+              // std::cout << "using onset pressure rise diagnostic" << std::endl;
               first = false;
           }
           p_old = p_new;
@@ -423,7 +423,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       }
       if (diagnostic_name == "onset_OH") {
           if (first) {
-              std::cout << "using onset OH rise diagnostic" << std::endl;
+              // std::cout << "using onset OH rise diagnostic" << std::endl;
               first = false;
           }
           p_old = p_new;
@@ -451,7 +451,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       }
       if (diagnostic_name == "onset_CO2") {
           if (first) {
-              std::cout << "using onset CO2 rise diagnostic" << std::endl;
+              // std::cout << "using onset CO2 rise diagnostic" << std::endl;
               first = false;
           }
           p_old = p_new;
@@ -479,7 +479,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       }
       if (diagnostic_name == "thresh_O") {
           if (first) {
-              std::cout << "using threshold on O diagnostic" << std::endl;
+              // std::cout << "using threshold on O diagnostic" << std::endl;
               first = false;
           }
           p_new = ExtractMeasurement();
@@ -488,8 +488,8 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               ofs << i << " " << 0.5*(t_start+t_end) << " " << p_new << "  "
                   << p_old << " " << p_new << std::endl;
           }
-          std::cout << "called solveTransient and found O " <<  
-              p_new << "; threshold=" << transient_thresh << " at t = " << t_start*1.e6 << std::endl;
+          // std::cout << "called solveTransient and found O " <<  
+          //     p_new << "; threshold=" << transient_thresh << " at t = " << t_start*1.e6 << std::endl;
           finished = p_new > transient_thresh;
           if (finished) {
               simulated_observations[0] = t_start;

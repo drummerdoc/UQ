@@ -308,7 +308,7 @@ C
 C
 C///  INITIALIZATION.
 C
-      write(*,*) ' JMAX = ', JMAX, '--------------', 'KK=', KK
+C      write(*,*) ' JMAX = ', JMAX, '--------------', 'KK=', KK
       LCNTUE = .FALSE.
       KERR = .FALSE.
       ONE = 1.0
@@ -486,12 +486,12 @@ C      WRITE (LOUT, 10001) ID, STRING (1 : LENGTH)
 C
       IF (.NOT. LCNTUE) RETURN
 C
-      WRITE (LOUT, '( /////)')
-      DO 1020 L = 1, 5
-         WRITE (LOUT, *)
-     1      ' //////////// CONTINUING TO NEW PROBLEM ////////////'
-1020  CONTINUE
-      WRITE (LOUT, '( /////)')
+C      WRITE (LOUT, '( /////)')
+C      DO 1020 L = 1, 5
+C         WRITE (LOUT, *)
+C     1      ' //////////// CONTINUING TO NEW PROBLEM ////////////'
+C1020  CONTINUE
+C      WRITE (LOUT, '( /////)')
 C
       RSTCNT = .TRUE.
       LRSTRT = .TRUE.
@@ -1548,28 +1548,28 @@ C*****precision > single
 C      PREC = 'SINGLE'
 C*****END precision > single
 C
-      WRITE (LOUT, '(/A, A,/1X,A, A, A, A, /A, /A, //)')
-     1' PREMIX: ',
-     2'CHEMKIN-III One-dimensional steady premixed laminar flame code,',
-     3PREC(1:CKLSCH(PREC)), ' PRECISION Vers. ',
-     4PRVERS(1:CKLSCH(PRVERS)+1), PRDATE,
-     5' Copyright 1995, Sandia Corporation.',
-     6' The U.S. Government retains a limited license in this software.'
+C      WRITE (LOUT, '(/A, A,/1X,A, A, A, A, /A, /A, //)')
+C     1' PREMIX: ',
+C     2'CHEMKIN-III One-dimensional steady premixed laminar flame code,',
+C     3PREC(1:CKLSCH(PREC)), ' PRECISION Vers. ',
+C     4PRVERS(1:CKLSCH(PRVERS)+1), PRDATE,
+C     5' Copyright 1995, Sandia Corporation.',
+C     6' The U.S. Government retains a limited license in this software.'
 C
 C     Set up internal work pointers
       CALL POINTR (LINKMC, LENIWK, LENRWK, LENCWK, JMAX, LOUT,
      1             LSAVE, LTOT, ITOT, NTOT, ICTOT, I, R, C, NIWK, NRWK)
 C
 C     Check for enough space
-      WRITE (LOUT, 7000) LENLWK, LTOT, LENIWK, ITOT, LENRWK, NTOT,
-     1                   LENCWK, ICTOT
-7000  FORMAT (/,'                WORKING SPACE REQUIREMENTS',
-     1        /,'                 PROVIDED        REQUIRED ',
-     2        /,' LOGICAL  ' , 2I15,
-     3        /,' INTEGER  ' , 2I15,
-     4        /,' REAL     ' , 2I15,
-     5        /,' CHARACTER' , 2I15,/)
-C
+C      WRITE (LOUT, 7000) LENLWK, LTOT, LENIWK, ITOT, LENRWK, NTOT,
+C     1                   LENCWK, ICTOT
+C7000  FORMAT (/,'                WORKING SPACE REQUIREMENTS',
+C     1        /,'                 PROVIDED        REQUIRED ',
+C     2        /,' LOGICAL  ' , 2I15,
+C     3        /,' INTEGER  ' , 2I15,
+C     4        /,' REAL     ' , 2I15,
+C     5        /,' CHARACTER' , 2I15,/)
+CC
       IF (LTOT.GT.LENLWK .OR. ITOT.GT.LENIWK .OR. NTOT.GT.LENRWK
      1                   .OR. ICTOT.GT.LENCWK) THEN
          WRITE (LOUT, *) '  FATAL ERROR, NOT ENOUGH WORK SPACE PROVIDED'
@@ -1790,8 +1790,8 @@ C     Top of the loop over calls to TWOPNT.
 C
       DO 2070 CALL = N1CALL, CALLS
 C
-         IF (CALL .EQ. 2) WRITE (LOUT, '( / A / )')
-     1   ' FLDRIV: FINISHED FIXED TEMPERATURE, ADDING ENERGY EQUATION'
+C         IF (CALL .EQ. 2) WRITE (LOUT, '( / A / )')
+C     1   ' FLDRIV: FINISHED FIXED TEMPERATURE, ADDING ENERGY EQUATION'
 C
          IF (ENERGY) THEN
             IF (CALL .EQ. 1) THEN
@@ -3211,7 +3211,7 @@ C
       LCNTUE = .FALSE.
 C
 C     Top of the loop over input lines
-      WRITE (LOUT, '(/10X, A /)') 'KEYWORD INPUT'
+C      WRITE (LOUT, '(/10X, A /)') 'KEYWORD INPUT'
 C
 C     Read next input line
 0200  CONTINUE
@@ -3220,7 +3220,7 @@ C     Read next input line
       IERR  = .FALSE.
       ERROR = .FALSE.
       READ (LIN, '(A)') LINE
-      WRITE (LOUT, '(10X, A)') LINE (1 : CKLSCH(LINE))
+C      WRITE (LOUT, '(10X, A)') LINE (1 : CKLSCH(LINE))
       CALL CKDTAB (LINE)
       KEY = CKCHUP(LINE(1:4),4)
       LINE(1:4) = ' '
@@ -3720,10 +3720,10 @@ C     Normalize reactant and product fractions
          PROD(K) = PROD(K) / SUMP
 0700  CONTINUE
 C
-      IF (ABS (SUMR - 1.0) .GT. 1.E-6)
-     +   WRITE (LOUT, *) ' CAUTION...REACTANT FRACTIONS SUM TO ', SUMR
-      IF ((.NOT.CNTNUD) .AND. ABS (SUMP - 1.0) .GT. 1.E-6)
-     +   WRITE (LOUT, *) ' CAUTION...PRODUCT FRACTIONS SUM TO ',  SUMP
+C      IF (ABS (SUMR - 1.0) .GT. 1.E-6)
+C     +   WRITE (LOUT, *) ' CAUTION...REACTANT FRACTIONS SUM TO ', SUMR
+C      IF ((.NOT.CNTNUD) .AND. ABS (SUMP - 1.0) .GT. 1.E-6)
+C     +   WRITE (LOUT, *) ' CAUTION...PRODUCT FRACTIONS SUM TO ',  SUMP
 C
 C     Check for necessary input
       IF (.NOT. NEC(8) )THEN
