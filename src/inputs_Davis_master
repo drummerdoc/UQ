@@ -1,450 +1,542 @@
 # Davis
-parameters = A1 A2 A3 A4 A5 A5a A6 A7 A9 A9L A9a A9b A9c A9d A9e A10 A11 A11L A13 A14 A15a A16b A17 A21 A21L A22a A22b A23 A25 A29 A29a
+parameters = p1 p2 p3 p4 p5 p5a p6 p7 p9 p9L p9a p9b p9c p9d p9e p10 p11 p11L p13 p14 p15a p16b p17 p21 p21L p22a p22b p23 p25 p29 p29a
 
-# Reaction 1 in the Davis paper is reaction 8 in the fuego file
-# FWD_A has a GRI30 value of 2.65e16, and a Davis-optimized value of 2.644e16
-A1.type = FWD_A
-A1.reaction_id = 0
-A1.prior_mean =  2.644e16
-A1.prior_std =   2.e13
-A1.ensemble_std =   2.e13
-A1.upper_bound = 2.7e16
-A1.lower_bound = 2.6e16
+p1.type = FWD_A
+p1.reaction_id = 0
+p1.prior_mean =  2.644e16
+p1.prior_std =   2.e13
+p1.ensemble_std =   2.e13
+p1.upper_bound = 2.7e16
+p1.lower_bound = 2.6e16
 
-# Reaction 2 in the Davis paper is reaction 9 in the fuego file
-# FWD_A has a GRI30 value of 3.87e4, and a Davis-optimized value of 4.589e4
-A2.type = FWD_A
-A2.reaction_id = 1
-A2.prior_mean =  4.589e4
-A2.prior_std =   4.e1
-A2.ensemble_std =   4.e1
-A2.upper_bound = 7.5e4
-A2.lower_bound = 4.5e4
+p2.type = FWD_A
+p2.reaction_id = 1
+p2.prior_mean =  4.589e4
+p2.prior_std =   4.e1
+p2.ensemble_std =   4.e1
+p2.upper_bound = 7.5e4
+p2.lower_bound = 4.5e4
 
-# Reaction 3 in the Davis paper is reaction 10 in the fuego file
-# FWD_A has a GRI30 value of 2.16e8, and a Davis-optimized value of 1.734e8
-A3.type = FWD_A
-A3.reaction_id = 2
-A3.prior_mean =  1.734e8
-A3.prior_std =   3.e5
-A3.ensemble_std =   3.e5
-A3.upper_bound = 1.8e8
-A3.lower_bound = 1.6e8
+p3.type = FWD_A
+p3.reaction_id = 2
+p3.prior_mean =  1.734e8
+p3.prior_std =   3.e5
+p3.ensemble_std =   3.e5
+p3.upper_bound = 1.8e8
+p3.lower_bound = 1.6e8
 
-# Reaction 4 in the Davis paper is reaction 11 in the fuego file
-# FWD_A has a GRI30 value of 3.57e4, and a Davis-optimized value of 3.973e4
-A4.type = FWD_A
-A4.reaction_id = 3
-A4.prior_mean =  3.973e4
-A4.prior_std =   4.e2
-A4.ensemble_std =   4.e2
-A4.upper_bound = 6.e4
-A4.lower_bound = 2.e4
+p4.type = FWD_A
+p4.reaction_id = 3
+p4.prior_mean =  3.973e4
+p4.prior_std =   4.e2
+p4.ensemble_std =   4.e2
+p4.upper_bound = 6.e4
+p4.lower_bound = 2.e4
+
+p5.type = FWD_A
+p5.reaction_id = 4
+p5.prior_mean =  1.78e18
+p5.prior_std =   1.78e17
+p5.ensemble_std = 1.78e17
+p5.upper_bound = 4.e18
+p5.lower_bound = 0
+
+p5a.type = FWD_A
+p5a.reaction_id = 6
+p5a.prior_mean =  5.624e19
+p5a.prior_std =   5.624e18
+p5a.ensemble_std = 5.624e18
+p5a.upper_bound = 8e19
+p5a.lower_bound = 0
+
+p6.type = FWD_A
+p6.reaction_id = 8
+p6.prior_mean =  4.4e22
+p6.prior_std =   4.4e21
+p6.ensemble_std = 4.4e21
+p6.upper_bound = 8e22
+p6.lower_bound = 0
+
+p7.type = FWD_A
+p7.reaction_id = 9
+p7.prior_mean =  9.428e18
+p7.prior_std =   9.428e17
+p7.ensemble_std = 9.428e17
+p7.upper_bound = 1e19
+p7.lower_bound = 0
+
+p9.type = FWD_A
+p9.reaction_id = 11
+p9.prior_mean =  5.116e12
+p9.prior_std =   5.116e11
+p9.ensemble_std = 5.116e11
+p9.upper_bound = 8e12
+p9.lower_bound = 0
+
+p9L.type = LOW_A
+p9L.reaction_id = 11
+p9L.prior_mean =  6.328e19
+p9L.prior_std =   6.328e18
+p9L.ensemble_std = 6.328e18
+p9L.upper_bound = 8e19
+p9L.lower_bound = 0
+
+p9a.type = THIRD_BODY
+p9a.tb_name = AR
+p9a.reaction_id = 11
+p9a.prior_mean =  0.4
+p9a.prior_std =   0.04
+p9a.ensemble_std = 0.04
+p9a.upper_bound = 5
+p9a.lower_bound = 0
+
+p9b.type = THIRD_BODY
+p9b.tb_name = HE
+p9b.reaction_id = 11
+p9b.prior_mean =  0.46
+p9b.prior_std =   0.046
+p9b.ensemble_std = 0.046
+p9b.upper_bound = 5
+p9b.lower_bound = 0
+
+p9c.type = THIRD_BODY
+p9c.tb_name = O2
+p9c.reaction_id = 11
+p9c.prior_mean =  0.85
+p9c.prior_std =   0.085
+p9c.ensemble_std = 0.085
+p9c.upper_bound = 5
+p9c.lower_bound = 0
+
+p9d.type = THIRD_BODY
+p9d.tb_name = H2O
+p9d.reaction_id = 11
+p9d.prior_mean =  11.89
+p9d.prior_std =   1.189
+p9d.ensemble_std = 1.189
+p9d.upper_bound = 20
+p9d.lower_bound = 0
+
+p9e.type = THIRD_BODY
+p9e.tb_name = H2
+p9e.reaction_id = 11
+p9e.prior_mean =  0.75
+p9e.prior_std =   0.075
+p9e.ensemble_std = 0.075
+p9e.upper_bound = 5
+p9e.lower_bound = 0
+
+p10.type = FWD_A
+p10.reaction_id = 12
+p10.prior_mean =  591600
+p10.prior_std =   59160
+p10.ensemble_std = 59160
+p10.upper_bound = 80000
+p10.lower_bound = 0
+
+p11.type = FWD_A
+p11.reaction_id = 13
+p11.prior_mean =  1.11e14
+p11.prior_std =   1.11e13
+p11.ensemble_std = 1.11e13
+p11.upper_bound = 4e14
+p11.lower_bound = 0
+
+p11L.type = LOW_A
+p11L.reaction_id = 13
+p11L.prior_mean =  2.01e17
+p11L.prior_std =   2.01e16
+p11L.ensemble_std = 2.01e16
+p11L.upper_bound = 5e17
+p11L.lower_bound = 0
+
+p13.type = FWD_A
+p13.reaction_id = 15
+p13.prior_mean =  7.485e13
+p13.prior_std =   7.485e12
+p13.ensemble_std = 7.485e12
+p13.upper_bound = 1e14
+p13.lower_bound = 0
+
+p14.type = FWD_A
+p14.reaction_id = 16
+p14.prior_mean =  4e13
+p14.prior_std =   4e12
+p14.ensemble_std = 4e12
+p14.upper_bound = 8e13
+p14.lower_bound = 0
+
+p15a.type = FWD_A
+p15a.reaction_id = 17
+p15a.prior_mean =  2.375e13
+p15a.prior_std =   2.375e12
+p15a.ensemble_std = 2.375e12
+p15a.upper_bound = 5e13
+p15a.lower_bound = 0
+
+p16b.type = FWD_A
+p16b.reaction_id = 20
+p16b.prior_mean =  3.658e14
+p16b.prior_std =   3.658e13
+p16b.ensemble_std = 3.658e13
+p16b.upper_bound = 5e14
+p16b.lower_bound = 0
+
+p17.type = FWD_A
+p17.reaction_id = 21
+p17.prior_mean =  6.05e6
+p17.prior_std =   6.05e5
+p17.ensemble_std = 6.05e5
+p17.upper_bound = 8e6
+p17.lower_bound = 0
+
+p21.type = FWD_A
+p21.reaction_id = 26
+p21.prior_mean =  1.362e10
+p21.prior_std =   1.362e9
+p21.ensemble_std = 1.362e9
+p21.upper_bound = 4e10
+p21.lower_bound = 0
+
+p21L.type = LOW_A
+p21L.reaction_id = 26
+p21L.prior_mean =  1.173e24
+p21L.prior_std =   1.173e23
+p21L.ensemble_std = 1.173e23
+p21L.upper_bound = 4e24
+p21L.lower_bound = 0
+
+p22a.type = FWD_A
+p22a.reaction_id = 27
+p22a.prior_mean =  8.e11
+p22a.prior_std =   8.e10
+p22a.ensemble_std = 8.e10
+p22a.upper_bound = 1.e12
+p22a.lower_bound = 0
+
+p22b.type = FWD_A
+p22b.reaction_id = 27
+p22b.prior_mean =  8.784e10
+p22b.prior_std =   8.784e9
+p22b.ensemble_std = 8.784e9
+p22b.upper_bound = 1e11
+p22b.lower_bound = 0
+
+p23.type = FWD_A
+p23.reaction_id = 28
+p23.prior_mean =  1.112e12
+p23.prior_std =   1.112e11
+p23.ensemble_std = 1.112e11
+p23.upper_bound = 4e12
+p23.lower_bound = 0
+
+p25.type = FWD_A
+p25.reaction_id = 31
+p25.prior_mean =  1.2e14
+p25.prior_std =   1.2e13
+p25.ensemble_std = 1.2e13
+p25.upper_bound = 4e14
+p25.lower_bound = 0
+
+p29.type = FWD_A
+p29.reaction_id = 35
+p29.prior_mean =  1.87e17
+p29.prior_std =   1.87e16
+p29.ensemble_std = 1.87e16
+p29.upper_bound = 4.e17
+p29.lower_bound = 0
+
+p29a.type = FWD_A
+p29a.reaction_id = 36
+p29a.prior_mean =  2.244e18
+p29a.prior_std =   2.244e17
+p29a.ensemble_std = 2.244e17
+p29a.upper_bound = 4e18
+p29a.lower_bound = 0
 
 
-A5.type = FWD_A
-A5.reaction_id = 4
-A5.prior_mean =  1.78e18
-A5.prior_std =   1.78e17
-A5.ensemble_std = 1.78e17
-A5.upper_bound = 4.e18
-A5.lower_bound = 0
+# Targets from S.G. Davis et al, PCI 30, 2005. First group is premixed
+# laminar flames, second group is ignition delay calculations
+experiments = fls1a fls1b fls2a fls2b fls3a fls3ap1 fls3ap2 fls3b fls4a fls4b fls5a fls5b fls6a fls6b flr1a flr1b flr2a flr2b  flr3a flr4a flr4b flr5a flr6a flr6b flr6c flr6d
 
-A5a.type = FWD_A
-A5a.reaction_id = 6
-A5a.prior_mean =  5.624e19
-A5a.prior_std =   5.624e18
-A5a.ensemble_std = 5.624e18
-A5a.upper_bound = 8e19
-A5a.lower_bound = 0
+fls1a.type = PREMIXReactor
+fls1a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls1a.premix_input_file = premix.fls1a
+fls1a.measurement_error = 10
+fls1a.num_sol_pts = 1000
 
-A6.type = FWD_A
-A6.reaction_id = 8
-A6.prior_mean =  4.4e22
-A6.prior_std =   4.4e21
-A6.ensemble_std = 4.4e21
-A6.upper_bound = 8e22
-A6.lower_bound = 0
+# fls1a_coarse.type = PREMIXReactor
+# fls1a_coarse.premix_input_path = ../extras/Davis05_h2co/premix/
+# fls1a_coarse.premix_input_file = premix.fls1a_coarse
+# fls1a_coarse.measurement_error = 1
+# fls1a_coarse.num_sol_pts = 1000
 
-A7.type = FWD_A
-A7.reaction_id = 9
-A7.prior_mean =  9.428e18
-A7.prior_std =   9.428e17
-A7.ensemble_std = 9.428e17
-A7.upper_bound = 1e19
-A7.lower_bound = 0
+fls1b.type = PREMIXReactor
+fls1b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls1b.premix_input_file = premix.fls1b
+fls1b.measurement_error = 10
+fls1b.num_sol_pts = 1000
 
-A9.type = FWD_A
-A9.reaction_id = 11
-A9.prior_mean =  5.116e12
-A9.prior_std =   5.116e11
-A9.ensemble_std = 5.116e11
-A9.upper_bound = 8e12
-A9.lower_bound = 0
+fls2a.type = PREMIXReactor
+fls2a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls2a.premix_input_file = premix.fls2a
+fls2a.measurement_error = 15
+fls2a.num_sol_pts = 1000
 
-A9L.type = LOW_A
-A9L.reaction_id = 11
-A9L.prior_mean =  6.328e19
-A9L.prior_std =   6.328e18
-A9L.ensemble_std = 6.328e18
-A9L.upper_bound = 8e19
-A9L.lower_bound = 0
+fls2b.type = PREMIXReactor
+fls2b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls2b.premix_input_file = premix.fls2b
+fls2b.measurement_error = 15
+fls2b.num_sol_pts = 1000
 
-A9a.type = THIRD_BODY
-A9a.tb_name = AR
-A9a.reaction_id = 11
-A9a.prior_mean =  0.4
-A9a.prior_std =   0.04
-A9a.ensemble_std = 0.04
-A9a.upper_bound = 5
-A9a.lower_bound = 0
+fls3a.type = PREMIXReactor
+fls3a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3a.premix_input_file = premix.fls3a
+fls3a.measurement_error = 5
+fls3a.num_sol_pts = 1000
+fls3a.prereqs = fls3ap1 fls3ap2
 
-A9b.type = THIRD_BODY
-A9b.tb_name = HE
-A9b.reaction_id = 11
-A9b.prior_mean =  0.46
-A9b.prior_std =   0.046
-A9b.ensemble_std = 0.046
-A9b.upper_bound = 5
-A9b.lower_bound = 0
+fls3ap1.type = PREMIXReactor
+fls3ap1.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3ap1.premix_input_file = premix.fls3a.ic
+fls3ap1.measurement_error = 5
+fls3ap1.num_sol_pts = 1000
 
-A9c.type = THIRD_BODY
-A9c.tb_name = O2
-A9c.reaction_id = 11
-A9c.prior_mean =  0.85
-A9c.prior_std =   0.085
-A9c.ensemble_std = 0.085
-A9c.upper_bound = 5
-A9c.lower_bound = 0
+fls3ap2.type = PREMIXReactor
+fls3ap2.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3ap2.premix_input_file = premix.fls3a.ic
+fls3ap2.measurement_error = 5
+fls3ap2.num_sol_pts = 1000
 
-A9d.type = THIRD_BODY
-A9d.tb_name = H2O
-A9d.reaction_id = 11
-A9d.prior_mean =  11.89
-A9d.prior_std =   1.189
-A9d.ensemble_std = 1.189
-A9d.upper_bound = 20
-A9d.lower_bound = 0
+fls3b.type = PREMIXReactor
+fls3b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls3b.premix_input_file = premix.fls3b
+fls3b.measurement_error = 5
+fls3b.num_sol_pts = 1000
 
-A9e.type = THIRD_BODY
-A9e.tb_name = H2
-A9e.reaction_id = 11
-A9e.prior_mean =  0.75
-A9e.prior_std =   0.075
-A9e.ensemble_std = 0.075
-A9e.upper_bound = 5
-A9e.lower_bound = 0
+fls4a.type = PREMIXReactor
+fls4a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls4a.premix_input_file = premix.fls4a
+fls4a.measurement_error = 6
+fls4a.num_sol_pts = 1000
 
-A10.type = FWD_A
-A10.reaction_id = 12
-A10.prior_mean =  591600
-A10.prior_std =   59160
-A10.ensemble_std = 59160
-A10.upper_bound = 80000
-A10.lower_bound = 0
+fls4b.type = PREMIXReactor
+fls4b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls4b.premix_input_file = premix.fls4a
+fls4b.measurement_error = 5
+fls4b.num_sol_pts = 1000
 
-A11.type = FWD_A
-A11.reaction_id = 13
-A11.prior_mean =  1.11e14
-A11.prior_std =   1.11e13
-A11.ensemble_std = 1.11e13
-A11.upper_bound = 4e14
-A11.lower_bound = 0
+fls5a.type = PREMIXReactor
+fls5a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls5a.premix_input_file = premix.fls5a
+fls5a.measurement_error = 15
+fls5a.num_sol_pts = 1000
 
-A11L.type = LOW_A
-A11L.reaction_id = 13
-A11L.prior_mean =  2.01e17
-A11L.prior_std =   2.01e16
-A11L.ensemble_std = 2.01e16
-A11L.upper_bound = 5e17
-A11L.lower_bound = 0
+fls5b.type = PREMIXReactor
+fls5b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls5b.premix_input_file = premix.fls5b
+fls5b.measurement_error = 15
+fls5b.num_sol_pts = 1000
 
-A13.type = FWD_A
-A13.reaction_id = 15
-A13.prior_mean =  7.485e13
-A13.prior_std =   7.485e12
-A13.ensemble_std = 7.485e12
-A13.upper_bound = 1e14
-A13.lower_bound = 0
+fls6a.type = PREMIXReactor
+fls6a.premix_input_path = ../extras/Davis05_h2co/premix/
+fls6a.premix_input_file = premix.fls6a
+fls6a.measurement_error = 2
+fls6a.num_sol_pts = 1000
 
-A14.type = FWD_A
-A14.reaction_id = 16
-A14.prior_mean =  4e13
-A14.prior_std =   4e12
-A14.ensemble_std = 4e12
-A14.upper_bound = 8e13
-A14.lower_bound = 0
+fls6b.type = PREMIXReactor
+fls6b.premix_input_path = ../extras/Davis05_h2co/premix/
+fls6b.premix_input_file = premix.fls6b
+fls6b.measurement_error = 2
+fls6b.num_sol_pts = 1000
 
-A15a.type = FWD_A
-A15a.reaction_id = 17
-A15a.prior_mean =  2.375e13
-A15a.prior_std =   2.375e12
-A15a.ensemble_std = 2.375e12
-A15a.upper_bound = 5e13
-A15a.lower_bound = 0
+# This group is the ignition delay targets
 
-A16b.type = FWD_A
-A16b.reaction_id = 20
-A16b.prior_mean =  3.658e14
-A16b.prior_std =   3.658e13
-A16b.ensemble_std = 3.658e13
-A16b.upper_bound = 5e14
-A16b.lower_bound = 0
-
-A17.type = FWD_A
-A17.reaction_id = 21
-A17.prior_mean =  6.05e6
-A17.prior_std =   6.05e5
-A17.ensemble_std = 6.05e5
-A17.upper_bound = 8e6
-A17.lower_bound = 0
-
-A21.type = FWD_A
-A21.reaction_id = 26
-A21.prior_mean =  1.362e10
-A21.prior_std =   1.362e9
-A21.ensemble_std = 1.362e9
-A21.upper_bound = 4e10
-A21.lower_bound = 0
-
-A21L.type = LOW_A
-A21L.reaction_id = 26
-A21L.prior_mean =  1.173e24
-A21L.prior_std =   1.173e23
-A21L.ensemble_std = 1.173e23
-A21L.upper_bound = 4e24
-A21L.lower_bound = 0
-
-A22a.type = FWD_A
-A22a.reaction_id = 27
-A22a.prior_mean =  8.e11
-A22a.prior_std =   8.e10
-A22a.ensemble_std = 8.e10
-A22a.upper_bound = 1.e12
-A22a.lower_bound = 0
-
-A22b.type = FWD_A
-A22b.reaction_id = 27
-A22b.prior_mean =  8.784e10
-A22b.prior_std =   8.784e9
-A22b.ensemble_std = 8.784e9
-A22b.upper_bound = 1e11
-A22b.lower_bound = 0
-
-A23.type = FWD_A
-A23.reaction_id = 28
-A23.prior_mean =  1.112e12
-A23.prior_std =   1.112e11
-A23.ensemble_std = 1.112e11
-A23.upper_bound = 4e12
-A23.lower_bound = 0
-
-A25.type = FWD_A
-A25.reaction_id = 31
-A25.prior_mean =  1.2e14
-A25.prior_std =   1.2e13
-A25.ensemble_std = 1.2e13
-A25.upper_bound = 4e14
-A25.lower_bound = 0
-
-A29.type = FWD_A
-A29.reaction_id = 35
-A29.prior_mean =  1.87e17
-A29.prior_std =   1.87e16
-A29.ensemble_std = 1.87e16
-A29.upper_bound = 4.e17
-A29.lower_bound = 0
-
-A29a.type = FWD_A
-A29a.reaction_id = 36
-A29a.prior_mean =  2.244e18
-A29a.prior_std =   2.244e17
-A29a.ensemble_std = 2.244e17
-A29a.upper_bound = 4e18
-A29a.lower_bound = 0
-
-experiments = flow_reactor1a
-experiments = flow_reactor1a flow_reactor1b flow_reactor2a flow_reactor2b  flow_reactor3a flow_reactor4a flow_reactor4b flow_reactor5a flow_reactor6a flow_reactor6b flow_reactor6c flow_reactor6d
 
 # Target ign1a in Davis paper
-flow_reactor1a.type = CVReactor
-flow_reactor1a.Patm = 1.729
-flow_reactor1a.T  = 1051
-flow_reactor1a.H2 = .0667
-flow_reactor1a.O2 = .0333
-flow_reactor1a.AR = .9000
-flow_reactor1a.data_num_points = 100001
-flow_reactor1a.data_tstart = 0.
-flow_reactor1a.data_tend = 400e-5
-flow_reactor1a.diagnostic_name = onset_pressure_rise
-flow_reactor1a.measurement_error = 1.e-6
-flow_reactor1a.dpdt_thresh = 20
-#flow_reactor1a.log_file = junk
+flr1a.type = CVReactor
+flr1a.Patm = 1.729
+flr1a.T  = 1051
+flr1a.H2 = .0667
+flr1a.O2 = .0333
+flr1a.AR = .9000
+flr1a.data_num_points = 100001
+flr1a.data_tstart = 0.
+flr1a.data_tend = 400e-5
+flr1a.diagnostic_name = onset_pressure_rise
+flr1a.measurement_error = 1.e-6
+flr1a.dpdt_thresh = 20
+#flr1a.log_file = junk
+
 
 # Target ign1b in Davis paper
-flow_reactor1b.type = CVReactor
-flow_reactor1b.Patm = 2.008
-flow_reactor1b.T  = 1312
-flow_reactor1b.H2 = .0667
-flow_reactor1b.O2 = .0333
-flow_reactor1b.AR = .9000
-flow_reactor1b.data_num_points = 1001
-flow_reactor1b.data_tstart = 0.
-flow_reactor1b.data_tend = 200e-5
-flow_reactor1b.diagnostic_name = onset_pressure_rise
-flow_reactor1b.measurement_error = 1.e-6
-flow_reactor1b.dpdt_thresh = 20
-#flow_reactor1b.log_file = junk
+flr1b.type = CVReactor
+flr1b.Patm = 2.008
+flr1b.T  = 1312
+flr1b.H2 = .0667
+flr1b.O2 = .0333
+flr1b.AR = .9000
+flr1b.data_num_points = 1001
+flr1b.data_tstart = 0.
+flr1b.data_tend = 200e-5
+flr1b.diagnostic_name = onset_pressure_rise
+flr1b.measurement_error = 1.e-6
+flr1b.dpdt_thresh = 20
+#flr1b.log_file = junk
+
 
 # Target ign2a in Davis paper
-flow_reactor2a.type = CVReactor
-flow_reactor2a.Patm = 0.518
-flow_reactor2a.T  = 1033
-flow_reactor2a.H2 = .20
-flow_reactor2a.O2 = .10
-flow_reactor2a.AR = .70
-flow_reactor2a.data_num_points = 120000
-flow_reactor2a.data_tstart = 0.
-flow_reactor2a.data_tend = 400e-5
-#flow_reactor2a.diagnostic_name = max_pressure
-flow_reactor2a.diagnostic_name = onset_pressure_rise
-flow_reactor2a.measurement_error = 1.e-6
-flow_reactor2a.p_thresh = 0.6
-#
+flr2a.type = CVReactor
+flr2a.Patm = 0.518
+flr2a.T  = 1033
+flr2a.H2 = .20
+flr2a.O2 = .10
+flr2a.AR = .70
+flr2a.data_num_points = 120000
+flr2a.data_tstart = 0.
+flr2a.data_tend = 400e-5
+#flr2a.diagnostic_name = max_pressure
+flr2a.diagnostic_name = onset_pressure_rise
+flr2a.measurement_error = 1.e-6
+flr2a.p_thresh = 0.6
+
+
 # Target ign2b in Davis paper
-flow_reactor2b.type = CVReactor
-flow_reactor2b.Patm = 0.493
-flow_reactor2b.T  = 1510
-flow_reactor2b.H2 = .20
-flow_reactor2b.O2 = .10
-flow_reactor2b.AR = .70
-flow_reactor2b.data_num_points = 60000
-flow_reactor2b.data_tstart = 0.
-flow_reactor2b.data_tend = 100e-5
-#flow_reactor2b.diagnostic_name = max_pressure
-flow_reactor2b.diagnostic_name = onset_pressure_rise
-flow_reactor2b.measurement_error = 1.e-6
-flow_reactor2b.p_thresh = 0.6
-#
+flr2b.type = CVReactor
+flr2b.Patm = 0.493
+flr2b.T  = 1510
+flr2b.H2 = .20
+flr2b.O2 = .10
+flr2b.AR = .70
+flr2b.data_num_points = 60000
+flr2b.data_tstart = 0.
+flr2b.data_tend = 100e-5
+#flr2b.diagnostic_name = max_pressure
+flr2b.diagnostic_name = onset_pressure_rise
+flr2b.measurement_error = 1.e-6
+flr2b.p_thresh = 0.6
+
+
 # Target ign3a in Davis paper
-flow_reactor3a.type = CVReactor
-flow_reactor3a.Patm = 33.0
-flow_reactor3a.T  = 1754
-flow_reactor3a.H2 = .005
-flow_reactor3a.O2 = .025
-flow_reactor3a.AR = .997
-flow_reactor3a.data_num_points = 30000
-flow_reactor3a.data_tstart = 0.
-flow_reactor3a.data_tend = 50e-5
-flow_reactor3a.diagnostic_name = max_OH
-flow_reactor3a.measurement_error = 1.e-6
-flow_reactor3a.dOH_thresh = 1.0e-6
-#
+flr3a.type = CVReactor
+flr3a.Patm = 33.0
+flr3a.T  = 1754
+flr3a.H2 = .005
+flr3a.O2 = .025
+flr3a.AR = .997
+flr3a.data_num_points = 30000
+flr3a.data_tstart = 0.
+flr3a.data_tend = 50e-5
+flr3a.diagnostic_name = max_OH
+flr3a.measurement_error = 1.e-6
+flr3a.dOH_thresh = 1.0e-6
+
 
 # Target ign4a in Davis paper
-flow_reactor4a.type = CVReactor
-flow_reactor4a.Patm = 33.0
-flow_reactor4a.T  = 1189
-flow_reactor4a.H2 = .02
-flow_reactor4a.O2 = .01
-flow_reactor4a.AR = .97
-flow_reactor4a.data_num_points = 30000
-flow_reactor4a.data_tstart = 0.
-flow_reactor4a.data_tend = 50e-5
-flow_reactor4a.diagnostic_name = max_OH
-flow_reactor4a.measurement_error = 1.e-6
-flow_reactor4a.dOH_thresh = 1.0e-6
-
-
+flr4a.type = CVReactor
+flr4a.Patm = 33.0
+flr4a.T  = 1189
+flr4a.H2 = .02
+flr4a.O2 = .01
+flr4a.AR = .97
+flr4a.data_num_points = 30000
+flr4a.data_tstart = 0.
+flr4a.data_tend = 50e-5
+flr4a.diagnostic_name = max_OH
+flr4a.measurement_error = 1.e-6
+flr4a.dOH_thresh = 1.0e-6
 
 # Target ign4b in Davis paper
-flow_reactor4b.type = CVReactor
-flow_reactor4b.Patm = 33.0
-flow_reactor4b.T  = 1300
-flow_reactor4b.H2 = .02
-flow_reactor4b.O2 = .01
-flow_reactor4b.AR = .97
-flow_reactor4b.data_num_points = 30000
-flow_reactor4b.data_tstart = 0.
-flow_reactor4b.data_tend = 50e-5
-flow_reactor4b.diagnostic_name = max_OH
-flow_reactor4b.measurement_error = 1.e-6
-flow_reactor4b.dOH_thresh = 1.0e-6
+flr4b.type = CVReactor
+flr4b.Patm = 33.0
+flr4b.T  = 1300
+flr4b.H2 = .02
+flr4b.O2 = .01
+flr4b.AR = .97
+flr4b.data_num_points = 30000
+flr4b.data_tstart = 0.
+flr4b.data_tend = 50e-5
+flr4b.diagnostic_name = max_OH
+flr4b.measurement_error = 1.e-6
+flr4b.dOH_thresh = 1.0e-6
 #
 # Target ign5a in Davis paper
-flow_reactor5a.type = CVReactor
-flow_reactor5a.Patm = 64.0
-flow_reactor5a.T  = 1524
-flow_reactor5a.H2 = 0.001
-flow_reactor5a.O2 = 0.0005
-flow_reactor5a.AR = 0.9985
-flow_reactor5a.data_num_points = 30000
-flow_reactor5a.data_tstart = 0.
-flow_reactor5a.data_tend = 50e-5
-flow_reactor5a.diagnostic_name = max_OH
-flow_reactor5a.measurement_error = 1.e-6
-flow_reactor5a.dOH_thresh = 1.0e-6
-#
+flr5a.type = CVReactor
+flr5a.Patm = 64.0
+flr5a.T  = 1524
+flr5a.H2 = 0.001
+flr5a.O2 = 0.0005
+flr5a.AR = 0.9985
+flr5a.data_num_points = 30000
+flr5a.data_tstart = 0.
+flr5a.data_tend = 50e-5
+flr5a.diagnostic_name = max_OH
+flr5a.measurement_error = 1.e-6
+flr5a.dOH_thresh = 1.0e-6
+
+
 # Target ign6a in Davis paper
-flow_reactor6a.type = CVReactor
-flow_reactor6a.Patm = 1.492
-flow_reactor6a.T  = 2160
-flow_reactor6a.H2 = 0.0005
-flow_reactor6a.O2 = 0.01
-flow_reactor6a.CO = 0.1217
-flow_reactor6a.AR = 0.8678
-flow_reactor6a.data_num_points = 6000
-flow_reactor6a.data_tstart = 0.
-flow_reactor6a.data_tend = 50e-5
-flow_reactor6a.diagnostic_name = onset_CO2
-flow_reactor6a.measurement_error = 1.e-6
-flow_reactor6a.CO2_thresh = 1.0e-6
-#
+flr6a.type = CVReactor
+flr6a.Patm = 1.492
+flr6a.T  = 2160
+flr6a.H2 = 0.0005
+flr6a.O2 = 0.01
+flr6a.CO = 0.1217
+flr6a.AR = 0.8678
+flr6a.data_num_points = 6000
+flr6a.data_tstart = 0.
+flr6a.data_tend = 50e-5
+flr6a.diagnostic_name = onset_CO2
+flr6a.measurement_error = 1.e-6
+flr6a.CO2_thresh = 1.0e-6
+
+
 # Target ign6b in Davis paper
-flow_reactor6b.type = CVReactor
-flow_reactor6b.Patm = 1.492
-flow_reactor6b.T  = 2160
-flow_reactor6b.H2 = 0.0005
-flow_reactor6b.O2 = 0.01
-flow_reactor6b.CO = 0.1217
-flow_reactor6b.AR = 0.8678
-flow_reactor6b.data_num_points = 6000
-flow_reactor6b.data_tstart = 0.
-flow_reactor6b.data_tend = 50e-5
-flow_reactor6b.diagnostic_name = thresh_O
-flow_reactor6b.measurement_error = 1.e-6
-#flow_reactor6b.O_thresh = 2.597835994e-05
-flow_reactor6b.O_thresh = 5.264032951e-05
+flr6b.type = CVReactor
+flr6b.Patm = 1.492
+flr6b.T  = 2160
+flr6b.H2 = 0.0005
+flr6b.O2 = 0.01
+flr6b.CO = 0.1217
+flr6b.AR = 0.8678
+flr6b.data_num_points = 6000
+flr6b.data_tstart = 0.
+flr6b.data_tend = 50e-5
+flr6b.diagnostic_name = thresh_O
+flr6b.measurement_error = 1.e-6
+#flr6b.O_thresh = 2.597835994e-05
+flr6b.O_thresh = 5.264032951e-05
 #
 # Target ign6c in Davis paper
-flow_reactor6c.type = CVReactor
-flow_reactor6c.Patm = 1.949
-flow_reactor6c.T  = 2625
-flow_reactor6c.H2 = 0.0005
-flow_reactor6c.O2 = 0.01
-flow_reactor6c.CO = 0.1217
-flow_reactor6c.AR = 0.8678
-flow_reactor6c.data_num_points = 3000
-flow_reactor6c.data_tstart = 0.
-flow_reactor6c.data_tend = 50e-5
-flow_reactor6c.diagnostic_name = onset_CO2
-flow_reactor6c.measurement_error = 1.e-6
-flow_reactor6c.CO2_thresh = 1.0e-6
+flr6c.type = CVReactor
+flr6c.Patm = 1.949
+flr6c.T  = 2625
+flr6c.H2 = 0.0005
+flr6c.O2 = 0.01
+flr6c.CO = 0.1217
+flr6c.AR = 0.8678
+flr6c.data_num_points = 3000
+flr6c.data_tstart = 0.
+flr6c.data_tend = 50e-5
+flr6c.diagnostic_name = onset_CO2
+flr6c.measurement_error = 1.e-6
+flr6c.CO2_thresh = 1.0e-6
 #
 # Target ign6d in Davis paper
-flow_reactor6d.type = CVReactor
-flow_reactor6d.Patm = 1.949
-flow_reactor6d.T  = 2625
-flow_reactor6d.H2 = 0.0005
-flow_reactor6d.O2 = 0.01
-flow_reactor6d.CO = 0.1217
-flow_reactor6d.AR = 0.8678
-flow_reactor6d.data_num_points = 3000
-flow_reactor6d.data_tstart = 0.
-flow_reactor6d.data_tend = 50e-5
-flow_reactor6d.diagnostic_name = thresh_O
-flow_reactor6d.measurement_error = 1.e-6
-flow_reactor6d.O_thresh = 5.264032951e-05
+flr6d.type = CVReactor
+flr6d.Patm = 1.949
+flr6d.T  = 2625
+flr6d.H2 = 0.0005
+flr6d.O2 = 0.01
+flr6d.CO = 0.1217
+flr6d.AR = 0.8678
+flr6d.data_num_points = 3000
+flr6d.data_tstart = 0.
+flr6d.data_tend = 50e-5
+flr6d.diagnostic_name = thresh_O
+flr6d.measurement_error = 1.e-6
+flr6d.O_thresh = 5.264032951e-05
 
+# Tolerances for vode used for zeroD reactors
 ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12
