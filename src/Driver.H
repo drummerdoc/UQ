@@ -7,8 +7,10 @@
 
 struct Driver
 {
-  Driver(int, char **);
-  Driver(int, char **, MPI_Comm mpi_comm);
+  Driver(int, char **, int mpi_later);
+  // Driver(int, char **, MPI_Comm mpi_comm);
+  void init(int, char **);
+  void SetComm(MPI_Comm mpi_comm);
   ~Driver();
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
@@ -22,6 +24,9 @@ struct Driver
   static MINPACKstruct *mystruct;
   static Real param_eps;
   bool mpi_initialized;
+
+  MPI_Comm _mpi_comm;
+
 };
 
 #endif

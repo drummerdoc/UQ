@@ -13,6 +13,8 @@ import sys
 
 import pyemcee as pymc
 import cPickle
+from mpi4py import MPI
+
 
 #   Inputs
 nwalkers      = 10
@@ -93,7 +95,12 @@ def lnprob(x, driver):
 
 # Build the persistent class containing the driver object
 driver = DriverWrap()
-driver.d = pymc.Driver(len(sys.argv), sys.argv)
+driver.d = pymc.Driver(len(sys.argv), sys.argv, 1)
+driver.d.SetComm(MPI.COMM_WORLD)
+driver.d.init(len(sys.argv),sys.argv)
+
+# Hang on to this for later - only do output on rank 0
+rank = MPI.COMM_WORLD.Get_rank()
 
 ndim = driver.NumParams()
 ndata = driver.NumData()
@@ -133,15 +140,16 @@ iters = 0
 for result in driver.sampler.sample(pos, iterations=nChainLength):
     iters = iters + 1
 
-    if iters % runlogPeriod == 0:
-        print(str(iters)+" walker sweeps complete")
+    if rank == 0:
+        if iters % runlogPeriod == 0:
+            print(str(iters)+" walker sweeps complete")
 
-    if iters % outFilePeriod == 0:
-        fmt = "%0"+str(nDigits)+"d"
-        outFileName = outFilePrefix + (fmt % iters)
-        PickleResults(driver,outFileName)
+        if iters % outFilePeriod == 0:
+            fmt = "%0"+str(nDigits)+"d"
+            outFileName = outFilePrefix + (fmt % iters)
+            PickleResults(driver,outFileName)
 
-if iters % outFilePeriod != 0:
+if iters % outFilePeriod != 0 and rank == 0:
     fmt = "%0"+str(nDigits)+"d"
     outFileName = outFilePrefix + (fmt % iters)
     PickleResults(driver,outFileName)
@@ -150,10 +158,11 @@ if iters % outFilePeriod != 0:
 # Print out the mean acceptance fraction. In general, acceptance_fraction
 # has an entry for each walker so, in this case, it is a 250-dimensional
 # vector.
-print("Mean acceptance fraction:", np.mean(driver.sampler.acceptance_fraction))
+if rank == 0:
+    print("Mean acceptance fraction:", np.mean(driver.sampler.acceptance_fraction))
 
-posterior_mean = []
-for i in range(ndim):
-    posterior_mean.append(driver.sampler.flatchain[:,i].mean()) 
-    print('New mean:',i,posterior_mean[i])
+    posterior_mean = []
+    for i in range(ndim):
+        posterior_mean.append(driver.sampler.flatchain[:,i].mean()) 
+        print('New mean:',i,posterior_mean[i])
 
