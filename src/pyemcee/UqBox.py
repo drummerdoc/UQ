@@ -17,8 +17,8 @@ from mpi4py import MPI
 
 
 #   Inputs
-nwalkers      = 10
-nBurnIn       = 100        # Number of burn-in samples before starting to take data
+nwalkers      = 62
+nBurnIn       = 10        # Number of burn-in samples before starting to take data
 nChainLength  = 5000       # Number of MCMC resamplings in the data run, after burn in
 outFilePrefix = "Results_" # Prefix to output file names, to be appended with eval #
 outFilePeriod = 500        # Number of samples between calls to write data
