@@ -45,6 +45,7 @@ protected:
   std::vector<std::vector<Real> > raw_data;
   std::vector<int> data_offsets;
   std::map<std::string,int> expt_map;
+  std::vector<std::string> expt_name;
   
   int num_expt_data;
   std::vector<Real> true_data, perturbed_data;

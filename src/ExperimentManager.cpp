@@ -113,6 +113,7 @@ ExperimentManager::AddExperiment(SimulatedExperiment* expt,
                                   data_offsets[num_expts_old-1]+raw_data[num_expts_old-1].size() );
   num_expt_data = data_offsets[num_expts_old] + num_new_values;
   expt_map[expt_id] = num_expts_old;
+  expt_name.push_back(expt_id);
 }
 
 void
@@ -391,7 +392,8 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   if (ParallelDescriptor::MyProc() == master) {
     for (int i=0; i<expts.size() && ok; ++i) {
       int offset = data_offsets[i];
-      std::cout << "Experiment " << i << " result: " << test_measurements[offset] << std::endl;
+      std::cout << "Experiment " << i << " (" << expt_name[i]
+                << ") result: " << test_measurements[offset] << std::endl;
     }
   }
   return true;
