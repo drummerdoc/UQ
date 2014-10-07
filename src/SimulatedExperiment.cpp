@@ -270,7 +270,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       i++;
     }
 
-    Real p_new, p_old, dpdt_old, p_old2, t_startlast, d2pdt2_old, OH_old, OH_new, dt_old;
+    Real val_new, val_old, dval_old, val_old2, t_startlast, ddval_old, dt_old;
     Real max_curv;
     if (diagnostic_name == "pressure_rise" 
             || diagnostic_name == "onset_pressure_rise"
@@ -280,9 +280,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
             || diagnostic_name == "onset_OH"  
             || diagnostic_name == "onset_CO2"  
             || diagnostic_name == "max_OH" ) {
-      p_new = ExtractMeasurement();
-      dpdt_old = 0;
-      d2pdt2_old = 0;
+      val_new = ExtractMeasurement();
+      dval_old = 0;
+      ddval_old = 0;
       i++;
     }
     Real dt = 0;
@@ -307,192 +307,57 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
         }
       }
 
-      if (diagnostic_name == "onset_pressure_rise") {
-          if (first) {
-              // std::cout << "using onset pressure rise diagnostic" << std::endl;
-              first = false;
-              p_old = p_new;
-          }
-          p_old2 = p_old;
-          p_old = p_new;
-          p_new = ExtractMeasurement();
-
-          Real dpdt = (p_new -  p_old2) / (dt+dt_old); // At p_old
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-
-          finished = dpdt > transient_thresh && dpdt < dpdt_old;
-
-          if (finished) {
-              simulated_observations[0] = t_startlast;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-          }
-          dpdt_old = dpdt;
+      if (first) {
+        first = false;
+        val_old = val_new;
+      }
+      val_old2 = val_old;
+      val_old = val_new;
+      val_new = ExtractMeasurement();
+      Real dval = (val_new -  val_old2) / (dt+dt_old);
+      Real ddval = (val_new - 2.0*val_old + val_old2) / (dt_old*dt);
+      if (log_this) {
+        ofs << i << " " << 0.5*(t_start+t_end) << " " << dval << "  "
+            << ddval << " " << val_old << " " << val_new << std::endl;
       }
 
-      else if (diagnostic_name == "pressure_rise") {
-          if (first) {
-              std::cout << "using pressure rise diagnostic" << std::endl;
-              first = false;
-          }
-          p_old = p_new;
-          p_new = ExtractMeasurement();
-          Real dpdt = (p_new - p_old) / dt;
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          finished = dpdt > transient_thresh && dpdt < dpdt_old;
-          if (finished) {
-              simulated_observations[0] = t_start;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-          }
-          dpdt_old = dpdt;
+      if (diagnostic_name == "onset_pressure_rise"
+          || diagnostic_name == "pressure_rise"
+          || diagnostic_name == "onset_OH"
+          || diagnostic_name == "onset_CO2") {
+
+          finished = dval > transient_thresh && dval < dval_old;
       }
       else if (diagnostic_name == "max_pressure") {
-          p_old = p_new;
-          p_new = ExtractMeasurement();
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " 
-                  << p_old << " " << p_new << " " << (p_new - p_old)/dt << std::endl;
-          }
-          finished = p_old > transient_thresh && (p_new - p_old)/dt < transient_thresh;
-          if (finished) {
-              simulated_observations[0] = t_start;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-          }
-      }
 
+          finished = val_old > transient_thresh && (val_new - val_old)/dt < transient_thresh;
+      }
       else if (diagnostic_name == "max_OH") {
-          p_old = p_new;
-          p_new = ExtractMeasurement();
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " 
-                  << p_old << " " << p_new << " " << (p_new - p_old)/dt << std::endl;
-          }
-          finished = p_old > transient_thresh && (p_new - p_old)/dt < 0;
-          if (finished) {
-              simulated_observations[0] = t_start;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-          }
-      }
 
+          finished = val_old > transient_thresh && (val_new - val_old)/dt < 0;
+      }
       else if (diagnostic_name == "inflect_OH") {
-          if (first) {
-              std::cout << "using inflection OH diagnostic" << std::endl;
-              first = false;
-              p_old = p_new;
-          }
-          p_old2 = p_old;
-          p_old = p_new;
-          p_new = ExtractMeasurement();
 
-          Real d2pdt2 = (p_new - 2.0*p_old + p_old2) / (dt_old*dt); // At p_old
-          if( d2pdt2 > max_curv ) {
-              max_curv = d2pdt2;
+          if( ddval > max_curv ) {
+              max_curv = ddval;
           }
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << d2pdt2 << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          finished = max_curv > transient_thresh && d2pdt2 < 0.05*max_curv; // max_curv*0.001;
-          if (finished) {
-              simulated_observations[0] = t_startlast;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-          }
-          d2pdt2_old = d2pdt2;
+          finished = max_curv > transient_thresh && ddval < 0.05*max_curv; // max_curv*0.001;
       }
-      if (diagnostic_name == "onset_OH") {
-          if (first) {
-              // std::cout << "using onset OH rise diagnostic" << std::endl;
-              first = false;
-              p_old = p_new;
-          }
-          p_old2 = p_old;
-          p_old = p_new;
-          p_new = ExtractMeasurement();
+      else if (diagnostic_name == "thresh_O") {
 
-          Real dpdt = (p_new -  p_old2) / (dt+dt_old); // At p_old
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          //std::cout << "called solveTransient and found d2pdt2 " <<  
-          //    d2pdt2 << "; threshold=" << transient_thresh << std::endl;
-          finished = dpdt > transient_thresh && dpdt < dpdt_old;
-          if (finished) {
-              simulated_observations[0] = t_startlast;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
-          }
-          dpdt_old = dpdt;
+          finished = val_new > transient_thresh;
       }
-      if (diagnostic_name == "onset_CO2") {
-          if (first) {
-              // std::cout << "using onset CO2 rise diagnostic" << std::endl;
-              first = false;
-              p_old = p_new;
-          }
-          p_old2 = p_old;
-          p_old = p_new;
-          p_new = ExtractMeasurement();
-          Real d2pdt2 = (p_new -  p_old2) / (dt+dt_old); // At p_old
+      
+      if (finished) {
+        simulated_observations[0] = t_startlast;
+        if (! ValidMeasurement(simulated_observations[0])) {
+          return false;
+        }
+        simulated_observations[0] *= 1.e6;
+      }
 
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << d2pdt2 << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          finished = d2pdt2 > transient_thresh && d2pdt2 < d2pdt2_old;
-          if (finished) {
-              simulated_observations[0] = t_startlast;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-          }
-          d2pdt2_old = d2pdt2;
-      }
-      if (diagnostic_name == "thresh_O") {
-          if (first) {
-              // std::cout << "using threshold on O diagnostic" << std::endl;
-              first = false;
-          }
-          p_new = ExtractMeasurement();
-
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << p_new << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          finished = p_new > transient_thresh;
-          if (finished) {
-              simulated_observations[0] = t_start;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-          }
-      }
+      dval_old = dval;
+      ddval_old = ddval;
       
       rYold.copy(rYnew,sCompY,sCompY,Nspec);
       rHold.copy(rHnew,sCompRH,sCompRH,Nspec);
@@ -589,13 +454,15 @@ ZeroDReactor::ExtractMeasurement() const
   FArrayBox X(box,Nspec);
   cd.massFracToMoleFrac(X,Y,box,0,0);
 
-  if (measured_comps[0] > 0 && diagnostic_name != "max_OH") {
-    return X(box.smallEnd(),measured_comps[0] - sCompY);
+  int iSpec = measured_comps[0] - sCompY;
+  //if (measured_comps[0] > 0 && diagnostic_name != "max_OH") {
+  if (measured_comps[0] > 0) {
+    return X(box.smallEnd(),iSpec);
   }
 
-  // Get pressure and density
-  // For constant-volume case, s_final contains rho.Y, compute P(rho,T,Y)
-  // For constant-pressure case, P=Patm, compute rho(P,T,Y)
+  // Get pressure and density:
+  //     CV: s_final contains rho.Y, P = P(rho,T,Y)
+  //     CP: P=Patm, rho = rho(P,T,Y)
   FArrayBox density(box,1);
   FArrayBox pressure(box,1);
   if (reactor_type == CONSTANT_VOLUME) {
@@ -608,7 +475,7 @@ ZeroDReactor::ExtractMeasurement() const
     cd.getPGivenRTY(pressure,density,s_final,Y,box,0,sCompT,0,0);
   } else {
     cd.getRhoGivenPTY(density,Patm,s_final,Y,box,sCompT,0,0);
-    pressure.setVal(Patm,0);
+    pressure.setVal(Patm * 101325,0);
   }
 
   if (measured_comps[0] < 0) { // Return pressure
@@ -618,7 +485,7 @@ ZeroDReactor::ExtractMeasurement() const
   // Return molar concentration
   FArrayBox C(box,Nspec);
   cd.massFracToMolarConc(C,Y,s_final,density,box,0,0,sCompT,0);
-  return C(box.smallEnd(),measured_comps[0] - sCompY);
+  return C(box.smallEnd(),iSpec);
 }
 
 void
