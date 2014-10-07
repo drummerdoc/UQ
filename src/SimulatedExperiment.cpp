@@ -151,11 +151,15 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     transient_thresh = dpdt_thresh_DEF;
     pp.query("dOH_thresh",transient_thresh);
     int nSpec = cd.numSpecies();
-    for (int i=0; i<nSpec; ++i){
+    measured_comps[0] = -1;
+    for (int i=0; i<nSpec && measured_comps[0]<0; ++i){
       const std::string& name = cd.speciesNames()[i];
       if (name=="OH") {
           measured_comps[0] = i + sCompY;
       }
+    }
+    if (measured_comps[0] < 0) {
+      BoxLib::Abort("OH needed for diagnostic, but not found in chemical mech");
     }
     num_measured_values = measured_comps.size();
   }
@@ -277,10 +281,8 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
             || diagnostic_name == "onset_CO2"  
             || diagnostic_name == "max_OH" ) {
       p_new = ExtractMeasurement();
-      OH_new = ExtractMeasurement();
       dpdt_old = 0;
       d2pdt2_old = 0;
-      OH_old = 0;
       i++;
     }
     Real dt = 0;
@@ -309,6 +311,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           if (first) {
               // std::cout << "using onset pressure rise diagnostic" << std::endl;
               first = false;
+              p_old = p_new;
           }
           p_old2 = p_old;
           p_old = p_new;
@@ -319,17 +322,15 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
                   << p_old << " " << p_new << std::endl;
           }
-          //std::cout << "called solveTransient and found d2pdt2 " <<  
-          //    d2pdt2 << "; threshold=" << transient_thresh << std::endl;
+
           finished = dpdt > transient_thresh && dpdt < dpdt_old;
+
           if (finished) {
               simulated_observations[0] = t_startlast;
               if (! ValidMeasurement(simulated_observations[0])) {
                   return false;
               }
               simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
           }
           dpdt_old = dpdt;
       }
@@ -374,15 +375,13 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       }
 
       else if (diagnostic_name == "max_OH") {
-          OH_old = OH_new;
-          OH_new = ExtractMeasurement();
+          p_old = p_new;
+          p_new = ExtractMeasurement();
           if (log_this) {
               ofs << i << " " << 0.5*(t_start+t_end) << " " 
-                  << OH_old << " " << OH_new << " " << (OH_new - OH_old)/dt << std::endl;
+                  << p_old << " " << p_new << " " << (p_new - p_old)/dt << std::endl;
           }
-          // std::cout << "called solveTransient and found OH " <<  
-          //     OH_old << "; threshold=" << transient_thresh << " t=" << t_start*1e6 << "new " << OH_new << "slope: " << (OH_new - OH_old)/dt << std::endl;
-          finished = OH_old > transient_thresh && (OH_new - OH_old)/dt < 0;
+          finished = p_old > transient_thresh && (p_new - p_old)/dt < 0;
           if (finished) {
               simulated_observations[0] = t_start;
               if (! ValidMeasurement(simulated_observations[0])) {
@@ -396,9 +395,10 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           if (first) {
               std::cout << "using inflection OH diagnostic" << std::endl;
               first = false;
+              p_old = p_new;
           }
-          p_old = p_new;
           p_old2 = p_old;
+          p_old = p_new;
           p_new = ExtractMeasurement();
 
           Real d2pdt2 = (p_new - 2.0*p_old + p_old2) / (dt_old*dt); // At p_old
@@ -409,8 +409,6 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               ofs << i << " " << 0.5*(t_start+t_end) << " " << d2pdt2 << "  "
                   << p_old << " " << p_new << std::endl;
           }
-          //std::cout << "called solveTransient and found OH curvature " <<  
-          //    d2pdt2 << "; threshold=" << transient_thresh << " t=" << t_startlast*1e6 << std::endl;
           finished = max_curv > transient_thresh && d2pdt2 < 0.05*max_curv; // max_curv*0.001;
           if (finished) {
               simulated_observations[0] = t_startlast;
@@ -418,8 +416,6 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                   return false;
               }
               simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
           }
           d2pdt2_old = d2pdt2;
       }
@@ -427,9 +423,10 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           if (first) {
               // std::cout << "using onset OH rise diagnostic" << std::endl;
               first = false;
+              p_old = p_new;
           }
-          p_old = p_new;
           p_old2 = p_old;
+          p_old = p_new;
           p_new = ExtractMeasurement();
 
           Real dpdt = (p_new -  p_old2) / (dt+dt_old); // At p_old
@@ -455,6 +452,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           if (first) {
               // std::cout << "using onset CO2 rise diagnostic" << std::endl;
               first = false;
+              p_old = p_new;
           }
           p_old2 = p_old;
           p_old = p_new;
@@ -465,8 +463,6 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               ofs << i << " " << 0.5*(t_start+t_end) << " " << d2pdt2 << "  "
                   << p_old << " " << p_new << std::endl;
           }
-          //std::cout << "called solveTransient and found d2pdt2 " <<  
-          //    d2pdt2 << "; threshold=" << transient_thresh << std::endl;
           finished = d2pdt2 > transient_thresh && d2pdt2 < d2pdt2_old;
           if (finished) {
               simulated_observations[0] = t_startlast;
@@ -474,8 +470,6 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                   return false;
               }
               simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
           }
           d2pdt2_old = d2pdt2;
       }
@@ -490,8 +484,6 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               ofs << i << " " << 0.5*(t_start+t_end) << " " << p_new << "  "
                   << p_old << " " << p_new << std::endl;
           }
-          // std::cout << "called solveTransient and found O " <<  
-          //     p_new << "; threshold=" << transient_thresh << " at t = " << t_start*1.e6 << std::endl;
           finished = p_new > transient_thresh;
           if (finished) {
               simulated_observations[0] = t_start;
@@ -499,8 +491,6 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                   return false;
               }
               simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
           }
       }
       
