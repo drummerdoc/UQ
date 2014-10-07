@@ -334,7 +334,7 @@ fls4a.num_sol_pts = 1000
 fls4b.type = PREMIXReactor
 fls4b.data = 52.5
 fls4b.premix_input_path = ../extras/Davis05_h2co/premix/
-fls4b.premix_input_file = premix.fls4a
+fls4b.premix_input_file = premix.fls4b
 fls4b.measurement_error = 5
 fls4b.num_sol_pts = 1000
 
