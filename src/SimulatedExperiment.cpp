@@ -595,23 +595,40 @@ ZeroDReactor::ExtractMeasurement() const
   const Box& box = Y.box();
   int Nspec = cd.numSpecies();
 
-  if (measured_comps[0] < 0) { // Return pressure
-    // CONSTANT_VOLUME case, state holds rho.Y
-    FArrayBox rhop(box,2);
-    rhop.setVal(0,0);
-    for (IntVect iv=box.smallEnd(), End=box.bigEnd(); iv<=End; box.next(iv)) {
-      for (int i=0; i<Nspec; ++i) {
-        rhop(iv,0) += s_final(iv,sCompY+i);
-      }
-    }      
-    cd.getPGivenRTY(rhop,rhop,s_final,Y,box,0,sCompT,0,1);
-    return rhop(box.smallEnd(),1) / 101325;
-  }
-  
   // Compute mole fraction
   FArrayBox X(box,Nspec);
   cd.massFracToMoleFrac(X,Y,box,0,0);
-  return X(box.smallEnd(),measured_comps[0] - sCompY);
+
+  if (measured_comps[0] > 0 && diagnostic_name != "max_OH") {
+    return X(box.smallEnd(),measured_comps[0] - sCompY);
+  }
+
+  // Get pressure and density
+  // For constant-volume case, s_final contains rho.Y, compute P(rho,T,Y)
+  // For constant-pressure case, P=Patm, compute rho(P,T,Y)
+  FArrayBox density(box,1);
+  FArrayBox pressure(box,1);
+  if (reactor_type == CONSTANT_VOLUME) {
+    density.setVal(0);
+    for (IntVect iv=box.smallEnd(), End=box.bigEnd(); iv<=End; box.next(iv)) {
+      for (int i=0; i<Nspec; ++i) {
+        density(iv,0) += s_final(iv,sCompY+i);
+      }
+    }      
+    cd.getPGivenRTY(pressure,density,s_final,Y,box,0,sCompT,0,0);
+  } else {
+    cd.getRhoGivenPTY(density,Patm,s_final,Y,box,sCompT,0,0);
+    pressure.setVal(Patm,0);
+  }
+
+  if (measured_comps[0] < 0) { // Return pressure
+    return pressure(box.smallEnd(),0) / 101325;
+  }
+
+  // Return molar concentration
+  FArrayBox C(box,Nspec);
+  cd.massFracToMolarConc(C,Y,s_final,density,box,0,0,sCompT,0);
+  return C(box.smallEnd(),measured_comps[0] - sCompY);
 }
 
 void
