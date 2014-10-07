@@ -215,7 +215,7 @@ p22a.upper_bound = 1.e12
 p22a.lower_bound = 0
 
 p22b.type = FWD_A
-p22b.reaction_id = 27
+p22b.reaction_id = 28
 p22b.prior_mean =  8.784e10
 p22b.prior_std =   8.784e7
 p22b.ensemble_std = 8.784e4
@@ -223,7 +223,7 @@ p22b.upper_bound = 1e11
 p22b.lower_bound = 0
 
 p23.type = FWD_A
-p23.reaction_id = 28
+p23.reaction_id = 29
 p23.prior_mean =  1.112e12
 p23.prior_std =   1.112e9
 p23.ensemble_std = 1.112e6
