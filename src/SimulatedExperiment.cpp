@@ -266,7 +266,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       i++;
     }
 
-    Real p_new, p_old, dpdt_old, p_old2, t_startlast, d2pdt2_old, OH_old, OH_new;
+    Real p_new, p_old, dpdt_old, p_old2, t_startlast, d2pdt2_old, OH_old, OH_new, dt_old;
     Real max_curv;
     if (diagnostic_name == "pressure_rise" 
             || diagnostic_name == "onset_pressure_rise"
@@ -283,6 +283,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       OH_old = 0;
       i++;
     }
+    Real dt = 0;
 
     bool finished = false;
     t_startlast = 0.;
@@ -290,7 +291,8 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     for ( ; i<num_time_nodes && !finished; ++i) {
       Real t_start = t_end;
       t_end = measurement_times[i];
-      Real dt = t_end - t_start;
+      dt_old = dt;
+      dt = t_end - t_start;
       
       cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
                             funcCnt,box,sCompY,sCompRH,sCompT,
@@ -308,11 +310,11 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               // std::cout << "using onset pressure rise diagnostic" << std::endl;
               first = false;
           }
-          p_old = p_new;
           p_old2 = p_old;
+          p_old = p_new;
           p_new = ExtractMeasurement();
 
-          Real dpdt = (p_new -  p_old2) / (2*dt); // At p_old
+          Real dpdt = (p_new -  p_old2) / (dt+dt_old); // At p_old
           if (log_this) {
               ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
                   << p_old << " " << p_new << std::endl;
@@ -399,7 +401,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           p_old2 = p_old;
           p_new = ExtractMeasurement();
 
-          Real d2pdt2 = (p_new - 2.0*p_old + p_old2) / (dt*dt); // At p_old
+          Real d2pdt2 = (p_new - 2.0*p_old + p_old2) / (dt_old*dt); // At p_old
           if( d2pdt2 > max_curv ) {
               max_curv = d2pdt2;
           }
@@ -430,7 +432,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           p_old2 = p_old;
           p_new = ExtractMeasurement();
 
-          Real dpdt = (p_new -  p_old2) / (2*dt); // At p_old
+          Real dpdt = (p_new -  p_old2) / (dt+dt_old); // At p_old
           if (log_this) {
               ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
                   << p_old << " " << p_new << std::endl;
@@ -454,11 +456,11 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               // std::cout << "using onset CO2 rise diagnostic" << std::endl;
               first = false;
           }
-          p_old = p_new;
           p_old2 = p_old;
+          p_old = p_new;
           p_new = ExtractMeasurement();
+          Real d2pdt2 = (p_new -  p_old2) / (dt+dt_old); // At p_old
 
-          Real d2pdt2 = (p_new -  p_old2) / (2*dt); // At p_old
           if (log_this) {
               ofs << i << " " << 0.5*(t_start+t_end) << " " << d2pdt2 << "  "
                   << p_old << " " << p_new << std::endl;
