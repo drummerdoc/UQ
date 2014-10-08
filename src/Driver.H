@@ -10,7 +10,9 @@ struct Driver
   Driver(int, char **, int mpi_later);
   // Driver(int, char **, MPI_Comm mpi_comm);
   void init(int, char **);
+#ifdef BL_USE_MPI
   void SetComm(MPI_Comm mpi_comm);
+#endif
   ~Driver();
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
