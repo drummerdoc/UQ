@@ -187,6 +187,61 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     }
     num_measured_values = measured_comps.size();
   }
+  else if (diagnostic_name == "mean_difference") {
+    mean_delta_cond_start = 0.0;
+    mean_delta_cond_stop = 0.0;
+    std::string mean_delta_cond_spec;
+    std::string mean_delta_numer_spec;
+    std::string mean_delta_denom_spec;
+    pp.query("mean_delta_cond_start",mean_delta_cond_start);
+    pp.query("mean_delta_cond_stop",mean_delta_cond_stop);
+    pp.query("mean_delta_cond_spec",mean_delta_cond_spec);
+    pp.query("mean_delta_numer_spec",mean_delta_numer_spec);
+    pp.query("mean_delta_denom_spec",mean_delta_denom_spec);
+
+    measured_comps.resize(3);
+    int nSpec = cd.numSpecies();
+    for (int i=0; i<nSpec; ++i){
+      const std::string& name = cd.speciesNames()[i];
+      if (name==mean_delta_cond_spec) {
+          measured_comps[0] = i + sCompY;
+      }
+      if (name==mean_delta_numer_spec) {
+          measured_comps[1] = i + sCompY;
+      }
+      if (name==mean_delta_denom_spec) {
+          measured_comps[2] = i + sCompY;
+      }
+    }
+    if( measured_comps[0] > 0 ){
+        IntVect iv(D_DECL(0,0,0));
+        Real X_cond_init = s_init( iv, measured_comps[0] );
+        // Rework cond start/stop to be mole fraction instead
+        // of fractional conversion
+        mean_delta_cond_start = (1.0 - mean_delta_cond_start )*X_cond_init;
+        mean_delta_cond_stop = (1.0 - mean_delta_cond_stop )*X_cond_init;
+    }
+
+    if (mean_delta_cond_spec == "time") {
+        measured_comps[0] = -2; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_numer_spec == "time") {
+        measured_comps[1] = -2; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_denom_spec == "time") {
+        measured_comps[2] = -2; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_cond_spec == "unity") {
+        measured_comps[0] = -3; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_numer_spec == "unity") {
+        measured_comps[1] = -3; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_denom_spec == "unity") {
+        measured_comps[2] = -3; // -1 was pressure, this should be an enum
+    }
+    num_measured_values = 1;
+  }
   else {
     int comp = cd.index(diagnostic_name);
     if (comp < 0) {
@@ -230,7 +285,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   const Box& box = funcCnt.box();
   int Nspec = cd.numSpecies();
 
-  // std::cout << " Running ZeroDReactor "  << diagnostic_name << std::endl;
+  std::cout << "\n\n Running ZeroDReactor "  << diagnostic_name << std::endl;
   int num_time_nodes = measurement_times.size();
   simulated_observations.resize(NumMeasuredValues());
 
@@ -241,13 +296,15 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     && diagnostic_name != "inflect_OH" 
     && diagnostic_name != "onset_OH" 
     && diagnostic_name != "onset_CO2" 
-    && diagnostic_name != "onset_pressure_rise";
+    && diagnostic_name != "onset_pressure_rise"
+    && diagnostic_name != "mean_difference";
 
   std::ofstream ofs;
   bool log_this = (log_file != log_file_DEF);
   if (log_this) {
     ofs.open(log_file.c_str());
   }
+  bool finished;
 
   if (reactor_type == CONSTANT_VOLUME) {
     FArrayBox& rYold = s_init;
@@ -287,7 +344,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     }
     Real dt = 0;
 
-    bool finished = false;
+    finished = false;
     t_startlast = 0.;
     bool first = true;
     for ( ; i<num_time_nodes && !finished; ++i) {
@@ -366,6 +423,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       t_startlast = t_start;
     }
   }
+  // This is constant volume / constant pressure conditional
   else {
     BL_ASSERT(reactor_type == CONSTANT_PRESSURE);
     FArrayBox& Yold = s_init;
@@ -384,6 +442,29 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       }
       i++;
     }
+
+    std::vector<Real> mean_difference_sol_old;
+    std::vector<Real> mean_difference_sol;
+    bool inside_range;
+    Real numer_start, denom_start;
+    Real numer_stop, denom_stop;
+    Real mean_difference_denom, mean_difference_numer;
+    if (diagnostic_name == "mean_difference") {
+        mean_difference_sol.resize(measured_comps.size());
+        ExtractMeasurements(mean_difference_sol, 0);
+        mean_difference_sol_old.resize( mean_difference_sol.size());
+        std::fill( mean_difference_sol_old.begin(), mean_difference_sol_old.end(), 0.0);
+        inside_range = false;
+        numer_start = -1;
+        numer_stop = -1;
+        i++;
+    }
+    Real dt = 0;
+
+
+
+    finished = false;
+    bool first = true;
     for ( ; i<num_time_nodes; ++i) {
       Real t_start = t_end;
       t_end = measurement_times[i];
@@ -397,16 +478,130 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           return false;
         }
       }
+
+
+      if (log_this) {
+          Real cond = ExtractMeasurement();
+        ofs << i << " " << 0.5*(t_start+t_end) << " " << cond << std::endl;
+      }
+      
+      // Diagnostics here
+      if (diagnostic_name == "mean_difference") {
+          if (first) {
+              std::cout << "Using mean difference diagnostic conditional on " 
+                  << measured_comps[0]  << " between " << mean_delta_cond_start << " , "
+                  << mean_delta_cond_stop << " numerator: " << measured_comps[1] << 
+                  " denominator: "<< measured_comps[2] << std::endl;
+              
+              first = false;
+          }
+
+          // Get solution 
+          mean_difference_sol_old = mean_difference_sol;
+          ExtractMeasurements(mean_difference_sol, t_end);
+          const int cond_id = 0;
+          const int numer_id = 1;
+          const int denom_id = 2;
+
+          // Check if we have gone past the start of the condition
+          if( mean_difference_sol[cond_id] < mean_delta_cond_start 
+                  && mean_difference_sol[cond_id] > mean_delta_cond_stop
+                  && !inside_range ) {
+              numer_start = 
+                  (mean_difference_sol[numer_id]
+                   - mean_difference_sol_old[numer_id]) / 
+                  ( mean_difference_sol[cond_id] 
+                    - mean_difference_sol_old[cond_id]) *
+                  ( mean_delta_cond_start 
+                    - mean_difference_sol_old[cond_id] )
+                  + mean_difference_sol_old[numer_id];
+
+              denom_start = 
+                  (mean_difference_sol[denom_id]
+                   - mean_difference_sol_old[denom_id]) / 
+                  ( mean_difference_sol[cond_id] 
+                    - mean_difference_sol_old[cond_id]) *
+                  ( mean_delta_cond_start 
+                    - mean_difference_sol_old[cond_id] )
+                  + mean_difference_sol_old[denom_id];
+
+              std::cout << "Start of range at " 
+                  << numer_start << "/" << denom_start <<  " inside: " <<  inside_range << std::endl;
+
+              inside_range = true;
+
+          }
+
+          if( (mean_difference_sol[cond_id] < mean_delta_cond_stop)
+                  && inside_range ) {
+              BL_ASSERT( numer_start > 0 );
+              BL_ASSERT( denom_start > 0 );
+              inside_range = false;
+
+              numer_stop = 
+                  (mean_difference_sol[numer_id]
+                   - mean_difference_sol_old[numer_id]) / 
+                  ( mean_difference_sol[cond_id] 
+                    - mean_difference_sol_old[cond_id]) *
+                  ( mean_delta_cond_stop 
+                    - mean_difference_sol_old[cond_id] )
+                  + mean_difference_sol_old[numer_id];
+
+              denom_stop = 
+                  (mean_difference_sol[denom_id]
+                   - mean_difference_sol_old[denom_id]) / 
+                  ( mean_difference_sol[cond_id] 
+                    - mean_difference_sol_old[cond_id]) *
+                  ( mean_delta_cond_stop 
+                    - mean_difference_sol_old[cond_id] )
+                  + mean_difference_sol_old[denom_id];
+
+              std::cout << "Stop of range at " 
+                  << numer_stop << "/" << denom_stop << std::endl;
+              // Denomenator difference (unity if -3 - get this in a enum)
+              if( denom_id != -3 ){
+                  mean_difference_denom = denom_stop - denom_start;
+              }
+              else {
+                  mean_difference_denom = 1.0;
+              }
+              mean_difference_numer = numer_start - numer_stop;
+
+              //std::cout << "Computed measurement: " <<  simulated_observations[0] <<
+              //    " using : " << mean_difference_numer << "/" << mean_difference_denom << std::endl;
+              finished = true;
+              if( fabs(mean_difference_denom) > 0 ){
+                  simulated_observations[0] = mean_difference_numer 
+                      / mean_difference_denom;
+              }
+              inside_range = false;
+          }
+
+          if( finished ){
+              if (! ValidMeasurement(simulated_observations[0]) 
+                      || fabs(mean_difference_denom) < 1.0e-20) {
+                  return false;
+              }
+          }
+      }
+
+
+      // Done diagnostics - carry on
+      // std::cout << i << " Computed measurement: " <<  simulated_observations[0]  << " finished: " << finished << std::endl;
       
       Yold.copy(Ynew,sCompY,sCompY,Nspec);
       Told.copy(Tnew,sCompT,sCompT,1);
-    }
+    } // End of loop over time samples extracted
   }
 
   if (log_this) {
     ofs.close();
   }
 
+  std::cout << "--> End Computed measurement: " <<  simulated_observations[0]  << " finished: " << finished << std::endl;
+  if (diagnostic_name == "mean_difference" && !finished) {
+      return false;
+  }
   return true;
 }
 
@@ -897,4 +1092,52 @@ PREMIXReactor::solCopyIn( PremixSol * solIn ){
 void 
 PREMIXReactor::solCopyOut( PremixSol *  solOut){
     *solOut = *premix_sol;
+}
+
+void
+ZeroDReactor::ExtractMeasurements( std::vector<Real>& measurements, Real sample_time ) const
+{
+    BL_ASSERT(is_initialized);
+
+    for (int i=0; i<measured_comps.size(); ++i ) {
+        if (measured_comps[i] == sCompT) { // Return temperature
+            measurements[i] =  s_final(s_final.box().smallEnd(),measured_comps[i]);
+        }
+        else if ((measured_comps[i] == -1) && (reactor_type == CONSTANT_PRESSURE)) {
+            measurements[i] =  Patm;
+        }
+        else if ((measured_comps[i] == -2) && (reactor_type == CONSTANT_PRESSURE)) {
+            measurements[i] =  sample_time;
+        }
+        else if ((measured_comps[i] == -3) && (reactor_type == CONSTANT_PRESSURE)) {
+            measurements[i] =  1.0;
+        }
+        else {
+
+            FArrayBox Y;
+            ComputeMassFraction(Y);
+            const Box& box = Y.box();
+            int Nspec = cd.numSpecies();
+
+            if (measured_comps[i] < 0 && (reactor_type == CONSTANT_VOLUME)) { // Return pressure
+                // CONSTANT_VOLUME case, state holds rho.Y
+                FArrayBox rhop(box,2);
+                rhop.setVal(0,0);
+                for (IntVect iv=box.smallEnd(), End=box.bigEnd(); iv<=End; box.next(iv)) {
+                    for (int i=0; i<Nspec; ++i) {
+                        rhop(iv,0) += s_final(iv,sCompY+i);
+                    }
+                }      
+                cd.getPGivenRTY(rhop,rhop,s_final,Y,box,0,sCompT,0,1);
+                measurements[i] = rhop(box.smallEnd(),1) / 101325;
+            }
+
+            // Compute mole fraction
+            FArrayBox X(box,Nspec);
+            cd.massFracToMoleFrac(X,Y,box,0,0);
+            measurements[i] =  X(box.smallEnd(),measured_comps[i] - sCompY);
+        }
+        // std::cout << " Extracting for component " << i << " id " << measured_comps[i] 
+        //     << " value: " << measurements[i] << std::endl;
+    }
 }

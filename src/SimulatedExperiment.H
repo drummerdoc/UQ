@@ -53,6 +53,7 @@ struct ZeroDReactor
 protected:
   // Compute observation from evolution
   Real ExtractMeasurement() const;
+  void ExtractMeasurements(std::vector<Real>&, Real sample_time ) const;
   bool ValidMeasurement(Real data) const;
   void Reset();
 
@@ -62,6 +63,9 @@ protected:
   std::vector<Real> measurement_times;
   std::vector<int> measured_comps;
   Real measurement_error;
+
+// This is number of data points and number of values
+// from simulation / experiment
   int num_measured_values;
 
   FArrayBox s_init, s_final, C_0, funcCnt, s_save; 
@@ -69,6 +73,8 @@ protected:
   Real Patm, Tfile;
   std::string pmf_file_name;
   Real transient_thresh;
+  Real mean_delta_cond_start;
+  Real mean_delta_cond_stop;
 
 private:
   ZeroDReactor(const ZeroDReactor& rhs);
