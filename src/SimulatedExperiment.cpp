@@ -559,16 +559,30 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               std::cout << "Stop of range at " 
                   << numer_stop << "/" << denom_stop << std::endl;
               // Denomenator difference (unity if -3 - get this in a enum)
-              if( denom_id != -3 ){
+              if( measured_comps[denom_id] != -3 ){
                   mean_difference_denom = denom_stop - denom_start;
               }
               else {
                   mean_difference_denom = 1.0;
               }
-              mean_difference_numer = numer_start - numer_stop;
+              mean_difference_numer = fabs(numer_stop - numer_start);
 
-              //std::cout << "Computed measurement: " <<  simulated_observations[0] <<
-              //    " using : " << mean_difference_numer << "/" << mean_difference_denom << std::endl;
+              if( measured_comps[denom_id] == -2 ) {
+                  mean_difference_denom *= 1.0e3; // convert to ms
+              }
+              else if( measured_comps[denom_id] > 0 ) {
+                  mean_difference_denom *= 1.0e6; // convert X to ppm
+              }
+
+              if( measured_comps[numer_id] == -2 ) {
+                  mean_difference_numer *= 1.0e3; // convert to ms
+              }
+              else if( measured_comps[numer_id] > 0 ) {
+                  mean_difference_numer *= 1.0e6; // convert X to ppm
+              }
+
+              std::cout << "Computed measurement: " <<  simulated_observations[0] <<
+                  " using : " << mean_difference_numer << "/" << mean_difference_denom << std::endl;
               finished = true;
               if( fabs(mean_difference_denom) > 0 ){
                   simulated_observations[0] = mean_difference_numer 
