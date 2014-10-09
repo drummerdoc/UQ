@@ -307,6 +307,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     ofs.open(log_file.c_str());
   }
   bool finished;
+  int finished_count; // Used only for onset_CO2 when added
 
   if (reactor_type == CONSTANT_VOLUME) {
     FArrayBox& rYold = s_init;
@@ -329,7 +330,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       i++;
     }
 
-    Real val_new, val_old, dval_old, val_old2, t_startlast, ddval_old, dt_old;
+    Real val_new, val_old, dval_old, val_old2, t_startlast, ddval_old, dt_old, dval, ddval;
     Real max_curv;
     if (diagnostic_name == "pressure_rise" 
             || diagnostic_name == "onset_pressure_rise"
@@ -347,6 +348,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     Real dt = 0;
 
     finished = false;
+    finished_count = 0;
     t_startlast = 0.;
     bool first = true;
     for ( ; i<num_time_nodes && !finished; ++i) {
@@ -354,6 +356,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       t_end = measurement_times[i];
       dt_old = dt;
       dt = t_end - t_start;
+      if( dt_old == 0 ) dt_old = dt;
       
       cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
                             funcCnt,box,sCompY,sCompRH,sCompT,
@@ -373,8 +376,10 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       val_old2 = val_old;
       val_old = val_new;
       val_new = ExtractMeasurement();
-      Real dval = (val_new -  val_old2) / (dt+dt_old);
-      Real ddval = (val_new - 2.0*val_old + val_old2) / (dt_old*dt);
+      dval_old = dval;
+      ddval_old = ddval;
+      dval = (val_new -  val_old2) / (dt+dt_old);
+      ddval = (val_new - 2.0*val_old + val_old2) / (dt_old*dt);
       if (log_this) {
         ofs << i << " " << 0.5*(t_start+t_end) << " " << dval << "  "
             << ddval << " " << val_old << " " << val_new << std::endl;
@@ -382,10 +387,23 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
       if (diagnostic_name == "onset_pressure_rise"
           || diagnostic_name == "pressure_rise"
-          || diagnostic_name == "onset_OH"
-          || diagnostic_name == "onset_CO2") {
+          || diagnostic_name == "onset_OH"   ) {
 
           finished = dval > transient_thresh && dval < dval_old;
+      }
+      if( diagnostic_name == "onset_CO2") {
+          if (val_new > transient_thresh && ddval - ddval_old < 0) {
+              // May be finished, but there is some occasional spurious drops that don't
+              // reflect a true maximum - count this occurance
+              finished_count++;
+          }
+          else {
+              finished_count=0; // reset finished_count if we go up
+          }
+
+          if( finished_count > 5 ){
+              finished = true;
+          }
       }
       else if (diagnostic_name == "max_pressure") {
 
@@ -667,9 +685,9 @@ ZeroDReactor::ExtractMeasurement() const
 
   int iSpec = measured_comps[0] - sCompY;
   //if (measured_comps[0] > 0 && diagnostic_name != "max_OH") {
-  if (measured_comps[0] > 0) {
-    return X(box.smallEnd(),iSpec);
-  }
+  //if (measured_comps[0] > 0) {
+  //  return X(box.smallEnd(),iSpec);
+  //}
 
   // Get pressure and density:
   //     CV: s_final contains rho.Y, P = P(rho,T,Y)
