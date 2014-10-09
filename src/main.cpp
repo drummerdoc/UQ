@@ -18,7 +18,7 @@ main (int   argc,
   MPI_Init (&argc, &argv);
   Driver driver(argc,argv,MPI_COMM_WORLD);
 #else
-  Driver driver(argc,argv);
+  Driver driver(argc,argv, 0);
 #endif
 
   ParameterManager& parameter_manager = driver.mystruct->parameter_manager;

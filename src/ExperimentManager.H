@@ -37,6 +37,7 @@ struct ExperimentManager
   const std::vector<Real>& ObservationSTD() const;
 
   const SimulatedExperiment& Experiment(int i) const;
+  const std::vector<std::string>& ExperimentNames() {return expt_name;}
 
 protected:  
   bool initialized, use_synthetic_data;
