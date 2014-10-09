@@ -527,7 +527,7 @@ flw7a.mean_delta_numer_spec = CO
 flw7a.mean_delta_denom_spec = time
 
 flw8a.type = CPReactor
-flw8a.data = 70.
+flw8a.data = 19
 flw8a.Patm = 3.02
 flw8a.T  = 934
 flw8a.H2 = 0.0095
@@ -545,7 +545,7 @@ flw8a.mean_delta_numer_spec = H2
 flw8a.mean_delta_denom_spec = time
 
 flw8b.type = CPReactor
-flw8b.data = 19.0
+flw8b.data = 70
 flw8b.Patm = 3.02
 flw8b.T  = 934
 flw8b.H2 = 0.0095
@@ -555,7 +555,7 @@ flw8b.data_num_points = 1000
 flw8b.data_tstart = 0.
 flw8b.data_tend = 5
 flw8b.diagnostic_name = mean_difference
-flw8b.measurement_error = 1.0
+flw8b.measurement_error = 5.0
 flw8b.mean_delta_cond_start = 0.1
 flw8b.mean_delta_cond_stop = 0.6
 flw8b.mean_delta_cond_spec = H2
