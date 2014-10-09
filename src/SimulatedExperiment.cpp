@@ -343,6 +343,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       val_new = ExtractMeasurement();
       dval_old = 0;
       ddval_old = 0;
+      max_curv = 0;
       i++;
     }
     Real dt = 0;
