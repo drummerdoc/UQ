@@ -27,7 +27,7 @@ main (int   argc,
   if (ParallelDescriptor::IOProcessor()) {
     for(int ii=0; ii<num_data; ii++){
       std::cout << ii << " (" << expt_manager.ExperimentNames()[ii] << ") "
-                << " " << true_data[ii] << " " << data[ii] << std::endl;
+                << '\t' << true_data[ii] << '\t' << data[ii] << std::endl;
     }
 
     ParmParse pp;
