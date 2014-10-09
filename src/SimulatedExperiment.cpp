@@ -602,8 +602,8 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                   mean_difference_numer *= 1.0e6; // convert X to ppm
               }
 
-              std::cout << "Computed measurement: " <<  simulated_observations[0] <<
-                  " using : " << mean_difference_numer << "/" << mean_difference_denom << std::endl;
+              //std::cout << "Computed measurement: " <<  simulated_observations[0] <<
+              //    " using : " << mean_difference_numer << "/" << mean_difference_denom << std::endl;
               finished = true;
               if( fabs(mean_difference_denom) > 0 ){
                   simulated_observations[0] = mean_difference_numer 
