@@ -527,7 +527,7 @@ flw7a.mean_delta_numer_spec = CO
 flw7a.mean_delta_denom_spec = time
 
 flw8a.type = CPReactor
-flw8a.data = 19.0
+flw8a.data = 70.
 flw8a.Patm = 3.02
 flw8a.T  = 934
 flw8a.H2 = 0.0095
