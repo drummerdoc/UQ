@@ -728,7 +728,7 @@ ign6b.data_tend = 250e-6
 ign6b.diagnostic_name = thresh_O
 ign6b.measurement_error = 25.
 #ign6b.O_thresh = 2.597835994e-05
-ign6b.O_thresh = 5.264032951e-05
+ign6b.O_thresh = 4.15e-4
 #
 # Target ign6c in Davis paper
 ign6c.type = CVReactor
@@ -760,4 +760,4 @@ ign6d.data_tstart = 0.
 ign6d.data_tend = 50e-6
 ign6d.diagnostic_name = thresh_O
 ign6d.measurement_error = 6.
-ign6d.O_thresh = 5.264032951e-05
+ign6d.O_thresh = 4.15e-4
