@@ -215,9 +215,11 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     }
     if( measured_comps[0] > 0 ){
         IntVect iv(D_DECL(0,0,0));
-        Real X_cond_init = s_init( iv, measured_comps[0] );
+        Real X_cond_init;
+        pp.get(mean_delta_cond_spec.c_str(), X_cond_init);
         // Rework cond start/stop to be mole fraction instead
         // of fractional conversion
+        std::cout << " Looking for c based on X " << X_cond_init << std::endl;
         mean_delta_cond_start = (1.0 - mean_delta_cond_start )*X_cond_init;
         mean_delta_cond_stop = (1.0 - mean_delta_cond_stop )*X_cond_init;
     }
