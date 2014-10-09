@@ -219,7 +219,7 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
         pp.get(mean_delta_cond_spec.c_str(), X_cond_init);
         // Rework cond start/stop to be mole fraction instead
         // of fractional conversion
-        std::cout << " Looking for c based on X " << X_cond_init << std::endl;
+        //std::cout << " Looking for c based on X " << X_cond_init << std::endl;
         mean_delta_cond_start = (1.0 - mean_delta_cond_start )*X_cond_init;
         mean_delta_cond_stop = (1.0 - mean_delta_cond_stop )*X_cond_init;
     }
@@ -287,7 +287,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   const Box& box = funcCnt.box();
   int Nspec = cd.numSpecies();
 
-  std::cout << "\n\n Running ZeroDReactor "  << diagnostic_name << std::endl;
+  //std::cout << "\n\n Running ZeroDReactor "  << diagnostic_name << std::endl;
   int num_time_nodes = measurement_times.size();
   simulated_observations.resize(NumMeasuredValues());
 
@@ -508,11 +508,12 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       // Diagnostics here
       if (diagnostic_name == "mean_difference") {
           if (first) {
+#if 0
               std::cout << "Using mean difference diagnostic conditional on " 
                   << measured_comps[0]  << " between " << mean_delta_cond_start << " , "
                   << mean_delta_cond_stop << " numerator: " << measured_comps[1] << 
                   " denominator: "<< measured_comps[2] << std::endl;
-              
+#endif              
               first = false;
           }
 
@@ -545,8 +546,8 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                     - mean_difference_sol_old[cond_id] )
                   + mean_difference_sol_old[denom_id];
 
-              std::cout << "Start of range at " 
-                  << numer_start << "/" << denom_start <<  " inside: " <<  inside_range << std::endl;
+              //std::cout << "Start of range at " 
+              //    << numer_start << "/" << denom_start <<  " inside: " <<  inside_range << std::endl;
 
               inside_range = true;
 
@@ -576,8 +577,8 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                     - mean_difference_sol_old[cond_id] )
                   + mean_difference_sol_old[denom_id];
 
-              std::cout << "Stop of range at " 
-                  << numer_stop << "/" << denom_stop << std::endl;
+              //std::cout << "Stop of range at " 
+              //    << numer_stop << "/" << denom_stop << std::endl;
               // Denomenator difference (unity if -3 - get this in a enum)
               if( measured_comps[denom_id] != -3 ){
                   mean_difference_denom = denom_stop - denom_start;
@@ -632,7 +633,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     ofs.close();
   }
 
-  std::cout << "--> End Computed measurement: " <<  simulated_observations[0]  << " finished: " << finished << std::endl;
+  //std::cout << "--> End Computed measurement: " <<  simulated_observations[0]  << " finished: " << finished << std::endl;
   if (diagnostic_name == "mean_difference" && !finished) {
       return false;
   }
@@ -801,7 +802,7 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
   //    These are sometimes necessary to get a reasonable initial condition
   //    that premix can converge from
   int nprereq = pp.countval("prereqs");
-  std::cerr << "Experiment " <<  pp_prefix  << std::endl;
+  //std::cerr << "Experiment " <<  pp_prefix  << std::endl;
   Array<std::string> prereq_names;
   if( nprereq > 0 ){
       pp.getarr("prereqs",prereq_names,0,nprereq);
@@ -890,7 +891,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               if( lrstrt == 1  ){
                   (*pr)->solCopyIn(premix_sol);
                   (*pr)->lrstrtflag = 1;
-                  std::cerr <<  "restart this time" << std::endl;
+                  //std::cerr <<  "restart this time" << std::endl;
               }
               else{
                   (*pr)->lrstrtflag = 0;
@@ -1099,7 +1100,7 @@ PREMIXReactor::InitializeExperiment()
     for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr ){                                                                                
         i++;
         (*pr)->InitializeExperiment();
-        std::cerr << "Initialized prereq " << i << " sz: " << (*pr)->nmax << std::endl;
+        //std::cerr << "Initialized prereq " << i << " sz: " << (*pr)->nmax << std::endl;
     }
 
 

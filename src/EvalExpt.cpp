@@ -21,14 +21,14 @@ main (int   argc,
   int num_data = true_data.size();
   std::cout << "True data: (npts=" << num_data << ")\n"; 
   for(int ii=0; ii<num_data; ii++){
-    std::cout << ii << " " << true_data[ii] << std::endl;
+    std::cout << ii << " (" << expt_manager.ExperimentNames()[ii] << ") " << true_data[ii] << std::endl;
   }
 
   std::vector<Real> data(num_data);
   expt_manager.GenerateTestMeasurements(param_manager.TrueParameters(),data);
   std::cout << "Data at True Parameters:\n"; 
   for(int ii=0; ii<num_data; ii++){
-    std::cout << ii << " " << data[ii] << std::endl;
+    std::cout << ii << " (" << expt_manager.ExperimentNames()[ii] << ") " << " " << data[ii] << std::endl;
   }
 
   ParmParse pp;
