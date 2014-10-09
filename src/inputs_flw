@@ -255,9 +255,7 @@ p29a.upper_bound = 4e18
 p29a.lower_bound = 0
 
 
-#experiments = flw1a flw2a flw3a flw5a flw6a flw6b flw7a flw8a flw8b
-#experiments = flw6a flw6b
-experiments = flw8a flw8b 
+experiments = flw1a flw2a flw3a flw4a flw5a flw6a flw6b flw7a flw8a flw8b
 
 flw1a.type = CPReactor
 flw1a.data = 8.6
@@ -271,6 +269,8 @@ flw1a.data_tstart = 0.
 flw1a.data_tend = 4
 flw1a.diagnostic_name = mean_difference
 flw1a.measurement_error = 0.5
+#flw1a.mean_delta_cond_start = 0.4
+#flw1a.mean_delta_cond_stop = 0.6
 flw1a.mean_delta_cond_start = 0.4
 flw1a.mean_delta_cond_stop = 0.6
 flw1a.mean_delta_cond_spec = H2
@@ -391,8 +391,10 @@ flw6b.data_tstart = 0.
 flw6b.data_tend = 1
 flw6b.diagnostic_name = mean_difference
 flw6b.measurement_error = 20
-flw6b.mean_delta_cond_start = 0.75
-flw6b.mean_delta_cond_stop = 0.95
+#flw6b.mean_delta_cond_start = 0.75
+#flw6b.mean_delta_cond_stop = 0.95
+flw6b.mean_delta_cond_start = 0.05
+flw6b.mean_delta_cond_stop = 0.25
 flw6b.mean_delta_cond_spec = CO
 flw6b.mean_delta_numer_spec = time
 flw6b.mean_delta_denom_spec = unity
