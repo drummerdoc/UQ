@@ -447,14 +447,15 @@ flr3a.data = 10
 flr3a.Patm = 33.0
 flr3a.T  = 1754
 flr3a.H2 = .005
-flr3a.O2 = .025
-flr3a.AR = .997
+flr3a.O2 = .0025
+flr3a.AR = .9925
 flr3a.data_num_points = 30000
 flr3a.data_tstart = 0.
 flr3a.data_tend = 50e-6
-flr3a.diagnostic_name = max_OH
+flr3a.diagnostic_name = inflect_OH
 flr3a.measurement_error = 3
 flr3a.dOH_thresh = 1.0e-6
+flr3a.log_file = junk_3a
 
 
 # Target ign4a in Davis paper
@@ -498,7 +499,7 @@ flr5a.AR = 0.9985
 flr5a.data_num_points = 30000
 flr5a.data_tstart = 0.
 flr5a.data_tend = 150e-6
-flr5a.diagnostic_name = max_OH
+flr5a.diagnostic_name = inflect_OH
 flr5a.measurement_error = 25.
 flr5a.dOH_thresh = 1.0e-6
 
