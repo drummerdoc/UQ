@@ -268,7 +268,7 @@ p29a.lower_bound = 0
 
 # Targets from S.G. Davis et al, PCI 30, 2005. First group is premixed
 # laminar flames, second group is ignition delay calculations
-experiments = fls1a fls1b fls2a fls2b fls3a fls3b fls4a fls4b fls5a fls5b fls6a fls6b flw1a flw2a flw3a flw4a flw5a flw6a flw6b flw7a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a ign6a ign6b ign6c ign6d
+experiments = fls3a fls3b fls1a fls1b fls2a fls2b fls4a fls4b fls5a fls5b fls6a fls6b flw1a flw2a flw3a flw4a flw5a flw6a flw6b flw7a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a ign6a ign6b ign6c ign6d
 
 
 #use_synthetic_data = t
