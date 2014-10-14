@@ -192,6 +192,10 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
   for (int i=0; i<test_params.size(); ++i) {
     parameter_manager[i] = test_params[i];      
+    if (ParallelDescriptor::IOProcessor() ){
+       std::cout <<  "parameter " << i << " value " << test_params[i] << std::endl;
+     }
+
   }
   test_measurements.resize(NumExptData());
 
@@ -251,8 +255,8 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         int which_experiment = -1;
         ParallelDescriptor::Recv(&which_experiment,1,master,data_tag);
 
-        // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-        //   " starting on experiment number " << which_experiment << std::endl;
+         std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+           " starting on experiment number " << which_experiment << std::endl;
         expts[which_experiment].CopyData(master,ParallelDescriptor::MyProc(),extra_tag);
 
         // Do the work
@@ -262,8 +266,8 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         else {
           intok = -1;
         }
-        // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-        //  " finished experiment number " << which_experiment << std::endl;
+         std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+          " finished experiment number " << which_experiment << std::endl;
 
         // Send back the result
         mystatus = HAVE_RESULTS;
@@ -274,8 +278,8 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         ParallelDescriptor::Send(&intok, 1, master, data_tag);
         ParallelDescriptor::Send(raw_data[which_experiment], master, data_tag);
         expts[which_experiment].CopyData(ParallelDescriptor::MyProc(),master,extra_tag);
-        // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-        //   " finished sending data back " << which_experiment << std::endl;
+         std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+           " finished sending data back " << which_experiment << std::endl;
       }
       else {
         BoxLib::Abort("Unknown command recvd");
