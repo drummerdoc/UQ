@@ -87,6 +87,19 @@ Driver::GenerateTestMeasurements(const std::vector<Real>& test_params)
   return test_measurements;
 }
 
+std::vector<double>
+Driver::LowerBound()
+{
+  return Driver::mystruct->parameter_manager.lower_bound;
+}
+
+std::vector<double>
+Driver::UpperBound()
+{
+  return Driver::mystruct->parameter_manager.upper_bound;
+}
+
+
 /*
  *
  * Constructor for parallel world

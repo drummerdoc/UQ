@@ -62,5 +62,7 @@ struct Driver
   static std::vector<double> PriorMean();
   static std::vector<double> PriorStd();
   static std::vector<double> EnsembleStd();
+  static std::vector<double> LowerBound();
+  static std::vector<double> UpperBound();
   static std::vector<double> GenerateTestMeasurements(const std::vector<double>& test_params);
 };
