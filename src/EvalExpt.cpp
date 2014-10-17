@@ -18,6 +18,10 @@ main (int   argc,
   
   const std::vector<Real>& true_data = expt_manager.TrueData();
 
+  for (int i=0; i<expt_manager.size(); ++i) {
+    expt_manager.Experiment(i).SetVerbosity(1);
+  }
+
   int num_data = true_data.size();
   std::vector<Real> data(num_data);
   if (ParallelDescriptor::IOProcessor()) {

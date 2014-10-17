@@ -15,6 +15,7 @@ struct ExperimentManager
 
   void InitializeExperiments();
 
+  int size() const {return expts.size();}
   int NumExptData() const;
 
   void InitializeTrueData(const std::vector<Real>& true_parameters);
@@ -36,7 +37,8 @@ struct ExperimentManager
   const std::vector<Real>& TrueDataWithObservationNoise() const;
   const std::vector<Real>& ObservationSTD() const;
 
-  const SimulatedExperiment& Experiment(int i) const;
+  const SimulatedExperiment& Experiment(int i) const {return expts[i];}
+  SimulatedExperiment& Experiment(int i) {return expts[i];} // Careful with this one!
   const std::vector<std::string>& ExperimentNames() {return expt_name;}
 
 protected:  

@@ -77,5 +77,5 @@ END
 //CNTN
 //END
 GRAD   0.05
-CURV   0.05
+CURV   0.01
 END

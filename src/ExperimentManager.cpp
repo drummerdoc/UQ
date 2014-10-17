@@ -82,13 +82,6 @@ ExperimentManager::TrueDataWithObservationNoise() const
   return perturbed_data;
 }
 
-const
-SimulatedExperiment&
-ExperimentManager::Experiment(int i) const
-{
-  return expts[i];
-}
-
 void
 ExperimentManager::Clear()
 {

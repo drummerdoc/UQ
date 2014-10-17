@@ -20,10 +20,10 @@ static Real PREMIXReactorErr_DEF = 10;
 static Real dpdt_thresh_DEF = 10; // atm / s
 static Real dOH_thresh_DEF = 1.0e-4; // Arbitrary default
 static std::string log_file_DEF = "NULL"; // if this, no log
-
+static int verbosity_DEF = 0;
 
 SimulatedExperiment::SimulatedExperiment()
-  :  is_initialized(false), log_file(log_file_DEF) {}
+  :  is_initialized(false), log_file(log_file_DEF), verbosity(verbosity_DEF) {}
 
 SimulatedExperiment::~SimulatedExperiment() {}
 
@@ -887,8 +887,12 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       //std::cout << " makepr: " << makepr << " prereq_reactors.size() " << 
       //    prereq_reactors.size() << std::endl;
       if( prereq_reactors.size() > 0 ){
-      //    std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
-          for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr ){                                                                                
+        if (Verbosity() > 0 && ParallelDescriptor::IOProcessor()) {
+          std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
+        }
+
+        for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr )
+        {
               if( lrstrt == 1  ){
                   (*pr)->solCopyIn(premix_sol);
                   (*pr)->lrstrtflag = 1;
@@ -900,12 +904,18 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   //                std::cerr <<  "restart next time" << std::endl;
               }
               std::vector<Real> pr_obs;
-   //           std::cerr << " Running " << (*pr)->premix_input_file  << " with restart = " << (*pr)->lrstrtflag << std::endl;
+              if (Verbosity() > 0 && ParallelDescriptor::IOProcessor()) {
+                std::cerr << " Running " << (*pr)->premix_input_file
+                          << " with restart = " << (*pr)->lrstrtflag << std::endl;
+              }
               bool ok = (*pr)->GetMeasurements(pr_obs);
               if (!ok) {
                 return false;
               }
-              //  std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
+
+              if (Verbosity() > 0 && ParallelDescriptor::IOProcessor()) {
+                std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
+              }
               (*pr)->solCopyOut(premix_sol);
           }
           lrstrtflag = 1;

@@ -20,11 +20,14 @@ struct SimulatedExperiment
   const std::string& DiagnosticName() const {return diagnostic_name;}
   const std::string& LogFile() const {return log_file;}
   virtual void CopyData(int src, int dest, int tag);
+  int Verbosity() const {return verbosity;}
+  void SetVerbosity(int verb) {verbosity = verb;}
 
 protected:
   bool is_initialized;
   std::string diagnostic_name;
   std::string log_file;
+  int verbosity;
 };
 
 
