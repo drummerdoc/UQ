@@ -22,19 +22,25 @@ main (int   argc,
     expt_manager.Experiment(i).SetVerbosity(1);
   }
 
+  std::vector<Real> myparams = param_manager.TrueParameters();
+  int nParams = myparams.size();
+  ParmParse pp;
+  if (pp.countval("pvals")==nParams) {
+    pp.getarr("pvals",myparams,0,nParams);
+  }
+
   int num_data = true_data.size();
   std::vector<Real> data(num_data);
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "Computing targets...:\n"; 
   }
-  expt_manager.GenerateTestMeasurements(param_manager.TrueParameters(),data);
+  expt_manager.GenerateTestMeasurements(myparams,data);
   if (ParallelDescriptor::IOProcessor()) {
     for(int ii=0; ii<num_data; ii++){
       std::cout << ii << " (" << expt_manager.ExperimentNames()[ii] << ") "
                 << '\t' << true_data[ii] << '\t' << data[ii] << std::endl;
     }
 
-    ParmParse pp;
     if (pp.countval("outfile") > 0) {
       std::string outfile; pp.get("outfile",outfile);
       Box box(IntVect(D_DECL(0,0,0)),
