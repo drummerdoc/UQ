@@ -49,7 +49,7 @@ USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
 BUILD_EXEC      = FALSE
-#BUILD_EXEC      = TRUE
+BUILD_EXEC      = TRUE
 VERBOSE         = TRUE
 DO_REGTEST      = FALSE
 
@@ -71,8 +71,8 @@ ifeq (${USE_SDC}, TRUE)
 endif
 CFLAGS += -std=c99
 
-EBASE = main
-#EBASE = EvalExpt
+#EBASE = main
+EBASE = EvalExpt
 #EBASE = EvalParams
 
 ifeq (${DO_REGTEST}, TRUE)
@@ -283,6 +283,10 @@ ifeq ($(VERBOSE), TRUE)
   SUCCESS_MSG := SUCCESS
 endif
 
+SWIGDEFS := 
+ifeq (${USE_MPI}, TRUE)
+  SWIGDEFS+=-DBL_USE_MPI
+endif
 ifeq (${BUILD_EXEC}, TRUE)
   DEFAULT_TARGET := exec
 else
@@ -299,7 +303,7 @@ ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)
 	cp ${PACKAGE}.py ${PACKAGE}
 
 ${PACKAGE}_wrap.cpp: ${PACKAGE}.i
-	swig -python -c++ -I. $(includes) -I$(SWIG_INCLUDES) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
+	swig -python -c++ ${SWIGDEFS} -I. $(includes) -I$(SWIG_INCLUDES) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
 
 exec: ${executable}
 	./fixDYLIBexe.sh ${executable}

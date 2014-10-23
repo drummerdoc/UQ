@@ -34,8 +34,15 @@ main (int   argc,
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "Computing targets...:\n"; 
   }
-  expt_manager.GenerateTestMeasurements(myparams,data);
+
+  bool ok = expt_manager.GenerateTestMeasurements(myparams,data);
+  
   if (ParallelDescriptor::IOProcessor()) {
+
+    if (!ok) {
+      BoxLib::Abort("Measurements bad");
+    }
+
     for(int ii=0; ii<num_data; ii++){
       std::cout << ii << " (" << expt_manager.ExperimentNames()[ii] << ") "
                 << '\t' << true_data[ii] << '\t' << data[ii] << std::endl;
