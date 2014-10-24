@@ -372,7 +372,7 @@ fls6a.num_sol_pts = 1000
 fls6b.type = PREMIXReactor
 fls6b.data = 18.5
 fls6b.premix_input_path = ../extras/Davis05_h2co/premix/
-fls6b.premix_input_file = premix.fls6b
+fls6b.premix_input_file = premix.fls6b_NEW
 fls6b.measurement_error = 2
 fls6b.num_sol_pts = 1000
 
