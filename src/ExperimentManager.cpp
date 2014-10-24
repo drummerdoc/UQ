@@ -165,11 +165,14 @@ ExperimentManager::GenerateExptData()
   BL_ASSERT(true_data.size() == num_expt_data);
   // FIXME: Make more general
 
-  std::cout << "***************** WARNING: ZEROING DATA NOISE!!!!" << std::endl;
+  Real mult = 1;
+  if (ParallelDescriptor::IOProcessor()) {
+    std::cout << "***************** WARNING: ZEROING DATA NOISE!!!!" << std::endl;
+    mult = 0;
+  }
   for(int ii=0; ii<num_expt_data; ii++){
     Real small = true_std[ii];
-    //perturbed_data[ii] = std::max(small,true_data[ii] + true_std[ii] * randn());
-    perturbed_data[ii] = true_data[ii];
+    perturbed_data[ii] = std::max(small,true_data[ii] + true_std[ii] * randn() * mult);
   }
 }
 
