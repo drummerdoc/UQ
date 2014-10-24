@@ -6,7 +6,7 @@
   
 ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool _use_synthetic_data)
   : use_synthetic_data(_use_synthetic_data),
-    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0)
+    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0), verbose(true)
 {
   ParmParse pp;
   int nExpts = pp.countval("experiments");
@@ -165,7 +165,7 @@ ExperimentManager::GenerateExptData()
   BL_ASSERT(true_data.size() == num_expt_data);
   // FIXME: Make more general
 
-  //std::cout << "***************** WARNING: ZEROING DATA NOISE TO ENSURE MINIMUM IS AT PRIOR!!!!" << std::endl;
+  std::cout << "***************** WARNING: ZEROING DATA NOISE!!!!" << std::endl;
   for(int ii=0; ii<num_expt_data; ii++){
     Real small = true_std[ii];
     //perturbed_data[ii] = std::max(small,true_data[ii] + true_std[ii] * randn());
@@ -185,7 +185,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
   for (int i=0; i<test_params.size(); ++i) {
     parameter_manager[i] = test_params[i];      
-    if (ParallelDescriptor::IOProcessor() ){
+    if (verbose && ParallelDescriptor::IOProcessor() ){
        std::cout <<  "parameter " << i << " value " << test_params[i] << std::endl;
      }
 

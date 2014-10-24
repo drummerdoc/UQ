@@ -18,10 +18,6 @@ main (int   argc,
   
   const std::vector<Real>& true_data = expt_manager.TrueData();
 
-  for (int i=0; i<expt_manager.size(); ++i) {
-    expt_manager.Experiment(i).SetVerbosity(1);
-  }
-
   std::vector<Real> myparams = param_manager.TrueParameters();
   int nParams = myparams.size();
   ParmParse pp;

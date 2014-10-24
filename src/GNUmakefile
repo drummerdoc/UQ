@@ -43,7 +43,7 @@ DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
 USE_MPI         = TRUE
-#USE_MPI         = FALSE
+USE_MPI         = FALSE
 USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
@@ -71,8 +71,8 @@ ifeq (${USE_SDC}, TRUE)
 endif
 CFLAGS += -std=c99
 
-#EBASE = main
-EBASE = EvalExpt
+EBASE = main
+#EBASE = EvalExpt
 #EBASE = EvalParams
 
 ifeq (${DO_REGTEST}, TRUE)
@@ -240,7 +240,8 @@ endif
 # Where chemkin/premix bits are
 VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
-fEXE_sources += premix_2.f twopnt.f mach.f refine.f cktime.f misc_math.f 
+FEXE_sources += premix_2.F
+fEXE_sources += twopnt.f mach.f refine.f cktime.f misc_math.f 
 f90EXE_sources += premix_2_util.f90 
 
 PACKAGES=./packages

@@ -20,7 +20,7 @@ public:
   virtual ~Minimizer() {}
 
   static MyMat FD_Hessian(void *p, const std::vector<Real>& X);
-  static MyMat InvSqrt(void *p, const MyMat & H, const Real CutOff);
+  static MyMat InvSqrt(void *p, const MyMat & H);
 };
 
 class GeneralMinimizer
@@ -37,6 +37,7 @@ class NLLSMinimizer
 public:
   virtual void minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln);
   virtual ~NLLSMinimizer() {}
+  static MyMat  JTJ(void *p, const std::vector<Real>& X);
 };
 
 Real NegativeLogLikelihood(const std::vector<double>& parameters);

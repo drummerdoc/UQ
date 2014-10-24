@@ -1789,6 +1789,7 @@ C     Top of the loop over calls to TWOPNT.
       ERROR = .FALSE.
 C
       DO 2070 CALL = N1CALL, CALLS
+
 C
 C         IF (CALL .EQ. 2) WRITE (LOUT, '( / A / )')
 C     1   ' FLDRIV: FINISHED FIXED TEMPERATURE, ADDING ENERGY EQUATION'
@@ -1826,7 +1827,6 @@ C
          IF (KERR) RETURN
 C
 C        Top of the block to service requests from TWOPNT.
-
          IF (SIGNAL .NE. ' ') THEN
 C
             IF (SIGNAL .EQ. 'RESIDUAL') THEN
@@ -1893,20 +1893,20 @@ C
 C              Show the solution
 
 c     HACK
-               !ICASE = 1
-               !LVARMC = .TRUE.
-               !LENRGY = .TRUE.
-               !CALL FUN (LBURNR, LENRGY, LMULTI, LVCOR, LTDIF,
-     1         !             LVARMC, LTIME, WT, EPS, XGIVEN, TGIVEN,
-     3         !             X, SN, BUFFER, SCRTCH(1, 1), YV,
-     4         !             SCRTCH(1, 2), SCRTCH(1, 3), SCRTCH(1, 4),
-     5         !             COND, D, DKJ, TDR, ICKWRK, RCKWRK, IMCWRK,
-     6         !             RMCWRK, F, SCRTCH(1, 5), SSAVE, RKFT,
-     7         !             RKRT, ICASE, RSAVE)
+c               !ICASE = 1
+c               !LVARMC = .TRUE.
+c               !LENRGY = .TRUE.
+c               !CALL FUN (LBURNR, LENRGY, LMULTI, LVCOR, LTDIF,
+c     1         !             LVARMC, LTIME, WT, EPS, XGIVEN, TGIVEN,
+c     3         !             X, SN, BUFFER, SCRTCH(1, 1), YV,
+c     4         !             SCRTCH(1, 2), SCRTCH(1, 3), SCRTCH(1, 4),
+c     5         !             COND, D, DKJ, TDR, ICKWRK, RCKWRK, IMCWRK,
+c     6         !             RMCWRK, F, SCRTCH(1, 5), SSAVE, RKFT,
+c     7         !             RKRT, ICASE, RSAVE)
 c     HACK
-               !CALL PRINT (LOUT, LENRGY, LMOLE, LMULTI, LTDIF, LVCOR, 
-     +         !     X, BUFFER, SCRTCH(1, 1), SCRTCH(1, 2), KSYM, WT,
-     +         !     cckwrk, ICKWRK, RCKWRK, IMCWRK, RMCWRK)
+c               !CALL PRINT (LOUT, LENRGY, LMOLE, LMULTI, LTDIF, LVCOR, 
+c     +         !     X, BUFFER, SCRTCH(1, 1), SCRTCH(1, 2), KSYM, WT,
+c     +         !     cckwrk, ICKWRK, RCKWRK, IMCWRK, RMCWRK)
 C
             ELSEIF (SIGNAL .EQ. 'SAVE') THEN
 

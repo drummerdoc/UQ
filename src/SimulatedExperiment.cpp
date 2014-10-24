@@ -23,7 +23,9 @@ static std::string log_file_DEF = "NULL"; // if this, no log
 static int verbosity_DEF = 0;
 
 SimulatedExperiment::SimulatedExperiment()
-  :  is_initialized(false), log_file(log_file_DEF), verbosity(verbosity_DEF) {}
+  :  is_initialized(false), log_file(log_file_DEF), verbosity(verbosity_DEF)
+{
+}
 
 SimulatedExperiment::~SimulatedExperiment() {}
 
@@ -47,6 +49,9 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
   ParmParse pp(pp_prefix.c_str());
 
   std::string expt_type; pp.get("type",expt_type);
+
+  pp.query("verbosity",verbosity);
+
   if (expt_type != "CVReactor" && expt_type != "CPReactor") {
     std::string err = "Inputs incompatible with experiment type: " + pp_prefix;
     BoxLib::Abort(err.c_str());
@@ -789,6 +794,8 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
 
   ncomp = cd.numSpecies() + 3;
 
+  pp.query("verbosity",verbosity);
+
   measurement_error = PREMIXReactorErr_DEF;
   pp.query("measurement_error",measurement_error);
 
@@ -868,6 +875,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   int lregrid;
   int lrstrt = 0;
 
+  int v = Verbosity();
+
 #ifndef PREMIX_RESTART
   /*
    * Something about the restart makes the solution less
@@ -887,7 +896,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       //std::cout << " makepr: " << makepr << " prereq_reactors.size() " << 
       //    prereq_reactors.size() << std::endl;
       if( prereq_reactors.size() > 0 ){
-        if (Verbosity() > 0 && ParallelDescriptor::IOProcessor()) {
+        if (v > 0 && ParallelDescriptor::IOProcessor()) {
           std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
         }
 
@@ -904,7 +913,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   //                std::cerr <<  "restart next time" << std::endl;
               }
               std::vector<Real> pr_obs;
-              if (Verbosity() > 0 && ParallelDescriptor::IOProcessor()) {
+              if (v > 0 && ParallelDescriptor::IOProcessor()) {
                 std::cerr << " Running " << (*pr)->premix_input_file
                           << " with restart = " << (*pr)->lrstrtflag << std::endl;
               }
@@ -913,7 +922,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                 return false;
               }
 
-              if (Verbosity() > 0 && ParallelDescriptor::IOProcessor()) {
+              if (v > 0 && ParallelDescriptor::IOProcessor()) {
                 std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
               }
               (*pr)->solCopyOut(premix_sol);
