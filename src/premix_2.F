@@ -1407,7 +1407,7 @@ C
          CALL MCINITCD (LOUT, LENIMC, LENRMC, I(IMCW), R(NMCW),
      1        IFLAG)
          REWIND LSAVE
-         CALL PRSAVE (I, R, C, I(IMCW), R(NMCW), LOUT, LSAVE)
+c         CALL PRSAVE (I, R, C, I(IMCW), R(NMCW), LOUT, LSAVE)
 !      ENDIF
 C
       NATJ = KK+2
@@ -1913,8 +1913,8 @@ C
 
 C              Save the solution
                REWIND LRCRVR
-               CALL PRSAVE (ICKWRK, RCKWRK, CCKWRK,
-     1                      IMCWRK, RMCWRK, LOUT, LRCRVR)
+c               CALL PRSAVE (ICKWRK, RCKWRK, CCKWRK,
+c     1                      IMCWRK, RMCWRK, LOUT, LRCRVR)
                WRITE (LRCRVR) ISOLUT
                WRITE (LRCRVR) NATJ, JJ, P, BUFFER(NM, 1)
                WRITE (LRCRVR) (X(J), J = 1, JJ)
@@ -3237,6 +3237,9 @@ C     PROBLEM TYPE KEYWORDS
 C
 C///////////////////////////////////////////////////////////////////////
 C
+      print *,'RDKEY KEY:',KEY
+
+
       IF (KEY .EQ. 'BURN') THEN
 C        Burner-stabilized flame problem
          LBURNR = .TRUE.

@@ -26,4 +26,10 @@ subroutine open_premix_files( lin, lout, linmc, lrin, lrout, lrcvr, inputfile, &
     OPEN(LROUT,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./save.bin')
     OPEN(LRCVR,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./recov.bin')
 
+    ! In case previous fail, perhaps these files already open.  Rewind (most of these not actually used, but...)
+    rewind(lin)
+    rewind(linmc)
+    rewind(lrin)
+    rewind(lrout)
+    rewind(lrcvr)
 end

@@ -310,10 +310,10 @@ fls2b.num_sol_pts = 1000
 fls3a.type = PREMIXReactor
 fls3a.data = 58
 fls3a.premix_input_path = ../extras/Davis05_h2co/premix/
-fls3a.premix_input_file = premix.fls3a
+fls3a.premix_input_file = premix.fls3a_NEW
 fls3a.measurement_error = 6
 fls3a.num_sol_pts = 1000
-fls3a.prereqs = fls3ap1 fls3ap2
+#fls3a.prereqs = fls3ap1 fls3ap2
 
 fls3ap1.type = PREMIXReactor
 fls3ap1.premix_input_path = ../extras/Davis05_h2co/premix/
@@ -330,7 +330,7 @@ fls3ap2.num_sol_pts = 1000
 fls3b.type = PREMIXReactor
 fls3b.data = 88
 fls3b.premix_input_path = ../extras/Davis05_h2co/premix/
-fls3b.premix_input_file = premix.fls3b
+fls3b.premix_input_file = premix.fls3b_NEW
 fls3b.measurement_error = 9
 fls3b.num_sol_pts = 1000
 

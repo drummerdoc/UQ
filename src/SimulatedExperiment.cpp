@@ -829,7 +829,9 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
           }
           BL_ASSERT( type == "PREMIXReactor" );
       }
-      std::cerr << "Experiment " <<  pp_prefix  << " registering " << nprereq << " prerequisites " << std::endl;
+      if (ParallelDescriptor::IOProcessor()) {
+        std::cerr << "Experiment " <<  pp_prefix  << " registering " << nprereq << " prerequisites " << std::endl;
+      }
   }
 
 }
