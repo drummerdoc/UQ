@@ -21,9 +21,9 @@ TFIX  400.
 /   mesh adaptation criteria
 /   unreacted fuel-oxidizer makeup
 MOLE
-REAC H2   0.092
+REAC H2   0.0092
 REAC O2   0.174
-REAC CO   0.078
+REAC CO   0.1608
 REAC N2   0.656
 /   estimated product mole fractions
 PROD  H2O  0.092

@@ -10,13 +10,17 @@ struct Driver
   Driver(int, char **, int mpi_later);
   // Driver(int, char **, MPI_Comm mpi_comm);
   void init(int, char **);
+#ifdef BL_USE_MPI
   void SetComm(MPI_Comm mpi_comm);
+#endif
   ~Driver();
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
   static int NumData();
   static std::vector<double> PriorMean();
   static std::vector<double> PriorStd();
+  static std::vector<double> LowerBound();
+  static std::vector<double> UpperBound();
   static std::vector<double> EnsembleStd();
   static std::vector<double> GenerateTestMeasurements(const std::vector<Real>& test_params);
 

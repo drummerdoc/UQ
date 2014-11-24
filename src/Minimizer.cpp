@@ -92,25 +92,26 @@ MyMat
 Minimizer::FD_Hessian(void *p, const std::vector<Real>& X)
 {
   MINPACKstruct *str = (MINPACKstruct*)(p);
-  int num_vals = str->parameter_manager.NumParams();
-  MINPACKstruct::LAPACKstruct& lapack = str->lapack_struct;
-
-  // The matrix
-  std::vector<Real>& a = lapack.a;
+  int n = str->parameter_manager.NumParams();
 
   // Fill the upper matrix
-  MyMat H(num_vals);
-  for( int ii=0; ii<num_vals; ii++ ){
-    H[ii].resize(num_vals);
-    for (int j=0; j<num_vals; ++j) {
-      a[j + ii*num_vals] = -1;
+  MyMat H(n);
+  for( int ii=0; ii<n; ii++ ){
+    H[ii].resize(n);
+    for (int j=0; j<n; ++j) {
       H[ii][j] = -1;
     }
-    for( int jj=ii; jj<num_vals; jj++ ){
-      a[jj + ii*num_vals] = mixed_partial_centered( p, X, ii, jj);
-      H[ii][jj] = a[jj + ii*num_vals];
+    for( int jj=ii; jj<n; jj++ ){
+      H[ii][jj] = mixed_partial_centered( p, X, ii, jj);
     }
   }
+
+  for( int ii=0; ii<n; ii++ ){
+    for( int jj=ii; jj<n; jj++ ){
+      H[jj][ii] = H[ii][jj];
+    }
+  }
+
   return H;
 }
 // /////////////////////////////////////////////////////////
@@ -124,7 +125,7 @@ Minimizer::FD_Hessian(void *p, const std::vector<Real>& X)
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 MyMat
-Minimizer::InvSqrt(void *p, const MyMat & H, const Real CutOff)
+Minimizer::InvSqrt(void *p, const MyMat & H)
 {
   MINPACKstruct *str = (MINPACKstruct*)(p);
   int num_vals = str->parameter_manager.NumParams();
@@ -154,6 +155,17 @@ Minimizer::InvSqrt(void *p, const MyMat & H, const Real CutOff)
   for (int i=0; i<num_vals; ++i) {
 	  std::cout <<  "Eigenvalue: " << eigenvalues[i] << std::endl;
   }
+
+  std::vector<Real> typEig(num_vals,0);
+  const std::vector<Real>& priorSTD = str->parameter_manager.PriorSTD();
+  for (int i=0; i<num_vals; ++i) {
+    typEig[i] = 1/(priorSTD[i] * priorSTD[i]);
+  }
+  Real minEig = std::abs(typEig[0]);
+  for (int i=1; i<num_vals; ++i) {
+    minEig = std::min(minEig,std::abs(typEig[i]));
+  }
+  Real CutOff = 0.1 * minEig;
 
   // Get 1/sqrt(lambda)
   std::vector<Real> sqrtlinv(num_vals);
@@ -588,7 +600,39 @@ int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac,
 // /////////////////////////////////////////////////////////
 
 
+MyMat
+NLLSMinimizer::JTJ(void *p, const std::vector<Real>& X)
+{
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  int n = s->parameter_manager.NumParams();
+  int m = n + s->expt_manager.NumExptData();
+  std::vector<Real> fvec(m);
+  std::vector<Real> fjac(m*n);
+  int status = NLLSFCN(p,m,n,&(X[0]),&(fvec[0]),&(fjac[0]),m,2);
+  MyMat H(n);
 
+  std::vector<Real> JTJ(n*n);
+  for (int i=0; i<n; ++i) {
+    for (int j=0; j<n; ++j) {
+      JTJ[j*n+i] = 0;
+    }
+  }
+  // Fill up J^t J
+  for (int i=0; i<n; ++i) {
+    for (int j=0; j<n; ++j) {
+      for (int ii=0; ii<m; ++ii) {
+        JTJ[j*n+i] += fjac[i*m+ii] * fjac[j*m+ii];
+      }
+    }
+  }
+  for( int ii=0; ii<n; ii++ ){
+    H[ii].resize(n);
+    for (int j=0; j<n; ++j) {
+      H[ii][j] = 2*JTJ[j + ii*n];
+    }
+  }
+  return H;
+}
 
 // /////////////////////////////////////////////////////////
 // Nonlinear least squares function that does not evaluate

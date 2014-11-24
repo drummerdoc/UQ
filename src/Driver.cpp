@@ -87,6 +87,19 @@ Driver::GenerateTestMeasurements(const std::vector<Real>& test_params)
   return test_measurements;
 }
 
+std::vector<double>
+Driver::LowerBound()
+{
+  return Driver::mystruct->parameter_manager.lower_bound;
+}
+
+std::vector<double>
+Driver::UpperBound()
+{
+  return Driver::mystruct->parameter_manager.upper_bound;
+}
+
+
 /*
  *
  * Constructor for parallel world
@@ -126,11 +139,13 @@ Driver::GenerateTestMeasurements(const std::vector<Real>& test_params)
  * Set mpi communicator to use when init is called
  *
  */
+#ifdef BL_USE_MPI
 void
 Driver::SetComm(MPI_Comm mpi_comm) {
     _mpi_comm = mpi_comm;
 
 }
+#endif
 
 /*
  *
@@ -189,6 +204,17 @@ Driver::init(int argc, char *argv[])
     expt_manager.InitializeExperiments();
     expt_manager.InitializeTrueData(parameter_manager.TrueParameters());
     expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
+
+#if 0
+        std::cout << "Running 1 set of experiments" << std::endl;
+        std::vector<Real> test_measurements, test_params;
+        expt_manager.GenerateTestMeasurements(test_params,test_measurements);
+        for (int i=0; i<test_measurements.size(); ++i) {
+            std::cout << "Experiment[" << i << "] = " << test_measurements[i] << std::endl;
+        }
+        std::cout << "Done running 1 set of experiments" << std::endl;
+        BoxLib::Abort("Done single test");
+#endif
 }
 
 Driver::~Driver()

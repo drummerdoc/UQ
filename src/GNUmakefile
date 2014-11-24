@@ -43,13 +43,13 @@ DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
 USE_MPI         = TRUE
-#USE_MPI         = FALSE
+USE_MPI         = FALSE
 USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
 BUILD_EXEC      = FALSE
-#BUILD_EXEC      = TRUE
+BUILD_EXEC      = TRUE
 VERBOSE         = TRUE
 DO_REGTEST      = FALSE
 
@@ -240,7 +240,8 @@ endif
 # Where chemkin/premix bits are
 VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
-fEXE_sources += premix_2.f twopnt.f mach.f refine.f cktime.f misc_math.f 
+FEXE_sources += premix_2.F
+fEXE_sources += twopnt.f mach.f refine.f cktime.f misc_math.f 
 f90EXE_sources += premix_2_util.f90 
 
 PACKAGES=./packages
@@ -283,6 +284,10 @@ ifeq ($(VERBOSE), TRUE)
   SUCCESS_MSG := SUCCESS
 endif
 
+SWIGDEFS := 
+ifeq (${USE_MPI}, TRUE)
+  SWIGDEFS+=-DBL_USE_MPI
+endif
 ifeq (${BUILD_EXEC}, TRUE)
   DEFAULT_TARGET := exec
 else
@@ -299,7 +304,7 @@ ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)
 	cp ${PACKAGE}.py ${PACKAGE}
 
 ${PACKAGE}_wrap.cpp: ${PACKAGE}.i
-	swig -python -c++ -I. $(includes) -I$(SWIG_INCLUDES) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
+	swig -python -c++ ${SWIGDEFS} -I. $(includes) -I$(SWIG_INCLUDES) -o ${PACKAGE}_wrap.cpp ${PACKAGE}.i
 
 exec: ${executable}
 	./fixDYLIBexe.sh ${executable}

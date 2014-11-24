@@ -6,7 +6,7 @@
   
 ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool _use_synthetic_data)
   : use_synthetic_data(_use_synthetic_data),
-    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0)
+    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0), verbose(true)
 {
   ParmParse pp;
   int nExpts = pp.countval("experiments");
@@ -80,13 +80,6 @@ const std::vector<Real>&
 ExperimentManager::TrueDataWithObservationNoise() const
 {
   return perturbed_data;
-}
-
-const
-SimulatedExperiment&
-ExperimentManager::Experiment(int i) const
-{
-  return expts[i];
 }
 
 void
@@ -172,11 +165,14 @@ ExperimentManager::GenerateExptData()
   BL_ASSERT(true_data.size() == num_expt_data);
   // FIXME: Make more general
 
-  //std::cout << "***************** WARNING: ZEROING DATA NOISE TO ENSURE MINIMUM IS AT PRIOR!!!!" << std::endl;
+  Real mult = 1;
+  if (ParallelDescriptor::IOProcessor()) {
+    std::cout << "***************** WARNING: ZEROING DATA NOISE!!!!" << std::endl;
+    mult = 0;
+  }
   for(int ii=0; ii<num_expt_data; ii++){
     Real small = true_std[ii];
-    //perturbed_data[ii] = std::max(small,true_data[ii] + true_std[ii] * randn());
-    perturbed_data[ii] = true_data[ii];
+    perturbed_data[ii] = std::max(small,true_data[ii] + true_std[ii] * randn() * mult);
   }
 }
 
@@ -192,6 +188,10 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
   for (int i=0; i<test_params.size(); ++i) {
     parameter_manager[i] = test_params[i];      
+    if (verbose && ParallelDescriptor::IOProcessor() ){
+       std::cout <<  "parameter " << i << " value " << test_params[i] << std::endl;
+     }
+
   }
   test_measurements.resize(NumExptData());
 
@@ -251,8 +251,9 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         int which_experiment = -1;
         ParallelDescriptor::Recv(&which_experiment,1,master,data_tag);
 
-        // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-        //   " starting on experiment number " << which_experiment << std::endl;
+         std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+           " starting on experiment number " << which_experiment <<
+           " (" << ExperimentNames() [which_experiment] << ")" << std::endl;
         expts[which_experiment].CopyData(master,ParallelDescriptor::MyProc(),extra_tag);
 
         // Do the work
@@ -262,8 +263,8 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         else {
           intok = -1;
         }
-        // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-        //  " finished experiment number " << which_experiment << std::endl;
+         std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+           " finished experiment number " << which_experiment << std::endl;
 
         // Send back the result
         mystatus = HAVE_RESULTS;
@@ -274,8 +275,8 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         ParallelDescriptor::Send(&intok, 1, master, data_tag);
         ParallelDescriptor::Send(raw_data[which_experiment], master, data_tag);
         expts[which_experiment].CopyData(ParallelDescriptor::MyProc(),master,extra_tag);
-        // std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-        //   " finished sending data back " << which_experiment << std::endl;
+         std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+           " finished sending data back " << which_experiment << std::endl;
       }
       else {
         BoxLib::Abort("Unknown command recvd");
@@ -318,6 +319,14 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         int exp_num;
         ParallelDescriptor::Recv(&exp_num,1,current_worker,data_tag);
         ParallelDescriptor::Recv( &intok, 1, current_worker, data_tag );
+
+        if (intok < 0) {
+          std::cout << "Experiment " << exp_num
+                    << " (" << ExperimentNames() [exp_num]
+                    << ") failed!" << std::endl;
+          ok = false;
+        }
+
         int n = expts[exp_num].NumMeasuredValues();
         ParallelDescriptor::Recv( raw_data[exp_num],  current_worker, data_tag );
         expts[exp_num].CopyData(current_worker,master, extra_tag);
@@ -334,7 +343,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         BoxLib::Abort("Unknown status from worker");
       }
 
-    } while (Nexperiments_dispatched < expts.size());
+    } while (Nexperiments_dispatched < expts.size() && ok);
 
     // All tasks sent out at this point - tell all workers to stop, getting
     // final set of results if necessary
@@ -351,6 +360,14 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         int exp_num;
         ParallelDescriptor::Recv(&exp_num, 1, i, data_tag);
         ParallelDescriptor::Recv(&intok, 1, i, data_tag);
+
+        if (intok < 0) {
+          std::cout << "Experiment " << exp_num
+                    << " (" << ExperimentNames() [exp_num]
+                    << ") failed!" << std::endl;
+          ok = false;
+        }
+
         int n = expts[exp_num].NumMeasuredValues();
         ParallelDescriptor::Recv( raw_data[exp_num],  i, data_tag );
         expts[exp_num].CopyData(i,master, extra_tag);
@@ -377,9 +394,9 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
       << " experiments and had " << Nexperiments_finished 
       << " of them done " << std::endl;
 
-    if (Nexperiments_dispatched != Nexperiments_finished) {
-        BoxLib::Abort("Not all dispatched experiments returned");
-    }
+    //if (Nexperiments_dispatched != Nexperiments_finished) {
+    //    BoxLib::Abort("Not all dispatched experiments returned");
+    //}
 
   }
   ParallelDescriptor::Barrier();
@@ -388,6 +405,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   ParallelDescriptor::Bcast(const_cast<Real*>(&test_measurements[0]), 
                             test_measurements.size(), 0);
 
+  ParallelDescriptor::ReduceBoolAnd(ok);
 
   if (ParallelDescriptor::MyProc() == master) {
     for (int i=0; i<expts.size() && ok; ++i) {
@@ -396,20 +414,19 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
                 << ") result: " << test_measurements[offset] << std::endl;
     }
   }
-  return true;
   
 #else
   // Serial tasks 
-    for (int i=0; i<expts.size() && ok; ++i) {
-      ok = expts[i].GetMeasurements(raw_data[i]);
-      int offset = data_offsets[i];
-      for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
-        test_measurements[offset + j] = raw_data[i][j];
-      }
+  for (int i=0; i<expts.size() && ok; ++i) {
+    ok = expts[i].GetMeasurements(raw_data[i]);
+    int offset = data_offsets[i];
+    for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
+      test_measurements[offset + j] = raw_data[i][j];
     }
-    return ok;
-
+  }
 #endif
+
+  return ok;
 }
 
 Real

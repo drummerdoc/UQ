@@ -32,8 +32,10 @@
     %}
 
     %include "numpy.i"
+#ifdef BL_USE_MPI
     %include "mpi4py.i"
     %mpi4py_typemap(Comm, MPI_Comm);
+#endif
 
     %init %{
         import_array();
@@ -51,12 +53,16 @@ struct Driver
   Driver(int argc, char**argv, int mpi_later);
   ~Driver();
   void init(int argc, char**argv);
+#ifdef BL_USE_MPI
   void SetComm(MPI_Comm comm);
+#endif
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
   static int NumData();
   static std::vector<double> PriorMean();
   static std::vector<double> PriorStd();
   static std::vector<double> EnsembleStd();
+  static std::vector<double> LowerBound();
+  static std::vector<double> UpperBound();
   static std::vector<double> GenerateTestMeasurements(const std::vector<double>& test_params);
 };

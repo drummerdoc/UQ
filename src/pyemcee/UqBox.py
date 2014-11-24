@@ -17,12 +17,12 @@ from mpi4py import MPI
 
 
 #   Inputs
-nwalkers      = 62
+nwalkers      = 64
 nBurnIn       = 10        # Number of burn-in samples before starting to take data
 nChainLength  = 5000       # Number of MCMC resamplings in the data run, after burn in
 outFilePrefix = "Results_" # Prefix to output file names, to be appended with eval #
-outFilePeriod = 500        # Number of samples between calls to write data
-runlogPeriod  = 100        # Number of samples between info messages written to screen
+outFilePeriod = 10        # Number of samples between calls to write data
+runlogPeriod  = 1        # Number of samples between info messages written to screen
 seed          = 17
 nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended number
 

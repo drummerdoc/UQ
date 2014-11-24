@@ -20,10 +20,12 @@ static Real PREMIXReactorErr_DEF = 10;
 static Real dpdt_thresh_DEF = 10; // atm / s
 static Real dOH_thresh_DEF = 1.0e-4; // Arbitrary default
 static std::string log_file_DEF = "NULL"; // if this, no log
-
+static int verbosity_DEF = 0;
 
 SimulatedExperiment::SimulatedExperiment()
-  :  is_initialized(false), log_file(log_file_DEF) {}
+  :  is_initialized(false), log_file(log_file_DEF), verbosity(verbosity_DEF)
+{
+}
 
 SimulatedExperiment::~SimulatedExperiment() {}
 
@@ -47,6 +49,9 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
   ParmParse pp(pp_prefix.c_str());
 
   std::string expt_type; pp.get("type",expt_type);
+
+  pp.query("verbosity",verbosity);
+
   if (expt_type != "CVReactor" && expt_type != "CPReactor") {
     std::string err = "Inputs incompatible with experiment type: " + pp_prefix;
     BoxLib::Abort(err.c_str());
@@ -151,11 +156,15 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     transient_thresh = dpdt_thresh_DEF;
     pp.query("dOH_thresh",transient_thresh);
     int nSpec = cd.numSpecies();
-    for (int i=0; i<nSpec; ++i){
+    measured_comps[0] = -1;
+    for (int i=0; i<nSpec && measured_comps[0]<0; ++i){
       const std::string& name = cd.speciesNames()[i];
       if (name=="OH") {
           measured_comps[0] = i + sCompY;
       }
+    }
+    if (measured_comps[0] < 0) {
+      BoxLib::Abort("OH needed for diagnostic, but not found in chemical mech");
     }
     num_measured_values = measured_comps.size();
   }
@@ -182,6 +191,64 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
       }
     }
     num_measured_values = measured_comps.size();
+  }
+  else if (diagnostic_name == "mean_difference") {
+    mean_delta_cond_start = 0.0;
+    mean_delta_cond_stop = 0.0;
+    std::string mean_delta_cond_spec;
+    std::string mean_delta_numer_spec;
+    std::string mean_delta_denom_spec;
+    pp.query("mean_delta_cond_start",mean_delta_cond_start);
+    pp.query("mean_delta_cond_stop",mean_delta_cond_stop);
+    pp.query("mean_delta_cond_spec",mean_delta_cond_spec);
+    pp.query("mean_delta_numer_spec",mean_delta_numer_spec);
+    pp.query("mean_delta_denom_spec",mean_delta_denom_spec);
+
+    measured_comps.resize(3,-100);
+    int nSpec = cd.numSpecies();
+    for (int i=0; i<nSpec; ++i){
+      const std::string& name = cd.speciesNames()[i];
+      if (name==mean_delta_cond_spec) {
+          measured_comps[0] = i + sCompY;
+      }
+      if (name==mean_delta_numer_spec) {
+          measured_comps[1] = i + sCompY;
+      }
+      if (name==mean_delta_denom_spec) {
+          measured_comps[2] = i + sCompY;
+      }
+    }
+
+    if( measured_comps[0] >= 0 ){
+        IntVect iv(D_DECL(0,0,0));
+        Real X_cond_init;
+        pp.get(mean_delta_cond_spec.c_str(), X_cond_init);
+        // Rework cond start/stop to be mole fraction instead
+        // of fractional conversion
+        //std::cout << " Looking for c based on X " << X_cond_init << std::endl;
+        mean_delta_cond_start = (1.0 - mean_delta_cond_start )*X_cond_init;
+        mean_delta_cond_stop = (1.0 - mean_delta_cond_stop )*X_cond_init;
+    }
+
+    if (mean_delta_cond_spec == "time") {
+        measured_comps[0] = -2; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_numer_spec == "time") {
+        measured_comps[1] = -2; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_denom_spec == "time") {
+        measured_comps[2] = -2; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_cond_spec == "unity") {
+        measured_comps[0] = -3; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_numer_spec == "unity") {
+        measured_comps[1] = -3; // -1 was pressure, this should be an enum
+    }
+    if (mean_delta_denom_spec == "unity") {
+        measured_comps[2] = -3; // -1 was pressure, this should be an enum
+    }
+    num_measured_values = 1;
   }
   else {
     int comp = cd.index(diagnostic_name);
@@ -226,7 +293,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   const Box& box = funcCnt.box();
   int Nspec = cd.numSpecies();
 
-  // std::cout << " Running ZeroDReactor "  << diagnostic_name << std::endl;
+  //std::cout << "\n\n Running ZeroDReactor "  << diagnostic_name << std::endl;
   int num_time_nodes = measurement_times.size();
   simulated_observations.resize(NumMeasuredValues());
 
@@ -237,13 +304,16 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     && diagnostic_name != "inflect_OH" 
     && diagnostic_name != "onset_OH" 
     && diagnostic_name != "onset_CO2" 
-    && diagnostic_name != "onset_pressure_rise";
+    && diagnostic_name != "onset_pressure_rise"
+    && diagnostic_name != "mean_difference";
 
   std::ofstream ofs;
   bool log_this = (log_file != log_file_DEF);
   if (log_this) {
     ofs.open(log_file.c_str());
   }
+  bool finished;
+  int finished_count; // Used only for onset_CO2 when added
 
   if (reactor_type == CONSTANT_VOLUME) {
     FArrayBox& rYold = s_init;
@@ -266,7 +336,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       i++;
     }
 
-    Real p_new, p_old, dpdt_old, p_old2, t_startlast, d2pdt2_old, OH_old, OH_new;
+    Real val_new, val_old, dval_old, val_old2, t_startlast, ddval_old, dt_old, dval, ddval;
     Real max_curv;
     if (diagnostic_name == "pressure_rise" 
             || diagnostic_name == "onset_pressure_rise"
@@ -276,21 +346,24 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
             || diagnostic_name == "onset_OH"  
             || diagnostic_name == "onset_CO2"  
             || diagnostic_name == "max_OH" ) {
-      p_new = ExtractMeasurement();
-      OH_new = ExtractMeasurement();
-      dpdt_old = 0;
-      d2pdt2_old = 0;
-      OH_old = 0;
+      val_new = ExtractMeasurement();
+      dval_old = 0;
+      ddval_old = 0;
+      max_curv = 0;
       i++;
     }
+    Real dt = 0;
 
-    bool finished = false;
+    finished = false;
+    finished_count = 0;
     t_startlast = 0.;
     bool first = true;
     for ( ; i<num_time_nodes && !finished; ++i) {
       Real t_start = t_end;
       t_end = measurement_times[i];
-      Real dt = t_end - t_start;
+      dt_old = dt;
+      dt = t_end - t_start;
+      if( dt_old == 0 ) dt_old = dt;
       
       cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
                             funcCnt,box,sCompY,sCompRH,sCompT,
@@ -303,204 +376,72 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
         }
       }
 
-      if (diagnostic_name == "onset_pressure_rise") {
-          if (first) {
-              // std::cout << "using onset pressure rise diagnostic" << std::endl;
-              first = false;
-          }
-          p_old = p_new;
-          p_old2 = p_old;
-          p_new = ExtractMeasurement();
-
-          Real dpdt = (p_new -  p_old2) / (2*dt); // At p_old
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          //std::cout << "called solveTransient and found d2pdt2 " <<  
-          //    d2pdt2 << "; threshold=" << transient_thresh << std::endl;
-          finished = dpdt > transient_thresh && dpdt < dpdt_old;
-          if (finished) {
-              simulated_observations[0] = t_startlast;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
-          }
-          dpdt_old = dpdt;
+      if (first) {
+        first = false;
+        val_old = val_new;
+      }
+      val_old2 = val_old;
+      val_old = val_new;
+      val_new = ExtractMeasurement();
+      dval_old = dval;
+      ddval_old = ddval;
+      dval = (val_new -  val_old2) / (dt+dt_old);
+      ddval = (val_new - 2.0*val_old + val_old2) / (dt_old*dt);
+      if (log_this) {
+        ofs << i << " " << 0.5*(t_start+t_end) << " " << dval << "  "
+            << ddval << " " << val_old << " " << val_new << std::endl;
       }
 
-      else if (diagnostic_name == "pressure_rise") {
-          if (first) {
-              std::cout << "using pressure rise diagnostic" << std::endl;
-              first = false;
+      if (diagnostic_name == "onset_pressure_rise"
+          || diagnostic_name == "pressure_rise"
+          || diagnostic_name == "onset_OH"   ) {
+
+          finished = dval > transient_thresh && dval < dval_old;
+      }
+      if( diagnostic_name == "onset_CO2") {
+          if (val_new > transient_thresh && ddval - ddval_old < 0) {
+              // May be finished, but there is some occasional spurious drops that don't
+              // reflect a true maximum - count this occurance
+              finished_count++;
           }
-          p_old = p_new;
-          p_new = ExtractMeasurement();
-          Real dpdt = (p_new - p_old) / dt;
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
-                  << p_old << " " << p_new << std::endl;
+          else {
+              finished_count=0; // reset finished_count if we go up
           }
-          finished = dpdt > transient_thresh && dpdt < dpdt_old;
-          if (finished) {
-              simulated_observations[0] = t_start;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
+
+          if( finished_count > 5 ){
+              finished = true;
           }
-          dpdt_old = dpdt;
       }
       else if (diagnostic_name == "max_pressure") {
-          p_old = p_new;
-          p_new = ExtractMeasurement();
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " 
-                  << p_old << " " << p_new << " " << (p_new - p_old)/dt << std::endl;
-          }
-          finished = p_old > transient_thresh && (p_new - p_old)/dt < transient_thresh;
-          if (finished) {
-              simulated_observations[0] = t_start;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-          }
-      }
 
+          finished = val_old > transient_thresh && (val_new - val_old)/dt < transient_thresh;
+      }
       else if (diagnostic_name == "max_OH") {
-          OH_old = OH_new;
-          OH_new = ExtractMeasurement();
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " 
-                  << OH_old << " " << OH_new << " " << (OH_new - OH_old)/dt << std::endl;
-          }
-          // std::cout << "called solveTransient and found OH " <<  
-          //     OH_old << "; threshold=" << transient_thresh << " t=" << t_start*1e6 << "new " << OH_new << "slope: " << (OH_new - OH_old)/dt << std::endl;
-          finished = OH_old > transient_thresh && (OH_new - OH_old)/dt < 0;
-          if (finished) {
-              simulated_observations[0] = t_start;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-          }
-      }
 
+          finished = val_old > transient_thresh && (val_new - val_old)/dt < 0;
+      }
       else if (diagnostic_name == "inflect_OH") {
-          if (first) {
-              std::cout << "using inflection OH diagnostic" << std::endl;
-              first = false;
-          }
-          p_old = p_new;
-          p_old2 = p_old;
-          p_new = ExtractMeasurement();
 
-          Real d2pdt2 = (p_new - 2.0*p_old + p_old2) / (dt*dt); // At p_old
-          if( d2pdt2 > max_curv ) {
-              max_curv = d2pdt2;
+          if( ddval > max_curv ) {
+              max_curv = ddval;
           }
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << d2pdt2 << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          //std::cout << "called solveTransient and found OH curvature " <<  
-          //    d2pdt2 << "; threshold=" << transient_thresh << " t=" << t_startlast*1e6 << std::endl;
-          finished = max_curv > transient_thresh && d2pdt2 < 0.05*max_curv; // max_curv*0.001;
-          if (finished) {
-              simulated_observations[0] = t_startlast;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
-          }
-          d2pdt2_old = d2pdt2;
+          finished = max_curv > transient_thresh && ddval < 0.05*max_curv; // max_curv*0.001;
       }
-      if (diagnostic_name == "onset_OH") {
-          if (first) {
-              // std::cout << "using onset OH rise diagnostic" << std::endl;
-              first = false;
-          }
-          p_old = p_new;
-          p_old2 = p_old;
-          p_new = ExtractMeasurement();
+      else if (diagnostic_name == "thresh_O") {
 
-          Real dpdt = (p_new -  p_old2) / (2*dt); // At p_old
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << dpdt << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          //std::cout << "called solveTransient and found d2pdt2 " <<  
-          //    d2pdt2 << "; threshold=" << transient_thresh << std::endl;
-          finished = dpdt > transient_thresh && dpdt < dpdt_old;
-          if (finished) {
-              simulated_observations[0] = t_startlast;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
-          }
-          dpdt_old = dpdt;
+          finished = val_new > transient_thresh;
       }
-      if (diagnostic_name == "onset_CO2") {
-          if (first) {
-              // std::cout << "using onset CO2 rise diagnostic" << std::endl;
-              first = false;
-          }
-          p_old = p_new;
-          p_old2 = p_old;
-          p_new = ExtractMeasurement();
+      
+      if (finished) {
+        simulated_observations[0] = t_startlast;
+        if (! ValidMeasurement(simulated_observations[0])) {
+          return false;
+        }
+        simulated_observations[0] *= 1.e6;
+      }
 
-          Real d2pdt2 = (p_new -  p_old2) / (2*dt); // At p_old
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << d2pdt2 << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          //std::cout << "called solveTransient and found d2pdt2 " <<  
-          //    d2pdt2 << "; threshold=" << transient_thresh << std::endl;
-          finished = d2pdt2 > transient_thresh && d2pdt2 < d2pdt2_old;
-          if (finished) {
-              simulated_observations[0] = t_startlast;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
-          }
-          d2pdt2_old = d2pdt2;
-      }
-      if (diagnostic_name == "thresh_O") {
-          if (first) {
-              // std::cout << "using threshold on O diagnostic" << std::endl;
-              first = false;
-          }
-          p_new = ExtractMeasurement();
-
-          if (log_this) {
-              ofs << i << " " << 0.5*(t_start+t_end) << " " << p_new << "  "
-                  << p_old << " " << p_new << std::endl;
-          }
-          // std::cout << "called solveTransient and found O " <<  
-          //     p_new << "; threshold=" << transient_thresh << " at t = " << t_start*1.e6 << std::endl;
-          finished = p_new > transient_thresh;
-          if (finished) {
-              simulated_observations[0] = t_start;
-              if (! ValidMeasurement(simulated_observations[0])) {
-                  return false;
-              }
-              simulated_observations[0] *= 1.e6;
-              //std::cout << "called solveTransient and found " <<  
-              //    simulated_observations[0]  << std::endl;
-          }
-      }
+      dval_old = dval;
+      ddval_old = ddval;
       
       rYold.copy(rYnew,sCompY,sCompY,Nspec);
       rHold.copy(rHnew,sCompRH,sCompRH,Nspec);
@@ -509,6 +450,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       t_startlast = t_start;
     }
   }
+  // This is constant volume / constant pressure conditional
   else {
     BL_ASSERT(reactor_type == CONSTANT_PRESSURE);
     FArrayBox& Yold = s_init;
@@ -527,6 +469,29 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       }
       i++;
     }
+
+    std::vector<Real> mean_difference_sol_old;
+    std::vector<Real> mean_difference_sol;
+    bool inside_range;
+    Real numer_start, denom_start;
+    Real numer_stop, denom_stop;
+    Real mean_difference_denom, mean_difference_numer;
+    if (diagnostic_name == "mean_difference") {
+        mean_difference_sol.resize(measured_comps.size());
+        ExtractMeasurements(mean_difference_sol, 0);
+        mean_difference_sol_old.resize( mean_difference_sol.size());
+        std::fill( mean_difference_sol_old.begin(), mean_difference_sol_old.end(), 0.0);
+        inside_range = false;
+        numer_start = -1;
+        numer_stop = -1;
+        i++;
+    }
+    Real dt = 0;
+
+
+
+    finished = false;
+    bool first = true;
     for ( ; i<num_time_nodes; ++i) {
       Real t_start = t_end;
       t_end = measurement_times[i];
@@ -540,16 +505,145 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           return false;
         }
       }
+
+
+      if (log_this) {
+          Real cond = ExtractMeasurement();
+        ofs << i << " " << 0.5*(t_start+t_end) << " " << cond << std::endl;
+      }
+      
+      // Diagnostics here
+      if (diagnostic_name == "mean_difference") {
+          if (first) {
+#if 0
+              std::cout << "Using mean difference diagnostic conditional on " 
+                  << measured_comps[0]  << " between " << mean_delta_cond_start << " , "
+                  << mean_delta_cond_stop << " numerator: " << measured_comps[1] << 
+                  " denominator: "<< measured_comps[2] << std::endl;
+#endif              
+              first = false;
+          }
+
+          // Get solution 
+          mean_difference_sol_old = mean_difference_sol;
+          ExtractMeasurements(mean_difference_sol, t_end);
+          const int cond_id = 0;
+          const int numer_id = 1;
+          const int denom_id = 2;
+
+          // Check if we have gone past the start of the condition
+          if( mean_difference_sol[cond_id] < mean_delta_cond_start 
+                  && mean_difference_sol[cond_id] > mean_delta_cond_stop
+                  && !inside_range ) {
+              numer_start = 
+                  (mean_difference_sol[numer_id]
+                   - mean_difference_sol_old[numer_id]) / 
+                  ( mean_difference_sol[cond_id] 
+                    - mean_difference_sol_old[cond_id]) *
+                  ( mean_delta_cond_start 
+                    - mean_difference_sol_old[cond_id] )
+                  + mean_difference_sol_old[numer_id];
+
+              denom_start = 
+                  (mean_difference_sol[denom_id]
+                   - mean_difference_sol_old[denom_id]) / 
+                  ( mean_difference_sol[cond_id] 
+                    - mean_difference_sol_old[cond_id]) *
+                  ( mean_delta_cond_start 
+                    - mean_difference_sol_old[cond_id] )
+                  + mean_difference_sol_old[denom_id];
+
+              //std::cout << "Start of range at " 
+              //    << numer_start << "/" << denom_start <<  " inside: " <<  inside_range << std::endl;
+
+              inside_range = true;
+
+          }
+
+          if( (mean_difference_sol[cond_id] < mean_delta_cond_stop)
+                  && inside_range ) {
+              BL_ASSERT( numer_start > 0 );
+              BL_ASSERT( denom_start > 0 );
+              inside_range = false;
+
+              numer_stop = 
+                  (mean_difference_sol[numer_id]
+                   - mean_difference_sol_old[numer_id]) / 
+                  ( mean_difference_sol[cond_id] 
+                    - mean_difference_sol_old[cond_id]) *
+                  ( mean_delta_cond_stop 
+                    - mean_difference_sol_old[cond_id] )
+                  + mean_difference_sol_old[numer_id];
+
+              denom_stop = 
+                  (mean_difference_sol[denom_id]
+                   - mean_difference_sol_old[denom_id]) / 
+                  ( mean_difference_sol[cond_id] 
+                    - mean_difference_sol_old[cond_id]) *
+                  ( mean_delta_cond_stop 
+                    - mean_difference_sol_old[cond_id] )
+                  + mean_difference_sol_old[denom_id];
+
+              //std::cout << "Stop of range at " 
+              //    << numer_stop << "/" << denom_stop << std::endl;
+              // Denomenator difference (unity if -3 - get this in a enum)
+              if( measured_comps[denom_id] != -3 ){
+                  mean_difference_denom = denom_stop - denom_start;
+              }
+              else {
+                  mean_difference_denom = 1.0;
+              }
+              mean_difference_numer = fabs(numer_stop - numer_start);
+
+              if( measured_comps[denom_id] == -2 ) {
+                  mean_difference_denom *= 1.0e3; // convert to ms
+              }
+              else if( measured_comps[denom_id] > 0 ) {
+                  mean_difference_denom *= 1.0e6; // convert X to ppm
+              }
+
+              if( measured_comps[numer_id] == -2 ) {
+                  mean_difference_numer *= 1.0e3; // convert to ms
+              }
+              else if( measured_comps[numer_id] > 0 ) {
+                  mean_difference_numer *= 1.0e6; // convert X to ppm
+              }
+
+              //std::cout << "Computed measurement: " <<  simulated_observations[0] <<
+              //    " using : " << mean_difference_numer << "/" << mean_difference_denom << std::endl;
+              finished = true;
+              if( fabs(mean_difference_denom) > 0 ){
+                  simulated_observations[0] = mean_difference_numer 
+                      / mean_difference_denom;
+              }
+              inside_range = false;
+          }
+
+          if( finished ){
+              if (! ValidMeasurement(simulated_observations[0]) 
+                      || fabs(mean_difference_denom) < 1.0e-20) {
+                  return false;
+              }
+          }
+      }
+
+
+      // Done diagnostics - carry on
+      // std::cout << i << " Computed measurement: " <<  simulated_observations[0]  << " finished: " << finished << std::endl;
       
       Yold.copy(Ynew,sCompY,sCompY,Nspec);
       Told.copy(Tnew,sCompT,sCompT,1);
-    }
+    } // End of loop over time samples extracted
   }
 
   if (log_this) {
     ofs.close();
   }
 
+  //std::cout << "--> End Computed measurement: " <<  simulated_observations[0]  << " finished: " << finished << std::endl;
+  if (diagnostic_name == "mean_difference" && !finished) {
+      return false;
+  }
   return true;
 }
 
@@ -593,23 +687,42 @@ ZeroDReactor::ExtractMeasurement() const
   const Box& box = Y.box();
   int Nspec = cd.numSpecies();
 
-  if (measured_comps[0] < 0) { // Return pressure
-    // CONSTANT_VOLUME case, state holds rho.Y
-    FArrayBox rhop(box,2);
-    rhop.setVal(0,0);
-    for (IntVect iv=box.smallEnd(), End=box.bigEnd(); iv<=End; box.next(iv)) {
-      for (int i=0; i<Nspec; ++i) {
-        rhop(iv,0) += s_final(iv,sCompY+i);
-      }
-    }      
-    cd.getPGivenRTY(rhop,rhop,s_final,Y,box,0,sCompT,0,1);
-    return rhop(box.smallEnd(),1) / 101325;
-  }
-  
   // Compute mole fraction
   FArrayBox X(box,Nspec);
   cd.massFracToMoleFrac(X,Y,box,0,0);
-  return X(box.smallEnd(),measured_comps[0] - sCompY);
+
+  int iSpec = measured_comps[0] - sCompY;
+  //if (measured_comps[0] > 0 && diagnostic_name != "max_OH") {
+  //if (measured_comps[0] > 0) {
+  //  return X(box.smallEnd(),iSpec);
+  //}
+
+  // Get pressure and density:
+  //     CV: s_final contains rho.Y, P = P(rho,T,Y)
+  //     CP: P=Patm, rho = rho(P,T,Y)
+  FArrayBox density(box,1);
+  FArrayBox pressure(box,1);
+  if (reactor_type == CONSTANT_VOLUME) {
+    density.setVal(0);
+    for (IntVect iv=box.smallEnd(), End=box.bigEnd(); iv<=End; box.next(iv)) {
+      for (int i=0; i<Nspec; ++i) {
+        density(iv,0) += s_final(iv,sCompY+i);
+      }
+    }      
+    cd.getPGivenRTY(pressure,density,s_final,Y,box,0,sCompT,0,0);
+  } else {
+    cd.getRhoGivenPTY(density,Patm,s_final,Y,box,sCompT,0,0);
+    pressure.setVal(Patm * 101325,0);
+  }
+
+  if (measured_comps[0] < 0) { // Return pressure
+    return pressure(box.smallEnd(),0) / 101325;
+  }
+
+  // Return molar concentration
+  FArrayBox C(box,Nspec);
+  cd.massFracToMolarConc(C,Y,s_final,density,box,0,0,sCompT,0);
+  return C(box.smallEnd(),iSpec);
 }
 
 void
@@ -682,6 +795,8 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
 
   ncomp = cd.numSpecies() + 3;
 
+  pp.query("verbosity",verbosity);
+
   measurement_error = PREMIXReactorErr_DEF;
   pp.query("measurement_error",measurement_error);
 
@@ -696,7 +811,7 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
   //    These are sometimes necessary to get a reasonable initial condition
   //    that premix can converge from
   int nprereq = pp.countval("prereqs");
-  std::cerr << "Experiment " <<  pp_prefix  << std::endl;
+  //std::cerr << "Experiment " <<  pp_prefix  << std::endl;
   Array<std::string> prereq_names;
   if( nprereq > 0 ){
       pp.getarr("prereqs",prereq_names,0,nprereq);
@@ -761,6 +876,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   int lregrid;
   int lrstrt = 0;
 
+  int v = Verbosity();
+
 #ifndef PREMIX_RESTART
   /*
    * Something about the restart makes the solution less
@@ -780,12 +897,16 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       //std::cout << " makepr: " << makepr << " prereq_reactors.size() " << 
       //    prereq_reactors.size() << std::endl;
       if( prereq_reactors.size() > 0 ){
-      //    std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
-          for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr ){                                                                                
+        if (v > 0 && ParallelDescriptor::IOProcessor()) {
+          std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
+        }
+
+        for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr )
+        {
               if( lrstrt == 1  ){
                   (*pr)->solCopyIn(premix_sol);
                   (*pr)->lrstrtflag = 1;
-                  std::cerr <<  "restart this time" << std::endl;
+                  //std::cerr <<  "restart this time" << std::endl;
               }
               else{
                   (*pr)->lrstrtflag = 0;
@@ -793,12 +914,18 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   //                std::cerr <<  "restart next time" << std::endl;
               }
               std::vector<Real> pr_obs;
-   //           std::cerr << " Running " << (*pr)->premix_input_file  << " with restart = " << (*pr)->lrstrtflag << std::endl;
+              if (v > 0 && ParallelDescriptor::IOProcessor()) {
+                std::cerr << " Running " << (*pr)->premix_input_file
+                          << " with restart = " << (*pr)->lrstrtflag << std::endl;
+              }
               bool ok = (*pr)->GetMeasurements(pr_obs);
               if (!ok) {
                 return false;
               }
-              //  std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
+
+              if (v > 0 && ParallelDescriptor::IOProcessor()) {
+                std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
+              }
               (*pr)->solCopyOut(premix_sol);
           }
           lrstrtflag = 1;
@@ -905,6 +1032,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     //std::cout << "Premix failed to find a viable solution " << std::endl;
     simulated_observations[0]  = -1;
     lrstrtflag = 0;
+    return false;
   }
 
   // Cleanup fortran remains
@@ -994,7 +1122,7 @@ PREMIXReactor::InitializeExperiment()
     for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr ){                                                                                
         i++;
         (*pr)->InitializeExperiment();
-        std::cerr << "Initialized prereq " << i << " sz: " << (*pr)->nmax << std::endl;
+        //std::cerr << "Initialized prereq " << i << " sz: " << (*pr)->nmax << std::endl;
     }
 
 
@@ -1021,4 +1149,52 @@ PREMIXReactor::solCopyIn( PremixSol * solIn ){
 void 
 PREMIXReactor::solCopyOut( PremixSol *  solOut){
     *solOut = *premix_sol;
+}
+
+void
+ZeroDReactor::ExtractMeasurements( std::vector<Real>& measurements, Real sample_time ) const
+{
+    BL_ASSERT(is_initialized);
+
+    for (int i=0; i<measured_comps.size(); ++i ) {
+        if (measured_comps[i] == sCompT) { // Return temperature
+            measurements[i] =  s_final(s_final.box().smallEnd(),measured_comps[i]);
+        }
+        else if ((measured_comps[i] == -1) && (reactor_type == CONSTANT_PRESSURE)) {
+            measurements[i] =  Patm;
+        }
+        else if ((measured_comps[i] == -2) && (reactor_type == CONSTANT_PRESSURE)) {
+            measurements[i] =  sample_time;
+        }
+        else if ((measured_comps[i] == -3) && (reactor_type == CONSTANT_PRESSURE)) {
+            measurements[i] =  1.0;
+        }
+        else {
+
+            FArrayBox Y;
+            ComputeMassFraction(Y);
+            const Box& box = Y.box();
+            int Nspec = cd.numSpecies();
+
+            if (measured_comps[i] < 0 && (reactor_type == CONSTANT_VOLUME)) { // Return pressure
+                // CONSTANT_VOLUME case, state holds rho.Y
+                FArrayBox rhop(box,2);
+                rhop.setVal(0,0);
+                for (IntVect iv=box.smallEnd(), End=box.bigEnd(); iv<=End; box.next(iv)) {
+                    for (int i=0; i<Nspec; ++i) {
+                        rhop(iv,0) += s_final(iv,sCompY+i);
+                    }
+                }      
+                cd.getPGivenRTY(rhop,rhop,s_final,Y,box,0,sCompT,0,1);
+                measurements[i] = rhop(box.smallEnd(),1) / 101325;
+            }
+
+            // Compute mole fraction
+            FArrayBox X(box,Nspec);
+            cd.massFracToMoleFrac(X,Y,box,0,0);
+            measurements[i] =  X(box.smallEnd(),measured_comps[i] - sCompY);
+        }
+        // std::cout << " Extracting for component " << i << " id " << measured_comps[i] 
+        //     << " value: " << measurements[i] << std::endl;
+    }
 }
