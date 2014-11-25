@@ -3237,7 +3237,7 @@ C     PROBLEM TYPE KEYWORDS
 C
 C///////////////////////////////////////////////////////////////////////
 C
-      print *,'RDKEY KEY:',KEY
+c      print *,'RDKEY KEY:',KEY
 
 
       IF (KEY .EQ. 'BURN') THEN
