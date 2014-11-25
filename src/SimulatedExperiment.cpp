@@ -204,7 +204,7 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     pp.query("mean_delta_numer_spec",mean_delta_numer_spec);
     pp.query("mean_delta_denom_spec",mean_delta_denom_spec);
 
-    measured_comps.resize(3);
+    measured_comps.resize(3,-100);
     int nSpec = cd.numSpecies();
     for (int i=0; i<nSpec; ++i){
       const std::string& name = cd.speciesNames()[i];
@@ -218,7 +218,8 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
           measured_comps[2] = i + sCompY;
       }
     }
-    if( measured_comps[0] > 0 ){
+
+    if( measured_comps[0] >= 0 ){
         IntVect iv(D_DECL(0,0,0));
         Real X_cond_init;
         pp.get(mean_delta_cond_spec.c_str(), X_cond_init);
@@ -1031,6 +1032,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     //std::cout << "Premix failed to find a viable solution " << std::endl;
     simulated_observations[0]  = -1;
     lrstrtflag = 0;
+    return false;
   }
 
   // Cleanup fortran remains
