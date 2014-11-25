@@ -108,11 +108,12 @@ prior_mean = driver.PriorMean()
 prior_std = driver.PriorStd()
 ensemble_std = driver.EnsembleStd()
 
-print('Number of Parameters:',ndim)
-print('Number of Data:',ndata)
-print('prior means:  '+ str(prior_mean))
-print('prior std: '+ str(prior_std))
-print('ensemble std: '+ str(ensemble_std))
+if rank == 0:
+    print('Number of Parameters:',ndim)
+    print('Number of Data:',ndata)
+    print('prior means:  '+ str(prior_mean))
+    print('prior std: '+ str(prior_std))
+    print('ensemble std: '+ str(ensemble_std))
 
 # Choose an initial set of positions for the walkers.
 
@@ -123,19 +124,24 @@ driver.sampler._random =  np.random.mtrand.RandomState(seed=seed) # overwrite st
 # Generate initial samples
 p0 = [prior_mean + driver.sampler._random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
         
-print('Initial walker parameters: ')
-for walker in p0:
-    print(walker)
+if rank == 0:
+    print('Initial walker parameters: ')
+    for walker in p0:
+        print(walker)
 
 # Run burn-in steps
-print ('Doing burn-in...')
+if rank == 0:
+    print ('Doing burn-in...')
+
 pos, prob, state = driver.sampler.run_mcmc(p0, nBurnIn)
 
 # Reset the chain to remove the burn-in samples.
 driver.sampler.reset()
 
 # Starting from the final position in the burn-in chain, do sample steps.
-print ('Sampling...')
+if rank == 0:
+    print ('Sampling...')
+
 iters = 0
 for result in driver.sampler.sample(pos, iterations=nChainLength):
     iters = iters + 1

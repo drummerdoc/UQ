@@ -297,7 +297,22 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
     do {
       // Look for a message from a worker  
       MPI_Status status;
-      MPI_Probe(MPI_ANY_SOURCE, control_tag, wcomm, &status);
+      int ret = MPI_Probe(MPI_ANY_SOURCE, control_tag, wcomm, &status);
+      if (ret != MPI_SUCCESS) {
+          std::cout << "MPI_Probe failure " << ret << "(";
+          if (ret == MPI_ERR_COMM) {
+              std::cout << "Invalid communicator";
+          }
+          else if (ret == MPI_ERR_TAG) {
+              std::cout << "Invalid tag";
+          }
+          else if (ret == MPI_ERR_RANK) {
+              std::cout << "Invalid rank";
+          } else {
+              std::cout << "unknown";
+          }
+          std::cout << ")" << std::endl;
+      }
       current_worker = status.MPI_SOURCE;
       MPI_Recv(&worker_status, 1, MPI_INTEGER, current_worker, control_tag, 
                wcomm, MPI_STATUS_IGNORE);

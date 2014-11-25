@@ -28,8 +28,19 @@ funcF(void* p, const std::vector<Real>& pvals)
   MINPACKstruct *s = (MINPACKstruct*)(p);
   s->ResizeWork();
 
+  Real* ptr = const_cast<Real*>(&(pvals[0]));
+  ParallelDescriptor::Bcast(ptr,pvals.size(),ParallelDescriptor::IOProcessorNumber());
+
   // Get prior component of likelihood
   std::pair<bool,Real> Fa = s->parameter_manager.ComputePrior(pvals);
+
+  bool all_and = Fa.first;
+  ParallelDescriptor::ReduceBoolAnd(all_and);
+  if (all_and != Fa.first) {
+      std::cout << "Parameters not compatible across procs" << std::endl;
+      BoxLib::Abort();
+  }
+
   if (!Fa.first) {
     return BAD_SAMPLE_FLAG; // Parameter OOB
   }
