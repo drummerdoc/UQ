@@ -276,7 +276,7 @@ experiments = fls3a fls3b fls1a fls1b fls2a fls2b fls4a fls4b fls5a fls5b fls6a 
 fls1a.type = PREMIXReactor
 fls1a.data = 204
 fls1a.premix_input_path = ../extras/Davis05_h2co/premix/
-fls1a.premix_input_file = premix.fls1a
+fls1a.premix_input_file = premix.fls1a_NEW
 fls1a.measurement_error = 20
 fls1a.num_sol_pts = 1000
 
