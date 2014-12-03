@@ -165,9 +165,11 @@ ExperimentManager::GenerateExptData()
   Real mult = 1;
   if (ParallelDescriptor::IOProcessor()) {
     std::cout << "***************** WARNING: ZEROING DATA NOISE!!!!" << std::endl;
-    mult = 0;
   }
+  mult = 0;
   for(int ii=0; ii<num_expt_data; ii++){
+
+    // FIXME: WHY IS THIS THE CORRECT THING????  (Looks wrong)
     Real small = true_std[ii];
     perturbed_data[ii] = std::max(small,true_data[ii] + true_std[ii] * randn() * mult);
   }
