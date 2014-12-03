@@ -125,7 +125,6 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
   }
 
   true_std.resize(NumExptData());
-  true_std_inv2.resize(NumExptData());
   for (int i=0; i<expts.size(); ++i) {
 
     BL_ASSERT(expts.defined(i));
@@ -147,10 +146,8 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
     }
 
     expts[i].GetMeasurementError(raw_data[i]);
-    true_std_inv2.resize(nd);
     for (int j=0; j<nd; ++j) {
       true_std[offset + j] = raw_data[i][j];
-      true_std_inv2[offset + j] = 1 / (true_std[offset + j] * true_std[offset + j]);
     }
   }    
   perturbed_data.resize(0);
@@ -454,7 +451,7 @@ ExperimentManager::ComputeLikelihood(const std::vector<Real>& test_data) const
   Real L = 0;
   for (int ii=0; ii<num_expt_data; ii++) {
     Real n = perturbed_data[ii] - test_data[ii];
-    L += 0.5 * n * n * true_std_inv2[ii];
+    L += 0.5 * n * n / (true_std[ii] * true_std[ii]);
   }
   return L;
 }

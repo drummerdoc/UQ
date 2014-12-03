@@ -54,7 +54,7 @@ protected:
   
   int num_expt_data;
   std::vector<Real> true_data, perturbed_data;
-  std::vector<Real> true_std, true_std_inv2;
+  std::vector<Real> true_std;
 
 private:
   ExperimentManager(const ExperimentManager& rhs);
