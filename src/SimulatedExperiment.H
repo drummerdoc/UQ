@@ -12,7 +12,13 @@ struct SimulatedExperiment
 {
   SimulatedExperiment();
   virtual ~SimulatedExperiment();
-  virtual bool GetMeasurements(std::vector<Real>& simulated_observations) = 0;
+
+  typedef std::vector<std::string> ErrMap;
+  static ErrMap& ErrorMap() {return err_map;}
+  static const std::string& ErrorString(int errID);
+  static int ErrorID(const std::string& errStr);
+
+  virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations) = 0;
   virtual void GetMeasurementError(std::vector<Real>& observation_error) = 0;
   virtual int NumMeasuredValues() const = 0;
   virtual void InitializeExperiment() = 0;
@@ -23,7 +29,11 @@ struct SimulatedExperiment
   int Verbosity() const {return verbosity;}
   void SetVerbosity(int verb) {verbosity = verb;}
 
+
 protected:
+  static ErrMap build_err_map();
+  static ErrMap err_map;
+
   bool is_initialized;
   std::string diagnostic_name;
   std::string log_file;
@@ -43,7 +53,7 @@ struct ZeroDReactor
   virtual ~ZeroDReactor();
 
   virtual const std::vector<Real>& GetMeasurementTimes() const;
-  virtual bool GetMeasurements(std::vector<Real>& simulated_observations);
+  virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations);
   virtual void GetMeasurementError(std::vector<Real>& observation_error);
 
   virtual void InitializeExperiment();
@@ -84,84 +94,84 @@ private:
 };
 
 extern "C" {
-        void open_premix_files_(  int*, int*, int*, int*, int*,int*, int *, int *,int*,int* );
-        void close_premix_files_(  int*, int*, int*, int*,int* );
-        void premix_( int*, int*, int*, int*, int*, int*,
+  void open_premix_files_(  int*, int*, int*, int*, int*,int*, int *, int *,int*,int* );
+  void close_premix_files_(  int*, int*, int*, int*,int* );
+  void premix_( int*, int*, int*, int*, int*, int*,
                 int*, int*, int*, int*, int*, double*, int* , int*,
-                      int *, int *, const int *,int *);
+                int *, int *, const int *,int *);
 }
 
 struct PREMIXReactor
   : public SimulatedExperiment
 {
-    PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix);
+  PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix);
 
-    virtual bool GetMeasurements(std::vector<Real>& simulated_observations);
-    virtual void GetMeasurementError(std::vector<Real>& observation_error);
+  virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations);
+  virtual void GetMeasurementError(std::vector<Real>& observation_error);
 
-    virtual void CopyData(int src, int dest, int tag);
+  virtual void CopyData(int src, int dest, int tag);
 
-    virtual void InitializeExperiment();
-    int numComp() const;
-    const PremixSol& getPremixSol() const;
+  virtual void InitializeExperiment();
+  int numComp() const;
+  const PremixSol& getPremixSol() const;
 
-    void solCopyIn( PremixSol * );
-    void solCopyOut( PremixSol * );
+  void solCopyIn( PremixSol * );
+  void solCopyOut( PremixSol * );
 
-    virtual int NumMeasuredValues() const;
-    virtual ~PREMIXReactor();
+  virtual int NumMeasuredValues() const;
+  virtual ~PREMIXReactor();
 
-    bool ValidMeasurement(Real data) const;
-    // Array of PREMIXReactors that are prereqs to get this solution
-    Array<PREMIXReactor*> prereq_reactors;
+  bool ValidMeasurement(Real data) const;
+  // Array of PREMIXReactors that are prereqs to get this solution
+  Array<PREMIXReactor*> prereq_reactors;
 
-    // Sizes for work arrays
-    int lenlwk;
-    int leniwk;
-    int lenrwk;
-    int lencwk;
-    int lensym;
+  // Sizes for work arrays
+  int lenlwk;
+  int leniwk;
+  int lenrwk;
+  int lencwk;
+  int lensym;
 
-    // Unit numbers for input/output files
-    int lin;
-    int lout;
-    int lrin;
-    int lrout;
-    int lrcvr;
-    int linck;
-    int linmc;
+  // Unit numbers for input/output files
+  int lin;
+  int lout;
+  int lrin;
+  int lrout;
+  int lrcvr;
+  int linck;
+  int linmc;
 
-    // Pass this as maximum number of gridpoints
-    int nmax;
+  // Pass this as maximum number of gridpoints
+  int nmax;
 
-    void * iwork;
-    void * rwork;
-    void * cwork;
-    void * lwork;
+  void * iwork;
+  void * rwork;
+  void * cwork;
+  void * lwork;
 
-    // premix.inp file to read
-    std::string premix_input_file;
-    std::string premix_input_path;
+  // premix.inp file to read
+  std::string premix_input_file;
+  std::string premix_input_path;
 
-    int lrstrtflag;
-    //
-    // Sizes of data stored in object
-    int maxsolsz; 
-    int ncomp;
+  int lrstrtflag;
+  //
+  // Sizes of data stored in object
+  int maxsolsz; 
+  int ncomp;
 
-    ChemDriver& cd;
-    PremixSol* premix_sol;
-    Real measurement_error;
+  ChemDriver& cd;
+  PremixSol* premix_sol;
+  Real measurement_error;
 
-    int max_premix_iters;
+  int max_premix_iters;
 };
 
 inline
 int
 PREMIXReactor::NumMeasuredValues() const
 {
-    // 1 value comes out - flame speed
-    return 1;
+  // 1 value comes out - flame speed
+  return 1;
 }
 
 #endif // _SimulatedExperiment_

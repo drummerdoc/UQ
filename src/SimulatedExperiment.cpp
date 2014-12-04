@@ -24,6 +24,41 @@ static int verbosity_DEF = 0;
 
 static int max_premix_iters_DEF = 10000;
 
+SimulatedExperiment::ErrMap
+SimulatedExperiment::build_err_map()
+{
+  ErrMap my_map;
+  my_map.push_back("PREREQ_FAILED");
+  my_map.push_back("INVALID_OBSERVATION_1");
+  my_map.push_back("INVALID_OBSERVATION_2");
+  my_map.push_back("INVALID_OBSERVATION_3");
+  my_map.push_back("INVALID_OBSERVATION_4");
+  my_map.push_back("INVALID_OBSERVATION_5");
+  my_map.push_back("INVALID_OBSERVATION_6");
+  my_map.push_back("INVALID_OBSERVATION_7");
+  my_map.push_back("PREMIX_TOO_MANY_ITERS");
+  my_map.push_back("PREMIX_SOLVER_FAILED");
+  my_map.push_back("NEEDED_MEAN_BUT_NOT_FINISHED");
+  my_map.push_back("SUCCESS");
+  return my_map;
+}
+static std::string UNKNOWN = "UNKNOWN";
+
+SimulatedExperiment::ErrMap SimulatedExperiment::err_map = SimulatedExperiment::build_err_map();
+
+const std::string&
+SimulatedExperiment::ErrorString(int errID) {
+  return errID < 0 || errID >= err_map.size() ? UNKNOWN : err_map[errID];
+}
+
+int
+SimulatedExperiment::ErrorID(const std::string& errStr) {
+  for (int i=0; i<err_map.size(); ++i) {
+    if (err_map[i] == errStr) return i;
+  }
+  return -1;
+}
+
 SimulatedExperiment::SimulatedExperiment()
   :  is_initialized(false), log_file(log_file_DEF), verbosity(verbosity_DEF)
 {
@@ -287,7 +322,7 @@ ZeroDReactor::ValidMeasurement(Real data) const
   return ( data > 0 && data < 1.e5 );
 }
 
-bool
+std::pair<bool,int>
 ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
   BL_ASSERT(is_initialized);
@@ -333,7 +368,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     if (t_end == measurement_times[i] && sample_evolution) {
       simulated_observations[i] = ExtractMeasurement();
       if (! ValidMeasurement(simulated_observations[i])) {
-        return false;
+        return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_1"));
       }
       i++;
     }
@@ -374,7 +409,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       if (sample_evolution) {
         simulated_observations[i] = ExtractMeasurement();
         if (! ValidMeasurement(simulated_observations[i])) {
-          return false;
+          return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_2"));
         }
       }
 
@@ -437,7 +472,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       if (finished) {
         simulated_observations[0] = t_startlast;
         if (! ValidMeasurement(simulated_observations[0])) {
-          return false;
+          return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_3"));
         }
         simulated_observations[0] *= 1.e6;
       }
@@ -467,7 +502,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     if (t_end == measurement_times[i] && sample_evolution) {
       simulated_observations[i] = ExtractMeasurement();
       if (! ValidMeasurement(simulated_observations[i])) {
-        return false;
+        return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_4"));
       }
       i++;
     }
@@ -504,7 +539,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       if (sample_evolution) {
         simulated_observations[i] = ExtractMeasurement();
         if (! ValidMeasurement(simulated_observations[i])) {
-          return false;
+          return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_5"));
         }
       }
 
@@ -624,7 +659,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           if( finished ){
               if (! ValidMeasurement(simulated_observations[0]) 
                       || fabs(mean_difference_denom) < 1.0e-20) {
-                  return false;
+                return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_6"));
               }
           }
       }
@@ -644,9 +679,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
   //std::cout << "--> End Computed measurement: " <<  simulated_observations[0]  << " finished: " << finished << std::endl;
   if (diagnostic_name == "mean_difference" && !finished) {
-      return false;
+    return std::pair<bool,int>(false,ErrorID("NEEDED_MEAN_BUT_NOT_FINISHED"));
   }
-  return true;
+  return std::pair<bool,int>(true,ErrorID("SUCCESS"));
 }
 
 void
@@ -836,6 +871,7 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
       }
   }
   pp.query("max_premix_iters",max_premix_iters);
+
 }
 
 PREMIXReactor::~PREMIXReactor()
@@ -867,13 +903,14 @@ PREMIXReactor::ValidMeasurement(Real data) const
 }
 
 
-bool
+std::pair<bool,int>
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
   BL_PROFILE("PREMIXReactor::GetMeasurements()");
 
   BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX", myname);
   BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX-a", myname1);
+
   // This set to return a single value - the flame speed
   simulated_observations.resize(1);
 
@@ -922,9 +959,9 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                 std::cerr << " Running " << (*pr)->premix_input_file
                           << " with restart = " << (*pr)->lrstrtflag << std::endl;
               }
-              bool ok = (*pr)->GetMeasurements(pr_obs);
-              if (!ok) {
-                return false;
+              std::pair<bool,int> retVal = (*pr)->GetMeasurements(pr_obs);
+              if (!retVal.first) {
+                return std::pair<bool,int>(false,ErrorID("PREREQ_FAILED"));
               }
 
               if (v > 0 && ParallelDescriptor::IOProcessor()) {
@@ -1032,7 +1069,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     //std::cout << "Premix generated a viable solution " << std::endl;
     simulated_observations[0]  = savesol[*solsz + nmax*(ncomp-1)-1+3];
     if (! ValidMeasurement(simulated_observations[0])) {
-      return false;
+      return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_7"));
     }
     lrstrtflag = 1;
   }
@@ -1040,7 +1077,10 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     //std::cout << "Premix failed to find a viable solution " << std::endl;
     simulated_observations[0]  = -1;
     lrstrtflag = 0;
-    return false;
+    if (num_steps == max_premix_iters) {
+      return std::pair<bool,int>(false,ErrorID("PREMIX_TOO_MANY_ITERS"));
+    }
+    return std::pair<bool,int>(false,ErrorID("PREMIX_SOLVER_FAILED"));
   }
 
   // Cleanup fortran remains
@@ -1066,7 +1106,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   BL_PROFILE_VAR_STOP(myname2);
   BL_PROFILE_VAR_STOP(myname);
 
-  return true;
+  return std::pair<bool,int>(true,ErrorID("SUCCESS"));
 }
 
 /*

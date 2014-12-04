@@ -143,7 +143,14 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
     BL_ASSERT(n <= raw_data[i].size());
 
     if (use_synthetic_data) {
-      expts[i].GetMeasurements(raw_data[i]);
+      std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
+      if (!retVal.first) {
+        std::string msg = SimulatedExperiment::ErrorString(retVal.second);
+        std::cout << "Experiment " << i << "(" << expt_name[i]
+                  << ") failed while computing synthetic data.  Error message: \""
+                  << msg << "\"" << std::endl;
+        BoxLib::Abort();
+      }
     }
 
     int offset = data_offsets[i];
@@ -206,7 +213,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
   bool ok = true;
   int intok = -1;
-
+  Array<int> msgID(expts.size(),-1);
 
 #ifdef BL_USE_MPI
   // Task parallel option over experiments - serial option follows below
@@ -260,20 +267,21 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         int which_experiment = -1;
         ParallelDescriptor::Recv(&which_experiment,1,master,data_tag);
 
-         std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-           " starting on experiment number " << which_experiment <<
-           " (" << ExperimentNames() [which_experiment] << ")" << std::endl;
+        std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+          " starting on experiment number " << which_experiment <<
+          " (" << ExperimentNames() [which_experiment] << ")" << std::endl;
         expts[which_experiment].CopyData(master,ParallelDescriptor::MyProc(),extra_tag);
 
         // Do the work
-        if (expts[which_experiment].GetMeasurements(raw_data[which_experiment])) {
+        std::pair<bool,int> retVal = expts[which_experiment].GetMeasurements(raw_data[which_experiment]);
+        if (retVal.first) {
           intok = 1;
         }
         else {
           intok = -1;
         }
-         std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-           " finished experiment number " << which_experiment << std::endl;
+        std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+          " finished experiment number " << which_experiment << std::endl;
 
         // Send back the result
         mystatus = HAVE_RESULTS;
@@ -282,10 +290,11 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         
         ParallelDescriptor::Send(&which_experiment,1,master,data_tag);
         ParallelDescriptor::Send(&intok, 1, master, data_tag);
+        ParallelDescriptor::Send(&retVal.second, 1, master, data_tag);
         ParallelDescriptor::Send(raw_data[which_experiment], master, data_tag);
         expts[which_experiment].CopyData(ParallelDescriptor::MyProc(),master,extra_tag);
-         std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-           " finished sending data back " << which_experiment << std::endl;
+        std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+          " finished sending data back " << which_experiment << std::endl;
       }
       else {
         BoxLib::Abort("Unknown command recvd");
@@ -343,11 +352,12 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         int exp_num;
         ParallelDescriptor::Recv(&exp_num,1,current_worker,data_tag);
         ParallelDescriptor::Recv( &intok, 1, current_worker, data_tag );
+        ParallelDescriptor::Recv( &msgID[exp_num], 1, current_worker, data_tag );
 
         if (intok < 0) {
           std::cout << "Experiment " << exp_num
                     << " (" << ExperimentNames() [exp_num]
-                    << ") failed!" << std::endl;
+                    << ") failed! Err msg: \"" << SimulatedExperiment::ErrorString(msgID[exp_num]) << "\"" << std::endl;
           ok = false;
         }
 
@@ -369,6 +379,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
     } while (Nexperiments_dispatched < expts.size() && ok);
 
+
     // All tasks sent out at this point - tell all workers to stop, getting
     // final set of results if necessary
     for (int i=first_worker; i<=last_worker; i++) {
@@ -382,13 +393,16 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
       else if(worker_status == HAVE_RESULTS) {
         // Deal with the results, then get - hopefully - "READY" and tell worker to stop
         int exp_num;
-        ParallelDescriptor::Recv(&exp_num, 1, i, data_tag);
-        ParallelDescriptor::Recv(&intok, 1, i, data_tag);
+
+        ParallelDescriptor::Recv(&exp_num,1,i,data_tag);
+        ParallelDescriptor::Recv( &intok, 1, i, data_tag );
+        ParallelDescriptor::Recv( &msgID[exp_num], 1, i, data_tag );
+
 
         if (intok < 0) {
           std::cout << "Experiment " << exp_num
                     << " (" << ExperimentNames() [exp_num]
-                    << ") failed!" << std::endl;
+                    << ") failed! Err msg: \"" << SimulatedExperiment::ErrorString(msgID[exp_num]) << "\"" << std::endl;
           ok = false;
         }
 
@@ -405,7 +419,6 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         MPI_Recv(&worker_status, 1, MPI_INTEGER, i, control_tag, wcomm, MPI_STATUS_IGNORE);
         worker_command = STOP;
         MPI_Send(&worker_command, 1, MPI_INTEGER, i, control_tag, wcomm);
-
       } 
       else { 
         BoxLib::Abort("Bad status from worker on cleanup loop");
@@ -423,6 +436,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
     //}
 
   }
+
   ParallelDescriptor::Barrier();
   // All ranks should have the same result as at root to ensure they take a reasonable
   // path through sample space when driven by an external sampler
@@ -435,7 +449,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   {
     if (!ok) {
       if (log_failed_cases) {
-        LogFailedCases(test_params,test_measurements);
+        LogFailedCases(test_params,test_measurements,msgID);
       }
     }
     else {
@@ -450,11 +464,12 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 #else
   // Serial tasks 
   for (int i=0; i<expts.size() && ok; ++i) {
-    bool this_ok = expts[i].GetMeasurements(raw_data[i]);
-    if (!this_ok) {
-      std::cout << "Experiment " << i << " failed" << std::endl;
+    std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
+    if (!retVal.first) {
+      std::cout << "Experiment " << i << " failed.  Err msg: \""
+                << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
     }
-    ok &= this_ok;
+    ok &= retVal.first;
 
     int offset = data_offsets[i];
     for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
@@ -471,7 +486,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   }
   else {
     if (log_failed_cases) {
-      LogFailedCases(test_params,test_measurements);
+      LogFailedCases(test_params,test_measurements,msgID);
     }
   }
 
@@ -483,15 +498,31 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 static int failure_number = 0;
 void
 ExperimentManager::LogFailedCases(const std::vector<Real>& test_params,
-                                  const std::vector<Real>& test_measurements)
+                                  const std::vector<Real>& test_measurements,
+                                  const std::vector<int>&  msgID)
 {
   failure_number++;
-  int ndigits = std::log10(failure_number) + 1;
-  const IntVect ivz(D_DECL(0,0,0));
 
   BL_ASSERT(ParallelDescriptor::IOProcessor());
   if (!BoxLib::UtilCreateDirectory(log_folder_name, 0755))
     BoxLib::CreateDirectoryFailed(log_folder_name);
+
+  // First log entry in ascii table
+  std::string slog_file_name = log_folder_name + "/" + "FAILURE_LOG.txt";
+  std::ofstream sofs;
+  sofs.open(slog_file_name.c_str(), std::ios::out | std::ios::app);
+  sofs << failure_number << " ";
+  for (int i=0; i<msgID.size(); ++i) {
+    const std::string& msg = SimulatedExperiment::ErrorString(msgID[i]);
+    if (msg != "SUCCESS" && msg != "UNKNOWN") {
+      sofs << expt_name[i] << ":" << msg << " "; 
+    }
+  }
+  sofs << '\n';
+  sofs.close();
+
+  int ndigits = std::log10(failure_number) + 1;
+  const IntVect ivz(D_DECL(0,0,0));
 
   int np = test_params.size();
   FArrayBox p(Box(ivz,ivz),np);

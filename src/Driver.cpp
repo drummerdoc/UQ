@@ -58,9 +58,15 @@ funcF(void* p, const std::vector<Real>& pvals)
   data[0] = Fa.second;
   data[1] = Fb;
   ParallelDescriptor::Bcast(data.dataPtr(),data.size(),ParallelDescriptor::IOProcessorNumber());
-  
+
   // Return sum of pieces
-  return (data[0] + data[1]);
+  Real F = data[0] + data[1];
+
+  if (ParallelDescriptor::IOProcessor()) {
+    std::cout << "F = " << F << std::endl;
+  }
+
+  return F;
 }
 
 double Driver::LogLikelihood(const std::vector<double>& parameters)

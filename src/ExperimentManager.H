@@ -45,7 +45,8 @@ struct ExperimentManager
 
 protected:
   void LogFailedCases(const std::vector<Real>& test_params,
-                      const std::vector<Real>& test_measurements);
+                      const std::vector<Real>& test_measurements,
+                      const std::vector<int>&  msgID);
 
   bool initialized, use_synthetic_data, verbose;
   ParameterManager& parameter_manager;

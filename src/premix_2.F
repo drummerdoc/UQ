@@ -1839,7 +1839,7 @@ C
 
          IF (SIGNAL .EQ. 'SOLVE') THEN
             NTPSTEPS = NTPSTEPS + 1
-            IF (NTPSTEPS .GT. MAXST) THEN
+            IF (NTPSTEPS .GE. MAXST) THEN
                KERR = .TRUE.
                REPORT = 'TOO LONG'
                RETURN
