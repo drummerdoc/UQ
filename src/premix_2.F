@@ -179,7 +179,8 @@ C
      4                   DS, A6, A, ICKWRK, IMCWRK, KSYM, CCKWRK, KR,
      5                   KI, KP, IPIVOT, ACTIVE, MARK, NAME, ITWWRK,
      6                   RTWWRK, SSAVE, RKFT, RKRT, RSAVE, SAVESOL, SAVESZ,
-     7                   LRSTRTORIDE,LREGRIDORIDE)
+     7                   LRSTRTORIDE,LREGRIDORIDE,REPORT,
+     8                   ISGOOD,MAXST,NTPSTEPS)
 C
 C  START PROLOGUE
 C
@@ -304,11 +305,14 @@ C
 
       CHARACTER scratcha*80
 
-      INTEGER LRSTRTORIDE,LREGRIDORIDE
+      INTEGER LRSTRTORIDE,LREGRIDORIDE,ISGOOD,MAXST
 C
 C///  INITIALIZATION.
 C
 C      write(*,*) ' JMAX = ', JMAX, '--------------', 'KK=', KK
+
+      NTPSTEPS = 0
+
       LCNTUE = .FALSE.
       KERR = .FALSE.
       ONE = 1.0
@@ -348,6 +352,9 @@ C
 C///  TOP OF THE LOOP.
 C
 1010  CONTINUE
+
+      ISGOOD = 0
+
 C      CALL TWTIME(XSTART)
 C
 C///  READ THE KEYWORDS.
@@ -410,11 +417,13 @@ C
      3             CCKWRK, IMCWRK, RMCWRK, ITWWRK, RTWWRK, F, FN,
      4             SSAVE, RKFT, RKRT, RSAVE, LOUT, LRCRVR, A, CONDIT,
      5             IPIVOT, NAME, KSYM, ABOVE, BELOW, JMAX, MARK,
-     6             ACTIVE, N1CALL, KERR, REPORT)
+     6             ACTIVE, N1CALL, KERR, REPORT, MAXST, NTPSTEPS)
+
 
       SAVESZ = -1
 c     might be handy to push twopnt exit status
 c     back up - for now just die unless sucess
+
       if( REPORT.ne. ' ' ) RETURN
 
       IF (KERR) RETURN
@@ -434,6 +443,9 @@ C
       CALL CKRHOY (P, S(NT, 1), S(NY,1), ICKWRK, RCKWRK, RHO)
       SAVESOL( JJ + NATJ*JMAX + 3 ) = S(NM,1) / (RHO*AREA(X(1)))
       SAVESZ = JJ
+
+c     Only after solution written
+      ISGOOD = 1
 
       !DO J = 1, JJ
       !write(*,*) J, SAVESOL(J)
@@ -1486,7 +1498,7 @@ C
       SUBROUTINE PREMIX (JMAX, LIN, LOUT, LINKMC, LREST, LSAVE,
      1                   LRCRVR, LENLWK, LENIWK, LENRWK,
      2                   LENCWK, SAVESOL, SAVESZ, LRSTRTORIDE,
-     3                   LREGRIDORIDE)
+     3                   LREGRIDORIDE, ISGOOD, MAXST, NTPSTEPS)
 C
 C  START PROLOGUE
 C
@@ -1532,7 +1544,7 @@ C
 C
 #include "cdwrk.H"
       DIMENSION I(LENIWK), R(LENRWK)
-      CHARACTER C(LENCWK)*(16), PRVERS*16, PRDATE*16, PREC*16
+      CHARACTER C(LENCWK)*(16), PRVERS*16, PRDATE*16, PREC*16, REPORT*16
       LOGICAL L(LENLWK)
       INTEGER CKLSCH
       EXTERNAL CKLSCH
@@ -1540,7 +1552,7 @@ C
       INTEGER SAVESZ
 C
       DATA PRVERS/'3.15'/, PRDATE/'98/03/03'/
-      INTEGER LRSTRTORIDE
+      INTEGER LRSTRTORIDE, ISGOOD
 C
 C*****precision > double
       PREC = 'DOUBLE'
@@ -1587,7 +1599,7 @@ C
      6             I(IKR), I(IKI), I(IKP), I(IIP), L(LAC), L(LMK),
      7             C(INAME), I(NIWK), R(NRWK), R(NSSAVE), R(NRKFT),
      8             R(NRKRT), R(NRSAVE), SAVESOL, SAVESZ, LRSTRTORIDE,
-     9             LREGRIDORIDE )
+     9             LREGRIDORIDE, REPORT, ISGOOD, MAXST, NTPSTEPS)
 C
 C     end of SUBROUTINE PREMIX
       RETURN
@@ -1600,7 +1612,7 @@ C
      4                   RTWWRK, F, FN, SSAVE, RKFT, RKRT, RSAVE, LOUT,
      5                   LRCRVR, A, CONDIT, IPIVOT, NAME, KSYM, ABOVE,
      6                   BELOW, JMAX, MARK, ACTIVE, N1CALL, KERR, 
-     7                   REPORT)
+     7                   REPORT, MAXST, NTPSTEPS)
 C
 C  START PROLOGUE
 C
@@ -1824,6 +1836,16 @@ C
      1                NATJ, CONDIT, IGRPA, IGRPB, LENITW, ITWWRK, MARK,
      2                NAME, NATJ, JMAX, JJ, REPORT, LENRTW, RTWWRK,
      3                SIGNAL, DT, LTIME, S, X)
+
+         IF (SIGNAL .EQ. 'SOLVE') THEN
+            NTPSTEPS = NTPSTEPS + 1
+            IF (NTPSTEPS .GT. MAXST) THEN
+               KERR = .TRUE.
+               REPORT = 'TOO LONG'
+               RETURN
+            ENDIF
+         ENDIF
+
          KERR = KERR.OR.ERROR
          IF (KERR) RETURN
 C

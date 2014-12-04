@@ -44,6 +44,9 @@ struct ExperimentManager
   const std::vector<std::string>& ExperimentNames() {return expt_name;}
 
 protected:
+  void LogFailedCases(const std::vector<Real>& test_params,
+                      const std::vector<Real>& test_measurements);
+
   bool initialized, use_synthetic_data, verbose;
   ParameterManager& parameter_manager;
   PArray<SimulatedExperiment> expts;
@@ -55,6 +58,9 @@ protected:
   int num_expt_data;
   std::vector<Real> true_data, perturbed_data;
   std::vector<Real> true_std;
+
+  bool log_failed_cases;
+  std::string log_folder_name;
 
 private:
   ExperimentManager(const ExperimentManager& rhs);

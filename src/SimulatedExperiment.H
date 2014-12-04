@@ -88,7 +88,7 @@ extern "C" {
         void close_premix_files_(  int*, int*, int*, int*,int* );
         void premix_( int*, int*, int*, int*, int*, int*,
                 int*, int*, int*, int*, int*, double*, int* , int*,
-                int *);
+                      int *, int *, const int *,int *);
 }
 
 struct PREMIXReactor
@@ -152,6 +152,8 @@ struct PREMIXReactor
     ChemDriver& cd;
     PremixSol* premix_sol;
     Real measurement_error;
+
+    int max_premix_iters;
 };
 
 inline

@@ -53,8 +53,14 @@ funcF(void* p, const std::vector<Real>& pvals)
   }
   Real Fb = s->expt_manager.ComputeLikelihood(dvals);
 
+  // Absolutely guarantee that all processors have the same result
+  Array<Real> data(2);
+  data[0] = Fa.second;
+  data[1] = Fb;
+  ParallelDescriptor::Bcast(data.dataPtr(),data.size(),ParallelDescriptor::IOProcessorNumber());
+  
   // Return sum of pieces
-  return (Fa.second  +  Fb);
+  return (data[0] + data[1]);
 }
 
 double Driver::LogLikelihood(const std::vector<double>& parameters)

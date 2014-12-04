@@ -22,6 +22,8 @@ static Real dOH_thresh_DEF = 1.0e-4; // Arbitrary default
 static std::string log_file_DEF = "NULL"; // if this, no log
 static int verbosity_DEF = 0;
 
+static int max_premix_iters_DEF = 10000;
+
 SimulatedExperiment::SimulatedExperiment()
   :  is_initialized(false), log_file(log_file_DEF), verbosity(verbosity_DEF)
 {
@@ -789,7 +791,7 @@ ZeroDReactor::InitializeExperiment()
 
 
 PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
-  : SimulatedExperiment(), cd(_cd)
+  : SimulatedExperiment(), cd(_cd), max_premix_iters(max_premix_iters_DEF)
 {
   ParmParse pp(pp_prefix.c_str());
 
@@ -833,7 +835,7 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
         std::cerr << "Experiment " <<  pp_prefix  << " registering " << nprereq << " prerequisites " << std::endl;
       }
   }
-
+  pp.query("max_premix_iters",max_premix_iters);
 }
 
 PREMIXReactor::~PREMIXReactor()
@@ -998,9 +1000,12 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   //int startPMtime = tp.tv_sec;
 
   //std::cout << "Calling PREMIX" << std::endl;
+  int is_good = 0;
+  int num_steps;
   premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
           &lenlwk, &leniwk, &lenrwk, &lencwk, 
-          savesol, solsz, &lrstrtflag, &lregrid);
+          savesol, solsz, &lrstrtflag, &lregrid, &is_good, &max_premix_iters, &num_steps);
+
   //gettimeofday(&tp, NULL);
   //int stopPMtime = tp.tv_sec;
   //std::cout << "PREMIX call took approximately " << (stopPMtime - startPMtime) << " seconds (gettimeofday) " << std::endl;
@@ -1022,7 +1027,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   
   // Extract the measurements - should probably put into an 'ExtractMeasurements'
   // for consistency with ZeroDReactor
-  if( *solsz > 0 ) {
+
+  if( is_good > 0 && *solsz > 0 ) {
     //std::cout << "Premix generated a viable solution " << std::endl;
     simulated_observations[0]  = savesol[*solsz + nmax*(ncomp-1)-1+3];
     if (! ValidMeasurement(simulated_observations[0])) {

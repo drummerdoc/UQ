@@ -1,14 +1,24 @@
 #include <iostream>
+#include <fstream>
 #include <ExperimentManager.H>
 #include <Rand.H>
 #include <ParmParse.H>
 #include <ParallelDescriptor.H>
+#include <Utility.H>
+
+static bool log_failed_cases_DEF = true;
+static std::string log_folder_name_DEF = "FAILED";
   
 ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool _use_synthetic_data)
   : use_synthetic_data(_use_synthetic_data),
-    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0), verbose(true)
+    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0), verbose(true),
+    log_failed_cases(log_failed_cases_DEF), log_folder_name(log_folder_name_DEF)
 {
   ParmParse pp;
+
+  pp.query("log_failed_cases",log_failed_cases);
+  pp.query("log_folder_name",log_folder_name);
+
   int nExpts = pp.countval("experiments");
   Array<std::string> experiments;
   pp.getarr("experiments",experiments,0,nExpts);
@@ -421,26 +431,91 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
   ParallelDescriptor::ReduceBoolAnd(ok);
 
-  if (ParallelDescriptor::MyProc() == master) {
-    for (int i=0; i<expts.size() && ok; ++i) {
-      int offset = data_offsets[i];
-      std::cout << "Experiment " << i << " (" << expt_name[i]
-                << ") result: " << test_measurements[offset] << std::endl;
+  if (ParallelDescriptor::MyProc() == master)
+  {
+    if (!ok) {
+      if (log_failed_cases) {
+        LogFailedCases(test_params,test_measurements);
+      }
+    }
+    else {
+      for (int i=0; i<expts.size(); ++i) {
+        int offset = data_offsets[i];
+        std::cout << "Experiment " << i << " (" << expt_name[i]
+                  << ") result: " << test_measurements[offset] << std::endl;
+      }
     }
   }
   
 #else
   // Serial tasks 
   for (int i=0; i<expts.size() && ok; ++i) {
-    ok = expts[i].GetMeasurements(raw_data[i]);
+    bool this_ok = expts[i].GetMeasurements(raw_data[i]);
+    if (!this_ok) {
+      std::cout << "Experiment " << i << " failed" << std::endl;
+    }
+    ok &= this_ok;
+
     int offset = data_offsets[i];
     for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
       test_measurements[offset + j] = raw_data[i][j];
     }
   }
+
+  if (ok) {
+    for (int i=0; i<expts.size(); ++i) {
+      int offset = data_offsets[i];
+      std::cout << "Experiment " << i << " (" << expt_name[i]
+                << ") result: " << test_measurements[offset] << std::endl;
+    }
+  }
+  else {
+    if (log_failed_cases) {
+      LogFailedCases(test_params,test_measurements);
+    }
+  }
+
 #endif
 
   return ok;
+}
+
+static int failure_number = 0;
+void
+ExperimentManager::LogFailedCases(const std::vector<Real>& test_params,
+                                  const std::vector<Real>& test_measurements)
+{
+  failure_number++;
+  int ndigits = std::log10(failure_number) + 1;
+  const IntVect ivz(D_DECL(0,0,0));
+
+  BL_ASSERT(ParallelDescriptor::IOProcessor());
+  if (!BoxLib::UtilCreateDirectory(log_folder_name, 0755))
+    BoxLib::CreateDirectoryFailed(log_folder_name);
+
+  int np = test_params.size();
+  FArrayBox p(Box(ivz,ivz),np);
+  for (int i=0; i<np; ++i) {
+    p(ivz,i) = test_params[i];
+  }
+
+  std::string plog_file_name = log_folder_name + "/" + "params";
+  plog_file_name = BoxLib::Concatenate(plog_file_name,failure_number,ndigits);
+  std::ofstream pofs; pofs.open(plog_file_name.c_str());
+  p.writeOn(pofs);
+  pofs.close();
+
+  int nm = test_measurements.size();
+  FArrayBox m(Box(ivz,ivz),nm);
+  for (int i=0; i<nm; ++i) {
+    m(ivz,i) = test_measurements[i];
+  }
+
+  std::string mlog_file_name = log_folder_name + "/" + "data";
+  mlog_file_name = BoxLib::Concatenate(mlog_file_name,failure_number,ndigits);
+  std::ofstream mofs; mofs.open(mlog_file_name.c_str());
+  m.writeOn(mofs);
+  mofs.close();
 }
 
 Real
