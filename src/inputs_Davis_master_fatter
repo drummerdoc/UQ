@@ -296,7 +296,7 @@ fls1b.num_sol_pts = 1000
 fls2a.type = PREMIXReactor
 fls2a.data = 206
 fls2a.premix_input_path = ../extras/Davis05_h2co/premix/
-fls2a.premix_input_file = premix.fls2a
+fls2a.premix_input_file = premix.fls2a_NEW
 fls2a.measurement_error = 20
 fls2a.num_sol_pts = 1000
 
@@ -313,6 +313,7 @@ fls3a.premix_input_path = ../extras/Davis05_h2co/premix/
 fls3a.premix_input_file = premix.fls3a_NEW
 fls3a.measurement_error = 6
 fls3a.num_sol_pts = 1000
+#fls3a.max_premix_iters = 600
 #fls3a.prereqs = fls3ap1 fls3ap2
 
 #fls3ap1.type = PREMIXReactor
@@ -344,21 +345,21 @@ fls4a.num_sol_pts = 1000
 fls4b.type = PREMIXReactor
 fls4b.data = 52.5
 fls4b.premix_input_path = ../extras/Davis05_h2co/premix/
-fls4b.premix_input_file = premix.fls4b
+fls4b.premix_input_file = premix.fls4b_NEW
 fls4b.measurement_error = 5
 fls4b.num_sol_pts = 1000
 
 fls5a.type = PREMIXReactor
 fls5a.data = 111.5
 fls5a.premix_input_path = ../extras/Davis05_h2co/premix/
-fls5a.premix_input_file = premix.fls5a
+fls5a.premix_input_file = premix.fls5a_NEW
 fls5a.measurement_error = 11
 fls5a.num_sol_pts = 1000
 
 fls5b.type = PREMIXReactor
 fls5b.data = 154.5
 fls5b.premix_input_path = ../extras/Davis05_h2co/premix/
-fls5b.premix_input_file = premix.fls5b
+fls5b.premix_input_file = premix.fls5b_NEW
 fls5b.measurement_error = 15
 fls5b.num_sol_pts = 1000
 
@@ -372,7 +373,7 @@ fls6a.num_sol_pts = 1000
 fls6b.type = PREMIXReactor
 fls6b.data = 18.5
 fls6b.premix_input_path = ../extras/Davis05_h2co/premix/
-fls6b.premix_input_file = premix.fls6b
+fls6b.premix_input_file = premix.fls6b_NEW
 fls6b.measurement_error = 2
 fls6b.num_sol_pts = 1000
 
@@ -769,3 +770,14 @@ ign6d.data_tend = 50e-6
 ign6d.diagnostic_name = thresh_O
 ign6d.measurement_error = 6.
 ign6d.O_thresh = 4.15e-4
+
+log_failed_cases = f
+
+
+
+fls2a.premix_input_file = premix.fls2a_NEW
+fls3a.max_premix_iters = 20000
+flw4a.data_tend = 0.15
+fls4b.premix_input_file = premix.fls4b_NEW
+fls5a.premix_input_file = premix.fls5a_NEW
+fls5b.premix_input_file = premix.fls5b_NEW
