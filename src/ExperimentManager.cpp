@@ -22,6 +22,7 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, boo
   int nExpts = pp.countval("experiments");
   Array<std::string> experiments;
   pp.getarr("experiments",experiments,0,nExpts);
+  pp.query("verbose",verbose);
 
   for (int i=0; i<nExpts; ++i) {
     std::string prefix = experiments[i];
@@ -453,10 +454,12 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
       }
     }
     else {
-      for (int i=0; i<expts.size(); ++i) {
-        int offset = data_offsets[i];
-        std::cout << "Experiment " << i << " (" << expt_name[i]
-                  << ") result: " << test_measurements[offset] << std::endl;
+      if (verbose) {
+        for (int i=0; i<expts.size(); ++i) {
+          int offset = data_offsets[i];
+          std::cout << "Experiment " << i << " (" << expt_name[i]
+                    << ") result: " << test_measurements[offset] << std::endl;
+        }
       }
     }
   }
@@ -478,10 +481,12 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   }
 
   if (ok) {
-    for (int i=0; i<expts.size(); ++i) {
-      int offset = data_offsets[i];
-      std::cout << "Experiment " << i << " (" << expt_name[i]
-                << ") result: " << test_measurements[offset] << std::endl;
+    if (verbose) {
+      for (int i=0; i<expts.size(); ++i) {
+        int offset = data_offsets[i];
+        std::cout << "Experiment " << i << " (" << expt_name[i]
+                  << ") result: " << test_measurements[offset] << std::endl;
+      }
     }
   }
   else {
