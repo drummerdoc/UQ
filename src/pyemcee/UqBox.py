@@ -15,17 +15,6 @@ import pyemcee as pymc
 import cPickle
 from mpi4py import MPI
 
-
-#   Inputs
-nwalkers      = 64
-nBurnIn       = 10        # Number of burn-in samples before starting to take data
-nChainLength  = 5000       # Number of MCMC resamplings in the data run, after burn in
-outFilePrefix = "Results_" # Prefix to output file names, to be appended with eval #
-outFilePeriod = 10        # Number of samples between calls to write data
-runlogPeriod  = 1        # Number of samples between info messages written to screen
-seed          = 17
-nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended number
-
 # Pickle entire sample chain (cummulative, and therefore not exactly ideal, but simple)
 def PickleResults(driver,filename):
     print("Writing output: "+filename)
@@ -108,7 +97,28 @@ prior_mean = driver.PriorMean()
 prior_std = driver.PriorStd()
 ensemble_std = driver.EnsembleStd()
 
+pp = pymc.ParmParse()
+
+#   Inputs to MC
+nwalkers      = int(pp['nwalkers'])
+nBurnIn       = int(pp['nBurnIn'])
+nChainLength  = int(pp['nChainLength'])
+outFilePrefix =     pp['outFilePrefix']
+outFilePeriod = int(pp['outFilePeriod'])
+runlogPeriod  = int(pp['runlogPeriod'])
+seed          = int(pp['seed'])
+nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended number
+
 if rank == 0:
+    print('     nwalkers: ',nwalkers)
+    print('      nBurnIn: ',nBurnIn)
+    print(' nChainLength: ',nChainLength)
+    print('outFilePrefix: ',outFilePrefix)
+    print('outFilePeriod: ',outFilePeriod)
+    print(' runlogPeriod: ',runlogPeriod)
+    print('         seed: ',seed)
+    print('')
+
     print('Number of Parameters:',ndim)
     print('Number of Data:',ndata)
     print('prior means:  '+ str(prior_mean))
