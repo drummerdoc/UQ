@@ -91,14 +91,16 @@ struct ParmParse
   %extend{
     const std::string __getitem__(const std::string& name) {
       std::string result;
-      self->get(name.c_str(),result);
+      self->query(name.c_str(),result);
       return result.c_str();
     }
 
     const std::vector<std::string> getarr(const std::string& name) {
       std::vector<std::string> result;
       int n = self->countval(name.c_str());
-      self->getarr(name.c_str(),result,0,n);
+      if (n>0) {
+        self->getarr(name.c_str(),result,0,n);
+      }
       return result;
     }
 
