@@ -5,8 +5,6 @@
 
 #include <vector>
 
-#define real __cminpack_real__
-
 typedef std::vector<std::vector<Real> > MyMat;
 
 #define CEN_DIFF

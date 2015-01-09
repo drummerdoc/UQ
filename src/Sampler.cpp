@@ -330,7 +330,7 @@ SymmetrizedLinearMapSampler::Sample(void* p,std::vector<std::vector<Real> >& sam
       samples[ii][jj] = mu[jj];
       negsamples[ii][jj] = mu[jj];
       for(int kk=0; kk<num_params; kk++){
-	real tmp = randn();
+	Real tmp = randn();
         samples[ii][jj]    += invsqrt[jj][kk]*tmp;
 	negsamples[ii][jj] -= invsqrt[jj][kk]*tmp;
       }
@@ -344,7 +344,7 @@ SymmetrizedLinearMapSampler::Sample(void* p,std::vector<std::vector<Real> >& sam
 
         samples[ii][jj] = mu[jj];
         for(int kk=0; kk<num_params; kk++){
- 	  real tmp = randn();
+ 	  Real tmp = randn();
           samples[ii][jj]    += invsqrt[jj][kk]*tmp;
 	  negsamples[ii][jj] -= invsqrt[jj][kk]*tmp;
         }

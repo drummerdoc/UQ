@@ -12,7 +12,7 @@
 #include "omp.h"
 #endif
 
-static real sqrt2Inv = 1/std::sqrt(2);
+static Real sqrt2Inv = 1/std::sqrt(2);
 static int GOOD_EVAL_FLAG = 0;
 static int BAD_DATA_FLAG = 1;
 static int BAD_EXPT_FLAG = 2;
@@ -338,7 +338,7 @@ int FCN(void       *p,
 // // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
-static int eval_nlls_data(void *p, const std::vector<Real>& pvals, real *fvec)
+static int eval_nlls_data(void *p, const std::vector<Real>& pvals, Real *fvec)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
   ExperimentManager& em = s->expt_manager;
@@ -366,7 +366,7 @@ static int eval_nlls_data(void *p, const std::vector<Real>& pvals, real *fvec)
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
-static int eval_nlls_funcs(void *p, int m, int n, const real *x, real *fvec)
+static int eval_nlls_funcs(void *p, int m, int n, const Real *x, Real *fvec)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
   ParameterManager& pm = s->parameter_manager;
@@ -410,7 +410,7 @@ static int eval_nlls_funcs(void *p, int m, int n, const real *x, real *fvec)
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 static
-int NLLSFCN(void *p, int m, int n, const real *x, real *fvec, real *fjac, 
+int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac, 
             int ldfjac, int iflag)
 {
   if (iflag == 0) {
@@ -641,7 +641,7 @@ NLLSMinimizer::JTJ(void *p, const std::vector<Real>& X)
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 static
-int NLLSFCN_NOJ(void *p, int m, int n, const real *x, real *fvec, int iflag)
+int NLLSFCN_NOJ(void *p, int m, int n, const Real *x, Real *fvec, int iflag)
 {
   int eflag = eval_nlls_funcs(p,m,n,x,fvec);
   if (eflag != GOOD_EVAL_FLAG) {

@@ -42,15 +42,16 @@ DEBUG           = FALSE
 #DEBUG           = TRUE
 DIM             = 2
 COMP            = g++
+CXX             = g++
 FCOMP           = gfortran
 USE_MPI         = TRUE
-#USE_MPI         = FALSE
+USE_MPI         = FALSE
 USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
-BUILD_EXEC      = FALSE
-#BUILD_EXEC      = TRUE
+#BUILD_EXEC      = FALSE
+BUILD_EXEC      = TRUE
 VERBOSE         = TRUE
 DO_REGTEST      = FALSE
 
@@ -108,8 +109,8 @@ include $(Bpack)
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
-CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H Minimizer.H Sampler.H
-CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp Minimizer.cpp Sampler.cpp
+CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H Minimizer.H Sampler.H UqPlotfile.H
+CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp Minimizer.cpp Sampler.cpp UqPlotfile.cpp
 
 ifeq (${CHEMISTRY_MODEL}, DAVIS)
   CHEM_MECHFILE = davis.c
