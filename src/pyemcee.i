@@ -25,6 +25,7 @@
 }
 %{
 #  include <Driver.H>
+#  include <ParmParse.H>
 
 #define SWIG_FILE_WITH_INIT
 
@@ -43,9 +44,11 @@
 
         %include <numpy.i>
         %include <std_vector.i>
+        %include <std_string.i>
 
         namespace std {
             %template(DoubleVec) std::vector<double>;
+            %template(StringVec) std::vector<std::string>;
         };
 
 struct Driver
@@ -65,4 +68,42 @@ struct Driver
   static std::vector<double> LowerBound();
   static std::vector<double> UpperBound();
   static std::vector<double> GenerateTestMeasurements(const std::vector<double>& test_params);
+};
+
+/* Here, we expose the BoxLib::ParmParse class, but only for strings, lists of strings
+
+   Initialize/use as:
+
+   >>> pp = pyemcee.ParmParse()
+   >>> pname = 'myparam'
+   >>> n = pp.count(pname)
+   >>> if n == 1:
+   >>>   print pname + ' = ' + pp[pname]  # Gets a single parameter value
+   >>> elif n > 1:
+   >>>   p = pp.getarr(pname)             # Gets a list of parameter values
+   >>>   print pname+' (' + str(n) + '):'
+   >>>   for pi in p:
+   >>>     print('  p: '+pi)
+
+ */ 
+struct ParmParse
+{
+  %extend{
+    const std::string __getitem__(const std::string& name) {
+      std::string result;
+      self->get(name.c_str(),result);
+      return result.c_str();
+    }
+
+    const std::vector<std::string> getarr(const std::string& name) {
+      std::vector<std::string> result;
+      int n = self->countval(name.c_str());
+      self->getarr(name.c_str(),result,0,n);
+      return result;
+    }
+
+    int count(const std::string& name) {
+      return self->countval(name.c_str());
+    }
+  }
 };
