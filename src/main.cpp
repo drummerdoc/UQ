@@ -6,8 +6,9 @@
 
 #include <ParmParse.H>
 #include <SimulatedExperiment.H>
-
 #include <PremixSol.H>
+#include <UqPlotfile.H>
+
 #include <ParallelDescriptor.H>
 
 int
@@ -63,10 +64,33 @@ main (int   argc,
   std::string which_sampler = "prior_mc"; pp.query("which_sampler",which_sampler);
   std::vector<Real> soln_params(num_params);
 
+
+  /*
+    Minimize system (if reqd)
+    =========================
+
+    If minimized solution required (which_sampler != prior_mc), either minimize
+    (which_minimizer="nlls" or != "none"), or read sample from file containing
+    minimum point (which_minimizer="none").
+   */
   Minimizer* minimizer = 0;
+  std::string samples_at_min_file = "parameters_at_min.fab";
+  pp.query("samples_at_min_file",samples_at_min_file);
+
+  std::string which_minimizer = "none";
   if (which_sampler != "prior_mc") {
-    bool use_nlls_minimizer = true;
-    if (use_nlls_minimizer) {
+    which_minimizer = "nlls";
+  }
+  pp.query("which_minimizer",which_minimizer);
+
+  if (which_minimizer == "none" && which_sampler != "prior_mc") {
+
+    int ndim, nwalkers, iters;
+    UqPlotfileInfo(&ndim,&nwalkers,&iters,samples_at_min_file);
+    UqPlotfileRead(soln_params,nwalkers-1,iters-1,samples_at_min_file);
+
+  } else {
+    if (which_minimizer == "nlls") {
       minimizer = new NLLSMinimizer();
     }
     else {
@@ -83,11 +107,15 @@ main (int   argc,
     for(int ii=0; ii<num_params; ii++){
       std::cout << parameter_manager[ii] << std::endl;
     }
+
+    UqPlotfileWrite(&(soln_params[0]),num_params,1,1,samples_at_min_file);
   }
 
-  // ////////////////////////////////////////////////////////////////////
-  // Do sampling
-  // ////////////////////////////////////////////////////////////////////
+
+  /*
+    Do sampling
+    ===========
+   */
   int NOS = 10000; pp.query("NOS",NOS);
   std::vector<Real> w(NOS);
   std::vector<std::vector<Real> > samples(NOS, std::vector<Real>(num_params,-1));
@@ -105,15 +133,15 @@ main (int   argc,
 
     MyMat H, InvSqrtH;
     if (fd_Hessian) {
-      // ////////////////////////////////////////////////////////////////////
-      // Compute Finite Difference Hessian
-      // ////////////////////////////////////////////////////////////////////
+      /*
+        Compute Finite Difference Hessian
+      */
       H = Minimizer::FD_Hessian((void*)driver.mystruct, soln_params);
     }
     else {
-      // ////////////////////////////////////////////////////////////////////
-      // Compute J^t J
-      // ////////////////////////////////////////////////////////////////////
+      /*
+        Compute J^t J
+      */
       int n = num_params;
       int m = num_data + n;
       std::vector<Real> FVEC(m);
@@ -138,7 +166,13 @@ main (int   argc,
     }
   }
   if (sampler) {
+    std::cout << "Sampling..." << std::endl;
     sampler->Sample((void*)(driver.mystruct), samples, w);
+    std::cout << "...Finished" << std::endl;
+
+    std::string samples_outfile = "mysamples.fab";
+    UqPlotfileWrite(samples,samples_outfile);
+
   }
   delete sampler;
   delete minimizer;
