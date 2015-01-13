@@ -10,33 +10,65 @@ from __future__ import print_function
 import numpy as np
 import emcee
 import sys
+import StringIO
 
 import pyemcee as pymc
 import cPickle
 from mpi4py import MPI
 
-# Pickle entire sample chain (cummulative, and therefore not exactly ideal, but simple)
-def PickleResults(driver,filename):
-    print("Writing output: "+filename)
+def WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,rstate):
+    
+    fmt = "%0"+str(nDigits)+"d"
+    lastStep = step + nSteps - 1
+    filename = outFilePrefix + '_' + (fmt % step) + '_' + (fmt % lastStep)
+
+    if rank == 0:
+        print('Writing plotfile: '+filename)
+
     x = driver.sampler.chain
-    OutNames = ['x',    # The names here must be the exact variable names
-                'ndim',
-                'ndata',
-                'nwalkers',
-                'nBurnIn',
-                'nChainLength',
-                'iters']
 
-    OutDict = dict()     # a python dictionary with variable names and values
-    for name in OutNames:
-        CommString = "OutDict['" + name + "']  =  " + name  # produce a command like:  OutDict['x'] = x
-        exec CommString
+    ndim = driver.NumParams()
+    C_array_size = nSteps*ndim*nwalkers
+    x_for_c = pymc.DoubleVec(C_array_size)
 
-    # Then pickle the dictionary
-    ResultsFile = open( filename, 'wb')
-    Output      = [ OutNames, OutDict]
-    cPickle.dump( Output, ResultsFile)
-    ResultsFile.close()
+    for walker in range(0,nwalkers):
+        for it in range(0,nSteps):
+            for dim in range(0,ndim):
+                index = walker + nwalkers*it + nwalkers*nSteps*dim
+                x_for_c[index] = x[walker,it,dim]
+
+    if rstate == None:
+        rstateString = ''
+    else:
+        rstateString = cPickle.dumps(rstate)
+
+    pf = pymc.UqPlotfile(x_for_c, ndim, nwalkers, step, nSteps, rstateString)
+    pf.Write(filename)
+
+def LoadPlotfile(driver,filename):
+    
+    if rank == 0:
+        print('Loading plotfile: '+filename)
+        
+    pf = pymc.UqPlotfile()
+    pf.Read(filename)
+    t_nwalkers = pf.NWALKERS()
+    t_ndim = pf.NDIM()
+    t_iters = 1
+
+    rstate = cPickle.loads(pf.RSTATE())
+    iter = pf.ITER() + pf.NITERS() - 1
+
+    p0 = pf.LoadEnsemble(iter,t_iters)
+
+    ret = []
+    for walker in range(0,t_nwalkers):
+        ret.append(np.zeros(t_ndim))
+        for dim in range(0,t_ndim):
+            ret[walker][dim] = p0[walker + t_nwalkers*dim]
+
+    return ret, iter, rstate
+
 
 #
 # Simple driver to enable persistent static class wrapped around driver object
@@ -78,6 +110,7 @@ def lnprob(x, driver):
 
     """
     result = driver.Eval(x)
+
     if result > 0:
         return -np.inf
     return result
@@ -99,24 +132,20 @@ ensemble_std = driver.EnsembleStd()
 
 pp = pymc.ParmParse()
 
-#   Inputs to MC
 nwalkers      = int(pp['nwalkers'])
-nBurnIn       = int(pp['nBurnIn'])
-nChainLength  = int(pp['nChainLength'])
+maxStep       = int(pp['maxStep'])
 outFilePrefix =     pp['outFilePrefix']
 outFilePeriod = int(pp['outFilePeriod'])
-runlogPeriod  = int(pp['runlogPeriod'])
 seed          = int(pp['seed'])
-nDigits       = int(np.log10(nChainLength)) + 1 # Number of digits in appended number
+restartFile   =     pp['restartFile']
 
 if rank == 0:
     print('     nwalkers: ',nwalkers)
-    print('      nBurnIn: ',nBurnIn)
-    print(' nChainLength: ',nChainLength)
+    print('      maxStep: ',maxStep)
     print('outFilePrefix: ',outFilePrefix)
     print('outFilePeriod: ',outFilePeriod)
-    print(' runlogPeriod: ',runlogPeriod)
     print('         seed: ',seed)
+    print('  restartFile: ',restartFile)
     print('')
 
     print('Number of Parameters:',ndim)
@@ -125,60 +154,48 @@ if rank == 0:
     print('prior std: '+ str(prior_std))
     print('ensemble std: '+ str(ensemble_std))
 
-# Choose an initial set of positions for the walkers.
 
-# Initialize the sampler with the chosen specs.
+# Build a sampler object
 driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
-driver.sampler._random =  np.random.mtrand.RandomState(seed=seed) # overwrite state of rand with seeded one
 
-# Generate initial samples
-p0 = [prior_mean + driver.sampler._random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
-        
-if rank == 0:
-    print('Initial walker parameters: ')
-    for walker in p0:
-        print(walker)
+if restartFile == "":
 
-# Run burn-in steps
-if rank == 0:
-    print ('Doing burn-in...')
+    # Choose an initial set of positions for the walkers.
+    driver.sampler._random =  np.random.mtrand.RandomState(seed=seed) # overwrite state of rand with seeded one
+    p0 = [prior_mean + driver.sampler._random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
 
-pos, prob, state = driver.sampler.run_mcmc(p0, nBurnIn)
+    step = 0
+    
+    have_state = False
 
-# Reset the chain to remove the burn-in samples.
-driver.sampler.reset()
-
-# Starting from the final position in the burn-in chain, do sample steps.
-if rank == 0:
-    print ('Sampling...')
-
-iters = 0
-for result in driver.sampler.sample(pos, iterations=nChainLength):
-    iters = iters + 1
+else:
 
     if rank == 0:
-        if iters % runlogPeriod == 0:
-            print(str(iters)+" walker sweeps complete")
+        print ('Rstarting from '+restartFile)
+        
+    pos, step, state = LoadPlotfile(driver, restartFile)
+    step = step + 1
 
-        if iters % outFilePeriod == 0:
-            fmt = "%0"+str(nDigits)+"d"
-            outFileName = outFilePrefix + (fmt % iters)
-            PickleResults(driver,outFileName)
-
-if iters % outFilePeriod != 0 and rank == 0:
-    fmt = "%0"+str(nDigits)+"d"
-    outFileName = outFilePrefix + (fmt % iters)
-    PickleResults(driver,outFileName)
+    have_state = True
 
 
-# Print out the mean acceptance fraction. In general, acceptance_fraction
-# has an entry for each walker so, in this case, it is a 250-dimensional
-# vector.
+# Main sampling loop
 if rank == 0:
-    print("Mean acceptance fraction:", np.mean(driver.sampler.acceptance_fraction))
+    print ('Sampling...')
+    
+while step < maxStep:
 
-    posterior_mean = []
-    for i in range(ndim):
-        posterior_mean.append(driver.sampler.flatchain[:,i].mean()) 
-        print('New mean:',i,posterior_mean[i])
+    nSteps = min(outFilePeriod, maxStep-step+1)
+    
+    driver.sampler.reset()
 
+    if have_state:
+        pos, prob, state = driver.sampler.run_mcmc(pos, nSteps, rstate0=state)
+    else:
+        pos, prob, state = driver.sampler.run_mcmc(p0, nSteps)
+        have_state = True
+
+    nDigits = int(np.log10(maxStep)) + 1
+    WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,state)
+
+    step = step + nSteps

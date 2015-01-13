@@ -1,5 +1,12 @@
 which_sampler=linear_map
 
+nwalkers      = 2
+maxStep       = 6         # Number of MCMC samples for each walker
+outFilePrefix = "Results" # Prefix to output file names, to be appended with step range
+outFilePeriod = 3         # Number of samples between calls to write data
+seed          = 17        # seed, used if no restart file provided
+#restartFile = Results_00_10
+
 ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12
 

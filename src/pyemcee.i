@@ -1,55 +1,57 @@
 %module pyemcee
 // This tells SWIG to treat char ** as a special case
 // Shamelessly lifted from http://www.swig.org/Doc1.1/HTML/Python.html
-%typemap(python,in) char ** {
+#ifdef SWIGPYTHON
+%typemap(in) char ** {
     /* Check if is a list */
-    if (PyList_Check($source)) {
-        int size = PyList_Size($source);
+    if (PyList_Check($input)) {
+        int size = PyList_Size($input);
         int i = 0;
-        $target = (char **) malloc((size+1)*sizeof(char *));
+        $1 = (char **) malloc((size+1)*sizeof(char *));
         for (i = 0; i < size; i++) {
-            PyObject *o = PyList_GetItem($source,i);
+            PyObject *o = PyList_GetItem($input,i);
             if (PyString_Check(o))
-                $target[i] = PyString_AsString(PyList_GetItem($source,i));
+                $1[i] = PyString_AsString(PyList_GetItem($input,i));
             else {
                 PyErr_SetString(PyExc_TypeError,"list must contain strings");
-                free($target);
+                free($1);
                 return NULL;
             }
         }
-        $target[i] = 0;
+        $1[i] = 0;
     } else {
         PyErr_SetString(PyExc_TypeError,"not a list");
         return NULL;
     }
 }
+#endif
 %{
 #  include <Driver.H>
 #  include <ParmParse.H>
+#  include <UqPlotfile.H>
 
 #define SWIG_FILE_WITH_INIT
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
+%}
 
-    %}
-
-    %include "numpy.i"
+%include "numpy.i"
 #ifdef BL_USE_MPI
-    %include "mpi4py.i"
-    %mpi4py_typemap(Comm, MPI_Comm);
+  %include "mpi4py.i"
+  %mpi4py_typemap(Comm, MPI_Comm);
 #endif
 
-    %init %{
-        import_array();
-        %}
+%init %{
+  import_array();
+%}
 
-        %include <numpy.i>
-        %include <std_vector.i>
-        %include <std_string.i>
+%include <std_vector.i>
+%include <std_string.i>
 
-        namespace std {
-            %template(DoubleVec) std::vector<double>;
-            %template(StringVec) std::vector<std::string>;
-        };
+namespace std {
+  %template(DoubleVec) std::vector<double>;
+  %template(StringVec) std::vector<std::string>;
+};
 
 struct Driver
 {
@@ -109,3 +111,5 @@ struct ParmParse
     }
   }
 };
+
+%include <UqPlotfile.H>
