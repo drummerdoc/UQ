@@ -193,7 +193,7 @@ main (int   argc,
         samplesT[index] = samples[i][j];
       }
     }
-    UqPlotfile pf(samplesT,num_params,1,0,1,"");
+    UqPlotfile pf(samplesT,num_params,1,0,NOS,"");
     pf.Write(samples_outfile);
   }
   delete sampler;
