@@ -103,25 +103,22 @@ main (int   argc,
       minimizer = new GeneralMinimizer();
     }
 
-    // Build guess to allow easy input into plotfile format
-    std::vector<std::vector<Real> > guess_params(1,std::vector<Real>(num_params));
+    std::vector<Real> guess_params(num_params);
     for(int i=0; i<num_params; i++){
-      guess_params[0][i] = prior_mean[i];
+      guess_params[i] = prior_mean[i];
     }
 
-    minimizer->minimize((void*)(driver.mystruct), guess_params[0], soln_params);
+    minimizer->minimize((void*)(driver.mystruct), guess_params, soln_params);
 
     std::cout << "Final parameters: " << std::endl;
     for(int ii=0; ii<num_params; ii++){
       std::cout << parameter_manager[ii] << std::endl;
-      guess_params[0][ii] = soln_params[ii];
     }
 
-    UqPlotfile pf(guess_params);
+    UqPlotfile pf(soln_params,num_params,1,0,1,"");
     pf.Write(samples_at_min_file);
 
     return 0;
-
   }
 
 

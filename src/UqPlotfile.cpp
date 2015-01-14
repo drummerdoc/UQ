@@ -32,28 +32,6 @@ UqPlotfile::UqPlotfile(const std::vector<double>& x,
   }
 }
 
-UqPlotfile::UqPlotfile(const std::vector<std::vector<double> >& x)
-{
-  m_iter = 0;
-  m_iters = x.size();
-  BL_ASSERT(m_iter > 0);
-  m_nwalkers = 1;
-  m_ndim = x[0].size();
-  m_rstate = "";
-
-  Box box(IntVect(D_DECL(0,0,0)),IntVect(D_DECL(m_nwalkers-1,m_iters-1,0)));
-  m_fab.resize(box,m_ndim);
-
-  for (int k=0; k<m_nwalkers; ++k) {
-    for (int t=0; t<m_iters; ++t) {
-      IntVect iv(k,t);
-      for (int j=0; j<m_ndim; ++j) {
-        m_fab(iv,j) = x[t][j];
-      }
-    }
-  }
-}
-
 std::vector<double>
 UqPlotfile::LoadEnsemble(int iter, int iters) const
 {

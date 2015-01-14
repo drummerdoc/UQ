@@ -16,8 +16,6 @@ struct UqPlotfile
              int                        iters,
              const std::string&         rng_state);
 
-  UqPlotfile(const std::vector<std::vector<double> >& x);
-
   void Write(const std::string& filename) const;
   void Read(const std::string& filename);
 
