@@ -9,17 +9,46 @@
 
 static const std::string PlotfileVersion = "UQ_Plotfile_V0";
 
-UqPlotfile::UqPlotfile(const std::vector<double>& x, int ndim, int nwalkers, int iter, int iters, const std::string& rstate)
-  : m_ndim(ndim), m_nwalkers(nwalkers), m_iter(iter), m_iters(iters), m_rstate(rstate)
+UqPlotfile::UqPlotfile(const std::vector<double>& x,
+                       int                        ndim,
+                       int                        nwalkers,
+                       int                        iter,
+                       int                        iters,
+                       const std::string&         rng_state)
+  : m_ndim(ndim), m_nwalkers(nwalkers), m_iter(iter),
+    m_iters(iters), m_rstate(rng_state)
 {
   Box box(IntVect(D_DECL(0,0,0)),IntVect(D_DECL(m_nwalkers-1,m_iters-1,0)));
   m_fab.resize(box,m_ndim);
+
   for (int k=0; k<m_nwalkers; ++k) {
     for (int t=0; t<m_iters; ++t) {
       IntVect iv(k,t);
       for (int j=0; j<m_ndim; ++j) {
         long index = k + m_nwalkers*t + m_nwalkers*m_iters*j;
         m_fab(iv,j) = x[index];
+      }
+    }
+  }
+}
+
+UqPlotfile::UqPlotfile(const std::vector<std::vector<double> >& x)
+{
+  m_iter = 0;
+  m_iters = x.size();
+  BL_ASSERT(m_iter > 0);
+  m_nwalkers = 1;
+  m_ndim = x[0].size();
+  m_rstate = "";
+
+  Box box(IntVect(D_DECL(0,0,0)),IntVect(D_DECL(m_nwalkers-1,m_iters-1,0)));
+  m_fab.resize(box,m_ndim);
+
+  for (int k=0; k<m_nwalkers; ++k) {
+    for (int t=0; t<m_iters; ++t) {
+      IntVect iv(k,t);
+      for (int j=0; j<m_ndim; ++j) {
+        m_fab(iv,j) = x[t][j];
       }
     }
   }
@@ -36,7 +65,7 @@ UqPlotfile::LoadEnsemble(int iter, int iters) const
     for (int t=iter; t<iter+iters; ++t) {
       IntVect iv(k,t-m_iter); // Releative to my fab data
       for (int j=0; j<m_ndim; ++j) {
-        long index = k + m_nwalkers*(t-iter) + m_nwalkers*iters*j; // relative to output data
+        long index = k + m_nwalkers*(t-iter) + m_nwalkers*iters*j;
         result[index] = m_fab(iv,j);
       }
     }
@@ -96,7 +125,8 @@ UqPlotfile::ReadSamples(const std::string& filename)
   ParallelDescriptor::Bcast(m_fab.dataPtr(),m_fab.box().numPts());
 }
 
-void UqPlotfile::WriteHeader(const std::string& filename) const
+void
+UqPlotfile::WriteHeader(const std::string& filename) const
 {
   if (ParallelDescriptor::IOProcessor()) {
     std::ofstream ofs;
@@ -110,7 +140,8 @@ void UqPlotfile::WriteHeader(const std::string& filename) const
   }
 }
 
-void UqPlotfile::ReadHeader(const std::string& filename)
+void
+UqPlotfile::ReadHeader(const std::string& filename)
 {
   int indata[4];
 
@@ -136,17 +167,20 @@ void UqPlotfile::ReadHeader(const std::string& filename)
   m_iters = indata[3];
 }
 
-void UqPlotfile::WriteRState(const std::string& filename) const
+void
+UqPlotfile::WriteRState(const std::string& filename) const
 {
   if (ParallelDescriptor::IOProcessor()) {
     std::ofstream ofs;
     ofs.open(RStateName(filename).c_str());
-    ofs << m_rstate;
+    if (m_rstate != "") 
+      ofs << m_rstate;
     ofs.close();
   }
 }
 
-void UqPlotfile::ReadRState(const std::string& filename)
+void
+UqPlotfile::ReadRState(const std::string& filename)
 {
   // if (ParallelDescriptor::IOProcessor()) {
 
@@ -181,7 +215,8 @@ void UqPlotfile::ReadRState(const std::string& filename)
   }
 }
 
-void UqPlotfile::BuildDir(const std::string& filename) const
+void
+UqPlotfile::BuildDir(const std::string& filename) const
 {
   if (ParallelDescriptor::IOProcessor())
     if (!BoxLib::UtilCreateDirectory(filename, 0755))

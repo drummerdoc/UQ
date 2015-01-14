@@ -801,11 +801,17 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
 
   MINPACKstruct::LAPACKstruct& lapack = s->lapack_struct;
   std::vector<Real>& a = lapack.a;
+
+  /*
+
+    a has not yet been allocated for some reason...
+
   for (int r=0; r<n; ++r) {
     for (int c=0; c<n; ++c) {
       a[r*n+c] = fjac[r*n+c];
     }
   }
+  */
 
   // Forget about COVAR
   // Or maybe not... Marc may re-activate to figure
