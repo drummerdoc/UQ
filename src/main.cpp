@@ -3,6 +3,7 @@
 #include <Sampler.H>
 
 #include <iostream>
+#include <fstream>
 
 #include <ParmParse.H>
 #include <SimulatedExperiment.H>
@@ -10,6 +11,53 @@
 #include <UqPlotfile.H>
 
 #include <ParallelDescriptor.H>
+
+static void
+writeHessian(const MyMat& H, const std::string& hessianOutFile)
+{
+  // Convert MyMat to Fab
+  int n = H.size();
+  if (n > 0) {
+    int m = H[0].size();
+    if (m > 0) {
+      Box box(IntVect(D_DECL(0,0,0)),IntVect(D_DECL(n-1,m-1,0)));
+      FArrayBox fab(box,1);
+      for (int i=0; i<n; ++i) {
+        for (int j=0; j<m; ++j) {
+          IntVect iv(D_DECL(i,j,0));
+          fab(iv,0) = H[i][j];
+        }
+      }
+      std::ofstream ofs(hessianOutFile.c_str());
+      fab.writeOn(ofs);
+      ofs.close();
+    }
+  }
+}
+
+static MyMat
+readHessian(const std::string& hessianInFile)
+{
+  std::ifstream ifs(hessianInFile.c_str());
+  FArrayBox fab;
+  fab.readFrom(ifs);
+  ifs.close();
+
+  const Box& box = fab.box();
+  int n = box.length(0);
+  int m = box.length(1);
+
+  MyMat H(n);
+  for( int i=0; i<n; i++ ){
+    H[i].resize(m);
+    for (int j=0; j<m; ++j) {
+      IntVect iv(D_DECL(i,j,0));
+      H[i][j] = fab(iv,0);
+    }
+  }
+  return H;
+}
+
 
 int
 main (int   argc,
@@ -26,43 +74,70 @@ main (int   argc,
 
   ParameterManager& parameter_manager = driver.mystruct->parameter_manager;
   ExperimentManager& expt_manager = driver.mystruct->expt_manager;
-  //expt_manager.SetVerbose(false);
-  expt_manager.SetVerbose(true);
+  expt_manager.SetVerbose(false);
+  //expt_manager.SetVerbose(true);
 
-  
+  std::vector<Real> guess_params;
+  const std::vector<Real>& prior_std = parameter_manager.PriorSTD();
+  int num_params = prior_std.size();
+
   const std::vector<Real>& true_data = expt_manager.TrueData();
   const std::vector<Real>& perturbed_data = expt_manager.TrueDataWithObservationNoise();
   const std::vector<Real>& true_data_std = expt_manager.ObservationSTD();
   int num_data = true_data.size();
 
-  const std::vector<Real>& true_params = parameter_manager.TrueParameters();
-  const std::vector<Real>& prior_mean = parameter_manager.PriorMean();
-  const std::vector<Real>& prior_std = parameter_manager.PriorSTD();
-  int num_params = true_params.size();
+  if (pp.countval("initFile")) {
 
-  bool show_initial_stats = false; pp.query("show_initial_stats",show_initial_stats);
-  if (show_initial_stats) {
-    std::cout << "True and noisy data: (npts=" << num_data << ")\n"; 
-    for(int ii=0; ii<num_data; ii++){
-      std::cout << "  True: " << true_data[ii]
-                << "  Noisy: " << perturbed_data[ii]
-                << "  Standard deviation: " << true_data_std[ii] << std::endl;
+    std::string initFile; pp.get("initFile",initFile);
+    UqPlotfile pf;
+    pf.Read(initFile);
+    int iter = pf.ITER() + pf.NITERS() - 1;
+    int iters = 1;
+    int initID = iter; pp.query("initID",initID);
+    if (initID < pf.ITER() || initID >= iter+iters) {
+      BoxLib::Abort("InitID sample not in initFile");
     }
+    guess_params = pf.LoadEnsemble(initID, iters);
 
-    std::cout << "True and prior mean:\n"; 
     for(int ii=0; ii<num_params; ii++){
-      std::cout << "  True: " << true_params[ii]
-                << "  Prior: " << prior_mean[ii]
-                << "  Standard deviation: " << prior_std[ii] 
-                << "  Difference / std: "   <<  (true_params[ii]-prior_mean[ii])/prior_std[ii] 
-                << std::endl;
+      std::cout << "Guess (" << ii << "): " << guess_params[ii] << std::endl;
     }
 
-    Real Ftrue = NegativeLogLikelihood(true_params);
-    std::cout << "F at true parameters = " << Ftrue << std::endl;
+  } else {
+
+    const std::vector<Real>& true_params = parameter_manager.TrueParameters();
+    const std::vector<Real>& prior_mean = parameter_manager.PriorMean();
+    num_params = true_params.size();
+
+    guess_params.resize(num_params);
+    for(int i=0; i<num_params; i++){
+      guess_params[i] = prior_mean[i];
+    }
+
+    bool show_initial_stats = false; pp.query("show_initial_stats",show_initial_stats);
+    if (show_initial_stats) {
+      std::cout << "True and noisy data: (npts=" << num_data << ")\n"; 
+      for(int ii=0; ii<num_data; ii++){
+        std::cout << "  True: " << true_data[ii]
+                  << "  Noisy: " << perturbed_data[ii]
+                  << "  Standard deviation: " << true_data_std[ii] << std::endl;
+      }
+
+      std::cout << "True and prior mean:\n"; 
+      for(int ii=0; ii<num_params; ii++){
+        std::cout << "  True: " << true_params[ii]
+                  << "  Prior: " << prior_mean[ii]
+                  << "  Standard deviation: " << prior_std[ii] 
+                  << "  Difference / std: "   <<  (true_params[ii]-prior_mean[ii])/prior_std[ii] 
+                  << std::endl;
+      }
+
+      Real Ftrue = NegativeLogLikelihood(true_params);
+      std::cout << "F at true parameters = " << Ftrue << std::endl;
   
-    Real F = NegativeLogLikelihood(prior_mean);
-    std::cout << "F at prior mean = " << F << std::endl;
+      Real F = NegativeLogLikelihood(prior_mean);
+      std::cout << "F at prior mean = " << F << std::endl;
+    }
   }
 
 
@@ -86,8 +161,10 @@ main (int   argc,
     which_minimizer = "nlls";
   }
   pp.query("which_minimizer",which_minimizer);
+  bool do_minimize = which_minimizer != "none" && which_sampler != "prior_mc";
+  pp.query("do_minimize",do_minimize);
 
-  if (which_minimizer == "none" && which_sampler != "prior_mc") {
+  if (!do_minimize) {
 
     UqPlotfile pf;
     pf.Read(samples_at_min_file);
@@ -101,11 +178,6 @@ main (int   argc,
     }
     else {
       minimizer = new GeneralMinimizer();
-    }
-
-    std::vector<Real> guess_params(num_params);
-    for(int i=0; i<num_params; i++){
-      guess_params[i] = prior_mean[i];
     }
 
     minimizer->minimize((void*)(driver.mystruct), guess_params, soln_params);
@@ -134,31 +206,50 @@ main (int   argc,
 
   Sampler *sampler = 0;
   if (which_sampler == "prior_mc") {
-    sampler = new PriorMCSampler(prior_mean, prior_std);
+    sampler = new PriorMCSampler(guess_params, prior_std);
   }
   else {
     // Output value of objective function at minimum
+    std::cout << "Computing logLikelihood at minimum state..." << std::endl;
     Real phi = NegativeLogLikelihood(soln_params);
     std::cout << "F at numerical minimum = " << phi << std::endl;
 
+    std::cout << "Getting Hessian... " << std::endl;
     MyMat H, InvSqrtH;
-    if (fd_Hessian) {
-      /*
-        Compute Finite Difference Hessian
-      */
-      H = Minimizer::FD_Hessian((void*)driver.mystruct, soln_params);
+
+    std::string hessianInFile;
+    if (pp.countval("hessianInFile")) {
+      pp.get("hessianInFile",hessianInFile); 
+      std::cout << "      Getting Hessian from file: " << hessianInFile << std::endl;
+      H = readHessian(hessianInFile);
     }
     else {
-      /*
-        Compute J^t J
-      */
-      int n = num_params;
-      int m = num_data + n;
-      std::vector<Real> FVEC(m);
-      std::vector<Real> FJAC(m*n);
-      NLLSMinimizer* nm = dynamic_cast<NLLSMinimizer*>(minimizer);
-      BL_ASSERT(nm!=0);
-      H = nm->JTJ((void*)(driver.mystruct),soln_params);
+      if (fd_Hessian) {
+        /*
+          Compute Finite Difference Hessian
+        */
+        std::cout << "      Getting Hessian with finite differences... " << std::endl;
+        H = Minimizer::FD_Hessian((void*)driver.mystruct, soln_params);
+      }
+      else {
+        /*
+          Compute J^t J
+        */
+        std::cout << "      Getting Hessian as JTJ... " << std::endl;
+        int n = num_params;
+        int m = num_data + n;
+        std::vector<Real> FVEC(m);
+        std::vector<Real> FJAC(m*n);
+        NLLSMinimizer* nm = dynamic_cast<NLLSMinimizer*>(minimizer);
+        BL_ASSERT(nm!=0);
+        H = nm->JTJ((void*)(driver.mystruct),soln_params);
+      }
+    }
+    std::string hessianOutFile;
+    if (pp.countval("hessianOutFile")) {
+      pp.get("hessianOutFile",hessianOutFile); 
+      std::cout << "Writing Hessian to " << hessianOutFile << std::endl;
+      writeHessian(H,hessianOutFile);
     }
 
     InvSqrtH = Minimizer::InvSqrt((void*)driver.mystruct, H);

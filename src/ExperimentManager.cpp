@@ -182,7 +182,7 @@ ExperimentManager::GenerateExptData()
 
   Real mult = 1;
   if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "***************** WARNING: ZEROING DATA NOISE!!!!" << std::endl;
+    //std::cout << "***************** WARNING: ZEROING DATA NOISE!!!!" << std::endl;
   }
   mult = 0;
   for(int ii=0; ii<num_expt_data; ii++){

@@ -63,7 +63,16 @@ funcF(void* p, const std::vector<Real>& pvals)
   Real F = data[0] + data[1];
 
   if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "F = " << F << std::endl;
+
+    std::cout << "X = { ";
+    for(int i=0; i<pvals.size(); i++){
+      std::cout << pvals[i] << " ";
+    }
+    std::cout << "}, D = { ";
+    for(int i=0; i<s->expt_manager.NumExptData(); i++){
+      std::cout << dvals[i] << " ";
+    }
+    std::cout << "}, F = " << F << std::endl;
   }
 
   return F;

@@ -8,6 +8,7 @@
 #include <fstream>
 
 static const std::string PlotfileVersion = "UQ_Plotfile_V0";
+static bool ioproc;
 
 UqPlotfile::UqPlotfile(const std::vector<double>& x,
                        int                        ndim,
@@ -63,6 +64,7 @@ UqPlotfile::Write(const std::string& filename) const
 void
 UqPlotfile::Read(const std::string& filename)
 {
+  ioproc = ParallelDescriptor::IOProcessor() || ParallelDescriptor::MyProc()<0;
   ReadHeader(filename);
   ReadSamples(filename);
   ReadRState(filename);
@@ -71,7 +73,7 @@ UqPlotfile::Read(const std::string& filename)
 void
 UqPlotfile::WriteSamples(const std::string& filename) const
 {
-  if (ParallelDescriptor::IOProcessor()) {
+  if (ioproc) {
     std::ofstream ofs;
     ofs.open(DataName(filename).c_str());
     m_fab.writeOn(ofs);
@@ -82,7 +84,7 @@ UqPlotfile::WriteSamples(const std::string& filename) const
 void
 UqPlotfile::ReadSamples(const std::string& filename)
 {
-  if (ParallelDescriptor::IOProcessor()) {
+  if (ioproc) {
     std::ifstream ifs; ifs.open(DataName(filename).c_str());
     m_fab.clear();
     m_fab.readFrom(ifs);
@@ -106,7 +108,7 @@ UqPlotfile::ReadSamples(const std::string& filename)
 void
 UqPlotfile::WriteHeader(const std::string& filename) const
 {
-  if (ParallelDescriptor::IOProcessor()) {
+  if (ioproc) {
     std::ofstream ofs;
     ofs.open(HeaderName(filename).c_str());
     ofs << PlotfileVersion << '\n';
@@ -123,7 +125,7 @@ UqPlotfile::ReadHeader(const std::string& filename)
 {
   int indata[4];
 
-  if (ParallelDescriptor::IOProcessor()) {
+  if (ioproc) {
     std::ifstream ifs;
     ifs.open(HeaderName(filename).c_str());
     std::string pfVersion;
@@ -148,7 +150,7 @@ UqPlotfile::ReadHeader(const std::string& filename)
 void
 UqPlotfile::WriteRState(const std::string& filename) const
 {
-  if (ParallelDescriptor::IOProcessor()) {
+  if (ioproc) {
     std::ofstream ofs;
     ofs.open(RStateName(filename).c_str());
     if (m_rstate != "") 
@@ -196,7 +198,7 @@ UqPlotfile::ReadRState(const std::string& filename)
 void
 UqPlotfile::BuildDir(const std::string& filename) const
 {
-  if (ParallelDescriptor::IOProcessor())
+  if (ioproc)
     if (!BoxLib::UtilCreateDirectory(filename, 0755))
       BoxLib::CreateDirectoryFailed(filename);
 }
