@@ -154,7 +154,6 @@ PriorMCSampler::Sample(void* p, std::vector<std::vector<Real> >& samples, std::v
   std::cout <<  " " << std::endl;
 }
 
-
 LinearMapSampler::LinearMapSampler(const std::vector<Real>& mu_,
                                    const MyMat& H_,
                                    const MyMat& invsqrt_,
@@ -751,9 +750,21 @@ Sampler::F0(const std::vector<Real>& sample,
 {
   int N = sample.size();
   Real F0 = 0;
+
+  BL_ASSERT(mu.size() == N);
+
+  BL_ASSERT(H.size() == N);
   for(int i=0; i<N; i++){
+    BL_ASSERT(H[i].size() == N);
     for(int j=0; j<N; j++){
-      F0 += H[i][j] * (sample[j] - mu[j]) * (sample[i] - mu[i]);
+
+      int ii = i;
+      int jj = j;
+      if (j < i) {
+        ii = j;
+        jj = i;
+      }
+      F0 += H[ii][jj] * (sample[j] - mu[j]) * (sample[i] - mu[i]);
     }
   }  
   return phi + 0.5*F0;

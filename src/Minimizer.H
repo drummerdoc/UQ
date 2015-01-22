@@ -4,12 +4,12 @@
 #include <REAL.H>
 
 #include <vector>
+#include <string>
 
 typedef std::vector<std::vector<Real> > MyMat;
 
-#define CEN_DIFF
-#undef FWD_DIFF
-
+void writeHessian(const MyMat& H, const std::string& hessianOutFile);
+MyMat readHessian(const std::string& hessianInFile);
 
 class Minimizer
 {

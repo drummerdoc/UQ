@@ -12,52 +12,6 @@
 
 #include <ParallelDescriptor.H>
 
-static void
-writeHessian(const MyMat& H, const std::string& hessianOutFile)
-{
-  // Convert MyMat to Fab
-  int n = H.size();
-  if (n > 0) {
-    int m = H[0].size();
-    if (m > 0) {
-      Box box(IntVect(D_DECL(0,0,0)),IntVect(D_DECL(n-1,m-1,0)));
-      FArrayBox fab(box,1);
-      for (int i=0; i<n; ++i) {
-        for (int j=0; j<m; ++j) {
-          IntVect iv(D_DECL(i,j,0));
-          fab(iv,0) = H[i][j];
-        }
-      }
-      std::ofstream ofs(hessianOutFile.c_str());
-      fab.writeOn(ofs);
-      ofs.close();
-    }
-  }
-}
-
-static MyMat
-readHessian(const std::string& hessianInFile)
-{
-  std::ifstream ifs(hessianInFile.c_str());
-  FArrayBox fab;
-  fab.readFrom(ifs);
-  ifs.close();
-
-  const Box& box = fab.box();
-  int n = box.length(0);
-  int m = box.length(1);
-
-  MyMat H(n);
-  for( int i=0; i<n; i++ ){
-    H[i].resize(m);
-    for (int j=0; j<m; ++j) {
-      IntVect iv(D_DECL(i,j,0));
-      H[i][j] = fab(iv,0);
-    }
-  }
-  return H;
-}
-
 
 int
 main (int   argc,
@@ -209,11 +163,6 @@ main (int   argc,
     sampler = new PriorMCSampler(guess_params, prior_std);
   }
   else {
-    // Output value of objective function at minimum
-    std::cout << "Computing logLikelihood at minimum state..." << std::endl;
-    Real phi = NegativeLogLikelihood(soln_params);
-    std::cout << "F at numerical minimum = " << phi << std::endl;
-
     std::cout << "Getting Hessian... " << std::endl;
     MyMat H, InvSqrtH;
 
@@ -254,11 +203,20 @@ main (int   argc,
 
     InvSqrtH = Minimizer::InvSqrt((void*)driver.mystruct, H);
 
-    if (which_sampler == "linear_map") {
-      sampler = new LinearMapSampler(soln_params,H,InvSqrtH,phi);
-    }
-    else if (which_sampler == "symmetrized_linear_map") {
-      sampler = new SymmetrizedLinearMapSampler(soln_params,H,InvSqrtH,phi);
+    if (which_sampler == "linear_map" ||
+        which_sampler == "symmetrized_linear_map") {
+
+      // Output value of objective function at minimum
+      std::cout << "Computing logLikelihood at minimum state..." << std::endl;
+      Real phi = NegativeLogLikelihood(soln_params);
+      std::cout << "F at numerical minimum = " << phi << std::endl;
+
+      if (which_sampler == "linear_map") {
+        sampler = new LinearMapSampler(soln_params,H,InvSqrtH,phi);
+      }
+      else {
+        sampler = new SymmetrizedLinearMapSampler(soln_params,H,InvSqrtH,phi);
+      }
     }
     else if (which_sampler == "none") {
     }
@@ -266,6 +224,7 @@ main (int   argc,
       BoxLib::Abort("Invalid value for which_sampler");
     }
   }
+
   if (sampler) {
     std::cout << "Sampling..." << std::endl;
     sampler->Sample((void*)(driver.mystruct), samples, w);

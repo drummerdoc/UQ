@@ -17,6 +17,54 @@ static int GOOD_EVAL_FLAG = 0;
 static int BAD_DATA_FLAG = 1;
 static int BAD_EXPT_FLAG = 2;
 
+
+void
+writeHessian(const MyMat& H, const std::string& hessianOutFile)
+{
+  // Convert MyMat to Fab
+  int n = H.size();
+  if (n > 0) {
+    int m = H[0].size();
+    if (m > 0) {
+      Box box(IntVect(D_DECL(0,0,0)),IntVect(D_DECL(n-1,m-1,0)));
+      FArrayBox fab(box,1);
+      for (int i=0; i<n; ++i) {
+        for (int j=0; j<m; ++j) {
+          IntVect iv(D_DECL(i,j,0));
+          fab(iv,0) = H[i][j];
+        }
+      }
+      std::ofstream ofs(hessianOutFile.c_str());
+      fab.writeOn(ofs);
+      ofs.close();
+    }
+  }
+}
+
+MyMat
+readHessian(const std::string& hessianInFile)
+{
+  std::ifstream ifs(hessianInFile.c_str());
+  FArrayBox fab;
+  fab.readFrom(ifs);
+  ifs.close();
+
+  const Box& box = fab.box();
+  int n = box.length(0);
+  int m = box.length(1);
+
+  MyMat H(n);
+  for( int i=0; i<n; i++ ){
+    H[i].resize(m);
+    for (int j=0; j<m; ++j) {
+      IntVect iv(D_DECL(i,j,0));
+      H[i][j] = fab(iv,0);
+    }
+  }
+  return H;
+}
+
+
 #define CEN_DIFF
 #undef FWD_DIFF
 
@@ -133,6 +181,10 @@ Minimizer::InvSqrt(void *p, const MyMat & H)
 
   // For Lapack 
   std::vector<Real>& a = lapack.a;
+
+  if (a.size() != num_vals * num_vals) {
+    str->ResizeWork();
+  }
 
   // Convert MyMat to Lapack readable
   for( int ii=0; ii<num_vals; ii++ ){

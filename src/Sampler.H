@@ -92,9 +92,12 @@ public:
 
   virtual ~LinearMapSampler() {}
 
+  virtual const MyMat& Hessian() const {return H;}
+  virtual const MyMat& InvSqrt() const {return invsqrt;}
+
 protected:
   std::vector<Real> mu;
-  const MyMat& H, invsqrt;
+  const MyMat H, invsqrt;
   Real phi;
 };
 
