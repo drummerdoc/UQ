@@ -19,6 +19,8 @@ UqPlotfile::UqPlotfile(const std::vector<double>& x,
   : m_ndim(ndim), m_nwalkers(nwalkers), m_iter(iter),
     m_iters(iters), m_rstate(rng_state)
 {
+  ioproc = ParallelDescriptor::IOProcessor() || ParallelDescriptor::MyProc()<0;
+
   Box box(IntVect(D_DECL(0,0,0)),IntVect(D_DECL(m_nwalkers-1,m_iters-1,0)));
   m_fab.resize(box,m_ndim);
 
@@ -64,7 +66,6 @@ UqPlotfile::Write(const std::string& filename) const
 void
 UqPlotfile::Read(const std::string& filename)
 {
-  ioproc = ParallelDescriptor::IOProcessor() || ParallelDescriptor::MyProc()<0;
   ReadHeader(filename);
   ReadSamples(filename);
   ReadRState(filename);

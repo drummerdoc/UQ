@@ -208,12 +208,13 @@ Driver::init(int argc, char *argv[])
 
 #ifdef BL_USE_MPI
     if (_mpi_comm == -1) {
-        MPI_Init (&argc, &argv);
-        mpi_initialized = true;
-        BoxLib::Initialize(argc, argv, MPI_COMM_WORLD);
+      MPI_Init (&argc, &argv);
+      mpi_initialized = true;
+      BoxLib::Initialize(argc, argv, MPI_COMM_WORLD);
     }
     else {
-        BoxLib::Initialize(argc, argv, _mpi_comm);
+      mpi_initialized = false;
+      BoxLib::Initialize(argc, argv, _mpi_comm);
     }
 #else
     BoxLib::Initialize(argc, argv);
@@ -253,10 +254,5 @@ Driver::~Driver()
 {
   delete mystruct;
   if (made_cd) delete cd;
-  BoxLib::Finalize();
-#ifdef BL_USE_MPI
-  if (mpi_initialized) {
-    MPI_Finalize();
-  }
-#endif
+  BoxLib::Finalize(mpi_initialized);
 }

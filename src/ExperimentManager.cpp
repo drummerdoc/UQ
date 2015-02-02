@@ -218,7 +218,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
 #ifdef BL_USE_MPI
   // Task parallel option over experiments - serial option follows below
-  if (ParallelDescriptor::IOProcessor() ){
+  if (ParallelDescriptor::IOProcessor() && verbose){
     std::cout << "Have " << ParallelDescriptor::NProcs() << " procs " << std::endl;
   }
   bool am_worker = false;
@@ -268,10 +268,12 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         int which_experiment = -1;
         ParallelDescriptor::Recv(&which_experiment,1,master,data_tag);
 
-        std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-          " starting on experiment number " << which_experiment <<
-          " (" << ExperimentNames() [which_experiment] << ")" << std::endl;
-        expts[which_experiment].CopyData(master,ParallelDescriptor::MyProc(),extra_tag);
+	if (verbose) {
+	  std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+	    " starting on experiment number " << which_experiment <<
+	    " (" << ExperimentNames() [which_experiment] << ")" << std::endl;
+	}
+	expts[which_experiment].CopyData(master,ParallelDescriptor::MyProc(),extra_tag);
 
         // Do the work
         std::pair<bool,int> retVal = expts[which_experiment].GetMeasurements(raw_data[which_experiment]);
@@ -281,9 +283,10 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         else {
           intok = -1;
         }
-        std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-          " finished experiment number " << which_experiment << std::endl;
-
+	if (verbose) {
+	  std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+	    " finished experiment number " << which_experiment << std::endl;
+	}
         // Send back the result
         mystatus = HAVE_RESULTS;
         MPI_Send(&mystatus, 1, MPI_INTEGER, master, control_tag, wcomm);
@@ -294,8 +297,10 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
         ParallelDescriptor::Send(&retVal.second, 1, master, data_tag);
         ParallelDescriptor::Send(raw_data[which_experiment], master, data_tag);
         expts[which_experiment].CopyData(ParallelDescriptor::MyProc(),master,extra_tag);
-        std::cout << " Worker " << ParallelDescriptor::MyProc() << 
-          " finished sending data back " << which_experiment << std::endl;
+	if (verbose) {
+	  std::cout << " Worker " << ParallelDescriptor::MyProc() << 
+	    " finished sending data back " << which_experiment << std::endl;
+	}
       }
       else {
         BoxLib::Abort("Unknown command recvd");
@@ -428,10 +433,11 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
     // Done. 
 
-    std::cout << "Sent out work for " << Nexperiments_dispatched 
-      << " experiments and had " << Nexperiments_finished 
-      << " of them done " << std::endl;
-
+    if (verbose) {
+      std::cout << "Sent out work for " << Nexperiments_dispatched 
+		<< " experiments and had " << Nexperiments_finished 
+		<< " of them done " << std::endl;
+    }
     //if (Nexperiments_dispatched != Nexperiments_finished) {
     //    BoxLib::Abort("Not all dispatched experiments returned");
     //}
