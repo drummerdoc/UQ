@@ -1,6 +1,6 @@
 #which_sampler=linear_map
 #nwalkers      = 1
-maxStep       = 4        # Number of MCMC samples for each walker
+maxStep       = 20        # Number of MCMC samples for each walker
 outFilePrefix = "Results" # Prefix to output file names, to be appended with step range
 outFilePeriod = 3         # Number of samples between calls to write data
 seed          = 17        # seed, used if no restart file provided

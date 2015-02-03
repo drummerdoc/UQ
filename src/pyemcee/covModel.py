@@ -240,7 +240,10 @@ sl = np.argsort(evals)
 evals = evals[sl]
 evecs = evecs[:,sl]
 
-neff = 5                        # keep only the largest neff eigenvalues
+if rank == 0:
+    print 'Eigenvalues:',evals
+
+neff = 4                        # keep only the largest neff eigenvalues
 evals = np.matrix(evals[-neff:])
 evecs = evecs[:,-neff:]
 
@@ -274,10 +277,9 @@ for i in range(NOS):
     newF[i] = -lnprob(xx,driver)
     w[i] = F0[i] - newF[i]
 
-nwalkers = 1
-nDigits = int(np.log10(NOS)) + 1
-WritePlotfile(Samples,N,outFilePrefix,nwalkers,0,NOS,nDigits,None)
-
+    if rank == 0:
+        print "F0 = ",F0[i]," F = ",newF[i]
+        
 if rank == 0:
     wmax = np.amax(w)
     print 'w',w
@@ -312,7 +314,11 @@ if rank == 0:
     print 'Conditional std: ',np.sqrt(CondVar)
 
     Xrs = Resampling(w,Samples)
-    print 'Resampling',Xrs
+    nwalkers = 1
+    if NOS > 0:
+        nDigits = int(np.log10(NOS)) + 1
+        WritePlotfile(Samples,N,outFilePrefix,nwalkers,0,NOS,nDigits,None)
+        WritePlotfile(Xrs,N,outFilePrefix+'_RS',nwalkers,0,NOS,nDigits,None)
 
     CondMeanRs = WeightedMean(np.ones(NOS)/NOS,Xrs)
     print 'Conditional mean after resampling: ',CondMeanRs

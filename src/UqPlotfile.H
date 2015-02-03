@@ -8,7 +8,7 @@
 
 struct UqPlotfile
 {
-  UqPlotfile()  {}
+  UqPlotfile();
   UqPlotfile(const std::vector<double>& x,
              int                        ndim,
              int                        nwalkers,
