@@ -34,8 +34,6 @@ def WritePlotfile(samples,ndim,outFilePrefix,nwalkers,step,nSteps,nDigits,rstate
         pf = pymc.UqPlotfile(x_for_c, ndim, nwalkers, step, nSteps, rstateString)
         pf.Write(filename)
 
-    MPI.COMM_WORLD.Barrier()
-
 def LoadPlotfile(filename):
     
     if rank == 0:
@@ -117,7 +115,9 @@ driver.d.SetComm(MPI.COMM_WORLD)
 driver.d.init(len(sys.argv),sys.argv)
 
 # Hang on to this for later - only do output on rank 0
-rank = MPI.COMM_WORLD.Get_rank()
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+nprocs = comm.Get_size()
 
 ndim = driver.NumParams()
 ndata = driver.NumData()
@@ -134,6 +134,7 @@ seed              = int(pp['seed'])
 restartFile       =     pp['restartFile']
 initialSamples    =     pp['initial_samples']
 numInitialSamples = int(pp['num_initial_samples'])
+neff              = int(pp['neff'])
 
 if rank == 0:
     print '      maxStep: ',maxStep
@@ -141,6 +142,7 @@ if rank == 0:
     print 'outFilePeriod: ',outFilePeriod
     print '         seed: ',seed
     print '  restartFile: ',restartFile
+    print '         neff: ',neff
     print ''
 
     print 'Number of Parameters:',ndim
@@ -208,20 +210,20 @@ def Resampling(w,samples):
     i = 0
     u1 = np.random.rand(1)/M
     u = 0
-    xrs = np.matrix(np.zeros(shape=(N,M)))
+    rs_map = np.zeros(M, dtype=int)
     for m in range(M):
         u = u1 + float(m)/M
         while u >= c[i]:
             i += 1
-        xrs[:,m] = samples[:,i-1] # Note: i is never 0 here
-    return xrs
+        rs_map[m] = i-1 # Note: i is never 0 here
+    return rs_map
 
 # Read data
 data = np.loadtxt(initialSamples)
 N = data.shape[-1] - 1          # Number of independent variables
 M = numInitialSamples           # Max number of data points to use
 scales = prior_mean             # Scale values for independent data
-    
+
 x = data[-M:,:N]                # Independent data
 z = np.matrix(data[-M:, -1]).T  # Dependent data, as column vector
 
@@ -242,15 +244,19 @@ evecs = evecs[:,sl]
 
 if rank == 0:
     print 'Eigenvalues:',evals
-
-neff = 4                        # keep only the largest neff eigenvalues
 evals = np.matrix(evals[-neff:])
 evecs = evecs[:,-neff:]
-
+if rank == 0:
+    print 'Eigenvalues kept:',evals
 
 mu = np.matrix(x[-1,:]/scales).T
-phi = -data[-1,-1]
-L = np.linalg.cholesky(Hinv)
+phi = -data[-1,-1]              # Select phi where F is minimum in data set
+
+# Compute residual
+# residual = []
+# for i in range(M):
+#     Fzero = Fo(np.matrix(scaled_x[i]).T,phi,mu,evecs,evals)
+#     residual.append(Fzero + z[[i]])
 
 Samples = np.matrix(np.zeros(shape=(N,NOS)))
 w = np.array(np.zeros(NOS))
@@ -267,8 +273,7 @@ for i in range(NOS):
         Samples[:,i] = mu + evecs*np.multiply(np.sqrt(evals), np.random.randn(1,neff)).T
         sample_good = True
         for n in range(N):
-            sample_oob &= Samples[n,i]>=lower_bounds[n]
-            sample_oob &= Samples[n,i]<=upper_bounds[n]
+            sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
         sample_oob = not sample_good
     
     F0[i] = Fo(Samples[:,i],phi,mu,evecs,evals)
@@ -278,28 +283,18 @@ for i in range(NOS):
     w[i] = F0[i] - newF[i]
 
     if rank == 0:
-        print "F0 = ",F0[i]," F = ",newF[i]
+        print "Sample ",i,"of",NOS,"F0 =",F0[i]," F =",newF[i]
         
 if rank == 0:
     wmax = np.amax(w)
-    print 'w',w
-    print 'wmax',wmax
-    print 'newF',newF
-    print 'F0',F0
-
     for i in range(NOS):
         if w[i] < 0:
             w[i] = 0
         else:
             w[i] = np.exp(w[i] - wmax)
 
-    print 'unnormalized w',w
-
     wsum = np.sum(w)
     w = w/wsum
-
-    print 'normalized w',w
-    print 'wsum',np.sum(w)
 
     Neff = EffSampleSize(w)
     print 'Effective sample size: ',Neff
@@ -313,19 +308,106 @@ if rank == 0:
     CondVar = WeightedVar(CondMean,w,Samples)
     print 'Conditional std: ',np.sqrt(CondVar)
 
-    Xrs = Resampling(w,Samples)
-    nwalkers = 1
-    if NOS > 0:
-        nDigits = int(np.log10(NOS)) + 1
-        WritePlotfile(Samples,N,outFilePrefix,nwalkers,0,NOS,nDigits,None)
-        WritePlotfile(Xrs,N,outFilePrefix+'_RS',nwalkers,0,NOS,nDigits,None)
+    rs_map = Resampling(w,Samples)
+    Xrs = Samples[:,rs_map]
+
+    # nwalkers = 1
+    # if NOS > 0:
+    #     nDigits = int(np.log10(NOS)) + 1
+    #     WritePlotfile(Samples,N,outFilePrefix,nwalkers,0,NOS,nDigits,None)
+    #     WritePlotfile(Xrs,N,outFilePrefix+'_RS',nwalkers,0,NOS,nDigits,None)
 
     CondMeanRs = WeightedMean(np.ones(NOS)/NOS,Xrs)
     print 'Conditional mean after resampling: ',CondMeanRs
 
     CondVarRs = WeightedVar(CondMeanRs,np.ones(NOS)/NOS,Xrs)
     print 'Conditional std after resampling: ',np.sqrt(CondVarRs)
+else:
+    rs_map = np.zeros(M, dtype=int)
 
-MPI.COMM_WORLD.Barrier()
 
+
+    
+if rank == 0:
+    M = NOS
+    x = Samples[:, rs_map].T.copy()
+    z = newF[rs_map].copy()
+
+    scaled_x = np.copy(x)
+    for i in range(M):
+        scaled_x[i] = x[i]/scales
+    
+    # Matti's local model
+    Hinv = np.cov(scaled_x.T)       # NB: Possibly scale by "inflation factor" to be optimized
+
+    evals,evecs = LA.eig(Hinv)
+    evecs = np.matrix(evecs)
+    sl = np.argsort(evals)
+    evals = evals[sl]
+    evecs = evecs[:,sl]
+
+    print 'Eigenvalues:',evals
+    evals = np.matrix(evals[-neff:])
+    evecs = evecs[:,-neff:]
+    print 'Eigenvalues kept:',evals
+
+for i in range(NOS):
+
+    sample_oob = True
+    while sample_oob == True:
+        Samples[:,i] = mu + evecs*np.multiply(np.sqrt(evals), np.random.randn(1,neff)).T
+        sample_good = True
+        for n in range(N):
+            sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
+        sample_oob = not sample_good
+    
+    F0[i] = Fo(Samples[:,i],phi,mu,evecs,evals)
+    Samples[:,i] =  np.multiply(Samples[:,i].T,np.matrix(scales)).T
+    xx = np.array(Samples[:,i].T)[0]
+    newF[i] = -lnprob(xx,driver)
+    w[i] = F0[i] - newF[i]
+
+    if rank == 0:
+        print "Sample ",i,"of",NOS,"F0 =",F0[i]," F =",newF[i]
+
+
+if rank == 0:
+    wmax = np.amax(w)
+    for i in range(NOS):
+        if w[i] < 0:
+            w[i] = 0
+        else:
+            w[i] = np.exp(w[i] - wmax)
+
+    wsum = np.sum(w)
+    w = w/wsum
+
+    Neff = EffSampleSize(w)
+    print 'Effective sample size: ',Neff
+
+    R = CompR(w)
+    print 'Quality measure R:',R
+
+    CondMean = WeightedMean(w,Samples)
+    print 'Conditional mean: ',CondMean
+
+    CondVar = WeightedVar(CondMean,w,Samples)
+    print 'Conditional std: ',np.sqrt(CondVar)
+
+    rs_map = Resampling(w,Samples)
+    Xrs = Samples[:,rs_map]
+
+    # nwalkers = 1
+    # if NOS > 0:
+    #     nDigits = int(np.log10(NOS)) + 1
+    #     WritePlotfile(Samples,N,outFilePrefix,nwalkers,0,NOS,nDigits,None)
+    #     WritePlotfile(Xrs,N,outFilePrefix+'_RS',nwalkers,0,NOS,nDigits,None)
+
+    CondMeanRs = WeightedMean(np.ones(NOS)/NOS,Xrs)
+    print 'Conditional mean after resampling: ',CondMeanRs
+
+    CondVarRs = WeightedVar(CondMeanRs,np.ones(NOS)/NOS,Xrs)
+    print 'Conditional std after resampling: ',np.sqrt(CondVarRs)
+else:
+    rs_map = np.zeros(M, dtype=int)
 
