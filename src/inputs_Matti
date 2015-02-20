@@ -6,6 +6,7 @@ outFilePeriod = 3         # Number of samples between calls to write data
 seed          = 17        # seed, used if no restart file provided
 #restartFile = Results_00_10
 neff          = 4         # Number of eigenvalues to keep
+neff2         = 4         # Number of eigenvalues to keep on second sampling iter
 
 ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12

@@ -135,6 +135,7 @@ restartFile       =     pp['restartFile']
 initialSamples    =     pp['initial_samples']
 numInitialSamples = int(pp['num_initial_samples'])
 neff              = int(pp['neff'])
+neff2             = int(pp['neff2'])
 
 if rank == 0:
     print '      maxStep: ',maxStep
@@ -143,6 +144,7 @@ if rank == 0:
     print '         seed: ',seed
     print '  restartFile: ',restartFile
     print '         neff: ',neff
+    print '        neff2: ',neff2
     print ''
 
     print 'Number of Parameters:',ndim
@@ -236,7 +238,8 @@ for i in range(M):
 Hinv = np.cov(scaled_x.T)       # NB: Possibly scale by "inflation factor" to be optimized
 
 from numpy import linalg as LA
-evals,evecs = LA.eig(Hinv)
+#evals,evecs = LA.eig(Hinv)
+evals,evecs = LA.eigh(Hinv)
 evecs = np.matrix(evecs)
 sl = np.argsort(evals)
 evals = evals[sl]
@@ -280,7 +283,10 @@ for i in range(NOS):
     Samples[:,i] =  np.multiply(Samples[:,i].T,np.matrix(scales)).T
     xx = np.array(Samples[:,i].T)[0]
     newF[i] = -lnprob(xx,driver)
-    w[i] = F0[i] - newF[i]
+    if newF[i] == np.inf:
+        w[i] = -1
+    else:
+        w[i] = F0[i] - newF[i]
 
     if rank == 0:
         print "Sample ",i,"of",NOS,"F0 =",F0[i]," F =",newF[i]
@@ -296,17 +302,12 @@ if rank == 0:
     wsum = np.sum(w)
     w = w/wsum
 
-    Neff = EffSampleSize(w)
-    print 'Effective sample size: ',Neff
-
-    R = CompR(w)
-    print 'Quality measure R:',R
+    print 'Effective sample size: ',EffSampleSize(w)
+    print 'Quality measure R:',CompR(w)
 
     CondMean = WeightedMean(w,Samples)
     print 'Conditional mean: ',CondMean
-
-    CondVar = WeightedVar(CondMean,w,Samples)
-    print 'Conditional std: ',np.sqrt(CondVar)
+    print 'Conditional std: ',np.sqrt(WeightedVar(CondMean,w,Samples))
 
     rs_map = Resampling(w,Samples)
     Xrs = Samples[:,rs_map]
@@ -319,53 +320,64 @@ if rank == 0:
 
     CondMeanRs = WeightedMean(np.ones(NOS)/NOS,Xrs)
     print 'Conditional mean after resampling: ',CondMeanRs
-
-    CondVarRs = WeightedVar(CondMeanRs,np.ones(NOS)/NOS,Xrs)
-    print 'Conditional std after resampling: ',np.sqrt(CondVarRs)
+    print 'Conditional std after resampling: ',np.sqrt(WeightedVar(CondMeanRs,np.ones(NOS)/NOS,Xrs))
 else:
-    rs_map = np.zeros(M, dtype=int)
+    rs_map = np.arange(0, NOS, dtype=int)
 
-
-
+comm.Barrier()
+M = NOS
     
 if rank == 0:
-    M = NOS
     x = Samples[:, rs_map].T.copy()
     z = newF[rs_map].copy()
 
     scaled_x = np.copy(x)
     for i in range(M):
         scaled_x[i] = x[i]/scales
+        
+    print 'x',x
+    print 'scaled_x',scaled_x
     
     # Matti's local model
     Hinv = np.cov(scaled_x.T)       # NB: Possibly scale by "inflation factor" to be optimized
 
-    evals,evecs = LA.eig(Hinv)
+    print 'Hinv',Hinv
+
+    #evals,evecs = LA.eig(Hinv)
+    evals,evecs = LA.eigh(Hinv)
+    print 'evals',evals
+    
     evecs = np.matrix(evecs)
     sl = np.argsort(evals)
     evals = evals[sl]
     evecs = evecs[:,sl]
 
     print 'Eigenvalues:',evals
-    evals = np.matrix(evals[-neff:])
-    evecs = evecs[:,-neff:]
+    evals = np.matrix(evals[-neff2:])
+    evecs = evecs[:,-neff2:]
     print 'Eigenvalues kept:',evals
 
+    
 for i in range(NOS):
 
-    sample_oob = True
-    while sample_oob == True:
-        Samples[:,i] = mu + evecs*np.multiply(np.sqrt(evals), np.random.randn(1,neff)).T
-        sample_good = True
-        for n in range(N):
-            sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
-        sample_oob = not sample_good
-    
+    if rank == 0:
+
+        sample_oob = True
+        while sample_oob == True:
+            Samples[:,i] = mu + evecs*np.multiply(np.sqrt(evals), np.random.randn(1,neff2)).T
+            sample_good = True
+            for n in range(N):
+                sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
+            sample_oob = not sample_good
+
     F0[i] = Fo(Samples[:,i],phi,mu,evecs,evals)
     Samples[:,i] =  np.multiply(Samples[:,i].T,np.matrix(scales)).T
     xx = np.array(Samples[:,i].T)[0]
     newF[i] = -lnprob(xx,driver)
-    w[i] = F0[i] - newF[i]
+    if newF[i] == np.inf:
+        w[i] = -1
+    else:
+        w[i] = F0[i] - newF[i]
 
     if rank == 0:
         print "Sample ",i,"of",NOS,"F0 =",F0[i]," F =",newF[i]
@@ -382,17 +394,12 @@ if rank == 0:
     wsum = np.sum(w)
     w = w/wsum
 
-    Neff = EffSampleSize(w)
-    print 'Effective sample size: ',Neff
-
-    R = CompR(w)
-    print 'Quality measure R:',R
-
+    print 'Effective sample size: ',EffSampleSize(w)
+    print 'Quality measure R:',CompR(w)
+    
     CondMean = WeightedMean(w,Samples)
     print 'Conditional mean: ',CondMean
-
-    CondVar = WeightedVar(CondMean,w,Samples)
-    print 'Conditional std: ',np.sqrt(CondVar)
+    print 'Conditional std: ',np.sqrt(WeightedVar(CondMean,w,Samples))
 
     rs_map = Resampling(w,Samples)
     Xrs = Samples[:,rs_map]
@@ -405,9 +412,7 @@ if rank == 0:
 
     CondMeanRs = WeightedMean(np.ones(NOS)/NOS,Xrs)
     print 'Conditional mean after resampling: ',CondMeanRs
-
-    CondVarRs = WeightedVar(CondMeanRs,np.ones(NOS)/NOS,Xrs)
-    print 'Conditional std after resampling: ',np.sqrt(CondVarRs)
+    print 'Conditional std after resampling: ',np.sqrt(WeightedVar(CondMeanRs,np.ones(NOS)/NOS,Xrs))
 else:
     rs_map = np.zeros(M, dtype=int)
 

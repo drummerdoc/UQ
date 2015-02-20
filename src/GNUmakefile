@@ -44,13 +44,13 @@ DIM             = 2
 COMP            = g++
 FCOMP           = gfortran
 USE_MPI         = TRUE
-USE_MPI         = FALSE
+#USE_MPI         = FALSE
 USE_OMP         = TRUE
 USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
-#BUILD_EXEC      = FALSE
-BUILD_EXEC      = TRUE
+BUILD_EXEC      = FALSE
+#BUILD_EXEC      = TRUE
 VERBOSE         = TRUE
 DO_REGTEST      = FALSE
 
@@ -73,6 +73,8 @@ endif
 CFLAGS += -std=c99
 
 EBASE = main
+#EBASE = evalLocalModel
+#EBASE = interpSample
 #EBASE = EvalExpt
 #EBASE = EvalParams
 
@@ -165,10 +167,9 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       PYTHON_DIR := /usr
       PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
       SHARED_LIBRARY_SUFFIX:=so
-      SHARED_LIBRARIES+=-lpython2.7
-      MPILIB := ${HOME}/lib/anaconda/lib/libmpich.${SHARED_LIBRARY_SUFFIX}
+      SHARED_LIBRARIES+=-lpython2.7 -lmpi
       PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
-      PYTHON_INCLUDES += ${HOME}/lib/anaconda/lib/python2.7/site-packages/mpi4py/include
+      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
     endif
     ifeq (${WHICHLINUX}, MOTHRA)
       PYTHON_DIR := /home/marc/src/CCSE/UQ/src/packages/build/pypa-virtualenv-fceb355/pyenv
