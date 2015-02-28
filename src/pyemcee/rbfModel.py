@@ -135,7 +135,7 @@ restartFile       =     pp['restartFile']
 initialSamples    =     pp['initial_samples']
 numInitialSamples = int(pp['num_initial_samples'])
 neff              = int(pp['neff'])
-neff2             = int(pp['neff2'])
+ampFactor         = int(pp['ampFactor']);
 
 if rank == 0:
     print '      maxStep: ',maxStep
@@ -144,7 +144,7 @@ if rank == 0:
     print '         seed: ',seed
     print '  restartFile: ',restartFile
     print '         neff: ',neff
-    print '        neff2: ',neff2
+    print '    ampFactor: ',ampFactor
     print ''
 
     print 'Number of Parameters:',ndim
@@ -166,7 +166,7 @@ def Fo2(x,phi,mu,L):
     return phi + 0.5*(np.linalg.norm(y)**2)
 
 def EffSampleSize(w):
-    n = len(w)
+    n = w.shape[0]
     sumSq = 0
     for i in range(n):
         sumSq += w[i]*w[i]
@@ -238,15 +238,13 @@ N = data.shape[-1] - 1          # Number of independent variables
 M = numInitialSamples           # Max number of data points to use
 scales = prior_mean             # Scale values for independent data
 
-if rank ==0:
-	x = data[-M:,:N].copy()         # Independent data
-	z = -np.matrix(data[-M:, -1]).T.copy() # Dependent data, as column vector
+x = data[-M:,:N].copy()         # Independent data
+z = -np.matrix(data[-M:, -1]).T.copy() # Dependent data, as column vector
 
-	for i in range(M):
-		x[M-i-1] = data[(data.shape[0]-i*10-1),:N]
-		z[M-i-1] = -data[(data.shape[0]-i*10-1), -1]
+for i in range(M):
+    x[M-i-1] = data[(data.shape[0]-i*5-1),:N]
+    z[M-i-1] = -data[(data.shape[0]-i*5-1), -1]
 
-ampFactor = 100;
 NOS1 = ampFactor * NOS
 w1 = np.array(np.zeros(shape=(NOS1,1)))
 Samples1 = np.matrix(np.zeros(shape=(N,NOS1)))
@@ -254,152 +252,157 @@ Fo = np.matrix(np.zeros(shape=(NOS1,1)))
 NEffSamples = 0
 Xrs = np.matrix(np.zeros(shape=(N,NOS1)))
 
+scaled_x = np.copy(x)
+for i in range(M):
+    scaled_x[i] = x[i]/scales
+
 if rank == 0:
-	scaled_x = np.copy(x)
-	for i in range(M):
-		scaled_x[i] = x[i]/scales
 
-	lower_bounds = np.array(driver.LowerBound())/scales
-	upper_bounds = np.array(driver.UpperBound())/scales
+    lower_bounds = np.array(driver.LowerBound())/scales
+    upper_bounds = np.array(driver.UpperBound())/scales
 
-	# radial basis function model
-	from scipy.interpolate import Rbf
-	print 'Building rbf model' 
-	rbf = Rbf(scaled_x[:,0],scaled_x[:,1],scaled_x[:,2],scaled_x[:,3],scaled_x[:,4],scaled_x[:,5],scaled_x[:,6],scaled_x[:,7],scaled_x[:,8],z)#,function = 'cubic')
+    # radial basis function model
+    from scipy.interpolate import Rbf
+    print 'Building rbf model' 
+    rbf = Rbf(scaled_x[:,0],scaled_x[:,1],scaled_x[:,2],scaled_x[:,3],scaled_x[:,4],scaled_x[:,5],scaled_x[:,6],scaled_x[:,7],scaled_x[:,8],z)#,function = 'cubic')
 	
 	# optimization
-        print 'Optimizing with rbf model'
-	import scipy.optimize as optimize
-	bnds = []
-	for i in range(N):
-		bnds.append((lower_bounds[i],upper_bounds[i]))
-	bnds = tuple(bnds)
-	xopt = optimize.minimize(EvalRBF,scaled_x[-1,:],args = (rbf,),method='TNC',bounds=bnds,options=dict({'maxiter':1000}))
-	print 'Minimizer of rbf:', np.multiply(np.matrix(xopt.x),np.matrix(scales)) 
-	print 'Minimizer in hammer:', np.multiply(np.matrix(scaled_x[-1,:]),np.matrix(scales))
-	print 'Minimum of rbf', xopt
+    print 'Optimizing with rbf model'
+    import scipy.optimize as optimize
+    bnds = []
+    for i in range(N):
+        bnds.append((lower_bounds[i],upper_bounds[i]))
+    bnds = tuple(bnds)
+    xopt = optimize.minimize(EvalRBF,scaled_x[-1,:],args = (rbf,),method='TNC',bounds=bnds,options=dict({'maxiter':1000}))
+    print 'Minimizer of rbf:', np.multiply(np.matrix(xopt.x),np.matrix(scales)) 
+    print 'Minimizer in hammer:', np.multiply(np.matrix(scaled_x[-1,:]),np.matrix(scales))
+    print 'Minimum of rbf', xopt
 
-	# sampling
-	print 'Sampling'
-	if neff > 0:
-		Hinv = np.cov(scaled_x.T) 
-		evals,evecs = np.linalg.eigh(Hinv)
-		evecs = np.matrix(evecs)
-		sl = np.argsort(evals)
-		evals = evals[sl]
-		evecs = evecs[:,sl]
-		evals = np.matrix(evals[-neff:])
-		evecs = evecs[:,-neff:]
+    # sampling
+    print 'Sampling'
+    if neff > 0:
+        Hinv = np.cov(scaled_x.T) 
+        evals,evecs = np.linalg.eigh(Hinv)
+        evecs = np.matrix(evecs)
+        sl = np.argsort(evals)
+        evals = evals[sl]
+        evecs = evecs[:,sl]
+        evals = np.matrix(evals[-neff:])
+        evecs = evecs[:,-neff:]
 	
-	phi = xopt.fun
-	mu  = np.matrix(xopt.x)
+    phi = xopt.fun
+    mu  = np.matrix(xopt.x)
 	
-	for i in range(NOS1):
-		sample_oob = True
-    		while sample_oob == True:
-        		if neff > 0:
-				xi  = np.matrix(np.random.randn(1,neff))
-        			rho = np.linalg.norm(xi)
-        			eta = xi/rho
-        			eta = (evecs*np.multiply(np.sqrt(evals), eta[:,0:neff]).T).T
-        			rho = rho**2
+    for i in range(NOS1):
+        sample_oob = True
+        while sample_oob == True:
+            if neff > 0:
+                xi  = np.matrix(np.random.randn(1,neff))
+                rho = np.linalg.norm(xi)
+                eta = xi/rho
+                eta = (evecs*np.multiply(np.sqrt(evals), eta[:,0:neff]).T).T
+                rho = rho**2
 				
-				Gp = G(np.sqrt(rho),phi,mu,eta,rho,rbf)
-				Gm = G(-np.sqrt(rho),phi,mu,eta,rho,rbf)
-				if np.abs(Gp) < np.abs(Gm):
-					lopt = optimize.fsolve(G,np.sqrt(rho),args = (phi,mu,eta,rho,rbf,),epsfcn = 1e-5,xtol = 1e-6)
-				else:
-					lopt = optimize.fsolve(G,-np.sqrt(rho),args = (phi,mu,eta,rho,rbf,),epsfcn = 1e-5,xtol = 1e-6)
-			else:
-                                xi  = np.matrix(np.random.randn(1,N))
-                                rho = np.linalg.norm(xi)
-                                eta = xi/rho
-                                rho = rho**2
-                                lopt = optimize.fsolve(G,0,args = (phi,mu,eta,rho,rbf,),epsfcn = 1e-5,xtol = 1e-6)
+                Gp = G(np.sqrt(rho),phi,mu,eta,rho,rbf)
+                Gm = G(-np.sqrt(rho),phi,mu,eta,rho,rbf)
+                if np.abs(Gp) < np.abs(Gm):
+                    lopt = optimize.fsolve(G,np.sqrt(rho),args = (phi,mu,eta,rho,rbf,),epsfcn = 1e-5,xtol = 1e-6)
+                else:
+                    lopt = optimize.fsolve(G,-np.sqrt(rho),args = (phi,mu,eta,rho,rbf,),epsfcn = 1e-5,xtol = 1e-6)
+            else:
+                xi  = np.matrix(np.random.randn(1,N))
+                rho = np.linalg.norm(xi)
+                eta = xi/rho
+                rho = rho**2
+                lopt = optimize.fsolve(G,0,args = (phi,mu,eta,rho,rbf,),epsfcn = 1e-5,xtol = 1e-6)
 
-			#print 'mu',mu
-			#print 'lopt',lopt
-			#print 'eta',eta
-			#print 'lopt eta', np.multiply(eta,lopt)
-			Samples1[:,i] = mu.T+np.multiply(eta.T,lopt)
-        		sample_good = True
-        		for n in range(N):
-            			sample_good &= Samples1[n,i]>=lower_bounds[n] and Samples1[n,i]<=upper_bounds[n]
-        		sample_oob = not sample_good
+            #print 'mu',mu
+            #print 'lopt',lopt
+            #print 'eta',eta
+            #print 'lopt eta', np.multiply(eta,lopt)
+            Samples1[:,i] = mu.T+np.multiply(eta.T,lopt)
+            sample_good = True
+            for n in range(N):
+                sample_good &= Samples1[n,i]>=lower_bounds[n] and Samples1[n,i]<=upper_bounds[n]
+            sample_oob = not sample_good
         
-		hatF = EvalRBF(np.array(Samples1[:,i].T)[0],rbf)
-		print 'Value of rbf',hatF
-	
-        	if np.abs(lopt) < 1e-15:
-                	dl = 1e-5
-        	else:
-                	dl = lopt*(1+1e-5)
-        	xtmp = mu+dl*eta
-        	F = EvalRBF(np.array(xtmp)[0],rbf)
-        	# print 'F',F
+        hatF = EvalRBF(np.array(Samples1[:,i].T)[0],rbf)
+        #print 'Value of rbf',hatF
+    
+        if np.abs(lopt) < 1e-15:
+            dl = 1e-5
+        else:
+            dl = lopt*(1+1e-5)
+        xtmp = mu+dl*eta
+        F = EvalRBF(np.array(xtmp)[0],rbf)
+        # print 'F',F
 		# print 'hatF',hatF
-		drho = 2*(F-phi) - rho
-        	dldrho = (dl-lopt) / drho
+        drho = 2*(F-phi) - rho
+        dldrho = (dl-lopt) / drho
 		# print 'dldrho',dldrho
 		# print 'rho',rho
 		#print 'lopt',lopt
 		#print 'sqrt(rho)/lopt',np.sqrt(rho)/lopt
-		Fo[i] = hatF
-		w1[i] =  (1-N/2) *np.log(rho)+ (N-1)*np.log(np.abs(lopt))+np.log(np.abs(dldrho))
+        Fo[i] = hatF
+        w1[i] =  (1-N/2) *np.log(rho)+ (N-1)*np.log(np.abs(lopt))+np.log(np.abs(dldrho))
 		#print 'w',w1[i]
 
 
-        scaled_x = np.copy(x)
+    wmax = np.amax(w1)
+    for i in range(NOS1):
+        w1[i] = np.exp(w1[i] - wmax)    
+    wsum = np.sum(w1)
+    w1 = w1/wsum
+    NEffSamples = EffSampleSize(w1)
+    R1 = CompR(w1)
 	
-    	wmax = np.amax(w1)
-    	for i in range(NOS1):
-        	w1[i] = np.exp(w1[i] - wmax)    
-    	wsum = np.sum(w1)
-    	w1 = w1/wsum
-	NEffSamples = EffSampleSize(w1)
-	R1 = CompR(w1)
+    rs_map = Resampling(w1,Samples1)
+    Xrs = Samples1[:,rs_map]
+    Fo = Fo[rs_map]
 	
-	rs_map = Resampling(w1,Samples1)
-	Xrs = Samples1[:,rs_map]
-	Fo = Fo[rs_map]
-	
-    	print 'Effective sample size: ',NEffSamples
-    	print 'Quality measure R:',R1
-	print 'Done with rbf. Obtained ', EffSampleSize(w1), 'effective samples'
-
+    print 'Effective sample size: ',NEffSamples
+    print 'Quality measure R:',R1
+    print 'Done with rbf. Obtained ', EffSampleSize(w1), 'effective samples'
+else:
+    NEffSamples = 1 # Something reasonable
 
 comm.barrier()
-if rank == 0:
-	print 'after barrier'
 NOS = np.int(NEffSamples)
+
+NOSa = np.ones(1, dtype=int)
+NOSa[0] = NOS
+comm.Bcast([NOSa, MPI.INT], root=0)
+NOS = NOSa[0]
+    
 w = np.array(np.zeros(shape=(NOS,1)))
 Samples = np.matrix(np.zeros(shape=(N,NOS)))
 
 if rank == 0:
 	'Starting to re-weight with full model'
 
+
 for i in range(NOS):
-	if rank == 0:
-		print 'Sample ',i, 'of ',NOS
-	p = int(np.random.uniform(0,1/NOS1,1))
-	Samples[:,i] =  np.multiply(Xrs[:,p].T,np.matrix(scales)).T
-	if rank ==0:
-		print 'sample',Samples[:,i]
-	xx = np.array(Samples[:,i].T)[0]       
-        F = -lnprob(xx,driver)
-	if rank == 0:
-		print 'F =',F
-		print 'hat F (rbf) ',Fo[i]	
-		print 'Sample',i,'of',NOS
-	w[i] =  Fo[p] - F
+    p = int(np.random.uniform(0,NOS1,1))
+    Samples[:,i] =  np.multiply(Xrs[:,p].T,np.matrix(scales)).T
+    xx = np.array(Samples[:,i].T)[0]       
+    F = -lnprob(xx,driver)
+    if F == np.inf or F == -np.inf:
+        w[i] = np.inf
+    else:
+        w[i] =  Fo[p] - F
+    
+    if rank == 0:
+        print 'F =',F
+        print 'hat F (rbf) ',Fo[i]	
+        print 'Sample',i,'of',NOS
 
 if rank == 0:
     wmax = np.amax(w)
     for i in range(NOS):
-        #if w[i] < 0:
-        #    w[i] = 0
-        #else:
-        w[i] = np.exp(w[i] - wmax)
+        if w[i] == np.inf:
+            w[i] = 0
+        else:
+            w[i] = np.exp(w[i] - wmax)
     wsum = np.sum(w)
     w = w/wsum
 
