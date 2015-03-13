@@ -1,0 +1,9 @@
+Experimental data and routines for analytic solution to 1D diffusion problem - transport of water in PMMA
+
+To run:
+python cython_setup.py build_ext --inplace
+./compile
+python parameter_estimation_driver.py
+
+python get_fickian_datasets.py will spew the data into a fortran file that can be included in the driver 
+in ./ftn_data
