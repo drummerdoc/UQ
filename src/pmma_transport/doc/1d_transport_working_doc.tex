@@ -141,10 +141,111 @@ a better position.}
         IS in place of emcee sampler. 
 \end{enumerate}
 
+\section{Progress}
+\newthought{The baseline sampling}, starting the walkers from a ball
+around the MLE (from the `2 step' procedure), and taking 4M samples
+for each of 8 walkers produces:
+\begin{figure}
+\includegraphics[width=\columnwidth]{figs/step_1_4M_2exp.png}
+  \caption{Baseline starting walkers near the MLE.}
+  \label{fig:baseline}
+  \setfloatalignment{b}
+\end{figure}
 
-\bibliography{sample-handout}
+\newthought{Without annealing} the hierarchical process fails to
+provide anything useful; indeed, when the walkers are placed uniformly
+throughout the valid bounds over which the prior has uniform
+probability they become `stuck'. However, with suitable annealing, it
+seems possible to produce a posterior that is evolving towards
+something sensible---although, it seems, inconsistent with the
+baseline. In Figure \ref{fig:annealing}, the walkers were intially
+placed uniformly across the valid region for the initial 'broad'
+prior. For subsequent experiements, the samples from the previous
+experiement were sorted by likelihood and the walker positions chosen
+randomly from those samples in the 99th percentile.
+\begin{figure}
+$\begin{array}{c c}
+\includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_0.png}
+& \includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_1.png}
+\\
+n=0 & n=1 \\
+\includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_2.png}
+& \includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_3.png}
+\\
+n = 2 & n=3 \\
+\includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_4.png}
+& \includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_5.png} \\
+n = 4 & n=5 \\
+\end{array}$
+  \caption{Baseline starting walkers uniformly across bounds, using
+    annealing process where $\sigma = \sigma_0*(1+98)e^{-(5/4) n}$,
+    where $n$ is the index of the pseudo-experiment. $n=4$ was
+    experiment \#1 with $\sigma=\sigma_0$, and $n=5$ was both
+    experiments \#1 and \#2.}
+  \label{fig:annealing}
+  \setfloatalignment{b}
+\end{figure}
+
+
+\section{Matti's notes on reweighting}
+Assume we start with $M$ samples drawn from $p(\theta|z_2)$, either
+from the emcee sampler or elsewhere. Then consider experiement \#1:
+\begin{align}
+  \label{eq:1}
+  w & \propto \frac{ p(\theta|Z_1,Z_2) }{\pi(\theta; Z_1, Z_2)}\\
+  & \propto \frac{ p(Z_1|\theta) p (\theta|Z_2)}{\pi(\theta; Z_1, Z_2)}
+\end{align}
+
+Choose $\pi(\theta; Z_1, Z_2) = p(\theta|Z_2)$, then
+\begin{equation*}
+  w \propto p(Z_1 | \theta),
+\end{equation*}
+which can be found simply by evaluating experiment \#1. 
+
+An alternative view is, again starting with $p(\theta|Z_2)$,
+\begin{align*}
+  p(\theta|Z_1,Z_2) &= p (Z_1, Z_2 | \theta) \frac{
+    p(\theta)}{p(Z_1,Z_2)} \\
+& = \frac{p(Z_1|\theta, Z_2) p(Z_2|\theta) p(\theta)}{ p(Z_1,Z_2)}\\
+ & = \frac{p(Z_1|\theta, Z_2)}{p(Z_1|Z_2)} \underbrace{\frac{p(Z_2|\theta)p(\theta)}{p(Z_2)}}_{p(\theta|Z_2)}
+\end{align*}
+
+\begin{align*}
+  p(\theta|Z_1,Z_2)& \propto p(Z_1|\theta, Z_2) p(\theta|Z_2) \\
+  & \approx p(Z_1|\theta) p(\theta|Z_2)
+\end{align*}
+
+Once the weights are determined, the initial $M$ samples can be
+reweighted by the probability given the other experiments and resampled:
+\begin{equation*}
+  w(u_m) = \mathrm{lnlike}(u_m; Z_2)
+\end{equation*}
+
+Normalize, exponentiate:
+\begin{equation*}
+  w = w - \max(w)
+\end{equation*}
+
+\begin{equation*}
+  w = e^w
+\end{equation*}
+
+\begin{equation*}
+  w = \frac{w}{\sum w}
+\end{equation*}
+\begin{equation*}
+  R = \mathrm{compR}(w)
+\end{equation*}
+\begin{equation*}
+  N_{\mathrm{eff}} = M/R
+\end{equation*}
+\begin{equation*}
+  X_{rs} = \mathrm{resampling}(X,w) \sim p(\theta|Z_1,Z_2)
+\end{equation*}
+
 \bibliographystyle{plainnat}
 
 
 
 \end{document}
+
