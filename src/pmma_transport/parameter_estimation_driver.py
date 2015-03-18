@@ -555,14 +555,16 @@ if __name__ == "__main__":
         nAnnealingSteps = 4
         sigma_factor = 99.0
         for i in range(nAnnealingSteps):
-            seq_data.append( copy.deepcopy(data[0]) )
-            seq_data[-1].sigma = data[0].sigma*(1.0+(sigma_factor-1.0)*np.exp(-5.0*i/nAnnealingSteps))
-        seq_data.append( copy.deepcopy(data[0]))
-        seq_data.append( copy.deepcopy(data[1]))
+            seq_data.append( [copy.deepcopy(data[0])] )
+            (seq_data[-1])[0].sigma = data[0].sigma*(1.0+(sigma_factor-1.0)*np.exp(-5.0*i/nAnnealingSteps))
+        seq_data.append( [copy.deepcopy(data[0])])
+        seq_data.append( copy.deepcopy(data[0:2]))
 
         print "Running simulated experiments:"
         for i in range(len(seq_data)):
-            print "Step ", i, " sigma: ", seq_data[i].sigma
+            print "Step ", i, " experiments: ", len(seq_data[i])
+            for ss in seq_data[i]:
+                print "    sigma = ", ss.sigma
         # Setup sparse pdf storage to hold posterior
         samples = []
         spdf = sparse_pdf.sparsePdf(4)
@@ -572,7 +574,7 @@ if __name__ == "__main__":
             datname = "_{}".format(idata)
             if(firstExp):
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
-                                                args=[[seq_data[idata]], pg, None, broad_prior])
+                                                args=[seq_data[idata], pg, None, broad_prior])
                 # Walkers uniformly distributed throughout bounds
                 pos = get_walkers(nwalkers, broad_prior)
                 print "First experiment; using broad prior and walkers uniform in bounds"
@@ -581,8 +583,8 @@ if __name__ == "__main__":
                 firstExp = False
             else:
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
-                                                args=[[seq_data[idata]], pg, None, broad_prior])
-                pos = get_walkers(nwalkers, broad_prior, samples[-1], [seq_data[idata-1]])
+                                                args=[seq_data[idata], pg, None, broad_prior])
+                pos = get_walkers(nwalkers, broad_prior, samples[-1], seq_data[idata-1])
                 print "Subsequent experiment; using prior from binned samples"
                 print "and walkers drawn from previous experiment samples"
                 print "Walker positions:"
