@@ -64,7 +64,8 @@ def get_params_global(data):
 
     # First curve fit a single experiment to get a decent
     # initial guess for the global fit
-    parms = (2.0e-9*1e-4, 9.0e-3/1e-4, 1.0, 1.0)
+    #parms = (2.0e-9*1e-4, 9.0e-3/1e-4, 1.0, 1.0)
+    parms = 1e-7, 1e-3, -1000, 1000
     i = 1
     pg, pcovg = curve_fit(lambda times, *p0: wvtr_vec_global(data[i].ts,
                           data[i].RH, data[i].temp, data[i].thickness, *p0),
@@ -79,8 +80,70 @@ def get_params_global(data):
     print "Global fitting residual: ", eg(pg2.x)
     return pg2.x
 
+def broad_prior():
+    """ Define what a broad prior is
+    Trying to make it somewhat reasonable in the sense that 
+    we do not need to solve an optimization problem to get it
+    but yet it is not so naive as to be unbelievable.
 
-def lnprior(par, pg, sparsepdf=None):
+    Try correct sign, order of magnitude input
+    Let prior span 2 order of magnitude
+    ... even range_scale = 2.0 seems to not work so well
+    """
+
+    magnitude = [1e-7, 1e-3, 1e3, 1e3]
+    sign = [1, 1, -1, 1]
+    range_scale = 10.0
+    lower_bounds = np.zeros_like(magnitude)
+    upper_bounds = np.zeros_like(magnitude)
+    i = 0
+    for (mag, sgn) in zip( magnitude, sign):
+        if(sgn < 0):
+            lower_bounds[i] = mag*range_scale*sgn
+            upper_bounds[i] = mag/range_scale*sgn
+        else:
+            lower_bounds[i] = mag/range_scale
+            upper_bounds[i] = mag*range_scale
+        i += 1
+
+    return np.array(lower_bounds), np.array(upper_bounds)
+
+def get_walkers(N, bounds_fcn, samples = None, data = None):
+    walkers = []
+    if(not (samples == None)):
+        # Get a bunch of samples at random
+        cand_samp_idx = np.random.randint(low=0, high=samples.shape[0], size=50000)#1000*N)
+        cand_samp = samples[cand_samp_idx]
+        csps = []
+        for cs in cand_samp:
+            csp = lnlike(cs, data)
+            csps.append(csp)
+        # Then sort by lnlike
+        srt_idx = range(len(csps))
+        srt_idx.sort(key=csps.__getitem__,reverse=True)
+        srt_samp = map(cand_samp.__getitem__, srt_idx)
+        for w in range(N):
+            idx = np.random.randint(low=0, high=cand_samp.shape[0]/100)
+            walkers.append(samples[idx])
+    else:
+        lb, ub = bounds_fcn()
+        print "D0", lb[0],  ub[0]
+        print "K0", lb[1],  ub[1]
+        print "D1", lb[2],  ub[2]
+        print "K1", lb[3],  ub[3]
+        for i in range(N):
+            this_walker = []
+            for l,u in zip(lb,ub):
+                t = np.random.uniform()
+                this_walker.append( l + t*(u-l) )
+            walkers.append(np.array(this_walker))
+    return walkers
+
+
+
+
+
+def lnprior(par, pg, sparsepdf=None, bf=None):
     if sparsepdf:
         a = spdf.getProbability(par)
         if(a > 1e-30):
@@ -90,21 +153,38 @@ def lnprior(par, pg, sparsepdf=None):
 
     else:
         D0, C0, D1, C1 = par
-        a = 0.02095132
-        fac = 0.99
-        if(pg[0]*(1-fac) < D0 < pg[0]*(1+fac)
-                and pg[1]*(1-fac) < C0 < pg[1]*(1+fac)
-                and pg[2]*(1-fac) > D1 > pg[2]*(1+fac)
-                and pg[3]*(1-fac) < C1 < pg[3]*(1+fac)):
-            return 0.0
-        return -np.inf
+        if(bf):
+            lb,ub = bf()
+            if( lb[0] < D0 < ub[0] and
+                    lb[1] < C0 < ub[1] and
+                    lb[2] < D1 < ub[2] and
+                    lb[3] < C1 < ub[3] ):
+                return 0.0
+            else:
+                #print "D0", lb[0], D0, ub[0]
+                #print "K0", lb[1], C0, ub[1]
+                #print "D1", lb[2], D1, ub[2]
+                #print "K1", lb[3], C1, ub[3]
+                return -np.inf
+        else:
+            # Bug. shoud not get here.
+            sys.exit(-1)
+            D0, C0, D1, C1 = par
+            a = 0.02095132
+            fac = 0.99
+            if(pg[0]*(1-fac) < D0 < pg[0]*(1+fac)
+                    and pg[1]*(1-fac) < C0 < pg[1]*(1+fac)
+                    and pg[2]*(1-fac) > D1 > pg[2]*(1+fac)
+                    and pg[3]*(1-fac) < C1 < pg[3]*(1+fac)):
+                return 0.0
+            return -np.inf
 
 
-def lnprob(par, data, pg, spdf=None):
+def lnprob(par, data, pg, spdf=None, bf=None):
     if(spdf):
-        Lp = lnprior(par, pg, spdf)
+        Lp = lnprior(par, pg, spdf, bf)
     else:
-        Lp = lnprior(par, pg)
+        Lp = lnprior(par, pg, None, bf)
     if not np.isfinite(Lp):
         return -np.inf
     return (Lp + lnlike(par, data))
@@ -267,9 +347,13 @@ if __name__ == "__main__":
 
     plt.savefig("fits.png")
 
+    print "MLE solution: ", pg_2step
+
+
 # Sampling starts here ----------------------------------------------
-    do_global = True
-    do_independent = True
+    do_global = False  # This was `step 1'
+    do_global_walkers_prior = True
+    do_independent = False
     do_sequential_prior = True
     do_implicit_sampling = False
 
@@ -277,23 +361,27 @@ if __name__ == "__main__":
     p50s = []
     p75s = []
 
+
     # Sampling - for each experiment sequentially, using global model
     ndim, nwalkers = 4, 8
 
-    nSamplesTotal = 40000
+    nSamplesTotal = 50000
     nSamplesBurnin = 10000
-    ensemble_std = 0.1
+    ensemble_std = 0.05
 
     if(do_global):
         samples = []
         # Sample all of the experiments together
         pg = pg_2step
         sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
-                                        args=[data, pg])
+                                        args=[data, pg, None, broad_prior])
         pg = np.array(pg)
-        pos = [pg + pg
-               * ensemble_std
-               * np.random.randn(ndim) for i in range(nwalkers)]
+        if(do_global_walkers_prior):
+            pos = get_walkers(nwalkers, broad_prior)
+        else:
+            pos = [pg + pg
+                   * ensemble_std
+                   * np.random.randn(ndim) for i in range(nwalkers)]
         plt.close()
         sampler.run_mcmc(pos, nSamplesTotal)
         f, (a1, a2) = plt.subplots(2, 1)
@@ -462,25 +550,48 @@ if __name__ == "__main__":
 
     if(do_sequential_prior):
 
+# Build synthetic experiments to do annealing as well as moving through hierarchy
+        seq_data = [ ]
+        nAnnealingSteps = 4
+        sigma_factor = 99.0
+        for i in range(nAnnealingSteps):
+            seq_data.append( copy.deepcopy(data[0]) )
+            seq_data[-1].sigma = data[0].sigma*(1.0+(sigma_factor-1.0)*np.exp(-5.0*i/nAnnealingSteps))
+        seq_data.append( copy.deepcopy(data[0]))
+        seq_data.append( copy.deepcopy(data[1]))
+
+        print "Running simulated experiments:"
+        for i in range(len(seq_data)):
+            print "Step ", i, " sigma: ", seq_data[i].sigma
         # Setup sparse pdf storage to hold posterior
         samples = []
         spdf = sparse_pdf.sparsePdf(4)
         firstExp = True
-        for idata in range(len(data)):
+        for idata in range(len(seq_data)):
             fname = "_{}.png".format(idata)
             datname = "_{}".format(idata)
             if(firstExp):
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
-                                                args=[[data[idata]], pg])
+                                                args=[[seq_data[idata]], pg, None, broad_prior])
+                # Walkers uniformly distributed throughout bounds
+                pos = get_walkers(nwalkers, broad_prior)
+                print "First experiment; using broad prior and walkers uniform in bounds"
+                print "Walker positions:"
+                print pos
                 firstExp = False
             else:
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
-                                                args=[[data[idata]], pg, spdf])
+                                                args=[[seq_data[idata]], pg, None, broad_prior])
+                pos = get_walkers(nwalkers, broad_prior, samples[-1], [seq_data[idata-1]])
+                print "Subsequent experiment; using prior from binned samples"
+                print "and walkers drawn from previous experiment samples"
+                print "Walker positions:"
+                print pos
 
             pg = np.array(pg)
-            pos = [pg + pg
-                   * ensemble_std
-                   * np.random.randn(ndim) for i in range(nwalkers)]
+            #pos = [pg + pg
+            #       * ensemble_std
+            #       * np.random.randn(ndim) for i in range(nwalkers)]
             plt.close()
             sampler.run_mcmc(pos, nSamplesTotal)
             f, (a1, a2) = plt.subplots(2, 1)
@@ -506,28 +617,28 @@ if __name__ == "__main__":
             print "upper bounds:", ub
             spdf.setLowerBounds(lb)
             spdf.setUpperBounds(ub)
-            counts = np.array([20, 1, 20, 1], dtype='int')
+            counts = np.array([20, 20, 20, 20], dtype='int')
             spdf.setBinCounts(counts)
             for s in samples[idata]:
                 spdf.addSamplePoint(s)
             spdf.normalize()
 
-            # Display the jpdf such as it is
-            bins0 = spdf.get_bincens(0)
-            bins1 = spdf.get_bincens(1)
-            bins2 = spdf.get_bincens(2)
-            bins3 = spdf.get_bincens(3)
+            ## Display the jpdf such as it is
+            #bins0 = spdf.get_bincens(0)
+            #bins1 = spdf.get_bincens(1)
+            #bins2 = spdf.get_bincens(2)
+            #bins3 = spdf.get_bincens(3)
 
-            p = np.zeros([len(bins0), len(bins2)])
-            i = 0
-            for b0 in bins0:
-                j = 0
-                for b2 in bins2:
-                    p[i, j] = spdf.getProbability([b0, bins1[0], b2, bins3[0]])
-                    j += 1
-                i += 1
-            print "The constructed distribution:"
-            print p
+            #p = np.zeros([len(bins0), len(bins2)])
+            #i = 0
+            #for b0 in bins0:
+            #    j = 0
+            #    for b2 in bins2:
+            #        p[i, j] = spdf.getProbability([b0, bins1[0], b2, bins3[0]])
+            #        j += 1
+            #    i += 1
+            #print "The constructed distribution:"
+            #print p
 
             p25 = np.percentile(samples[idata], [25], axis=0)
             p50 = np.percentile(samples[idata], [50], axis=0)
