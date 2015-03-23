@@ -12,6 +12,7 @@ import copy
 from scipy.optimize import curve_fit
 from scipy.optimize import minimize
 from scipy.stats import linregress
+from sparse_pdf_check import *
 
 import emcee
 import triangle
@@ -64,7 +65,7 @@ def get_params_global(data):
 
     # First curve fit a single experiment to get a decent
     # initial guess for the global fit
-    #parms = (2.0e-9*1e-4, 9.0e-3/1e-4, 1.0, 1.0)
+    # parms = (2.0e-9*1e-4, 9.0e-3/1e-4, 1.0, 1.0)
     parms = 1e-7, 1e-3, -1000, 1000
     i = 1
     pg, pcovg = curve_fit(lambda times, *p0: wvtr_vec_global(data[i].ts,
@@ -80,9 +81,10 @@ def get_params_global(data):
     print "Global fitting residual: ", eg(pg2.x)
     return pg2.x
 
+
 def broad_prior():
     """ Define what a broad prior is
-    Trying to make it somewhat reasonable in the sense that 
+    Trying to make it somewhat reasonable in the sense that
     we do not need to solve an optimization problem to get it
     but yet it is not so naive as to be unbelievable.
 
@@ -97,7 +99,7 @@ def broad_prior():
     lower_bounds = np.zeros_like(magnitude)
     upper_bounds = np.zeros_like(magnitude)
     i = 0
-    for (mag, sgn) in zip( magnitude, sign):
+    for (mag, sgn) in zip(magnitude, sign):
         if(sgn < 0):
             lower_bounds[i] = mag*range_scale*sgn
             upper_bounds[i] = mag/range_scale*sgn
@@ -108,11 +110,12 @@ def broad_prior():
 
     return np.array(lower_bounds), np.array(upper_bounds)
 
-def get_walkers(N, bounds_fcn, samples = None, data = None):
+
+def get_walkers(N, bounds_fcn, samples=None, data=None):
     walkers = []
     if(not (samples == None)):
         # Get a bunch of samples at random
-        cand_samp_idx = np.random.randint(low=0, high=samples.shape[0], size=50000)#1000*N)
+        cand_samp_idx = np.random.randint(low=0, high=samples.shape[0], size=50000)
         cand_samp = samples[cand_samp_idx]
         csps = []
         for cs in cand_samp:
@@ -120,7 +123,7 @@ def get_walkers(N, bounds_fcn, samples = None, data = None):
             csps.append(csp)
         # Then sort by lnlike
         srt_idx = range(len(csps))
-        srt_idx.sort(key=csps.__getitem__,reverse=True)
+        srt_idx.sort(key=csps.__getitem__, reverse=True)
         srt_samp = map(cand_samp.__getitem__, srt_idx)
         for w in range(N):
             idx = np.random.randint(low=0, high=cand_samp.shape[0]/100)
@@ -133,14 +136,11 @@ def get_walkers(N, bounds_fcn, samples = None, data = None):
         print "K1", lb[3],  ub[3]
         for i in range(N):
             this_walker = []
-            for l,u in zip(lb,ub):
+            for l, u in zip(lb, ub):
                 t = np.random.uniform()
-                this_walker.append( l + t*(u-l) )
+                this_walker.append(l + t*(u-l))
             walkers.append(np.array(this_walker))
     return walkers
-
-
-
 
 
 def lnprior(par, pg, sparsepdf=None, bf=None):
@@ -154,17 +154,13 @@ def lnprior(par, pg, sparsepdf=None, bf=None):
     else:
         D0, C0, D1, C1 = par
         if(bf):
-            lb,ub = bf()
-            if( lb[0] < D0 < ub[0] and
+            lb, ub = bf()
+            if(lb[0] < D0 < ub[0] and
                     lb[1] < C0 < ub[1] and
                     lb[2] < D1 < ub[2] and
-                    lb[3] < C1 < ub[3] ):
+                    lb[3] < C1 < ub[3]):
                 return 0.0
             else:
-                #print "D0", lb[0], D0, ub[0]
-                #print "K0", lb[1], C0, ub[1]
-                #print "D1", lb[2], D1, ub[2]
-                #print "K1", lb[3], C1, ub[3]
                 return -np.inf
         else:
             # Bug. shoud not get here.
@@ -349,7 +345,6 @@ if __name__ == "__main__":
 
     print "MLE solution: ", pg_2step
 
-
 # Sampling starts here ----------------------------------------------
     do_global = False  # This was `step 1'
     do_global_walkers_prior = True
@@ -361,12 +356,11 @@ if __name__ == "__main__":
     p50s = []
     p75s = []
 
-
     # Sampling - for each experiment sequentially, using global model
     ndim, nwalkers = 4, 8
 
-    nSamplesTotal = 50000
-    nSamplesBurnin = 10000
+    nSamplesTotal = 5000
+    nSamplesBurnin = 1000
     ensemble_std = 0.05
 
     if(do_global):
@@ -550,15 +544,18 @@ if __name__ == "__main__":
 
     if(do_sequential_prior):
 
-# Build synthetic experiments to do annealing as well as moving through hierarchy
-        seq_data = [ ]
+        # Build synthetic experiments to do annealing
+        # as well as moving through hierarchy
+        seq_data = []
         nAnnealingSteps = 4
         sigma_factor = 99.0
         for i in range(nAnnealingSteps):
-            seq_data.append( [copy.deepcopy(data[0])] )
-            (seq_data[-1])[0].sigma = data[0].sigma*(1.0+(sigma_factor-1.0)*np.exp(-5.0*i/nAnnealingSteps))
-        seq_data.append( [copy.deepcopy(data[0])])
-        seq_data.append( copy.deepcopy(data[0:2]))
+            seq_data.append([copy.deepcopy(data[0])])
+            (seq_data[-1])[0].sigma = data[0].sigma\
+                                    * (1.0 + (sigma_factor - 1.0)
+                                    * np.exp(-5.0*i/nAnnealingSteps))
+        seq_data.append([copy.deepcopy(data[0])])
+        seq_data.append(copy.deepcopy(data[0:2]))
 
         print "Running simulated experiments:"
         for i in range(len(seq_data)):
@@ -574,7 +571,8 @@ if __name__ == "__main__":
             datname = "_{}".format(idata)
             if(firstExp):
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
-                                                args=[seq_data[idata], pg, None, broad_prior])
+                                                args=[seq_data[idata], pg,
+                                                None, broad_prior])
                 # Walkers uniformly distributed throughout bounds
                 pos = get_walkers(nwalkers, broad_prior)
                 print "First experiment; using broad prior and walkers uniform in bounds"
@@ -583,17 +581,19 @@ if __name__ == "__main__":
                 firstExp = False
             else:
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
-                                                args=[seq_data[idata], pg, None, broad_prior])
-                pos = get_walkers(nwalkers, broad_prior, samples[-1], seq_data[idata-1])
+                                                args=[seq_data[idata], pg, None,
+                                                      broad_prior])
+                pos = get_walkers(nwalkers, broad_prior,
+                                  samples[-1], seq_data[idata-1])
                 print "Subsequent experiment; using prior from binned samples"
                 print "and walkers drawn from previous experiment samples"
                 print "Walker positions:"
                 print pos
 
             pg = np.array(pg)
-            #pos = [pg + pg
-            #       * ensemble_std
-            #       * np.random.randn(ndim) for i in range(nwalkers)]
+            # pos = [pg + pg
+            #        * ensemble_std
+            #        * np.random.randn(ndim) for i in range(nwalkers)]
             plt.close()
             sampler.run_mcmc(pos, nSamplesTotal)
             f, (a1, a2) = plt.subplots(2, 1)
@@ -606,6 +606,7 @@ if __name__ == "__main__":
             samples.append(sampler.chain[:, nSamplesBurnin:, :]
                                   .reshape((-1, ndim)))
 
+            print "shape of samples:", samples[idata].shape
             fig = triangle.corner(samples[idata],
                                   labels=["D0", "K0", "D1", "K1"])
             plt.savefig("triangle_seq_prior"+fname)
@@ -625,22 +626,27 @@ if __name__ == "__main__":
                 spdf.addSamplePoint(s)
             spdf.normalize()
 
-            ## Display the jpdf such as it is
-            #bins0 = spdf.get_bincens(0)
-            #bins1 = spdf.get_bincens(1)
-            #bins2 = spdf.get_bincens(2)
-            #bins3 = spdf.get_bincens(3)
+            # Make a triangle plot from the sparse pdf representation for comparison
+            spdf_samples = spdf_weighted_samples(spdf)
+            fig = triangle.corner(spdf_samples.transpose(),
+                                  labels=["D0", "K0", "D1", "K1"])
+            plt.savefig("triangle_seq_prior_spdf"+fname)
+            # # Display the jpdf such as it is
+            # bins0 = spdf.get_bincens(0)
+            # bins1 = spdf.get_bincens(1)
+            # bins2 = spdf.get_bincens(2)
+            # bins3 = spdf.get_bincens(3)
 
-            #p = np.zeros([len(bins0), len(bins2)])
-            #i = 0
-            #for b0 in bins0:
-            #    j = 0
-            #    for b2 in bins2:
-            #        p[i, j] = spdf.getProbability([b0, bins1[0], b2, bins3[0]])
-            #        j += 1
-            #    i += 1
-            #print "The constructed distribution:"
-            #print p
+            # p = np.zeros([len(bins0), len(bins2)])
+            # i = 0
+            # for b0 in bins0:
+            #     j = 0
+            #     for b2 in bins2:
+            #         p[i, j] = spdf.getProbability([b0, bins1[0], b2, bins3[0]])
+            #         j += 1
+            #     i += 1
+            # print "The constructed distribution:"
+            # print p
 
             p25 = np.percentile(samples[idata], [25], axis=0)
             p50 = np.percentile(samples[idata], [50], axis=0)
