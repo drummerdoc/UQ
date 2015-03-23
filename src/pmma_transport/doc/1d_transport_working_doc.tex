@@ -129,7 +129,9 @@ a better position.}
         that can be evaluated at an arbitrary $(D_0,D_1,K_0,K_1)$.
     \item Run the emcee sampler on $p(\phi|Z_1,Z_2)$, but this time use initial
         walker positions obtained through consideration of Experiment \#1, and
-        use $\mu_H^1$ as the prior\footnote{Using the prior facilitates an optimization where we don't bother evaluating the sample if the prior is $< p_{min}$}. Compare the posterior to the baseline
+        use $\mu_H^1$ as the prior\footnote{Using the prior facilitates an
+        optimization where we don't bother evaluating the sample if the prior
+    is $< p_{min}$}. Compare the posterior to the baseline
         posterior obtained in the first step.  Take fewer (e.g., 100k) samples. 
     \item Run the emcee sampler on $p(\phi|Z_2)$, using $\mu_H$ as a prior.
         Compare the posterior to the baseline posterior from the first step.
@@ -186,6 +188,30 @@ n = 4 & n=5 \\
   \setfloatalignment{b}
 \end{figure}
 
+
+\section{Sparse pdf}
+Testing to see if it is sensible\ldots Test is:
+\begin{itemize}
+    \item Draw $10^6$ samples from normal distribution, use this to build sparse pdf representation $\mu_H$
+    \item Draw $10^6$ samples from uniform distribution
+    \item Reweight by probability from $\mu_H$
+    \item Normalize weights so $\sum w_i = 1.0$
+    \item Resample using Matti's routine
+    \item Make triangle plots of both input and output distributions
+\end{itemize}
+
+\begin{figure}
+$\begin{array}{c c}
+\includegraphics[width=0.4\columnwidth]{figs/input_samples.png}
+& \includegraphics[width=0.4\columnwidth]{figs/spdf_samples.png}\\
+\text{Input samples}& \text{Uniform samples reweighted by histogram} \\
+\end{array}$
+\caption{If everything is working properly, these would be the same---the left
+from the input samples, the right from what comes out of the histogram based
+sparse pdf representation}
+  \label{fig:annealing}
+  \setfloatalignment{b}
+\end{figure}
 
 \section{Matti's notes on reweighting}
 Assume we start with $M$ samples drawn from $p(\theta|z_2)$, either

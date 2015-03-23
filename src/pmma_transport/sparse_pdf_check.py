@@ -6,7 +6,7 @@ import triangle
 import matplotlib.pyplot as plt
 
 
-def spdf_weighted_samples(spdf, M=1000000):
+def spdf_weighted_samples(spdf, M=10000):
 
     # hardcoded for 4D sparse pdf
     N = 4
@@ -30,7 +30,7 @@ def spdf_weighted_samples(spdf, M=1000000):
 
     wsum = np.sum(w)
     w = w/wsum
-    print "sum of weights = ", np.sum(w)
+
     # Resample
     rs_map = Resampling(w, samples)
 
@@ -41,14 +41,14 @@ def spdf_weighted_samples(spdf, M=1000000):
 
 if __name__ == "__main__":
     # Draw samples from a 4d gaussian. make spdf. draw triangle plot
-    M = 1000000
+    M = 100000
     N = 4
     spdf = sparse_pdf.sparsePdf(N)
     samples = np.zeros([N, M])
     mean = np.zeros(N)
     cov = np.ones([N, N])*0.5
     for i in range(M):
-        # samples[:, i] = np.random.multivariate_normal(mean, cov)
+        #samples[:, i] = np.random.multivariate_normal(mean, cov)
         samples[:, i] = np.random.normal(size=4)
 
     print samples.shape
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         spdf.addSamplePoint(s)
     spdf.normalize()
 
-    spdf_samples = spdf_weighted_samples(spdf, M=1000000)
+    spdf_samples = spdf_weighted_samples(spdf, M=100000)
 
     fig = triangle.corner(spdf_samples.transpose(),
                           labels=["D0", "K0", "D1", "K1"])

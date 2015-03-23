@@ -36,7 +36,7 @@ def WeightedMean(w, samples):
     return CondMean
 
 
-# this is the one from rbfModel.py
+# This is from covModel.py
 def Resampling(w, samples):
     N = samples.shape[0]
     M = samples.shape[1]
@@ -44,16 +44,15 @@ def Resampling(w, samples):
     for j in range(1, len(c)):
         c[j] = c[j-1] + w[j-1]
     i = 0
-    u1 = np.random.uniform(0, 1/M, 1)
+    u1 = np.random.rand(1)/M
     u = 0
     rs_map = np.zeros(M, dtype=int)
     for m in range(M):
         u = u1 + float(m)/M
         while u >= c[i]:
             i += 1
-    rs_map[m] = i-1  # Note: i is never 0 here
+        rs_map[m] = i-1 # Note: i is never 0 here
     return rs_map
-
 
 def WeightedVar(CondMean, w, samples):
     N = samples.shape[0]
