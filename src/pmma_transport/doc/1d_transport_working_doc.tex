@@ -160,10 +160,10 @@ throughout the valid bounds over which the prior has uniform
 probability they become `stuck'. However, with suitable annealing, it
 seems possible to produce a posterior that is evolving towards
 something sensible---although, it seems, inconsistent with the
-baseline. In Figure \ref{fig:annealing}, the walkers were intially
+baseline. In Figure \ref{fig:annealing}, the walkers were initially
 placed uniformly across the valid region for the initial 'broad'
 prior. For subsequent experiment the walker positions were chosen
-randomply from the samples from the previous experiment.
+randomly from the samples from the previous experiment.
 \begin{figure}
 $\begin{array}{c c}
 \includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_0.png}
@@ -189,7 +189,11 @@ n = 4 & n=5 \\
 
 \newthought{Sadly, this doesn't appear to be robust}; I repeated the run with a
 larger sample count ($10^6$/walker), but otherwise the same annealing schedule,
-and the walkers managed to find the `wrong' probability island. 
+and the walkers managed to find the `wrong' probability island. In an
+attempt to fix this, I chose $50(10^3)$ samples randomly from the
+previous posterior, sorted these
+by likelyhood, and chose 8 at random from the 99$^{th}$ percentile to
+initialize the worker positions --- this is what is shown in Figure~\ref{fig:annealing2}.
 \begin{figure}[h!]
 $\begin{array}{c c}
 \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_0.png}
@@ -221,7 +225,7 @@ using kmeans on the posterior samples (with $N_{walkers}+2$
 clusters)\footnote{Experimented with this a bit---using lots of
   clusters, keeping best $N/2$ with small perturbations, etc}. Then I sorted these by the
 likelihood at the cluster centroid and kept the most likely $N$.
-Still didn't work well.
+Still didn't work well (see Figure~\ref{fig:annealing_clustering}).
 \begin{figure}
 $\begin{array}{c c}
 \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_0.png}
@@ -240,8 +244,9 @@ n = 4 & n=5 \\
     annealing process where $\sigma = \sigma_0*(1+98)e^{-(5/4) n}$,
     where $n$ is the index of the pseudo-experiment. $n=4$ was
     experiment \#1 with $\sigma=\sigma_0$, and $n=5$ was both
-    experiments \#1 and \#2. $10^6$ samples per walker.}
-  \label{fig:annealing2}
+    experiments \#1 and \#2. $10^6$ samples per walker. Walker
+    positions based on clustering of previous samples.}
+  \label{fig:annealing_clustering}
   \setfloatalignment{b}
 \end{figure}
 
@@ -298,10 +303,10 @@ n = 2 & n=2 \\
   \label{fig:spdf_annealing2}
   \setfloatalignment{b}
 \end{figure}
-
+\clearpage
 \section{Matti's notes on reweighting}
 Assume we start with $M$ samples drawn from $p(\theta|z_2)$, either
-from the emcee sampler or elsewhere. Then consider experiement \#1:
+from the emcee sampler or elsewhere. Then consider experiment \#1:
 \begin{align}
   \label{eq:1}
   w & \propto \frac{ p(\theta|Z_1,Z_2) }{\pi(\theta; Z_1, Z_2)}\\
