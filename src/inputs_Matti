@@ -1,19 +1,56 @@
 #which_sampler=linear_map
-#nwalkers      = 1
-maxStep       = 20        # Number of MCMC samples for each walker
+nwalkers     = 1
+maxStep       = 10        # Number of MCMC samples for each walker/number of (requested) samples for (two-stage) implicit sampling
 outFilePrefix = "Results" # Prefix to output file names, to be appended with step range
 outFilePeriod = 3         # Number of samples between calls to write data
 seed          = 17        # seed, used if no restart file provided
 #restartFile = Results_00_10
-neff          = 4         # Number of eigenvalues to keep
-neff2         = 4         # Number of eigenvalues to keep on second sampling iter
+
+# IMPLICIT SAMPLING
+###################################################
+num_initial_samples = 7000 # how many points are used to generate the quadratic/rbf approximation?
+		      	   # we assume these come ordered by likelihood
+
+stage = 2 		   # 1 - "CovModel" -> find mean/variance from trial points  
+      			   # 2 - construct rbf model to generate samples
+
+ampFactor = 1000	   	   # only if stage == 2: you want maxStep samples,
+	    		   # but you lose some. ampFactor makes up for it
+			   # should be set to be a bit larger than "quality measure"
+			   # R after first stage
+
+buildRBF = 0		   # only if stage == 2
+	   		   # 1 - construct rbf with num_initial_samples points
+			   # 0 - rbf is already build and in rbfFile
+
+rbfDumpFile = "RBFModel.p" # where to dill the RBF
+
+rbfLoadFile = "RBFModel.p" # file where rbf is dilled 
+
+minimizeRBF = 0		   # find minimum of rbf
+	      		   # 1 - do it
+			   # 0 - it is already done and in optFile
+
+optDumpFile = "xopt.p"	   # file where result of optimization is pickeled to
+
+optLoadFile = "xopt.p"     # file where result of optimization is pickled
+
+
+whichSampler = 1	   # only if stage == 2
+	      		   # 0 - linear map
+	      		   # 1 - random map
+
+neff = 8 		   # Number of eigenvalues of Hessian at the minimum to keep
+###################################################
+
+
+
 
 ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12
 verbose = 0
 
 initial_samples = 2POINTS/hist.sorted
-num_initial_samples = 600
 
 # Davis
 parameters = p1 p2 p3 p9 p9L p10 p13 p14 p15a

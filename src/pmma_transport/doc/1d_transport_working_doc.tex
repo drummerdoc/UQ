@@ -162,21 +162,21 @@ seems possible to produce a posterior that is evolving towards
 something sensible---although, it seems, inconsistent with the
 baseline. In Figure \ref{fig:annealing}, the walkers were intially
 placed uniformly across the valid region for the initial 'broad'
-prior. For subsequent experiements, the samples from the previous
-experiement were sorted by likelihood and the walker positions chosen
-randomly from those samples in the 99th percentile.
+prior. For subsequent experiments, the samples from the previous
+experiment were sorted by likelihood and the walker positions chosen
+randomly from those samples in the 99th percentile.  
 \begin{figure}
 $\begin{array}{c c}
-\includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_0.png}
-& \includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_1.png}
+\includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_0.png}
+& \includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_1.png}
 \\
 n=0 & n=1 \\
-\includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_2.png}
-& \includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_3.png}
+\includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_2.png}
+& \includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_3.png}
 \\
 n = 2 & n=3 \\
-\includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_4.png}
-& \includegraphics[width=0.4\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_5.png} \\
+\includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_4.png}
+& \includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_5.png} \\
 n = 4 & n=5 \\
 \end{array}$
   \caption{Baseline starting walkers uniformly across bounds, using
@@ -187,6 +187,36 @@ n = 4 & n=5 \\
   \label{fig:annealing}
   \setfloatalignment{b}
 \end{figure}
+
+\newthought{Sadly, this doesn't appear to be robust}; I repeated the run with a
+larger sample count ($10^6$/walker), but otherwise the same annealing schedule,
+and the walkers managed to find the `wrong' probability island. 
+\begin{figure}
+$\begin{array}{c c}
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_0.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_1.png}
+\\
+n=0 & n=1 \\
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_2.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_3.png}
+\\
+n = 2 & n=3 \\
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_4.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_5.png} \\
+n = 4 & n=5 \\
+\end{array}$
+  \caption{Baseline starting walkers uniformly across bounds, using
+    annealing process where $\sigma = \sigma_0*(1+98)e^{-(5/4) n}$,
+    where $n$ is the index of the pseudo-experiment. $n=4$ was
+    experiment \#1 with $\sigma=\sigma_0$, and $n=5$ was both
+    experiments \#1 and \#2. $10^6$ samples per walker.}
+  \label{fig:annealing2}
+  \setfloatalignment{b}
+\end{figure}
+
+It would seem that choosing 8 samples from the prior does not, unsurprisingly,
+represent the prior in a meaningful way. 
+
 
 
 \section{Sparse pdf}
@@ -204,12 +234,40 @@ Testing to see if it is sensible\ldots Test is:
 $\begin{array}{c c}
 \includegraphics[width=0.4\columnwidth]{figs/input_samples.png}
 & \includegraphics[width=0.4\columnwidth]{figs/spdf_samples.png}\\
-\text{Input samples}& \text{Uniform samples reweighted by histogram} \\
+\text{Input samples}& \text{Uniform samples weighted by $\mu_H$} \\
 \end{array}$
 \caption{If everything is working properly, these would be the same---the left
 from the input samples, the right from what comes out of the histogram based
 sparse pdf representation}
-  \label{fig:annealing}
+  \label{fig:spdf}
+  \setfloatalignment{b}
+\end{figure}
+
+Although this is `working' as spec'd, it doesn't yet seem sufficient. When the
+sample space isn't well filled out, the representation is pretty choppy.
+Figure~\ref{fig:spdf_annealing2}, below, repeats the test in
+Figure~\ref{fig:spdf} with some of the distributions from
+Figure~\ref{fig:annealing2}. It seems like we need a better interpolation
+routine.\footnote{I don't think RBF is it though, because as I understand it
+    with RBF there is enough freedom that the interpolating function goes
+    through every point. Here it seems like we want lower order interpolant
+that enforces some smoothness, or to add TR style smoothing. }
+\begin{figure}
+$\begin{array}{c c}
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_0.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_spdf_0.png}
+\\
+n=0 & n=0 \\
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_1.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_spdf_1.png}
+\\
+n = 1 & n=1 \\
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_2.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_spdf_2.png} \\
+n = 2 & n=2 \\
+\end{array}$
+  \caption{Comparison of distributions from sampling and those recovered from histogram based weighting.}
+  \label{fig:spdf_annealing2}
   \setfloatalignment{b}
 \end{figure}
 
