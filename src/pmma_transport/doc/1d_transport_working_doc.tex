@@ -162,9 +162,8 @@ seems possible to produce a posterior that is evolving towards
 something sensible---although, it seems, inconsistent with the
 baseline. In Figure \ref{fig:annealing}, the walkers were intially
 placed uniformly across the valid region for the initial 'broad'
-prior. For subsequent experiments, the samples from the previous
-experiment were sorted by likelihood and the walker positions chosen
-randomly from those samples in the 99th percentile.  
+prior. For subsequent experiment the walker positions were chosen
+randomply from the samples from the previous experiment.
 \begin{figure}
 $\begin{array}{c c}
 \includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_0.png}
@@ -191,21 +190,21 @@ n = 4 & n=5 \\
 \newthought{Sadly, this doesn't appear to be robust}; I repeated the run with a
 larger sample count ($10^6$/walker), but otherwise the same annealing schedule,
 and the walkers managed to find the `wrong' probability island. 
-\begin{figure}
+\begin{figure}[h!]
 $\begin{array}{c c}
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_0.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_1.png}
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_0.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_1.png}
 \\
 n=0 & n=1 \\
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_2.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_3.png}
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_2.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_3.png}
 \\
 n = 2 & n=3 \\
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_4.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_run_wrong_island/triangle_seq_prior_5.png} \\
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_4.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_5.png} \\
 n = 4 & n=5 \\
 \end{array}$
-  \caption{Baseline starting walkers uniformly across bounds, using
+  \caption{Starting walkers uniformly across bounds, using
     annealing process where $\sigma = \sigma_0*(1+98)e^{-(5/4) n}$,
     where $n$ is the index of the pseudo-experiment. $n=4$ was
     experiment \#1 with $\sigma=\sigma_0$, and $n=5$ was both
@@ -216,6 +215,35 @@ n = 4 & n=5 \\
 
 It would seem that choosing 8 samples from the prior does not, unsurprisingly,
 represent the prior in a meaningful way. 
+
+\newthought{To try to get around this I tried clustering the samples}
+using kmeans on the posterior samples (with $N_{walkers}+2$
+clusters)\footnote{Experimented with this a bit---using lots of
+  clusters, keeping best $N/2$ with small perturbations, etc}. Then I sorted these by the
+likelihood at the cluster centroid and kept the most likely $N$.
+Still didn't work well.
+\begin{figure}
+$\begin{array}{c c}
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_0.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_1.png}
+\\
+n=0 & n=1 \\
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_2.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_3.png}
+\\
+n = 2 & n=3 \\
+\includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_4.png}
+& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_5.png} \\
+n = 4 & n=5 \\
+\end{array}$
+  \caption{Starting walkers uniformly across bounds, using
+    annealing process where $\sigma = \sigma_0*(1+98)e^{-(5/4) n}$,
+    where $n$ is the index of the pseudo-experiment. $n=4$ was
+    experiment \#1 with $\sigma=\sigma_0$, and $n=5$ was both
+    experiments \#1 and \#2. $10^6$ samples per walker.}
+  \label{fig:annealing2}
+  \setfloatalignment{b}
+\end{figure}
 
 
 
