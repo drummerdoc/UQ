@@ -39,6 +39,7 @@ SimulatedExperiment::build_err_map()
   my_map.push_back("PREMIX_TOO_MANY_ITERS");
   my_map.push_back("PREMIX_SOLVER_FAILED");
   my_map.push_back("NEEDED_MEAN_BUT_NOT_FINISHED");
+  my_map.push_back("VODE_FAILED");
   my_map.push_back("SUCCESS");
   return my_map;
 }
@@ -401,10 +402,14 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       dt_old = dt;
       dt = t_end - t_start;
       if( dt_old == 0 ) dt_old = dt;
-      
-      cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
-                            funcCnt,box,sCompY,sCompRH,sCompT,
-                            dt,Patm,diag,true);
+
+      bool ok = cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
+				      funcCnt,box,sCompY,sCompRH,sCompT,
+				      dt,Patm,diag,true);
+
+      if (!ok) {
+	return std::pair<bool,int>(false,ErrorID("VODE_FAILED"));
+      }
 
       if (sample_evolution) {
         simulated_observations[i] = ExtractMeasurement();
@@ -534,8 +539,13 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       t_end = measurement_times[i];
       Real dt = t_end - t_start;
 
-      cd.solveTransient(Ynew,Tnew,Yold,Told,funcCnt,box,
-                        sCompY,sCompT,dt,Patm);
+      bool ok = cd.solveTransient(Ynew,Tnew,Yold,Told,funcCnt,box,
+				  sCompY,sCompT,dt,Patm);
+
+      if (!ok) {
+	return std::pair<bool,int>(false,ErrorID("VODE_FAILED"));	
+      }
+
       if (sample_evolution) {
         simulated_observations[i] = ExtractMeasurement();
         if (! ValidMeasurement(simulated_observations[i])) {

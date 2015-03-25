@@ -1,3 +1,12 @@
 src/packages/cminpack-*
 src/packages/lapack-*
+src/pmma_transport/doc/*.aux
+src/pmma_transport/doc/*.log
+src/pmma_transport/doc/*.out
+src/pmma_transport/doc/*.rel
+src/*wrap.c*
+*.pyc
+*.swp
+*.swo
+
 
