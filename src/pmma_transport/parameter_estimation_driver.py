@@ -24,6 +24,7 @@ import sparse_pdf
 
 from is_tools import *
 
+from scipy.cluster.vq import kmeans2
 
 # Load experimental data
 print "Scanning data files for experiments matching criteria"
@@ -126,8 +127,61 @@ def get_walkers(N, bounds_fcn, samples=None, data=None):
         srt_idx.sort(key=csps.__getitem__, reverse=True)
         srt_samp = map(cand_samp.__getitem__, srt_idx)
         for w in range(N):
-            idx = np.random.randint(low=0, high=cand_samp.shape[0]/100)
+            idx = np.random.randint(low=0, high=len(srt_samp)/100)
             walkers.append(samples[idx])
+        i = 0
+        for w in walkers:
+            pp = lnlike(w, data)
+            print "Walker ", i, " at ", w, " lnlike = ", pp
+            i += 1
+    else:
+        lb, ub = bounds_fcn()
+        print "D0", lb[0],  ub[0]
+        print "K0", lb[1],  ub[1]
+        print "D1", lb[2],  ub[2]
+        print "K1", lb[3],  ub[3]
+        for i in range(N):
+            this_walker = []
+            for l, u in zip(lb, ub):
+                t = np.random.uniform()
+                this_walker.append(l + t*(u-l))
+            walkers.append(np.array(this_walker))
+    return walkers
+
+def get_walkers_cluster(N, bounds_fcn, samples=None, data=None):
+    walkers = []
+    if(not (samples == None)):
+        # Get a bunch of samples at random
+        cand_samp_idx = np.random.randint(low=0, high=samples.shape[0], size=50000)
+        cand_samp = samples[cand_samp_idx]
+
+        # Cluster this subset of samples and evaluate likelihood
+        k = N 
+        cents, lab = kmeans2(cand_samp, k)
+        csps = []
+        for cs in cents:
+            csp = lnlike(cs, data)
+            csps.append(csp)
+
+        # Then sort by lnlike
+        srt_idx = range(len(csps))
+        srt_idx.sort(key=csps.__getitem__, reverse=True)
+        srt_samp = map(cents.__getitem__, srt_idx)
+
+        # Keep first N (implicitly, dropping N-k clusters)
+        walkers = srt_samp[0:N/2]
+        i = 0
+        M = samples.shape[1]
+        for w in srt_samp[0:N/2]:
+            w2 = np.zeros(M)
+            for j in range(M):
+                w2[j] = w[j] + np.random.normal(scale=np.abs(w[j])*.01)
+            walkers.append(w2)
+
+        for w in walkers:
+            pp = lnlike(w, data)
+            print "Walker ", i, " at ", w, " lnlike = ", pp
+            i += 1
     else:
         lb, ub = bounds_fcn()
         print "D0", lb[0],  ub[0]
@@ -359,8 +413,8 @@ if __name__ == "__main__":
     # Sampling - for each experiment sequentially, using global model
     ndim, nwalkers = 4, 8
 
-    nSamplesTotal = 5000
-    nSamplesBurnin = 1000
+    nSamplesTotal = 50000
+    nSamplesBurnin = 10000
     ensemble_std = 0.05
 
     if(do_global):
@@ -583,8 +637,10 @@ if __name__ == "__main__":
                 sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob,
                                                 args=[seq_data[idata], pg, None,
                                                       broad_prior])
-                pos = get_walkers(nwalkers, broad_prior,
+                pos = get_walkers_cluster(nwalkers, broad_prior,
                                   samples[-1], seq_data[idata-1])
+                #pos = get_walkers(nwalkers, broad_prior,
+                #                  samples[-1], seq_data[idata-1])
                 print "Subsequent experiment; using prior from binned samples"
                 print "and walkers drawn from previous experiment samples"
                 print "Walker positions:"
