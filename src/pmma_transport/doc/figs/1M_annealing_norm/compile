@@ -1,0 +1,8 @@
+incl=`python -c 'import numpy; print numpy.get_include()'`
+echo $incl
+#incl2='/Applications/Canopy.app/appdata/canopy-1.3.0.1715.macosx-x86_64/Canopy.app/Contents/include/python2.7'
+incl2='/nopt/nrel/apps/python/2.7.6-gcc-4.8.2_140404/include/python2.7/'
+swig -python -c++ -I. -I$incl -o sparse_pdf_wrap.cpp sparse_pdf.i
+g++ -c -I. -I $incl2 -I$incl -o sparse_pdf.o sparse_pdf.cpp -fPIC
+g++ -c  -I. -I $incl2 -I$incl -o sparse_pdf_wrap.o sparse_pdf_wrap.cpp -fPIC
+g++ -shared -o _sparse_pdf.so sparse_pdf.o sparse_pdf_wrap.o -L /nopt/nrel/apps/python/2.7.6-gcc-4.8.2_140404/lib/ -lpython2.7
