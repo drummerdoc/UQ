@@ -1,6 +1,6 @@
 #which_sampler=linear_map
 nwalkers     = 1
-maxStep       = 10        # Number of MCMC samples for each walker/number of (requested) samples for (two-stage) implicit sampling
+maxStep       = 1000     # Number of MCMC samples for each walker/number of (requested) samples for (two-stage) implicit sampling
 outFilePrefix = "Results" # Prefix to output file names, to be appended with step range
 outFilePeriod = 3         # Number of samples between calls to write data
 seed          = 17        # seed, used if no restart file provided
@@ -14,7 +14,7 @@ num_initial_samples = 7000 # how many points are used to generate the quadratic/
 stage = 2 		   # 1 - "CovModel" -> find mean/variance from trial points  
       			   # 2 - construct rbf model to generate samples
 
-ampFactor = 1000	   	   # only if stage == 2: you want maxStep samples,
+ampFactor = 10   	   # only if stage == 2: you want maxStep samples,
 	    		   # but you lose some. ampFactor makes up for it
 			   # should be set to be a bit larger than "quality measure"
 			   # R after first stage
@@ -40,7 +40,7 @@ whichSampler = 1	   # only if stage == 2
 	      		   # 0 - linear map
 	      		   # 1 - random map
 
-neff = 8 		   # Number of eigenvalues of Hessian at the minimum to keep
+neff = 1 		   # Number of eigenvalues of Hessian at the minimum to keep
 ###################################################
 
 
