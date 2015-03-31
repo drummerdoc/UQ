@@ -364,15 +364,15 @@ def RandomMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
         Fo[i] = EvalRBF(np.array(Samples[:,i].T)[0],rbf)
         print "Sample ",i , "of ", NOS,', Fo = ',Fo[i]
 
-        #dl = np.sqrt(rho)*1e-3
-        #xpdx = mu+(lopt+dl)*eta
-        #Fxpdx = EvalRBF(np.array(xpdx)[0],rbf)
-        #drho = 2*(Fxpdx-phi) - rho
-        #dldrho = dl / drho
-        #w[i] =  (1-neff/2) *np.log(rho)+ (neff-1)*np.log(np.abs(lopt)) + np.log(np.abs(dldrho)) 
+        dl = np.sqrt(rho)*1e-8 # 1e-3 works like magic...
+        xpdx = mu+(lopt+dl)*eta
+        Fxpdx = EvalRBF(np.array(xpdx)[0],rbf)
+        drho = 2*(Fxpdx-phi) - rho
+        dldrho = dl / drho
+        w[i] =  (1-neff/2) *np.log(rho)+ (neff-1)*np.log(np.abs(lopt)) + np.log(np.abs(dldrho)) 
 
-        gradF = GradRBF(Samples[:,i],rbf,1e-8)
-        w[i] =  (1-neff/2) *np.log(rho)+ (neff-1)*np.log(np.abs(lopt)) - np.log(np.abs( np.dot(eta,gradF) ))
+        #gradF = GradRBF(Samples[:,i],rbf,1e-8)
+        #w[i] =  (1-neff/2) *np.log(rho)+ (neff-1)*np.log(np.abs(lopt)) - np.log(np.abs( np.dot(eta,gradF) ))
         
         
                 
@@ -471,11 +471,7 @@ if stage == 2: # if we do two-stage sampling
         x[M-i-1] = data[(data.shape[0]-i*5-1),:N]
         z[M-i-1] = -data[(data.shape[0]-i*5-1), -1]
 
-    scaled_x = np.copy(x)
-    for i in range(M):
-        scaled_x[i] = x[i]/scales
-
-     # scaled variables (scaled by "prior mean")
+    # scaled variables (scaled by "prior mean")
     scaled_x = np.copy(x)
     for i in range(M):
         scaled_x[i] = x[i]/scales
@@ -509,8 +505,6 @@ if stage == 2: # if we do two-stage sampling
         else:
              xopt = pickle.load( open( optLoadFile, "rb" ) )
 
-        evecs,evals = ComputeHessEvals(scaled_x,neff)
-        
         # sampling 
         if whichSampler == 1:
              Samples1,w1,Fo, = RandomMap_rbf(NOS1,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds)   
