@@ -40,7 +40,7 @@ whichSampler = 1	   # only if stage == 2
 	      		   # 0 - linear map
 	      		   # 1 - random map
 
-neff = 1 		   # Number of eigenvalues of Hessian at the minimum to keep
+neff = 2 		   # Number of eigenvalues of Hessian at the minimum to keep
 ###################################################
 
 
