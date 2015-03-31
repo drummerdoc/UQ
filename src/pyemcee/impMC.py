@@ -242,6 +242,27 @@ def G(l,phi,mu,eta,rho,rbf):
 	F = EvalRBF(np.array(x)[0],rbf)
 	return F - phi -0.5*rho
 
+
+# Forward finite differences
+def ffd(x,rbf,k,h):
+    h = x[k] * h
+
+    xpdx = x.copy()
+    xpdx[k] = xpdx[k]+ h
+    
+    fx = EvalRBF(x,rbf)
+    fxpdx = EvalRBF(xpdx,rbf)
+    
+    return (fxpdx - fx)/(xpdx[k]-x[k])
+
+
+# Gradient of rbf approximate likelihood
+def GradRBF(x,rbf,h):
+    grad = np.matrix(np.zeros(shape=(N,1)))
+    for i in range(N):
+        grad[i] = ffd(x,rbf,i,h)
+    return grad
+
 # optimization with rbf                                                                       
 def OptimizeRBF(rbf,lower_bounds,upper_bounds,scaled_x,scales):
     print 'Optimizing rbf model'
@@ -268,6 +289,49 @@ def ComputeHessEvals(scaled_x,neff):
     
     return evecs, evals
 
+# random map with rbf 
+def RandomMap_rbf_Nope(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
+    print 'Sampling with random maps and rbf'
+
+    Samples = np.matrix(np.zeros(shape=(N,NOS)))
+    Fo = np.matrix(np.zeros(shape=(NOS,1)))
+    w  = np.array(np.zeros(shape=(NOS1,1)))
+
+    evecs,evals = ComputeHessEvals(scaled_x,neff)
+    phi = xopt.fun
+    mu  = np.matrix(xopt.x)
+
+    for i in range(NOS):
+        sample_oob = True
+        while sample_oob == True:
+           eta = np.matrix(np.random.randn(1,neff))
+           rho = np.linalg.norm(eta)**2
+           xi  = (evecs*np.multiply(np.sqrt(evals),eta).T).T
+           lopt = optimize.fsolve(G,1,args = (phi,mu,xi,rho,rbf,),epsfcn = 1e-5,xtol = 1e-6)
+           Samples[:,i] = mu.T+np.multiply(xi.T,lopt)
+           sample_good = True
+           for n in range(N):
+               sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
+           sample_oob = not sample_good
+        
+        Fo[i] = EvalRBF(np.array(Samples[:,i].T)[0],rbf)
+        print "Sample ",i , "of ", NOS, ', Fo = ',Fo[i]                                                   
+                  
+        gradF = GradRBF(Samples[:,i],rbf,1e-8)
+        w[i] =  (neff-1)*np.log(np.abs(lopt)) + np.log(rho) - np.log(np.abs( np.dot(xi,gradF) ))                   
+
+    # normalize weights                                                                                   
+    wmax = np.amax(w)
+    for i in range(NOS):
+        w[i] = np.exp(w[i] - wmax)
+    wsum = np.sum(w)
+    w = w/wsum
+
+    return Samples, w, Fo
+
+
+
+
 # random map with rbf
 def RandomMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
     print 'Sampling with random maps and rbf'
@@ -281,17 +345,15 @@ def RandomMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
     mu  = np.matrix(xopt.x)
 
     for i in range(NOS):
-        print "Sample ",i , "of ", NOS
         sample_oob = True
         while sample_oob == True:
            xi  = np.matrix(np.random.randn(1,neff))
            rho = np.linalg.norm(xi)
-           eta = xi/rho
+           eta = np.multiply(1/rho,xi)
            eta = (evecs*np.multiply(np.sqrt(evals), eta[:,0:neff]).T).T
            rho = rho**2
 
-           Gp = G(np.sqrt(rho),phi,mu,eta,rho,rbf)
-           lopt = optimize.fsolve(G,np.sqrt(rho),args = (phi,mu,eta,rho,rbf,),epsfcn = 1e-5,xtol = 1e-6)
+           lopt = optimize.fsolve(G,np.sqrt(rho),args = (phi,mu,eta,rho,rbf,))#,epsfcn = 1e-5,xtol = 1e-6)
 
            Samples[:,i] = mu.T+np.multiply(eta.T,lopt)
            sample_good = True
@@ -300,20 +362,20 @@ def RandomMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
            sample_oob = not sample_good
 
         Fo[i] = EvalRBF(np.array(Samples[:,i].T)[0],rbf)
-        print "Fo = ",Fo[i]
+        print "Sample ",i , "of ", NOS,', Fo = ',Fo[i]
 
-        if np.abs(lopt) < 1e-15:
-            dl = 1e-5
-        else:
-            dl = np.sqrt(rho)*1e-3
+        #dl = np.sqrt(rho)*1e-3
+        #xpdx = mu+(lopt+dl)*eta
+        #Fxpdx = EvalRBF(np.array(xpdx)[0],rbf)
+        #drho = 2*(Fxpdx-phi) - rho
+        #dldrho = dl / drho
+        #w[i] =  (1-neff/2) *np.log(rho)+ (neff-1)*np.log(np.abs(lopt)) + np.log(np.abs(dldrho)) 
 
-        xpdx = mu+(lopt+dl)*eta
-        Fxpdx = EvalRBF(np.array(xpdx)[0],rbf)
-        drho = 2*(Fxpdx-phi) - rho
-        dldrho = dl / drho
+        gradF = GradRBF(Samples[:,i],rbf,1e-8)
+        w[i] =  (1-neff/2) *np.log(rho)+ (neff-1)*np.log(np.abs(lopt)) - np.log(np.abs( np.dot(eta,gradF) ))
         
-        w[i] =  (1-neff/2) *np.log(rho)+ (neff-1)*np.log(np.abs(lopt))+np.log(np.abs(dldrho))
-    
+        
+                
     # normalize weights
     wmax = np.amax(w)
     for i in range(NOS):
@@ -337,7 +399,6 @@ def LinearMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
     mu  = np.matrix(xopt.x)
 
     for i in range(NOS):
-        print "Sample ", i+1, " of ", NOS
         sample_oob = True
         while sample_oob == True:
             Samples[:,i] = mu.T + evecs*np.multiply(np.sqrt(evals).T, np.random.randn(1,neff).T)
@@ -349,8 +410,7 @@ def LinearMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
         Fo[i] = F0(Samples[:,i],phi,mu,evecs,evals)
         F_rbf[i] = EvalRBF(np.array(Samples[:,i].T)[0],rbf)
         w[i] = Fo[i] - F_rbf[i]   
-        print "Fo = ",Fo[i]
-        print "F_rbf = ",F_rbf[i]
+        print "Sample ", i+1, " of ", NOS, ", Fo = ",Fo[i], " F_rbf = ",F_rbf[i]
 
     # normalize weights   
     wmax = np.amax(w)
@@ -365,7 +425,7 @@ def LinearMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
     
     return Samples, w, Fo
 
-# linear map with RBF                                                                                            
+# linear map                                                                                             
 def LinearMap(NOS,N,neff,scaled_x,mu,lower_bounds,upper_bounds):
     print 'Sampling with linear maps'
     Samples = np.matrix(np.zeros(shape=(N,NOS)))
