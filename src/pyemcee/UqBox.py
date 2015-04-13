@@ -97,7 +97,10 @@ class DriverWrap:
 # The function called by emcee to sample the posterior
 #
 # The key job is to orchestrate the corresponding Eval call with a vector
-#  of sampled values of the parameters. Also manage periodic dump of info/data.
+#  of sampled values of the parameters, and to deal with bad evals.  Here
+#  a bad eval is signaled as a positive return value.  In this case we
+#  set the result to -infinity, a special result recognized by emcee.
+#
 # 
 def lnprob(x, driver):
     """ Define the probability distribution that you would like to sample.

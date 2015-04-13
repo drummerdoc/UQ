@@ -35,7 +35,7 @@ import acor as ac
 
 pl.figure()
 for k in range(0,ndim):
-  C = ac.acor( x[0,:,k], maxLag)
+  C = ac.acor( x[0,:iters,k], maxLag)
   labelString = "var " + str(k)
   pl.plot( hAxis, C, label = labelString)
 
