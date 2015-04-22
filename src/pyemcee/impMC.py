@@ -495,6 +495,7 @@ Samples = np.matrix(np.zeros(shape=(N,NOS)))
 if rank == 0:
     print 'Starting to re-weight with full model'
 
+lastWritten = -1
 for i in range(NOS):
     if rank == 0:
         if stage == 2:
@@ -515,6 +516,22 @@ for i in range(NOS):
                 w[i] = Fo[i] - F
 
         print 'Sample',i+1,'of',NOS
+
+        if ((i==NOS-1) | (i%outFilePeriod == outFilePeriod - 1)):
+            istart = lastWritten + 1
+            inum = i - istart + 1
+            lastWritten = i
+
+            nwalkers = 1
+            nDigits = int(np.log10(NOS)) + 1
+            WritePlotfile(Samples,N,outFilePrefix,nwalkers,istart,inum,nDigits,None)
+
+            fmt = "%0"+str(nDigits)+"d"
+            filename = outFilePrefix + '_' + (fmt % istart) + '_' + (fmt % lastWritten)
+            pickle.dump(w[istart:lastWritten],open(filename+"/w.pic", "wb" ) )
+
+            lastWritten = istart+inum-1
+    
 
 if rank == 0:
     wmax = np.amax(w)
@@ -544,12 +561,11 @@ if rank == 0:
     nwalkers = 1
     if NOS > 0:
          nDigits = int(np.log10(NOS)) + 1
-         WritePlotfile(Samples,N,outFilePrefix,nwalkers,0,NOS,nDigits,None)
          WritePlotfile(Xrs,N,outFilePrefix+'_RS',nwalkers,0,NOS,nDigits,None)
 
          fmt = "%0"+str(nDigits)+"d"
          lastStep = NOS - 1
-         filename = outFilePrefix + '_' + (fmt % 0) + '_' + (fmt % (NOS-1))
+         filename = outFilePrefix + '_RS_' + (fmt % 0) + '_' + (fmt % (NOS-1))
          pickle.dump(w,open(filename+"/w.pic", "wb" ) )
          pickle.dump(R,open(filename+"/R.pic", "wb" ) )
 
