@@ -69,9 +69,40 @@ main (int   argc,
     const std::vector<Real>& prior_mean = parameter_manager.PriorMean();
     num_params = true_params.size();
 
+    Real ic_pert=0; pp.query("ic_pert",ic_pert);
     guess_params.resize(num_params);
-    for(int i=0; i<num_params; i++){
-      guess_params[i] = prior_mean[i];
+    if (ic_pert == 0) {
+      for(int i=0; i<num_params; i++){
+	guess_params[i] = prior_mean[i];
+      }
+    }
+    else {
+      const std::vector<Real>& upper_bound = parameter_manager.UpperBound();
+      const std::vector<Real>& lower_bound = parameter_manager.LowerBound();
+      for(int i=0; i<num_params; i++){
+	guess_params[i] = prior_mean[i] + prior_std[i]*randn()*ic_pert;
+	bool sample_oob = (guess_params[i] < lower_bound[i] || guess_params[i] > upper_bound[i]);
+	
+	while (sample_oob) {
+	  if (ioproc) {
+	    std::cout <<  "sample is out of bounds, parameter " << i
+		      << " val,lb,ub: " << guess_params[i]
+		      << ", " << lower_bound[i] << ", " << upper_bound[i] << std::endl;
+	  }
+	  guess_params[i] = prior_mean[i] + prior_std[i]*randn();
+	  sample_oob = (guess_params[i] < lower_bound[i] || guess_params[i] > upper_bound[i]);
+	}
+      }
+    }
+    ParallelDescriptor::Bcast(&(guess_params[0]),guess_params.size(),ParallelDescriptor::IOProcessorNumber());
+
+    if (pp.countval("init_samples_file") > 0) {
+      std::string init_samples_file; pp.get("init_samples_file",init_samples_file);
+      if (ioproc) {
+	std::cout << "Writing initial samples to: " << init_samples_file << std::endl;
+      }
+      UqPlotfile pf(guess_params,num_params,1,0,1,"");
+      pf.Write(init_samples_file);
     }
 
     bool show_initial_stats = false; pp.query("show_initial_stats",show_initial_stats);
@@ -93,10 +124,12 @@ main (int   argc,
       }
 
       Real Ftrue = NegativeLogLikelihood(true_params);
-      std::cout << "F at true parameters = " << Ftrue << std::endl;
-  
       Real F = NegativeLogLikelihood(prior_mean);
-      std::cout << "F at prior mean = " << F << std::endl;
+
+      if (ioproc) {
+	std::cout << "F at true parameters = " << Ftrue << std::endl;
+	std::cout << "F at prior mean = " << F << std::endl;
+      }
     }
   }
 
@@ -131,6 +164,7 @@ main (int   argc,
     int iter = pf.ITER() + pf.NITERS() - 1;
     int iters = 1;
     soln_params = pf.LoadEnsemble(iter, iters);
+    ParallelDescriptor::Bcast(&(soln_params[0]),soln_params.size(),ParallelDescriptor::IOProcessorNumber());
 
   } else {
 
