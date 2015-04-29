@@ -19,10 +19,14 @@ main (int   argc,
 {
 #ifdef BL_USE_MPI
   MPI_Init (&argc, &argv);
-  Driver driver(argc,argv,MPI_COMM_WORLD);
+  Driver driver(argc,argv,1);
+  driver.SetComm(MPI_COMM_WORLD);
+  driver.init(argc,argv);
 #else
-  Driver driver(argc,argv, 0);
+  Driver driver(argc,argv,0);
 #endif
+
+  bool ioproc = ParallelDescriptor::IOProcessor();
 
   ParmParse pp;
 
@@ -53,8 +57,10 @@ main (int   argc,
     }
     guess_params = pf.LoadEnsemble(initID, iters);
 
-    for(int ii=0; ii<num_params; ii++){
-      std::cout << "Guess (" << ii << "): " << guess_params[ii] << std::endl;
+    if (ioproc) {
+      for(int ii=0; ii<num_params; ii++){
+	std::cout << "Guess (" << ii << "): " << guess_params[ii] << std::endl;
+      }
     }
 
   } else {
@@ -63,13 +69,53 @@ main (int   argc,
     const std::vector<Real>& prior_mean = parameter_manager.PriorMean();
     num_params = true_params.size();
 
+    Real ic_pert=0; pp.query("ic_pert",ic_pert);
     guess_params.resize(num_params);
-    for(int i=0; i<num_params; i++){
-      guess_params[i] = prior_mean[i];
+    if (ic_pert == 0) {
+      for(int i=0; i<num_params; i++){
+	guess_params[i] = prior_mean[i];
+      }
+    }
+    else {
+      const std::vector<Real>& upper_bound = parameter_manager.UpperBound();
+      const std::vector<Real>& lower_bound = parameter_manager.LowerBound();
+      for(int i=0; i<num_params; i++){
+	guess_params[i] = prior_mean[i] + prior_std[i]*randn()*ic_pert;
+	bool sample_oob = (guess_params[i] < lower_bound[i] || guess_params[i] > upper_bound[i]);
+	
+	while (sample_oob) {
+	  if (ioproc) {
+	    std::cout <<  "sample is out of bounds, parameter " << i
+		      << " val,lb,ub: " << guess_params[i]
+		      << ", " << lower_bound[i] << ", " << upper_bound[i] << std::endl;
+	  }
+	  guess_params[i] = prior_mean[i] + prior_std[i]*randn();
+	  sample_oob = (guess_params[i] < lower_bound[i] || guess_params[i] > upper_bound[i]);
+	}
+      }
+    }
+    ParallelDescriptor::Bcast(&(guess_params[0]),guess_params.size(),ParallelDescriptor::IOProcessorNumber());
+
+    if (pp.countval("init_samples_file") > 0) {
+      std::string init_samples_file; pp.get("init_samples_file",init_samples_file);
+      if (ioproc) {
+	std::cout << "Writing initial samples to: " << init_samples_file << std::endl;
+      }
+      UqPlotfile pf(guess_params,num_params,1,0,1,"");
+      pf.Write(init_samples_file);
+    }
+
+    if (pp.countval("init_samples_file" > 0) ) {
+      std::string init_samples_file = pp.get("init_samples_file",init_samples_file);
+      if (ioproc) {
+	std::cout << "Writing initial samples to: " << init_samples_file << std::endl;
+      }
+      UqPlotfile pf(guess_params,num_params,1,0,1,"");
+      pf.Write(init_samples_file);
     }
 
     bool show_initial_stats = false; pp.query("show_initial_stats",show_initial_stats);
-    if (show_initial_stats) {
+    if (show_initial_stats && ioproc) {
       std::cout << "True and noisy data: (npts=" << num_data << ")\n"; 
       for(int ii=0; ii<num_data; ii++){
         std::cout << "  True: " << true_data[ii]
@@ -87,10 +133,12 @@ main (int   argc,
       }
 
       Real Ftrue = NegativeLogLikelihood(true_params);
-      std::cout << "F at true parameters = " << Ftrue << std::endl;
-  
       Real F = NegativeLogLikelihood(prior_mean);
-      std::cout << "F at prior mean = " << F << std::endl;
+
+      if (ioproc) {
+	std::cout << "F at true parameters = " << Ftrue << std::endl;
+	std::cout << "F at prior mean = " << F << std::endl;
+      }
     }
   }
 
@@ -125,8 +173,13 @@ main (int   argc,
     int iter = pf.ITER() + pf.NITERS() - 1;
     int iters = 1;
     soln_params = pf.LoadEnsemble(iter, iters);
+    ParallelDescriptor::Bcast(&(soln_params[0]),soln_params.size(),ParallelDescriptor::IOProcessorNumber());
 
   } else {
+
+    if (ioproc) {
+      std::cout << "Doing minimization..." << std::endl;
+    }
     if (which_minimizer == "nlls") {
       minimizer = new NLLSMinimizer();
     }
@@ -136,9 +189,11 @@ main (int   argc,
 
     minimizer->minimize((void*)(driver.mystruct), guess_params, soln_params);
 
-    std::cout << "Final parameters: " << std::endl;
-    for(int ii=0; ii<num_params; ii++){
-      std::cout << parameter_manager[ii] << std::endl;
+    if (ioproc) {
+      std::cout << "Final parameters: " << std::endl;
+      for(int ii=0; ii<num_params; ii++){
+	std::cout << parameter_manager[ii] << std::endl;
+      }
     }
 
     UqPlotfile pf(soln_params,num_params,1,0,1,"");
@@ -163,7 +218,9 @@ main (int   argc,
     sampler = new PriorMCSampler(guess_params, prior_std);
   }
   else {
-    std::cout << "Getting Hessian... " << std::endl;
+    if (ioproc) {
+      std::cout << "Getting Hessian... " << std::endl;
+    }
     MyMat H, InvSqrtH;
 
     std::string hessianInFile;
@@ -174,17 +231,15 @@ main (int   argc,
     }
     else {
       if (fd_Hessian) {
-        /*
-          Compute Finite Difference Hessian
-        */
-        std::cout << "      Getting Hessian with finite differences... " << std::endl;
+	if (ioproc) {
+	  std::cout << "      Getting Hessian with finite differences... " << std::endl;
+	}
         H = Minimizer::FD_Hessian((void*)driver.mystruct, soln_params);
       }
       else {
-        /*
-          Compute J^t J
-        */
-        std::cout << "      Getting Hessian as JTJ... " << std::endl;
+	if (ioproc) {
+	  std::cout << "      Getting Hessian as JTJ... " << std::endl;
+	}
         int n = num_params;
         int m = num_data + n;
         std::vector<Real> FVEC(m);
@@ -197,7 +252,9 @@ main (int   argc,
     std::string hessianOutFile;
     if (pp.countval("hessianOutFile")) {
       pp.get("hessianOutFile",hessianOutFile); 
-      std::cout << "Writing Hessian to " << hessianOutFile << std::endl;
+      if (ioproc) {
+	std::cout << "Writing Hessian to " << hessianOutFile << std::endl;
+      }
       writeHessian(H,hessianOutFile);
     }
 
@@ -207,9 +264,13 @@ main (int   argc,
         which_sampler == "symmetrized_linear_map") {
 
       // Output value of objective function at minimum
-      std::cout << "Computing logLikelihood at minimum state..." << std::endl;
+      if (ioproc) {
+	std::cout << "Computing logLikelihood at minimum state..." << std::endl;
+      }
       Real phi = NegativeLogLikelihood(soln_params);
-      std::cout << "F at numerical minimum = " << phi << std::endl;
+      if (ioproc) {
+	std::cout << "F at numerical minimum = " << phi << std::endl;
+      }
 
       if (which_sampler == "linear_map") {
         sampler = new LinearMapSampler(soln_params,H,InvSqrtH,phi);
@@ -226,10 +287,13 @@ main (int   argc,
   }
 
   if (sampler) {
-    std::cout << "Sampling..." << std::endl;
+    if (ioproc) {
+      std::cout << "Sampling..." << std::endl;
+    }
     sampler->Sample((void*)(driver.mystruct), samples, w);
-    std::cout << "...Finished" << std::endl;
-
+    if (ioproc) {
+      std::cout << "...Finished" << std::endl;
+    }
     std::string samples_outfile = "mysamples";
 
     int len = NOS * num_params;

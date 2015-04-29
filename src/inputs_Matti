@@ -11,8 +11,8 @@ seed          = 17        # seed, used if no restart file provided
 num_initial_samples = 7000 # how many points are used to generate the quadratic/rbf approximation?
 		      	   # we assume these come ordered by likelihood
 
-stage = 1 		   # 1 - "CovModel" -> find mean/variance from trial points  
-      			   # 2 - construct rbf model to generate samples
+stage = 2 		   # 1 - "CovModel" -> find mean/variance from trial points  
+			   # 2 - construct rbf model to generate samples
 
 ampFactor = 2   	   # only if stage == 2: you want maxStep samples,
 	    		   # but you lose some. ampFactor makes up for it
