@@ -74,6 +74,15 @@ main (int   argc,
       guess_params[i] = prior_mean[i];
     }
 
+    if (pp.countval("init_samples_file" > 0) ) {
+      std::string init_samples_file = pp.get("init_samples_file",init_samples_file);
+      if (ioproc) {
+	std::cout << "Writing initial samples to: " << init_samples_file << std::endl;
+      }
+      UqPlotfile pf(guess_params,num_params,1,0,1,"");
+      pf.Write(init_samples_file);
+    }
+
     bool show_initial_stats = false; pp.query("show_initial_stats",show_initial_stats);
     if (show_initial_stats && ioproc) {
       std::cout << "True and noisy data: (npts=" << num_data << ")\n"; 
