@@ -18,7 +18,9 @@ UNAMEN := $(shell uname -n)
 ifeq ($(MACHINE), Linux)
   ifeq ($(findstring hedorah, $(UNAMEN)), hedorah)
     WHICHLINUX := HEDORAH
-    TOP = ../..
+  endif
+  ifeq ($(findstring edison, $(UNAMEN)), edison)
+    WHICHLINUX := EDISON
   endif
   ifeq ($(findstring mothra, $(UNAMEN)), mothra)
     WHICHLINUX := MOTHRA
@@ -33,7 +35,6 @@ endif
 ifeq (${MACHINE}, Darwin) 
   ifeq ($(findstring MarcsLaptop, $(UNAMEN)), MarcsLaptop)
     WHICHDARWIN:=MARC
-    TOP = ../..
   endif
 endif
 
@@ -41,8 +42,10 @@ PRECISION       = DOUBLE
 DEBUG           = FALSE
 #DEBUG           = TRUE
 DIM             = 2
-COMP            = g++
-FCOMP           = gfortran
+#COMP            = g++
+#FCOMP           = gfortran
+COMP            = CC
+FCOMP           = ftn
 USE_MPI         = TRUE
 #USE_MPI         = FALSE
 USE_OMP         = TRUE
@@ -203,6 +206,14 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
       fFLAGS += -cpp
     endif
+    ifeq (${WHICHLINUX}, EDISON)
+      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
+      SHARED_LIBRARY_SUFFIX:=so
+      LIBRARIES+=-lpython2.7 -lmpi
+      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
+      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
+      fFLAGS += -cpp
+    endif
   endif
 
   ifeq (${MACHINE}, Darwin) 
@@ -262,6 +273,9 @@ LIBRARY_LOCATIONS+=${PACKAGES}/lib
 ifeq ($(MACHINE), Linux)
   LIBRARY_LOCATIONS+=${PACKAGES}/lib64
 endif
+ifeq ($(WHICHLINUX), EDISON)
+  LIBRARIES += -dynamic
+endif
 LIBRARIES += -lcminpack -llapacke -llapack -lblas
 
 # For dynamic links
@@ -304,10 +318,9 @@ endif
 
 all: ${DEFAULT_TARGET}
 
-
 ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
 	mkdir -p ${PACKAGE}
-	$(COMP) -shared -o ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
+	$(COMP) -fPIC -shared -o ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
 	./fixDYLIB.sh ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}
 	cp ${PACKAGE}.py ${PACKAGE}
 
