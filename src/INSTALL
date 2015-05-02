@@ -60,3 +60,36 @@ Once this complete, you should be able to run:
         python pyemcee/UqPlotAll.py Results_1000
 
 
+--------------------------------------------------------------------------------------------------
+
+On edison, I managed to get the impMC.py script to run in parallel by doing the following:
+
+At the edison command prompt, run the following to get a couple python modules built in your local area that you'll need:
+
+easy_install --install-dir ~/lib/python dill
+easy_install --install-dir ~/lib/python klepto
+
+Put the following in your ~/.bash_profile.ext file:
+
+module swap PrgEnv-intel PrgEnv-gnu
+module load swig
+module load python
+module load mpi4py
+export LD_LIBRARY_PATH=${PYTHON_DIR}/lib:${HOME}/src/CCSE/UQ/src/packages/lib:${HOME}/src/CCSE/UQ/src/packages/lib64
+export PYTHONPATH=${HOME}/lib/python
+
+Get an interactive batch job running with:
+
+qsub -I -q debug -l mppwidth=24
+
+
+Once it drops in, do the following:
+cd $PBS_O_WORKDIR
+module load numpy
+module load scipy
+module load mpi4py
+
+Then, run the sampler in parallel with aprun:
+
+aprun -n 8 python pyemcee/impMC.py inputs_Matti maxStep=2000 outFilePeriod=200 outFilePrefix="TEST" stage=1 neff=9
+
