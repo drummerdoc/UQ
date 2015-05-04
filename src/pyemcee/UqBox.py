@@ -113,6 +113,14 @@ def lnprob(x, driver):
 
     """
     result = driver.Eval(x)
+    if rank == 0:
+       f=open('hist_likelyhood', 'a')
+       for d in x:
+          f.write(str(d))
+          f.write(' ')
+
+       f.write(str(result))
+       f.write('\n')
 
     if result > 0:
         return -np.inf
@@ -185,6 +193,9 @@ else:
 # Main sampling loop
 if rank == 0:
     print ('Sampling...')
+
+if rank == 0:
+    g=open('accept', 'w')
     
 while step < maxStep:
 
@@ -197,6 +208,11 @@ while step < maxStep:
     else:
         pos, prob, state = driver.sampler.run_mcmc(p0, nSteps)
         have_state = True
+
+    if rank == 0:
+        print("Mean acceptance fraction:", np.mean(driver.sampler.acceptance_fraction))
+        g.write('Mean acceptance fraction:'+str(np.mean(driver.sampler.acceptance_fraction))+'\n')
+        g.flush()
 
     nDigits = int(np.log10(maxStep)) + 1
     WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,state)
