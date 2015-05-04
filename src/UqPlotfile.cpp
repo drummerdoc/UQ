@@ -97,7 +97,10 @@ void
 UqPlotfile::ReadSamples(const std::string& filename)
 {
   if (ioproc) {
-    std::ifstream ifs; ifs.open(DataName(filename).c_str());
+    std::ifstream ifs;
+    ifs.open(DataName(filename).c_str());
+    if (!ifs.good())
+      BoxLib::FileOpenFailed(filename);
     m_fab.clear();
     m_fab.readFrom(ifs);
     ifs.close();
@@ -142,6 +145,8 @@ UqPlotfile::ReadHeader(const std::string& filename)
   if (ioproc) {
     std::ifstream ifs;
     ifs.open(HeaderName(filename).c_str());
+    if (!ifs.good())
+      BoxLib::FileOpenFailed(filename);
     std::string pfVersion;
     ifs >> pfVersion;
     BL_ASSERT(pfVersion == PlotfileVersion);
