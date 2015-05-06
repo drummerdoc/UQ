@@ -105,8 +105,8 @@ main (int   argc,
       pf.Write(init_samples_file);
     }
 
-    if (pp.countval("init_samples_file" > 0) ) {
-      std::string init_samples_file = pp.get("init_samples_file",init_samples_file);
+    if (pp.countval("init_samples_file") > 0 ) {
+      std::string init_samples_file; pp.get("init_samples_file",init_samples_file);
       if (ioproc) {
 	std::cout << "Writing initial samples to: " << init_samples_file << std::endl;
       }

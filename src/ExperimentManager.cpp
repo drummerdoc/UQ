@@ -471,27 +471,31 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   }
   
 #else
-  // Serial tasks 
+  // Serial tasks
+  int N = expts.size();
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
 #endif
-  for (int i=0; i<expts.size() && ok; ++i) {
-    std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
-    if (!retVal.first) {
+  for (int i=0; i<N; ++i) {
+    if (ok) {
+      std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
+      if (!retVal.first) {
 #ifdef _OPENMP
 #pragma omp critical (exp_failed)
 #endif
-      std::cout << "Experiment " << i << " failed.  Err msg: \""
-                << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
-    }
+	std::cout << "Experiment " << i << " failed.  Err msg: \""
+		  << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
+      }
+
 #ifdef _OPENMP
 #pragma omp atomic
 #endif
-    ok &= retVal.first;
+      ok &= retVal.first;
 
-    int offset = data_offsets[i];
-    for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
-      test_measurements[offset + j] = raw_data[i][j];
+      int offset = data_offsets[i];
+      for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
+	test_measurements[offset + j] = raw_data[i][j];
+      }
     }
   }
 
