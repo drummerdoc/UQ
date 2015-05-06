@@ -472,12 +472,21 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   
 #else
   // Serial tasks 
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic,1)
+#endif
   for (int i=0; i<expts.size() && ok; ++i) {
     std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
     if (!retVal.first) {
+#ifdef _OPENMP
+#pragma omp critical (exp_failed)
+#endif
       std::cout << "Experiment " << i << " failed.  Err msg: \""
                 << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
     }
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
     ok &= retVal.first;
 
     int offset = data_offsets[i];
