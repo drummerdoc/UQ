@@ -28,7 +28,7 @@ main (int   argc,
   expt_manager.SetVerbose(false);
 
 #ifdef BL_USE_OMP
-  expt_manager.SetParallelMode(ExperiementManager::PARALLELIZE_OVER_THREAD);
+  expt_manager.SetParallelMode(ExperimentManager::PARALLELIZE_OVER_THREAD);
 #endif
 
   if (ParallelDescriptor::IOProcessor()) {
