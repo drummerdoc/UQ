@@ -205,14 +205,15 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 						 std::vector<Real>&       test_measurements)
 {
   bool ok = true;
+  bool pvtok = ok;
   int N = expts.size();
   Array<int> msgID(N,-1);
 
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic,1)
+#pragma omp parallel for schedule(dynamic,1) firstprivate(pvtok)
 #endif
   for (int i=0; i<N; ++i) {
-    if (ok) {
+    if (pvtok) {
       std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
       if (!retVal.first) {
 
@@ -226,9 +227,9 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
       }
 
 #ifdef _OPENMP
-#pragma omp atomic
+#pragma omp atomic capture
 #endif
-      ok &= retVal.first;
+      pvtok = ok &= retVal.first;
 
       int offset = data_offsets[i];
       for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
