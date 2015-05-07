@@ -27,6 +27,14 @@ main (int   argc,
   ExperimentManager& expt_manager = driver.mystruct->expt_manager;
   expt_manager.SetVerbose(false);
 
+#ifdef BL_USE_OMP
+  expt_manager.SetParallelMode(ExperiementManager::PARALLELIZE_OVER_THREAD);
+#endif
+
+  if (ParallelDescriptor::IOProcessor()) {
+    std::cout << "Parallel eval mode: " << expt_manager.GetParallelModeString() << std::endl;
+  }
+
   std::vector<Real> guess_params;
   const std::vector<Real>& prior_std = parameter_manager.PriorSTD();
   int num_params = prior_std.size();

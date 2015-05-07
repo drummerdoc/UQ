@@ -6,6 +6,12 @@
 
 struct ExperimentManager
 {
+  enum PARALLEL_MODE
+  {
+    PARALLELIZE_OVER_RANK,
+    PARALLELIZE_OVER_THREAD
+  };
+
   ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool use_synthetic_data);
   
   void AddExperiment(SimulatedExperiment* expt,
@@ -26,6 +32,10 @@ struct ExperimentManager
 
   bool GenerateTestMeasurements(const std::vector<Real>& test_params,
                                 std::vector<Real>&       test_measurements);
+
+  void SetParallelMode(PARALLEL_MODE _parallel_mode) {parallel_mode = _parallel_mode;}
+  ExperimentManager::PARALLEL_MODE GetParallelMode() const {return parallel_mode;}
+  std::string GetParallelModeString() const;
 
   Real ComputeLikelihood(const std::vector<Real>& test_data) const;
 
@@ -62,6 +72,8 @@ protected:
 
   bool log_failed_cases;
   std::string log_folder_name;
+
+  PARALLEL_MODE parallel_mode;
 
 private:
   ExperimentManager(const ExperimentManager& rhs);
