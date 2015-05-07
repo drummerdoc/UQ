@@ -58,6 +58,15 @@ protected:
                       const std::vector<Real>& test_measurements,
                       const std::vector<int>&  msgID);
 
+  bool EvaluateMeasurements_masterSlave(const std::vector<Real>& test_params,
+					std::vector<Real>&       test_measurements);
+
+  bool EvaluateMeasurements_threaded(const std::vector<Real>& test_params,
+				     std::vector<Real>&       test_measurements);
+
+  bool EvaluateMeasurements_parallel(const std::vector<Real>& test_params,
+				     std::vector<Real>&       test_measurements);
+
   bool initialized, use_synthetic_data, verbose;
   ParameterManager& parameter_manager;
   PArray<SimulatedExperiment> expts;
