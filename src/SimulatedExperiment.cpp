@@ -39,6 +39,7 @@ SimulatedExperiment::build_err_map()
   my_map.push_back("PREMIX_TOO_MANY_ITERS");
   my_map.push_back("PREMIX_SOLVER_FAILED");
   my_map.push_back("NEEDED_MEAN_BUT_NOT_FINISHED");
+  my_map.push_back("REACTOR_DID_NOT_COMPLETE");
   my_map.push_back("VODE_FAILED");
   my_map.push_back("SUCCESS");
   return my_map;
@@ -397,6 +398,11 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     t_startlast = 0.;
     bool first = true;
     for ( ; i<num_time_nodes && !finished; ++i) {
+
+      if (num_time_nodes != 1  &&  i == num_time_nodes - 1) {
+	return std::pair<bool,int>(false,ErrorID("REACTOR_DID_NOT_COMPLETE"));
+      }
+
       Real t_start = t_end;
       t_end = measurement_times[i];
       dt_old = dt;

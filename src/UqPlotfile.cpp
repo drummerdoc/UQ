@@ -18,7 +18,6 @@ static void SetIOProc()
 
 UqPlotfile::UqPlotfile()
 {
-  std::cout << "UqPlotfile def ctr" << std::endl;
   SetIOProc();
 }
 
@@ -53,7 +52,6 @@ UqPlotfile::LoadEnsemble(int iter, int iters) const
   BL_ASSERT(m_iters >= iter + iters);
   size_t len = m_nwalkers * m_ndim * iters;
   std::vector<double> result(len);
-
   for (int k=0; k<m_nwalkers; ++k) {
     for (int t=iter; t<iter+iters; ++t) {
       IntVect iv(k,t-m_iter); // Releative to my fab data
@@ -99,7 +97,10 @@ void
 UqPlotfile::ReadSamples(const std::string& filename)
 {
   if (ioproc) {
-    std::ifstream ifs; ifs.open(DataName(filename).c_str());
+    std::ifstream ifs;
+    ifs.open(DataName(filename).c_str());
+    if (!ifs.good())
+      BoxLib::FileOpenFailed(filename);
     m_fab.clear();
     m_fab.readFrom(ifs);
     ifs.close();
@@ -116,7 +117,9 @@ UqPlotfile::ReadSamples(const std::string& filename)
     m_fab.resize(box,m_ndim);
   }
 
-  ParallelDescriptor::Bcast(m_fab.dataPtr(),m_fab.box().numPts());
+  if (ParallelDescriptor::MyProc()>=0) {
+    ParallelDescriptor::Bcast(m_fab.dataPtr(),m_fab.box().numPts());
+  }
 }
 
 void
@@ -142,6 +145,8 @@ UqPlotfile::ReadHeader(const std::string& filename)
   if (ioproc) {
     std::ifstream ifs;
     ifs.open(HeaderName(filename).c_str());
+    if (!ifs.good())
+      BoxLib::FileOpenFailed(filename);
     std::string pfVersion;
     ifs >> pfVersion;
     BL_ASSERT(pfVersion == PlotfileVersion);
@@ -153,7 +158,9 @@ UqPlotfile::ReadHeader(const std::string& filename)
     ifs.close();
   }
 
-  ParallelDescriptor::Bcast(indata,4);
+  if (ParallelDescriptor::MyProc()>=0) {
+    ParallelDescriptor::Bcast(indata,4);
+  }
 
   m_ndim = indata[0];
   m_nwalkers = indata[1];

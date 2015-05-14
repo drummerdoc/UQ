@@ -170,8 +170,8 @@ if rank == 0:
 NOS = maxStep
 np.set_printoptions(linewidth=200)
 
-def F0(x,phi,mu,evecs,evals):
-    y =  np.multiply(1/np.sqrt(evals).T,evecs.T*(x-mu.T))
+def F0(x,phi,mu,L2):
+    y =  L2*(x-mu)
     return phi + 0.5*(np.linalg.norm(y)**2)
 
 def EffSampleSize(w):
@@ -237,10 +237,31 @@ def EvalRBF(x,rbf):
 	tmp = rbf(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8])
 	return tmp
 
-def G(l,phi,mu,eta,rho,rbf):
-	x = mu+l*eta
-	F = EvalRBF(np.array(x)[0],rbf)
-	return F - phi -0.5*rho
+def G(l,phi,mu,Leta,rho,rbf):
+    x = (mu+l*Leta)
+    F = EvalRBF(np.array(x)[0],rbf)
+    return F - phi -0.5*rho
+
+
+# Forward finite differences
+def ffd(x,rbf,k,h):
+    h = x[k] * h
+
+    xpdx = x.copy()
+    xpdx[k] = xpdx[k]+ h
+    
+    fx = EvalRBF(x,rbf)
+    fxpdx = EvalRBF(xpdx,rbf)
+    
+    return (fxpdx - fx)/(xpdx[k]-x[k])
+
+
+# Gradient of rbf approximate likelihood
+def GradRBF(x,rbf,h):
+    grad = np.matrix(np.zeros(shape=(N,1)))
+    for i in range(N):
+        grad[i] = ffd(x,rbf,i,h)
+    return grad
 
 # optimization with rbf                                                                       
 def OptimizeRBF(rbf,lower_bounds,upper_bounds,scaled_x,scales):
@@ -263,65 +284,60 @@ def ComputeHessEvals(scaled_x,neff):
     sl = np.argsort(evals)
     evals = evals[sl]
     evecs = evecs[:,sl]
-    evals = np.matrix(evals[-neff:])
-    evecs = evecs[:,-neff:]        
     
-    return evecs, evals
+    evals = evals[-neff:]
+    evecs = evecs[:,-neff:]        
 
-# random map with rbf
+    L = evecs * np.diag(evals)
+    L2 = np.diag(np.sqrt(1/evals)) * evecs.T
+
+    return evecs, evals, L, L2
+
+# random map with rbf 
 def RandomMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
     print 'Sampling with random maps and rbf'
-    
+
     Samples = np.matrix(np.zeros(shape=(N,NOS)))
     Fo = np.matrix(np.zeros(shape=(NOS,1)))
     w  = np.array(np.zeros(shape=(NOS1,1)))
 
-    evecs,evals = ComputeHessEvals(scaled_x,neff)    
+    evecs,evals,L,L2 = ComputeHessEvals(scaled_x,neff)
     phi = xopt.fun
     mu  = np.matrix(xopt.x)
 
     for i in range(NOS):
-        print "Sample ",i , "of ", NOS
         sample_oob = True
         while sample_oob == True:
-           xi  = np.matrix(np.random.randn(1,neff))
-           rho = np.linalg.norm(xi)
-           eta = xi/rho
-           eta = (evecs*np.multiply(np.sqrt(evals), eta[:,0:neff]).T).T
-           rho = rho**2
+           xi  = L*np.matrix(np.random.randn(neff,1))
+           rho = np.linalg.norm(xi)**2
+           lopt1 = optimize.fsolve(G,1,args = (phi,mu,xi.T,rho,rbf,))#,epsfcn = 1e-5,xtol = 1e-6)
+           lopt2 = optimize.fsolve(G,-1,args = (phi,mu,xi.T,rho,rbf,))
+           if np.abs(1-lopt1)<np.abs(1-lopt2):
+               lopt = lopt1
+           else:
+               lopt = lopt2
 
-           Gp = G(np.sqrt(rho),phi,mu,eta,rho,rbf)
-           lopt = optimize.fsolve(G,np.sqrt(rho),args = (phi,mu,eta,rho,rbf,),epsfcn = 1e-5,xtol = 1e-6)
-
-           Samples[:,i] = mu.T+np.multiply(eta.T,lopt)
+           print 'lopt1 = ',lopt1,'lopt2 = ',lopt2
+           Samples[:,i] = (mu+lopt*xi.T).T
            sample_good = True
            for n in range(N):
                sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
            sample_oob = not sample_good
-
-        Fo[i] = EvalRBF(np.array(Samples[:,i].T)[0],rbf)
-        print "Fo = ",Fo[i]
-
-        if np.abs(lopt) < 1e-15:
-            dl = 1e-5
-        else:
-            dl = np.sqrt(rho)*1e-3
-
-        xpdx = mu+(lopt+dl)*eta
-        Fxpdx = EvalRBF(np.array(xpdx)[0],rbf)
-        drho = 2*(Fxpdx-phi) - rho
-        dldrho = dl / drho
         
-        w[i] =  (1-neff/2) *np.log(rho)+ (neff-1)*np.log(np.abs(lopt))+np.log(np.abs(dldrho))
-    
-    # normalize weights
+        Fo[i] = EvalRBF(np.array(Samples[:,i].T)[0],rbf)
+        print "Sample ",i , "of ", NOS, ', Fo = ',Fo[i],' lopt = ',lopt                                                   
+                  
+        gradF = GradRBF(Samples[:,i],rbf,1e-6)
+        w[i] =  (neff-1)*np.log(np.abs(lopt)) + np.log(rho) - np.log(np.abs( xi.T*gradF ))                   
+
+    # normalize weights                                                                                   
     wmax = np.amax(w)
-    for i in range(NOS):
-        w[i] = np.exp(w[i] - wmax)
+    w = np.exp(w - wmax)
     wsum = np.sum(w)
     w = w/wsum
 
     return Samples, w, Fo
+
 
 # linear map with RBF
 def LinearMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
@@ -331,59 +347,53 @@ def LinearMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
     F_rbf = np.matrix(np.zeros(shape=(NOS,1)))
     w  = np.array(np.zeros(shape=(NOS1,1)))
 
-    evecs,evals = ComputeHessEvals(scaled_x,neff)
+    evecs,evals,L,L2 = ComputeHessEvals(scaled_x,neff)
     phi = xopt.fun
-    print "Minimum: ",phi
     mu  = np.matrix(xopt.x)
-
+    
     for i in range(NOS):
-        print "Sample ", i+1, " of ", NOS
         sample_oob = True
         while sample_oob == True:
-            Samples[:,i] = mu.T + evecs*np.multiply(np.sqrt(evals).T, np.random.randn(1,neff).T)
+            Samples[:,i] = mu.T +  L*np.random.randn(neff,1)
             sample_good = True
             for n in range(N):
                 sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
             sample_oob = not sample_good
 
-        Fo[i] = F0(Samples[:,i],phi,mu,evecs,evals)
+        Fo[i] = F0(Samples[:,i],phi,mu.T,L2)
+        #F_rbf[i] = EvalRBF(np.array(mu.T),rbf)
+
         F_rbf[i] = EvalRBF(np.array(Samples[:,i].T)[0],rbf)
         w[i] = Fo[i] - F_rbf[i]   
-        print "Fo = ",Fo[i]
-        print "F_rbf = ",F_rbf[i]
+        print "Sample ", i+1, " of ", NOS, ", Fo = ",Fo[i], " F_rbf = ",F_rbf[i]
 
     # normalize weights   
     wmax = np.amax(w)
-    for i in range(NOS):
-        if w[i] < 0:
-            w[i] = 0
-        else:
-            w[i] = np.exp(w[i] - wmax)
-
+    w = np.exp(w - wmax)
     wsum = np.sum(w)
     w = w/wsum
     
     return Samples, w, Fo
 
-# linear map with RBF                                                                                            
-def LinearMap(NOS,N,neff,scaled_x,mu,lower_bounds,upper_bounds):
-    print 'Sampling with linear maps'
+# linear map                                                                                             
+def LinearMap(NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
+    print 'Sampling with linar maps'
     Samples = np.matrix(np.zeros(shape=(N,NOS)))
     Fo = np.matrix(np.zeros(shape=(NOS,1)))
-    evecs,evals = ComputeHessEvals(scaled_x,neff)
-    
+
+    evecs,evals,L,L2 = ComputeHessEvals(scaled_x,neff)
+   
     for i in range(NOS):
-        print "Sample ", i+1, " of ", NOS
         sample_oob = True
         while sample_oob == True:
-            Samples[:,i] = mu.T + evecs*np.multiply(np.sqrt(evals).T, np.random.randn(1,neff).T)
+            Samples[:,i] = mu.T +  L*np.random.randn(neff,1)
             sample_good = True
             for n in range(N):
                 sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
             sample_oob = not sample_good
 
-        Fo[i] = F0(Samples[:,i],phi,mu,evecs,evals)
-        print "Fo = ",Fo[i]
+        Fo[i] = F0(Samples[:,i],phi,mu.T,L2)
+        print "Sample ", i+1, " of ", NOS, ", Fo = ",Fo[i]
 
     return Samples, Fo
 
@@ -405,28 +415,20 @@ upper_bounds = np.array(driver.UpperBound())/scales
 
 if stage == 2: # if we do two-stage sampling
     if rank == 0:
-        print "Start two-stage sampling"
-
+        print "Start two-stage sampling"  
     for i in range(M):
         x[M-i-1] = data[(data.shape[0]-i*5-1),:N]
         z[M-i-1] = -data[(data.shape[0]-i*5-1), -1]
 
-    scaled_x = np.copy(x)
-    for i in range(M):
-        scaled_x[i] = x[i]/scales
-
-     # scaled variables (scaled by "prior mean")
+    # scaled variables (scaled by "prior mean")
     scaled_x = np.copy(x)
     for i in range(M):
         scaled_x[i] = x[i]/scales
 
     # Two-stage sampling related parameters
-    NOS1 = ampFactor * NOS #samples at first stage
-    w1 = np.array(np.zeros(shape=(NOS1,1))) # weights at first stage
-    Samples1 = np.matrix(np.zeros(shape=(N,NOS1))) # samples at first stage
     # ideally you want the amp factor such that you get about NOS samples after 
     # second stage
-    Fo = np.matrix(np.zeros(shape=(NOS1,1))) # save RBF function value
+    NOS1 = ampFactor * NOS #samples at first stage
     NEffSamples = 0 # initialize effective samples after first stage (needed for parallelism)
 
     if rank == 0:
@@ -449,8 +451,6 @@ if stage == 2: # if we do two-stage sampling
         else:
              xopt = pickle.load( open( optLoadFile, "rb" ) )
 
-        evecs,evals = ComputeHessEvals(scaled_x,neff)
-        
         # sampling 
         if whichSampler == 1:
              Samples1,w1,Fo, = RandomMap_rbf(NOS1,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds)   
@@ -475,12 +475,10 @@ else: # use quadratic approximation
     for i in range(M):
         scaled_x[i] = x[i]/scales
 
-    Samples1 = np.matrix(np.zeros(shape=(N,NOS))) # samples at first stage                                                                                                   
-    Fo = np.matrix(np.zeros(shape=(NOS,1))) # save RBF function value                                                                                                        
-    mu = np.matrix(x[-1,:]/scales)
+    mu = np.matrix(scaled_x[-1,:])
     phi = -data[-1,-1]
     if rank == 0:
-         Samples1, Fo = LinearMap(NOS,N,neff,scaled_x,mu,lower_bounds,upper_bounds)
+         Samples1, Fo = LinearMap(NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds)
     NEffSamples = NOS
     
 
@@ -491,31 +489,49 @@ NOSa[0] = NOS
 comm.Bcast([NOSa, MPI.INT], root=0)
 NOS = NOSa[0]
     
-w = np.array(np.zeros(shape=(NOSa,1)))
-Samples = np.matrix(np.zeros(shape=(N,NOSa)))
+w = np.array(np.zeros(shape=(NOS,1)))
+Samples = np.matrix(np.zeros(shape=(N,NOS)))
 
 if rank == 0:
     print 'Starting to re-weight with full model'
 
+lastWritten = -1
 for i in range(NOS):
-    if stage == 2:
-        p = int(np.random.uniform(0,NOS1,1))
-        Samples[:,i] =  np.multiply(Samples1[:,p].T,np.matrix(scales)).T
-    else:
-        Samples[:,i] =  np.multiply(Samples1[:,i].T,np.matrix(scales)).T
+    if rank == 0:
+        if stage == 2:
+            p = int(np.random.uniform(0,NOS1,1))
+            Samples[:,i] =  np.multiply(Samples1[:,p].T,np.matrix(scales)).T
+        else:
+            Samples[:,i] =  np.multiply(Samples1[:,i].T,np.matrix(scales)).T
     
     xx = np.array(Samples[:,i].T)[0]       
     F = -lnprob(xx,driver)
-    if F == np.inf or F == -np.inf:
-        w[i] = np.inf
-    else:
-        if stage == 2:
-            w[i] =  Fo[p] - F
-        else:
-            w[i] = Fo[i]-F
-
     if rank == 0:
+        if F == np.inf or F == -np.inf:
+            w[i] = np.inf
+        else:
+            if stage == 2:
+                w[i] = Fo[p] - F
+            else:
+                w[i] = Fo[i] - F
+
         print 'Sample',i+1,'of',NOS
+
+        if ((i==NOS-1) | (i%outFilePeriod == outFilePeriod - 1)):
+            istart = lastWritten + 1
+            inum = i - istart + 1
+            lastWritten = i
+
+            nwalkers = 1
+            nDigits = int(np.log10(NOS)) + 1
+            WritePlotfile(Samples,N,outFilePrefix,nwalkers,istart,inum,nDigits,None)
+
+            fmt = "%0"+str(nDigits)+"d"
+            filename = outFilePrefix + '_' + (fmt % istart) + '_' + (fmt % lastWritten)
+            pickle.dump(w[istart:lastWritten],open(filename+"/w.pic", "wb" ) )
+
+            lastWritten = istart+inum-1
+    
 
 if rank == 0:
     wmax = np.amax(w)
@@ -533,7 +549,8 @@ if rank == 0:
         print 'Done sampling'
 
     print 'Effective sample size: ',EffSampleSize(w)
-    print 'Quality measure R:',CompR(w)
+    R = CompR(w)
+    print 'Quality measure R:',R
     CondMean = WeightedMean(w,Samples)
     print 'Conditional mean: ',CondMean
     print 'Conditional std: ',np.sqrt(WeightedVar(CondMean,w,Samples))
@@ -544,8 +561,14 @@ if rank == 0:
     nwalkers = 1
     if NOS > 0:
          nDigits = int(np.log10(NOS)) + 1
-         WritePlotfile(Samples,N,outFilePrefix,nwalkers,0,NOS,nDigits,None)
          WritePlotfile(Xrs,N,outFilePrefix+'_RS',nwalkers,0,NOS,nDigits,None)
+
+         fmt = "%0"+str(nDigits)+"d"
+         lastStep = NOS - 1
+         filename = outFilePrefix + '_RS_' + (fmt % 0) + '_' + (fmt % (NOS-1))
+         pickle.dump(w,open(filename+"/w.pic", "wb" ) )
+         pickle.dump(R,open(filename+"/R.pic", "wb" ) )
+
 
     CondMeanRs = WeightedMean(np.ones(NOS)/NOS,Xrs)
     print 'Conditional mean after resampling: ',CondMeanRs
