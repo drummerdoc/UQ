@@ -70,15 +70,53 @@ main (int   argc,
   }
 
   int NOS = 1; pp.query("NOS",NOS);
-  std::vector<std::vector<Real> > samples(NOS, std::vector<Real>(num_params,-1));
-  std::vector<std::vector<Real> > solns(NOS, std::vector<Real>(num_params,-1));
+  std::vector<Real> samples(NOS * num_params);
+  std::vector<Real> solns(NOS * num_params);
 
+  int nprocs = ParallelDescriptor::NProcs();
+  int myproc = ParallelDescriptor::MyProc();
+
+  std::vector<Real> thisSolns(num_params);
   for (int j=0; j<NOS; ++j)
   {
-    samples[j] = GetBoundedSample(prior_mean, ensemble_std, upper_bound, lower_bound);
+    bool ok = false;
+    std::vector<Real> thisSample;
+    while (ok == false) {
+      thisSample = GetBoundedSample(prior_mean, ensemble_std, upper_bound, lower_bound);
+      ok = minimizer->minimize((void*)(driver.mystruct), thisSample, thisSolns);
+    }
 
-    //Real F = NegativeLogLikelihood(samples[j]);
-    minimizer->minimize((void*)(driver.mystruct), samples[j], solns[j]);
+    long offset = j * num_params;
+    for (int i=0; i<num_params; ++i) {
+      samples[offset+i] = thisSample[i];
+      solns[offset+i] = thisSolns[i];
+    }
+  }
+
+  std::vector<Real> samplesg;
+  std::vector<Real> solnsg;
+  if (myproc == 0) {
+    long totalNOS = nprocs * NOS * num_params;
+    samplesg.resize(totalNOS);
+    solnsg.resize(totalNOS);
+  }
+
+  ParallelDescriptor::Gather(&(samples[0]),NOS*num_params,&(samplesg[0]),0);
+  ParallelDescriptor::Gather(&(solns[0]),NOS*num_params,&(solnsg[0]),0);
+  if (myproc != 0) {
+    samples.clear();
+    solns.clear();
+  }
+
+  if (myproc == 0) {
+    std::string samples_file = "samples"; pp.query("samples",samples_file);
+    std::string solns_file = "solns"; pp.query("solns",solns_file);
+
+    UqPlotfile pfi(samplesg,num_params,1,0,NOS*nprocs,"");
+    pfi.Write(samples_file);
+
+    UqPlotfile pfo(solnsg,num_params,1,0,NOS*nprocs,"");
+    pfo.Write(solns_file);
   }
 
   delete minimizer;

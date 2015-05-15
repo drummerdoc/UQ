@@ -14,7 +14,7 @@ MyMat readHessian(const std::string& hessianInFile);
 class Minimizer
 {
 public:
-  virtual void minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln) = 0;
+  virtual bool minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln) = 0;
   virtual ~Minimizer() {}
 
   static MyMat FD_Hessian(void *p, const std::vector<Real>& X);
@@ -25,7 +25,7 @@ class GeneralMinimizer
   : public Minimizer
 {
 public:
-  virtual void minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln);
+  virtual bool minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln);
   virtual ~GeneralMinimizer() {}
 };
 
@@ -33,7 +33,7 @@ class NLLSMinimizer
   : public Minimizer
 {
 public:
-  virtual void minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln);
+  virtual bool minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln);
   virtual ~NLLSMinimizer() {}
   static MyMat  JTJ(void *p, const std::vector<Real>& X);
 };

@@ -17,7 +17,6 @@ static int GOOD_EVAL_FLAG = 0;
 static int BAD_DATA_FLAG = 1;
 static int BAD_EXPT_FLAG = 2;
 
-
 void
 writeHessian(const MyMat& H, const std::string& hessianOutFile)
 {
@@ -204,10 +203,8 @@ Minimizer::InvSqrt(void *p, const MyMat & H)
   const std::vector<Real>& eigenvalues = lapack.s;
   
   // Display eigenvalues
-  if (ParallelDescriptor::IOProcessor()) {
-    for (int i=0; i<num_vals; ++i) {
-      std::cout <<  "Eigenvalue: " << eigenvalues[i] << std::endl;
-    }
+  for (int i=0; i<num_vals; ++i) {
+    std::cout <<  "Eigenvalue: " << eigenvalues[i] << std::endl;
   }
 
   std::vector<Real> typEig(num_vals,0);
@@ -366,7 +363,7 @@ int FCN(void       *p,
   for (int i=0; i<NP; ++i) {
     FVEC[i] = Fv[i];
   }
-  if (ParallelDescriptor::IOProcessor() && IFLAGP==1) {
+  if (IFLAGP==1) {
     std::cout << "parameter = { ";
     for (int i=0; i<NP; ++i) {
       std::cout << X[i] << " ";
@@ -458,29 +455,36 @@ static int eval_nlls_funcs(void *p, int m, int n, const Real *x, Real *fvec)
 // /////////////////////////////////////////////////////////
 // Nonlinear last squares function we pass to Minpack
 //
-// MARK PLEASE CHECK/CLEAN HERE
-//
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
+#include <Utility.H>
 static
 int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac, 
             int ldfjac, int iflag)
 {
   if (iflag == 0) {
-    if (ParallelDescriptor::IOProcessor()) {
-      std::cout << "NLLSFCN status X: { ";
-      for (int i=0; i<n; ++i) {
-	std::cout << x[i] << " ";
-      }
-      std::cout << "} ";
-      
-      Real sum = 0;
-      for (int i=0; i<m; ++i) {
-	sum += fvec[i]*fvec[i];
-      }
-      std::cout << " F = " << sum << std::endl;
+    std::cout << "NLLSFCN status X: { ";
+    for (int i=0; i<n; ++i) {
+      std::cout << x[i] << " ";
     }
+    std::cout << "} ";
+      
+    Real sum = 0;
+    for (int i=0; i<m; ++i) {
+      sum += fvec[i]*fvec[i];
+    }
+    std::cout << " F = " << sum << std::endl;
+
+    std::string ofile=BoxLib::Concatenate("RUNLOG_",ParallelDescriptor::MyProc(),2);
+    std::ofstream ofs(ofile.c_str(),std::ios::app);
+    ofs << "NLLSFCN status X: { ";
+    for (int i=0; i<n; ++i) {
+      ofs << x[i] << " ";
+    }
+    ofs << "} ";
+    ofs << " F = " << sum << std::endl;
+    ofs.close();
   }
   else if (iflag == 1) { // Evaluate functions only, do not touch FJAC
     int eflag = eval_nlls_funcs(p,m,n,x,fvec);
@@ -490,17 +494,16 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
         ParameterManager& pm = s->parameter_manager;
         const std::vector<Real>& upper_bound = pm.UpperBound();
         const std::vector<Real>& lower_bound = pm.LowerBound();
-	if (ParallelDescriptor::IOProcessor()) {
-	  std::cout << "Bad parameters" << std::endl;
-	  for (int i=0; i<n; ++i) {
-	    if (x[i] < lower_bound[i] || x[i] > upper_bound[i]) {
-	      std::cout << "    parameter " << i << " oob: " << x[i] << " "
-			<< lower_bound[i] << " " << upper_bound[i] << std::endl;
-	    }
-          }
-        }
+	std::cout << "Bad parameters" << std::endl;
+	for (int i=0; i<n; ++i) {
+	  if (x[i] < lower_bound[i] || x[i] > upper_bound[i]) {
+	    std::cout << "    parameter " << i << " oob: " << x[i] << " "
+		      << lower_bound[i] << " " << upper_bound[i] << std::endl;
+	  }
+	}
       }
-      BoxLib::Abort("HANDLE BAD EVAL FLAG");
+      return -1;
+      //BoxLib::Abort("HANDLE BAD EVAL FLAG");
     }
   }
   else if (iflag == 2) { // Evaluate jacobian only, do not touch FVEC
@@ -520,7 +523,8 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
       sample_oob |= (pvals[i] < lower_bound[i] || pvals[i] > upper_bound[i]);
     }
     if (sample_oob) { // Bad data
-      BoxLib::Abort("Bad sample data");
+      return -1;
+      //BoxLib::Abort("Bad sample data");
     }
 
     std::vector<Real> fptmp(em.NumExptData());
@@ -594,10 +598,8 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
       
       // Verify we found good stuff for everyone
       if (!done) {
-	if (ParallelDescriptor::IOProcessor()) {
-	  for (int i=0; i<nd; ++i) {
-	    std::cout << "i " << i << " good: " << this_one_good[i] << std::endl;
-	  }
+	for (int i=0; i<nd; ++i) {
+	  std::cout << "i " << i << " good: " << this_one_good[i] << std::endl;
 	}
 	BoxLib::Abort("No good twiddle found for someone");
       }
@@ -634,11 +636,17 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
 
       pvals[i] = x[i] + h;
       int ret = eval_nlls_data(p,pvals,&(fptmp[0]));
-      BL_ASSERT(ret == GOOD_EVAL_FLAG);
+      if (ret != GOOD_EVAL_FLAG) {
+	return -1;
+      }
+      //BL_ASSERT(ret == GOOD_EVAL_FLAG);
         
       pvals[i] = x[i] - h;
       ret = eval_nlls_data(p,pvals,&(fmtmp[0]));
-      BL_ASSERT(ret == GOOD_EVAL_FLAG);
+      if (ret != GOOD_EVAL_FLAG) {
+	return -1;
+      }
+      //BL_ASSERT(ret == GOOD_EVAL_FLAG);
         
       Real hInv = 1/h;
       for (int j=0; j<nd; ++j) {
@@ -711,20 +719,18 @@ int NLLSFCN_NOJ(void *p, int m, int n, const Real *x, Real *fvec, int iflag)
       ParameterManager& pm = s->parameter_manager;
       const std::vector<Real>& upper_bound = pm.UpperBound();
       const std::vector<Real>& lower_bound = pm.LowerBound();
-      if (ParallelDescriptor::IOProcessor()) {
-	std::cout << "Bad parameters" << std::endl;
-	for (int i=0; i<n; ++i) {
-	  if (x[i] < lower_bound[i] || x[i] > upper_bound[i]) {
-	    std::cout << "    parameter " << i << " oob: " << x[i] << " "
-		      << lower_bound[i] << " " << upper_bound[i] << std::endl;
-	  }
+      std::cout << "Bad parameters" << std::endl;
+      for (int i=0; i<n; ++i) {
+	if (x[i] < lower_bound[i] || x[i] > upper_bound[i]) {
+	  std::cout << "    parameter " << i << " oob: " << x[i] << " "
+		    << lower_bound[i] << " " << upper_bound[i] << std::endl;
         }
       }
     }
     BoxLib::Abort("HANDLE BAD EVAL FLAG");
   }
 
-  if (iflag == 0 && ParallelDescriptor::IOProcessor()) {
+  if (iflag == 0) {
     Real sum = 0;
     for (int i=0; i<m; ++i) {
       sum += fvec[i] * fvec[i];
@@ -750,7 +756,7 @@ int NLLSFCN_NOJ(void *p, int m, int n, const Real *x, Real *fvec, int iflag)
 // Tolerances may not be set correctly.
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
-void
+bool
 GeneralMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
@@ -783,33 +789,33 @@ GeneralMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<
                MODE,FACTOR,NPRINT,&NFEV,&(FJAC[0]),LDFJAC,&(R[0]),LR,&(QTF[0]),
                &(WA[0][0]),&(WA[1][0]),&(WA[2][0]),&(WA[3][0]));   
 
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "minpack INFO: " << INFO << std::endl;
-    if(INFO==0)
-    {
-      std::cout << "minpack: improper input parameters " << std::endl;
-    }
-    else if(INFO==1)
-    {
-      std::cout << "minpack: relative error between two consecutive iterates is at most XTOL" << std::endl;
-    }
-    else if(INFO==2)
-    {
-      std::cout << "minpack: number of calls to FCN has reached or exceeded MAXFEV" << std::endl;
-    }
-    else if(INFO==3)
-    {
-      std::cout << "minpack: XTOL is too small.  No further improvement in the approximate solution X is possible." << std::endl;
-    }
-    else if(INFO==4)
-    {
-      std::cout << "minpack: iteration is not making good progress, as measured by the improvement from the last five Jacobian evaluations."<< std::endl;
-    }
-    else if(INFO==5)
-    {
-      std::cout << "minpack: iteration is not making good progress, as measured by the improvement from the last ten iterations. "<< std::endl;
-    }
+  std::cout << "minpack INFO: " << INFO << std::endl;
+  if(INFO==0)
+  {
+    std::cout << "minpack: improper input parameters " << std::endl;
   }
+  else if(INFO==1)
+  {
+    std::cout << "minpack: relative error between two consecutive iterates is at most XTOL" << std::endl;
+  }
+  else if(INFO==2)
+  {
+    std::cout << "minpack: number of calls to FCN has reached or exceeded MAXFEV" << std::endl;
+  }
+  else if(INFO==3)
+  {
+    std::cout << "minpack: XTOL is too small.  No further improvement in the approximate solution X is possible." << std::endl;
+  }
+  else if(INFO==4)
+  {
+    std::cout << "minpack: iteration is not making good progress, as measured by the improvement from the last five Jacobian evaluations."<< std::endl;
+  }
+  else if(INFO==5)
+  {
+    std::cout << "minpack: iteration is not making good progress, as measured by the improvement from the last ten iterations. "<< std::endl;
+  }
+
+  return INFO==1;
 };
 
 
@@ -819,7 +825,7 @@ GeneralMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
-void
+bool
 NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Real>& soln)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
@@ -858,9 +864,7 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
     the levenberg-marquardt algorithm. the user must provide a
     subroutine which calculates the functions and the jacobian. */
 
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "Minpack uses the function lmder "<< std::endl;
-  }
+  std::cout << "Minpack uses the function lmder "<< std::endl;
   int info = lmder(NLLSFCN,p,m,n,&(soln[0]),&(fvec[0]),&(fjac[0]),ldfjac,
                    ftol,xtol,gtol, maxfev, &(diag[0]),
                    mode,factor,nprint,&nfev,&njev,&(ipvt[0]),&(qtf[0]), 
@@ -920,12 +924,11 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   }
 
   if (info ==0 || info>4) {
-    BoxLib::Abort(msg.c_str());
+    return false;
+    //BoxLib::Abort(msg.c_str());
   }
   else {
-    if (ParallelDescriptor::IOProcessor()) {
-      std::cout << "minpack terminated: " << msg << std::endl;
-    }
+    std::cout << "minpack terminated: " << msg << std::endl;
   }
 #else
 
@@ -945,9 +948,7 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   int lwa = m*n+5*n+m;
   std::vector<Real> wa(lwa);
   Real tol = sqrt(__cminpack_func__(dpmpar)(1));
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "****** USING lmdif1 "<< std::endl;
-  }
+  std::cout << "****** USING lmdif1 "<< std::endl;
   int info = lmdif1(NLLSFCN_NOJ,p,m,n,&(soln[0]),&(fvec[0]),
                     tol,&(iwa[0]),&(wa[0]),lwa);
   std::string msg;
@@ -966,6 +967,7 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
 
   if (info ==0 || info>4) {
     BoxLib::Abort(msg.c_str());
+    return false;
   }
 
 #else
@@ -986,9 +988,7 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   ParmParse pp;
   pp.query("epsfcn",epsfcn);
 
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "ftol: " << ftol << ", epsfcn: " << epsfcn << std::endl;
-  }
+  std::cout << "ftol: " << ftol << ", epsfcn: " << epsfcn << std::endl;
   /* 
      Test 1: minpack converged if EuclideanNorm(F) <= (1+ftol)*EuclideanNorm(F), F=F(xsol)
 
@@ -1018,9 +1018,7 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   std::vector<Real> qtf(n);
   std::vector<Real> wa1(n), wa2(n), wa3(n), wa4(m);
 
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "****** USING lmdif "<< std::endl;
-  }
+  std::cout << "****** USING lmdif "<< std::endl;
   int info = lmdif(NLLSFCN_NOJ,p,m,n,&(soln[0]),&(fvec[0]),ftol,xtol,gtol,maxfev,epsfcn,
                    &(diag[0]),mode,factor,nprint,&nfev,&(fjac[0]),
                    ldfjac,&(ipvt[0]),&(qtf[0]),&(wa1[0]),&(wa2[0]),&(wa3[0]),&(wa4[0]));
@@ -1040,13 +1038,12 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   BL_ASSERT(info_la == 0);
 
   const std::vector<Real>& singular_values = lapack.s;
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "Eigenvalues of J^T . J = { ";
-    for (int j=0; j<n; ++j) {
-      std::cout << 1/singular_values[j] << " ";
-    }
-    std::cout << "}\n";
+  std::cout << "Eigenvalues of J^T . J = { ";
+  for (int j=0; j<n; ++j) {
+    std::cout << 1/singular_values[j] << " ";
   }
+  std::cout << "}\n";
+
   std::string msg;
   switch (info)
   {
@@ -1063,13 +1060,12 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   }
 
   if (info ==0 || info>4) {
-    BoxLib::Abort(msg.c_str());
+    return false;
+    //BoxLib::Abort(msg.c_str());
   }
 #endif
 
-  if (ParallelDescriptor::IOProcessor()) {
-    std::cout << "minpack terminated: " << msg << std::endl;
-  }
+  std::cout << "minpack terminated: " << msg << std::endl;
 #endif
   
   /*
@@ -1083,4 +1079,6 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
     std::cout << soln[ii] << " " << fvec[ii] << std::endl;
   }
   */
+
+  return true;
 };
