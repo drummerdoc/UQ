@@ -464,6 +464,7 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
             int ldfjac, int iflag)
 {
   if (iflag == 0) {
+#if 0
     std::cout << "NLLSFCN status X: { ";
     for (int i=0; i<n; ++i) {
       std::cout << x[i] << " ";
@@ -485,6 +486,7 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
     ofs << "} ";
     ofs << " F = " << sum << std::endl;
     ofs.close();
+#endif
   }
   else if (iflag == 1) { // Evaluate functions only, do not touch FJAC
     int eflag = eval_nlls_funcs(p,m,n,x,fvec);
@@ -916,14 +918,14 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   case 6:  msg = "ftol is too small. no further reduction possible"; break;
   case 7:  msg = "xtol is too small. no further improvement in x is possible"; break;
   case 8:  msg = "gtol is too small. fvec orthogonal to cols of J to macheps"; break;
-  default: msg = "unknown error.";
+  default: msg = "Function evaluation error.";
   }
 
   for (int i=0; i<soln.size(); ++i) {
     s->parameter_manager[i] = soln[i];      
   }
 
-  if (info ==0 || info>4) {
+  if (info <=0 || info>4) {
     return false;
     //BoxLib::Abort(msg.c_str());
   }

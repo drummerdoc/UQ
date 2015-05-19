@@ -101,6 +101,8 @@ main (int   argc,
     solnsg.resize(totalNOS);
   }
 
+  std::cout << "proc " << myproc << "finished" << '\n';
+
   ParallelDescriptor::Gather(&(samples[0]),NOS*num_params,&(samplesg[0]),0);
   ParallelDescriptor::Gather(&(solns[0]),NOS*num_params,&(solnsg[0]),0);
   if (myproc != 0) {
