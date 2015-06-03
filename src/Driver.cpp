@@ -31,13 +31,6 @@ funcF(void* p, const std::vector<Real>& pvals)
   // Get prior component of likelihood
   std::pair<bool,Real> Fa = s->parameter_manager.ComputePrior(pvals);
 
-  bool all_and = Fa.first;
-  ParallelDescriptor::ReduceBoolAnd(all_and);
-  if (all_and != Fa.first) {
-      std::cout << "Parameters not compatible across procs" << std::endl;
-      BoxLib::Abort();
-  }
-
   if (!Fa.first) {
     return BAD_SAMPLE_FLAG; // Parameter OOB
   }
@@ -51,6 +44,7 @@ funcF(void* p, const std::vector<Real>& pvals)
   Real Fb = s->expt_manager.ComputeLikelihood(dvals);
   Real F = Fa.second + Fb;
 
+#if 0
   std::cout << "X = { ";
   for(int i=0; i<pvals.size(); i++){
     std::cout << pvals[i] << " ";
@@ -60,6 +54,7 @@ funcF(void* p, const std::vector<Real>& pvals)
     std::cout << dvals[i] << " ";
   }
   std::cout << "}, F = " << F << std::endl;
+#endif
 
   return F;
 }

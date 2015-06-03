@@ -27,6 +27,7 @@ main (int   argc,
 
   int nprocs = ParallelDescriptor::NProcs();
   int myproc = ParallelDescriptor::MyProc();
+  bool ioproc = ParallelDescriptor::IOProcessor();
 
 
   ParmParse pp;
@@ -40,34 +41,53 @@ main (int   argc,
   int iters = pf.NITERS();
   int nwalkers = pf.NWALKERS();
   int ndim = pf.NDIM();
+
   BL_ASSERT(ndim == driver.NumParams());
-  std::vector<Real> samples = pf.LoadEnsemble(iter, iters);
+  std::vector<Real> samples;
+  if (ioproc) {
+    samples = pf.LoadEnsemble(iter, iters);
+  }
+  else {
+    samples.resize(iters*nwalkers*ndim);
+  }
+  ParallelDescriptor::ReduceRealSum(&(samples[0]),samples.size());
 
   std::cout << std::setprecision(8);
   std::cout << std::scientific;
   std::vector<Real> mySamples(ndim);
+  std::vector<Real> F(nwalkers*iters);
   for (int k=0; k<nwalkers; ++k) {
     for (int t=iter; t<iter+iters; ++t) {
 
       int sampleID = nwalkers*(t-iter) + k;
 
-      for (int j=0; j<ndim; ++j) {
-	long index = k + nwalkers*(t-iter) + nwalkers*iters*j;
-	mySamples[j] = samples[index];
-      }
+      if (sampleID % nprocs == myproc) {
 
-      if (verbose) {
-	std::cout << sampleID << " [";
 	for (int j=0; j<ndim; ++j) {
 	  long index = k + nwalkers*(t-iter) + nwalkers*iters*j;
-	  std::cout << "  " << samples[index];
-	  if (j<ndim-1) std::cout << " ";
+	  mySamples[j] = samples[index];
 	}
-	std::cout << "]" << std::endl;
+	
+	F[sampleID] = driver.LogLikelihood(mySamples);
+	if (verbose) {
+	  std::cout << sampleID << " [";
+	  for (int j=0; j<ndim; ++j) {
+	    long index = k + nwalkers*(t-iter) + nwalkers*iters*j;
+	    std::cout << "  " << samples[index];
+	    if (j<ndim-1) std::cout << " ";
+	  }
+	  std::cout << "] F = " << F[sampleID] << std::endl;
+	}
       }
-      double myF = driver.LogLikelihood(mySamples);
     }
   }
 
+  ParallelDescriptor::ReduceRealSum(&(F[0]),F.size());
+  if (ioproc) {
+    std::string Ffile = "Ffile"; pp.query("Ffile",Ffile);
+    UqPlotfile pfi(F,1,1,0,F.size(),"");
+    pfi.Write(Ffile);
+  }
+  ParallelDescriptor::Barrier();
 }
 
