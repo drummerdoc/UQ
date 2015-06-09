@@ -8,8 +8,8 @@
 
 typedef std::vector<std::vector<Real> > MyMat;
 
-void writeHessian(const MyMat& H, const std::string& hessianOutFile);
-MyMat readHessian(const std::string& hessianInFile);
+void writeHessian(const MyMat& H, std::ostream& hessianOS);
+MyMat readHessian(std::istream& hessianIS);
 
 class Minimizer
 {

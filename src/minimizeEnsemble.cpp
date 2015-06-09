@@ -107,17 +107,25 @@ main (int   argc,
   Minimizer* minimizer = 0;
   std::string which_minimizer = "nlls";
   pp.query("which_minimizer",which_minimizer);
+  bool hasHessian;
   if (which_minimizer == "nlls") {
     minimizer = new NLLSMinimizer();
+    hasHessian = true;
   }
   else {
     minimizer = new GeneralMinimizer();
+    hasHessian = false;
   }
 
   int NOS = 1; pp.query("NOS",NOS);
   int max_failures = 5; pp.query("max_failures",max_failures);
   std::vector<Real> samples(NOS * num_params);
   std::vector<Real> solns(NOS * num_params);
+  std::vector<Real> F(NOS);
+  std::vector<Real> hessians;
+  if (hasHessian) {
+    hessians.resize(NOS * num_params * num_params);
+  }
 
   int num_failures = 0;
   std::vector<Real> thisSolns(num_params);
@@ -132,6 +140,8 @@ main (int   argc,
       ok = minimizer->minimize((void*)(driver.mystruct), thisSample, thisSolns);
       if (!ok) {
 	num_failures++;
+      } else {
+	F[j] = driver.LogLikelihood(thisSolns);
       }
     }
 
@@ -140,6 +150,19 @@ main (int   argc,
       samples[offset+i] = thisSample[i];
       solns[offset+i] = thisSolns[i];
     }
+
+    if (hasHessian) {
+      NLLSMinimizer* nm = dynamic_cast<NLLSMinimizer*>(minimizer);
+      BL_ASSERT(nm!=0);
+      MyMat H = nm->JTJ((void*)(driver.mystruct),thisSolns);
+
+      offset = j * num_params * num_params;
+      for (int i=0; i<num_params; ++i) {
+	for (int k=0; k<num_params; ++k) {
+	  hessians[offset + i*num_params + k] = H[i][k];
+	}
+      }
+    }
   }
   int NOSloc = j;
 
@@ -147,8 +170,27 @@ main (int   argc,
   std::vector<Real> solnsg;
   int num_send = num_params * NOSloc;
   int num_recv = num_send;
-  GATHER_TO_IO(  solns,num_params * NOSloc, solnsg,   num_recv);
-  GATHER_TO_IO(samples,num_params * NOSloc, samplesg, num_recv);
+
+  GATHER_TO_IO(  solns, num_send, solnsg,   num_recv); solns.clear();
+  GATHER_TO_IO(samples, num_send, samplesg, num_recv); samples.clear();
+
+  std::vector<Real> Fg;
+  int num_send_F = NOSloc;
+  int num_recv_F = num_send;
+  GATHER_TO_IO(F, num_send_F, Fg, num_recv_F); F.clear();
+
+  std::vector<Real> hessiansg;
+  int num_send_h, num_recv_h;
+  if (hasHessian) {
+    num_send_h = num_params * num_params * NOSloc;
+    num_recv_h = num_send_h;
+    GATHER_TO_IO(hessians, num_send_h, hessiansg, num_recv_h); hessians.clear();
+  }
+
+  std::string samples_file = "samples"; pp.query("samples",samples_file);
+  std::string solns_file = "solns"; pp.query("solns",solns_file);
+  std::string Fs_file = "Fs"; pp.query("Fs",Fs_file);
+  std::string hessians_file = "hessians"; pp.query("hessians",hessians_file);
 
   if (myproc == 0) {
 
@@ -164,15 +206,36 @@ main (int   argc,
 	solnsT[  k + i*NOStot] = solnsg[  i + k*num_params];
       }
     }
-
-    std::string samples_file = "samples"; pp.query("samples",samples_file);
-    std::string solns_file = "solns"; pp.query("solns",solns_file);
+    samplesg.clear();
+    solnsg.clear();
 
     UqPlotfile pfi(samplesT,num_params,1,0,NOStot,"");
     pfi.Write(samples_file);
+    samplesT.clear();
 
     UqPlotfile pfo(solnsT,num_params,1,0,NOStot,"");
     pfo.Write(solns_file);
+    solnsT.clear();
+
+    UqPlotfile pff(Fg,1,1,0,NOStot,"");
+    pff.Write(Fs_file);
+    Fg.clear();
+
+    if (hasHessian) {
+      std::vector<Real> hessiansT(num_params * num_params * NOStot);
+      for (int j=0; j<NOStot; ++j) {
+	for (int i=0; i<num_params; ++i) {
+	  for (int k=0; k<num_params; ++k) {
+	    hessiansT[NOStot*(i*num_params + k) + j] = hessiansg[j*num_params*num_params + i*num_params + k];
+	  }
+	}
+      }
+      hessiansg.clear();
+
+      UqPlotfile pfH(hessiansT,num_params*num_params,1,0,NOStot,"");
+      pfH.Write(hessians_file);
+      hessiansT.clear();
+    }
   }
 
   delete minimizer;
