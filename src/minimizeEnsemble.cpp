@@ -63,7 +63,7 @@ GetBoundedSample(const std::vector<Real>& prior_mean,
   int N = prior_mean.size();
   std::vector<Real> sample(N);
   for (int i=0; i<N; ++i) {
-    Real r = BoxLib::Random() - 0.5;
+    Real r = 2*(BoxLib::Random() - 0.5);
     sample[i] = prior_mean[i] + prior_std[i]*r;
     bool sample_oob = (sample[i] < lower_bound[i] || sample[i] > upper_bound[i]);	
     while (sample_oob) {
