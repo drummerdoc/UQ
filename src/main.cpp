@@ -227,7 +227,9 @@ main (int   argc,
     if (pp.countval("hessianInFile")) {
       pp.get("hessianInFile",hessianInFile); 
       std::cout << "      Getting Hessian from file: " << hessianInFile << std::endl;
-      H = readHessian(hessianInFile);
+      std::ifstream hessianIS(hessianInFile.c_str());
+      H = readHessian(hessianIS);
+      hessianIS.close();
     }
     else {
       if (fd_Hessian) {
@@ -254,8 +256,10 @@ main (int   argc,
       pp.get("hessianOutFile",hessianOutFile); 
       if (ioproc) {
 	std::cout << "Writing Hessian to " << hessianOutFile << std::endl;
+	std::ofstream hessianOS(hessianOutFile.c_str());
+	writeHessian(H,hessianOS);
+	hessianOS.close();
       }
-      writeHessian(H,hessianOutFile);
     }
 
     InvSqrtH = Minimizer::InvSqrt((void*)driver.mystruct, H);
