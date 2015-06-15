@@ -56,6 +56,26 @@ funcF(void* p, const std::vector<Real>& pvals)
   std::cout << "}, F = " << F << std::endl;
 #endif
 
+#if 0
+  std::cout << "X = { ";
+  for(int i=0; i<pvals.size(); i++){
+    std::cout << pvals[i] << " ";
+  }
+  std::cout << "}, D = { ";
+  for(int i=0; i<s->expt_manager.NumExptData(); i++){
+    std::cout << dvals[i] << " ";
+  }
+
+  const std::vector<Real>& data = s->expt_manager.TrueDataWithObservationNoise();
+  const std::vector<Real>& obs_std = s->expt_manager.ObservationSTD();
+
+  std::cout << "}, S = { ";
+  for(int i=0; i<s->expt_manager.NumExptData(); i++){
+    std::cout << (data[i] - dvals[i])/obs_std[i] << " ";
+  }
+  std::cout << "}, F = " << F << std::endl;
+#endif
+
   return F;
 }
 
