@@ -42,18 +42,18 @@ PRECISION       = DOUBLE
 DEBUG           = FALSE
 #DEBUG           = TRUE
 DIM             = 2
-#COMP            = g++
-#FCOMP           = gfortran
-COMP            = CC
-FCOMP           = ftn
+#COMP            = CC
+#FCOMP           = ftn
+COMP            = g++
+FCOMP           = gfortran
 USE_MPI         = TRUE
 #USE_MPI         = FALSE
 USE_OMP         = TRUE
-USE_OMP         = FALSE
+#USE_OMP         = FALSE
 USE_SDC         = FALSE
 USE_SDC         = TRUE
-BUILD_EXEC      = FALSE
-#BUILD_EXEC      = TRUE
+#BUILD_EXEC      = FALSE
+BUILD_EXEC      = TRUE
 VERBOSE         = TRUE
 DO_REGTEST      = FALSE
 
@@ -75,7 +75,8 @@ ifeq (${USE_SDC}, TRUE)
 endif
 CFLAGS += -std=c99
 
-EBASE = main
+#EBASE = main
+EBASE = minimizeEnsemble
 #EBASE = evalLocalModel
 #EBASE = interpSample
 #EBASE = EvalExpt

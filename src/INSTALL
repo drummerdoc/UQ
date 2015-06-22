@@ -75,12 +75,12 @@ module swap PrgEnv-intel PrgEnv-gnu
 module load swig
 module load python
 module load mpi4py
-export LD_LIBRARY_PATH=${PYTHON_DIR}/lib:${HOME}/src/CCSE/UQ/src/packages/lib:${HOME}/src/CCSE/UQ/src/packages/lib64
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PYTHON_DIR}/lib:${HOME}/src/CCSE/UQ/src/packages/lib:${HOME}/src/CCSE/UQ/src/packages/lib64
 export PYTHONPATH=${HOME}/lib/python
 
 Get an interactive batch job running with:
 
-qsub -I -q debug -l mppwidth=24
+qsub -I -q debug -l mppwidth=48
 
 
 Once it drops in, do the following:
@@ -92,4 +92,14 @@ module load mpi4py
 Then, run the sampler in parallel with aprun:
 
 aprun -n 8 python pyemcee/impMC.py inputs_Matti maxStep=2000 outFilePeriod=200 outFilePrefix="TEST" stage=1 neff=9
+
+
+
+To run a standalone executable, do the following
+cd $PBS_O_WORKDIR
+module unload xt-shmem
+export OMP_NUM_THREADS=6
+aprun -n 8 -N 4 -d 6 -S 2 -ss ./minimizeEnsemble2d.Linux.g++.gfortran.MPI.OMP.ex inputs_Matti
+
+....this will run 8 MPI tasks with 6 threads each, using 4 MPI tasks per NUMA domain.
 

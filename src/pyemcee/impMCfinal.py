@@ -32,7 +32,10 @@ def WritePlotfile(samples,ndim,outFilePrefix,nwalkers,step,nSteps,nDigits,rstate
             for it in range(0,nSteps):
                 for dim in range(0,ndim):
                     index = walker + nwalkers*it + nwalkers*nSteps*dim
-                    x_for_c[index] = samples[dim,step+it]
+                    if ndim==1:
+                        x_for_c[index] = samples[it]
+                    else:
+                        x_for_c[index] = samples[dim,it]
 
         if rstate == None:
             rstateString = ''
@@ -49,22 +52,22 @@ def LoadPlotfile(filename):
         
     pf = pymc.UqPlotfile()
     pf.Read(filename)
-    t_nwalkers = pf.NWALKERS()
-    t_ndim = pf.NDIM()
-    t_iters = 1
+    nwalkers = pf.NWALKERS()
+    ndim = pf.NDIM()
+    iters = pf.NITERS()
+    iter = pf.ITER()
 
-    rstate = cPickle.loads(pf.RSTATE())
-    iter = pf.ITER() + pf.NITERS() - 1
-
-    p0 = pf.LoadEnsemble(iter,t_iters)
+    p0 = pf.LoadEnsemble(iter,iters)
 
     ret = []
-    for walker in range(0,t_nwalkers):
-        ret.append(np.zeros(t_ndim))
-        for dim in range(0,t_ndim):
-            ret[walker][dim] = p0[walker + t_nwalkers*dim]
+    for walker in range(0,nwalkers):
+        for it in range(0,iters):
+            ret.append(np.zeros(ndim))
+            for dim in range(0,ndim):
+                index = walker + nwalkers*it + nwalkers*iters*dim
+                ret[-1][dim] = p0[index]
 
-    return ret, iter, rstate
+    return ret
 
 
 #
@@ -114,7 +117,7 @@ def lnprob(x, driver):
 
     if result > 0:
         return -np.inf
-    return -result
+    return result
 
 # Build the persistent class containing the driver object
 driver = DriverWrap()
@@ -258,6 +261,7 @@ def ffd(x,rbf,k,h):
     
     return (fxpdx - fx)/(xpdx[k]-x[k])
 
+
 # Gradient of rbf approximate likelihood
 def GradRBF(x,rbf,h):
     grad = np.matrix(np.zeros(shape=(N,1)))
@@ -290,7 +294,7 @@ def ComputeHessEvals(scaled_x,neff):
     evals = evals[-neff:]
     evecs = evecs[:,-neff:]        
 
-    L = evecs * np.diag(np.sqrt(evals))
+    L = evecs * np.diag(evals)
     L2 = np.diag(np.sqrt(1/evals)) * evecs.T
 
     return evecs, evals, L, L2
@@ -343,7 +347,7 @@ def RandomMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
 
 # linear map with RBF
 def LinearMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
-    print 'Sampling with linear maps and rbf'
+    print 'Sampling with linar maps and rbf'
     Samples = np.matrix(np.zeros(shape=(N,NOS)))
     Fo = np.matrix(np.zeros(shape=(NOS,1)))
     F_rbf = np.matrix(np.zeros(shape=(NOS,1)))
@@ -351,7 +355,7 @@ def LinearMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
 
     evecs,evals,L,L2 = ComputeHessEvals(scaled_x,neff)
     phi = xopt.fun
-    mu  = np.matrix(np.mean(scaled_x,axis=0))
+    mu  = np.matrix(xopt.x)
     
     for i in range(NOS):
         sample_oob = True
@@ -379,7 +383,7 @@ def LinearMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
 
 # linear map                                                                                             
 def LinearMap(NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
-    print 'Sampling with linear maps'
+    print 'Sampling with linar maps'
     Samples = np.matrix(np.zeros(shape=(N,NOS)))
     Fo = np.matrix(np.zeros(shape=(NOS,1)))
 
@@ -388,7 +392,7 @@ def LinearMap(NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
     for i in range(NOS):
         sample_oob = True
         while sample_oob == True:
-            Samples[:,i] = mu.T +  L*np.matrix(np.random.randn(neff,1))
+            Samples[:,i] = mu.T +  L*np.random.randn(neff,1)
             sample_good = True
             for n in range(N):
                 sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
@@ -399,226 +403,63 @@ def LinearMap(NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
 
     return Samples, Fo
 
-
-def tDist(nu,NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
-    print 'Sampling with t distribution'
-    Samples = np.matrix(np.zeros(shape=(N,NOS)))
-    Fo = np.matrix(np.zeros(shape=(NOS,1)))
-
-    evecs,evals,L,L2 = ComputeHessEvals(scaled_x,neff)
-
-    for i in range(NOS):
-        sample_oob = True
-        while sample_oob == True:
-            u = np.random.chisquare(nu)
-            Samples[:,i] = mu.T + (np.sqrt(nu/u))*(L*np.matrix(np.random.randn(neff,1)))
-            sample_good = True
-            for n in range(N):
-                sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
-            sample_oob = not sample_good
-
-        Fo[i] = ((nu+neff)/2) * np.log( 1 + F0(Samples[:,i],phi,mu.T,L2)/nu )
-        print "Sample ", i+1, " of ", NOS, ", Fo = ",Fo[i]
-
-    return Samples, Fo
+def whist(x,w,nbins):
+    xl = np.min(x)
+    xr = np.max(x)
+    dx = (xr - xl)/nbins
+    bins = np.zeros(nbins)
+    for i,xx in enumerate(x):
+        index = int(np.floor((xx - xl)/dx))
+        if index >= 0 | index < nbins:
+            bins[index] += w[i]
+    bins *= 1/dx
+    ax = np.arange(xl+dx/2,xr+dx/2,dx)
+    return ax,bins
 
 ########################################################################################################################################
 # MAIN PROGRAM
 ########################################################################################################################################
 
-# Read data
-data = np.loadtxt(initialSamples)
-N = data.shape[-1] - 1          # Number of independent variables
-M = min(data.shape[0],numInitialSamples)  # Max number of data points to use
-scales = prior_mean             # Scale values for independent data
-
-lower_bounds = np.array(driver.LowerBound())/scales
-upper_bounds = np.array(driver.UpperBound())/scales
-
-MRBF = 7000
-
-if stage == 2: # if we do two-stage sampling
-    if rank == 0:
-        print "Start two-stage sampling"  
-   
-    scaled_xCovModel = data[-M:,:N].copy() # cov model uses all
-    for i in range(M):
-        scaled_xCovModel[i] = scaled_xCovModel[i]/scales
-
-    xRBF = data[-MRBF:,:N].copy() 
-    zRBF = -np.matrix(data[-MRBF:,-1]).T.copy()
-    scaled_xRBF = np.copy(xRBF)
-    for i in range(MRBF): # rbf model uses every 100th point
-        xRBF[MRBF-i-1] =  data[(data.shape[0]-i*5-1),:N]
-        zRBF[MRBF-i-1] = -data[(data.shape[0]-i*5-1), -1]
-    for i in range(MRBF):
-        scaled_xRBF[i] = xRBF[i]/scales
-
-    # Two-stage sampling related parameters
-    # ideally you want the amp factor such that you get about NOS samples after 
-    # second stage
-    NOS1 = ampFactor * NOS #samples at first stage
-    NEffSamples = 0 # initialize effective samples after first stage (needed for parallelism)
-
-    if rank == 0:
-        # radial basis function model
-        if buildRBF == 1:
-            print "Building RBF model with ",MRBF," points"
-            p = klepto.archives.dir_archive(serialized=True, fast=True)
-            c = klepto.safe.lru_cache(cache=p)
-            MyRBF = c(inter.Rbf)
-            rbf = MyRBF(scaled_xRBF[:,0],
-                        scaled_xRBF[:,1],
-                        scaled_xRBF[:,2],
-                        scaled_xRBF[:,3],
-                        scaled_xRBF[:,4],
-                        scaled_xRBF[:,5],
-                        scaled_xRBF[:,6],
-                        scaled_xRBF[:,7],
-                        scaled_xRBF[:,8],zRBF)
-            dill.dump(rbf, open(rbfDumpFile, "w"))
-        else:
-            rbf = dill.load( open( rbfLoadFile, "rb" ))
-
-        # find min of RBF
-        if minimizeRBF == 1:
-             xopt = OptimizeRBF(rbf,lower_bounds,upper_bounds,scaled_xRBF,scales)
-             pickle.dump(xopt,open( optDumpFile, "wb" ) )
-        else:
-             xopt = pickle.load( open( optLoadFile, "rb" ) )
-
-        # sampling 
-        if whichSampler == 1:
-             Samples1,w1,Fo, = RandomMap_rbf(NOS1,N,neff,scaled_xCovModel,xopt,rbf,lower_bounds,upper_bounds)   
-        else:
-             Samples1,w1,Fo, = LinearMap_rbf(NOS1,N,neff,scaled_xCovModel,xopt,rbf,lower_bounds,upper_bounds)
-        
-        R1 = CompRN(w1)     
-        NEffSamples = EffSampleSize(w1)
-        rs_map = Resampling(w1,Samples1)
-        Samples1 = Samples1[:,rs_map]
-        Fo = Fo[rs_map]
-	
-        print ' ' 
-        print 'Effective sample size: ',NEffSamples
-        print 'Quality measure R:',R1
-        print 'Done with first stage'
-    else:
-        NEffSamples = 1 # Something reasonable
-
-elif stage == 1: # use quadratic approximation
-    x = data[-M:,:N].copy() # Independent data
-    z = -np.matrix(data[-M:, -1]).T.copy() # Dependent data, as column vector
-    scaled_x = np.copy(x)
-    for i in range(M):
-        scaled_x[i] = x[i]/scales
- 
-    mu = np.matrix(np.mean(scaled_x,axis=0))
-    phi = -data[-1,-1] #                          NOTE: Assumes input data is already sorted
-    if rank == 0:
-         Samples1, Fo = LinearMap(NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds)
-    NEffSamples = NOS
-    
-elif stage == 3: # use t-distribution
-    x = data[-M:,:N].copy() # Independent data
-    z = -np.matrix(data[-M:, -1]).T.copy()
-    scaled_x = np.copy(x)
-    for i in range(M):
-        scaled_x[i] = x[i]/scales
-    mu = np.matrix(np.mean(scaled_x,axis=0))
-    phi = -data[-1,-1]
-    nu = 1
-    if rank == 0:
-         Samples1, Fo = tDist(nu,NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds)
-    NEffSamples = NOS
-
-elif stage == 4: # use log transformation on some variables
-    x = data[-M:,:N].copy() # Independent data 
-    z = -np.matrix(data[-M:, -1]).T.copy() # Dependent data, as column vector
-    scaled_x = np.copy(x)
-    for i in range(M):
-        scaled_x[i] = x[i]/scales
-
-    scaled_x[:,8]=np.log(scaled_x[:,8])
-    np.shape(scaled_x[:,8])
-
-    mu = np.matrix(np.mean(scaled_x,axis=0))
-    phi = -data[-1,-1]
-    if rank == 0:
-        print 'Tranformed a few variables with log'
-        Samples1, Fo = LinearMap(NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds)
-        Samples1[8,:]=np.exp(Samples1[8,:])
-    
-    NEffSamples = NOS
-   
-
-
-comm.barrier()
-NOS = np.int(NEffSamples)
-NOSa = np.ones(1, dtype=int)
-NOSa[0] = NOS
-comm.Bcast([NOSa, MPI.INT], root=0)
-NOS = NOSa[0]
-    
-w = np.array(np.zeros(shape=(NOS,1)))
-Samples = np.matrix(np.zeros(shape=(N,NOS)))
-
-for i in range(NOS):
-    if rank == 0:
-        if stage == 2:
-            p = int(np.random.uniform(0,NOS1,1))
-            Samples[:,i] =  np.multiply(Samples1[:,p].T,np.matrix(scales)).T
-        else:
-            Samples[:,i] =  np.multiply(Samples1[:,i].T,np.matrix(scales)).T
-    
-if rank == 0:
-    nwalkers = 1
-    nDigits = 0
-    istart = 0
-    inum = NOS
-    filename =  outFilePrefix + "_initSamples"
-    WritePlotfile(Samples,N,filename,nwalkers,istart,inum,nDigits,None)
-    WritePlotfile(Fo.T,1,filename + "/F0",nwalkers,istart,inum,nDigits,None)
-
-sys.exit()
-
-    
 if rank == 0:
     print 'Starting to re-weight with full model'
 
-lastWritten = -1
+filename =  outFilePrefix + "_initSamples"
+Fo_file = LoadPlotfile(filename + "/F0")
+F_file = LoadPlotfile(filename + '/Ffile')
+
+F = []
+Fo = []
+for i in range(len(F_file)):
+    F.append(-F_file[i][0])
+    Fo.append(Fo_file[i][0])
+
+Samples = LoadPlotfile(filename)
+
+NOS = len(Samples)
+
+w = np.array(np.zeros(shape=(NOS,1)))
 for i in range(NOS):
-    xx = np.array(Samples[:,i].T)[0]       
-    F = lnprob(xx,driver)
     if rank == 0:
-        if F == np.inf or F == -np.inf:
+        if F[i] <= 0:
             w[i] = np.inf
         else:
             if stage == 2:
-                w[i] = Fo[p] - F
+                w[i] = Fo[p] - F[i]
             else:
-                w[i] = Fo[i] - F
-
-        if ((i==NOS-1) | (i%outFilePeriod == outFilePeriod - 1)):
-            istart = lastWritten + 1
-            inum = i - istart + 1
-            lastWritten = i
-
-            nwalkers = 1
-            nDigits = int(np.log10(NOS)) + 1
-            WritePlotfile(Samples,N,outFilePrefix,nwalkers,istart,inum,nDigits,None)
-
-            fmt = "%0"+str(nDigits)+"d"
-            filename = outFilePrefix + '_' + (fmt % istart) + '_' + (fmt % lastWritten)
-            pickle.dump(w[istart:lastWritten],open(filename+"/w.pic", "wb" ) )
-
-            lastWritten = istart+inum-1
-    
+                w[i] = Fo[i] - F[i]
+                
+import matplotlib.pyplot as plt
 
 if rank == 0:
+
     good_inds = np.nonzero(np.isinf(w)==0)[0]
     good_NOS = np.shape(good_inds)[0]
     w = w[good_inds]
+
+    plt.plot(w)
+    plt.show()
+    
+    Samples = np.matrix(Samples).T
     Samples = Samples[:,good_inds]
     wmax = np.amax(w)
     
@@ -628,33 +469,25 @@ if rank == 0:
         else:
             w[i] = np.exp(w[i] - wmax)
 
+    plt.plot(w)
+    plt.show()
+    
     wsum = np.sum(w)
     w = w/wsum
+
+    #plt.plot(w*good_NOS)
+    #plt.show()
+
+    #nbins = 100
+    #axw,binsw = whist(w,np.ones(good_NOS)/float(good_NOS),nbins)
+    #plt.plot(axw,binsw,'b')
+    #plt.show()
     
-    if stage == 2:
-        print 'Done with second stage'
-    else:
-        print 'Done sampling'
-
+    Samples = np.matrix(Samples).T
+    N = Samples.shape[0]
+    
     print 'Effective sample size: ',EffSampleSize(w)
-    R = CompR(w)
+    R = CompRN(w)
     print 'Quality measure R:',R
-
-    rs_map = Resampling(w,Samples)
-    Xrs = Samples[:,rs_map]
-
-    nwalkers = 1
-    if good_NOS > 0:
-         nDigits = int(np.log10(good_NOS)) + 1
-         WritePlotfile(Xrs,N,outFilePrefix+'_RS',nwalkers,0,good_NOS,nDigits,None)
-
-         fmt = "%0"+str(nDigits)+"d"
-         lastStep = good_NOS - 1
-         filename = outFilePrefix + '_RS_' + (fmt % 0) + '_' + (fmt % (good_NOS-1))
-         pickle.dump(w,open(filename+"/w.pic", "wb" ) )
-         pickle.dump(R,open(filename+"/R.pic", "wb" ) )
-
-
-
 
 
