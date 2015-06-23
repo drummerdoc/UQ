@@ -26,10 +26,62 @@ from is_tools import *
 
 from scipy.cluster.vq import kmeans2
 
+from numpy import linalg as LA
+
 # Load experimental data
 print "Scanning data files for experiments matching criteria"
 data = get_fickian_datasets.get_datasets()
 
+
+# For computing Hessian via finite difference
+def mixed_partial_centered(fcn, X, i, j, fcnargs=None):
+    N = len(X)
+    eps = 1.0e-5
+
+    XpIpJ = copy.deepcopy(X)
+    XpImJ = copy.deepcopy(X)
+    XmIpJ = copy.deepcopy(X)
+    XmImJ = copy.deepcopy(X)
+
+    hI = np.abs(X[i]) * eps
+    hJ = np.abs(X[j]) * eps
+
+    XpIpJ[i] += hI
+    XpIpJ[j] += hJ
+    
+    XpImJ[i] += hI
+    XpImJ[j] -= hJ
+    
+    XmIpJ[i] -= hI
+    XmIpJ[j] += hJ
+    
+    XmImJ[i] -= hI
+    XmImJ[j] -= hJ
+    
+    fpIpJ = fcn(XpIpJ, *fcnargs);
+    fpImJ = fcn(XpImJ, *fcnargs);
+    fmIpJ = fcn(XmIpJ, *fcnargs);
+    fmImJ = fcn(XmImJ, *fcnargs);
+   
+    # print "H FD values:", fpIpJ, fpImJ, fmIpJ, fmImJ, "; deltas=", hI, hJ
+    return 1.0/(4.0*hI*hJ) * ( fpIpJ - fpImJ - fmIpJ + fmImJ );  
+
+
+
+def FD_Hessian(fcn, X, fcnargs=None):
+    N = len(X)
+    H = np.zeros([N,N])
+
+    for i in range(N):
+        for j in range(N):
+            H[i,j] = -1
+        for j in range(i,N):
+            H[i,j] = -mixed_partial_centered(fcn, X, i, j, fcnargs=fcnargs)
+    for i in range(N):
+        for j in range(i,N):
+            H[j,i] = H[i,j]
+
+    return H
 
 # Error function for global fitting
 def esq_global(par, data):
@@ -50,6 +102,7 @@ def lnlike(par, data):
                                data[i].thickness, *par)
         inv_sigma2 = 1/(data[i].sigma * data[i].sigma)
         L = L - 0.5 * np.sum((fsim - data[i].js)**2 * inv_sigma2)
+        #L = L - 0.5 * np.sum((fsim - data[i].js)**2 * inv_sigma2) / len(fsim)
     return L
 
 
@@ -67,7 +120,8 @@ def get_params_global(data):
     # First curve fit a single experiment to get a decent
     # initial guess for the global fit
     # parms = (2.0e-9*1e-4, 9.0e-3/1e-4, 1.0, 1.0)
-    parms = 1e-7, 1e-3, -1000, 1000
+    #parms = 1e-7, 1e-3, -1000, 1000
+    parms = 1e-7, 1e-3, -3000, 3000
     i = 1
     pg, pcovg = curve_fit(lambda times, *p0: wvtr_vec_global(data[i].ts,
                           data[i].RH, data[i].temp, data[i].thickness, *p0),
@@ -76,8 +130,8 @@ def get_params_global(data):
 
     # This is global fit using function above
     eg = lambda par: esq_global(par, data)
-    pg2 = minimize(eg, pg, method='Nelder-Mead', tol=1.0e-1,
-                   options={"maxfev": 10000, "maxiter": 10000})
+    pg2 = minimize(eg, pg, method='Nelder-Mead', tol=1.0e-4,
+                   options={"maxfev": 100000, "maxiter": 100000})
 
     print "Global fitting residual: ", eg(pg2.x)
     return pg2.x
@@ -94,7 +148,7 @@ def broad_prior():
     ... even range_scale = 2.0 seems to not work so well
     """
 
-    magnitude = [1e-7, 1e-3, 1e3, 1e3]
+    magnitude = [1e-6, 1e-3, 1e3, 1e3]
     sign = [1, 1, -1, 1]
     range_scale = 10.0
     lower_bounds = np.zeros_like(magnitude)
@@ -156,7 +210,7 @@ def get_walkers_cluster(N, bounds_fcn, samples=None, data=None):
         cand_samp = samples[cand_samp_idx]
 
         # Cluster this subset of samples and evaluate likelihood
-        k = N 
+        k = N  + 8
         cents, lab = kmeans2(cand_samp, k)
         csps = []
         for cs in cents:
@@ -169,14 +223,14 @@ def get_walkers_cluster(N, bounds_fcn, samples=None, data=None):
         srt_samp = map(cents.__getitem__, srt_idx)
 
         # Keep first N (implicitly, dropping N-k clusters)
-        walkers = srt_samp[0:N/2]
+        walkers = srt_samp[0:N]
         i = 0
-        M = samples.shape[1]
-        for w in srt_samp[0:N/2]:
-            w2 = np.zeros(M)
-            for j in range(M):
-                w2[j] = w[j] + np.random.normal(scale=np.abs(w[j])*.01)
-            walkers.append(w2)
+        #M = samples.shape[1]
+        #for w in srt_samp[0:N/2]:
+        #    w2 = np.zeros(M)
+        #    for j in range(M):
+        #        w2[j] = w[j] + np.random.normal(scale=np.abs(w[j])*.01)
+        #    walkers.append(w2)
 
         for w in walkers:
             pp = lnlike(w, data)
@@ -251,9 +305,8 @@ if __name__ == "__main__":
     # First MLE fitting stuff - sampling below --------------------------
 
     # Hack data so that experiment 0 and 1 has larger variance than normal
+    #data_3 = copy.deepcopy(data[0:3])
     data = copy.deepcopy(data[0:2])
-    data[0].sigma = data[0].sigma  # *10
-    data[1].sigma = data[1].sigma  # *10
 
     # Plot out raw data along with error bars and MLE results
     nplots = len(data)
@@ -299,6 +352,64 @@ if __name__ == "__main__":
     p2 = lnlike(pg_2step, data)
     print "   Likelihood for fits: 2step=", p2, " 1step=", p1
 
+    # Evaluate Hessian by FD
+    FDH = FD_Hessian(lnlike, pg_2step, fcnargs = [data]) 
+    print "Hesssian: ", FDH
+    Hinv = LA.inv(FDH)
+    evals,evecs = LA.eigh(Hinv)
+    print "evals:", evals
+    print "evecs:", evecs
+
+    samples = np.random.multivariate_normal(pg_2step, Hinv, 50000)
+    fig = triangle.corner(samples, labels=["D0", "K0", "D1", "K1"])
+    plt.savefig("triangle_Hinv.png")
+    plt.close()
+
+# Now reweight the samples taking into account the likelihood of exp. 3
+    F0 = np.zeros(len(samples))
+    F1 = np.zeros(len(samples))
+    w = np.zeros(len(samples))
+    from scipy.stats import multivariate_normal
+    NOS = len(samples)
+    i = 0
+    for s in samples:
+        sl = list(s)
+        F0[i] = np.log(multivariate_normal.pdf(s, mean=pg_1step, cov=Hinv, allow_singular=True))
+        F1[i] = lnlike(sl, data)
+        if(np.isnan(F1[i])):
+            F1[i] = -np.inf
+        w[i] = -F0[i] + F1[i]
+        i += 1
+
+    fig, (ax1, ax2, ax3) = plt.subplots(3,1)
+
+    wmax = np.amax(w)
+    print "F1 max: ", np.amax(F1)
+    for i in range(NOS):
+        w[i] = np.exp(w[i] - wmax)
+
+    ax1.plot(F0, 'go')
+    ax2.plot(F1, 'b.')
+    ax3.plot(w, 'mx')
+    plt.show()
+
+
+    wsum = np.sum(w)
+    w = w/wsum
+    print "w sum = ", np.sum(w)
+    
+    print 'Effective sample size: ',EffSampleSize(w)
+    print 'Quality measure R:',CompR(w)
+    print "samples.shape = ", samples.shape
+    rs_map = Resampling(w,samples.transpose())
+    Xrs = samples[rs_map,:]
+
+    fig = triangle.corner(Xrs, labels=["D0", "K0", "D1", "K1"])
+    plt.savefig("triangle_RS.png")
+    plt.close()
+
+
+ 
     # Plot the two fitting options
     ffit, axfit = plt.subplots(1, 1)
     axfit.plot(np.array(np.array(temps)+273.15), pfits[:, 0], 'bx')
@@ -401,9 +512,9 @@ if __name__ == "__main__":
 
 # Sampling starts here ----------------------------------------------
     do_global = False  # This was `step 1'
-    do_global_walkers_prior = True
+    do_global_walkers_prior = False
     do_independent = False
-    do_sequential_prior = True
+    do_sequential_prior = False
     do_implicit_sampling = False
 
     p25s = []
@@ -413,9 +524,9 @@ if __name__ == "__main__":
     # Sampling - for each experiment sequentially, using global model
     ndim, nwalkers = 4, 8
 
-    nSamplesTotal = 50000
-    nSamplesBurnin = 10000
-    ensemble_std = 0.05
+    nSamplesTotal = 5000
+    nSamplesBurnin = 1000
+    ensemble_std = 0.01
 
     if(do_global):
         samples = []
