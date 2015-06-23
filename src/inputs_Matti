@@ -1,17 +1,18 @@
 #which_sampler=linear_map
 nwalkers     = 1
-maxStep       = 100       # Number of MCMC samples for each walker/number of (requested) samples for (two-stage) implicit sampling
-outFilePrefix = "Results" # Prefix to output file names, to be appended with step range
-outFilePeriod = 3         # Number of samples between calls to write data
+maxStep       = 300000   # Number of MCMC samples for each walker/number of (requested) samples for (two-stage) implicit sampling
+outFilePrefix = "ResultsT" # Prefix to output file names, to be appended with step range
+outFilePeriod = 1000000   # Number of samples between calls to write data
 seed          = 17        # seed, used if no restart file provided
 #restartFile = Results_00_10
 
 # IMPLICIT SAMPLING
 ###################################################
 num_initial_samples = 7000 # how many points are used to generate the quadratic/rbf approximation?
+num_initial_samples = 130642 # how many points are used to generate the quadratic/rbf approximation?
 		      	   # we assume these come ordered by likelihood
 
-stage = 2 		   # 1 - "CovModel" -> find mean/variance from trial points  
+stage = 3 		   # 1 - "CovModel" -> find mean/variance from trial points  
 			   # 2 - construct rbf model to generate samples
 
 ampFactor = 2   	   # only if stage == 2: you want maxStep samples,
@@ -43,8 +44,17 @@ whichSampler = 0	   # only if stage == 2
 neff = 9 		   # Number of eigenvalues of Hessian at the minimum to keep
 ###################################################
 
+#12
+#stateL = 3.46861599308e+16 66348.2612954 118085774.543 6.21381407353e+12 9.66641491718e+19 637651.252483 9.50134293125e+13 1.16676525184e+13 1.8782709429e+13
+#stateR = 3.30986325388e+16 71190.5542776 117854272.577 3.31215195907e+12 9.11628407693e+19 616330.748884 8.76198886872e+13 1.25976811237e+13 1.91144943484e+13 
 
+#23
+#stateL = 3.30986325388e+16 71190.5542776 117854272.577 3.31215195907e+12 9.11628407693e+19 616330.748884 8.76198886872e+13 1.25976811237e+13 1.91144943484e+13 
+#stateR = 3.37539008232e+16 71888.242486 114693759.93 4.72187222772e+12 8.98190544086e+19 622197.134869 8.76676706372e+13 1.89478193522e+13 1.84813184708e+13
 
+#13
+#stateL = 3.46861599308e+16 66348.2612954 118085774.543 6.21381407353e+12 9.66641491718e+19 637651.252483 9.50134293125e+13 1.16676525184e+13 1.8782709429e+13
+#stateR = 3.37539008232e+16 71888.242486 114693759.93 4.72187222772e+12 8.98190544086e+19 622197.134869 8.76676706372e+13 1.89478193522e+13 1.84813184708e+13
 
 ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12
