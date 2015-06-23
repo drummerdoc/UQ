@@ -28,10 +28,10 @@ struct ParameterManager
 
   std::pair<bool,Real> ComputePrior(const std::vector<Real>& params) const;
 
-  ChemDriver::Parameter& operator[](int i);
-  const ChemDriver::Parameter& operator[](int i) const;
-
-  Real TypicalValue(int i);
+  void SetParameter(int i, Real val);
+  Real GetParameterCurrent(int i) const;
+  Real GetParameterTypical(int i) const;
+  Real GetParameterDefault(int i) const;
 
   bool prior_stats_initialized;
   PArray<ChemDriver::Parameter> active_parameters; // The set of active parameters
@@ -52,27 +52,8 @@ struct ParameterManager
   std::vector<Real> ensemble_std;
   std::vector<Real> lower_bound;
   std::vector<Real> upper_bound;
+
+  std::map<int,PArray<ChemDriver::Parameter> > dependent_parameters;
 };
-
-inline
-ChemDriver::Parameter&
-ParameterManager::operator[](int i)
-{
-  return active_parameters[i];
-}
-
-inline
-const ChemDriver::Parameter&
-ParameterManager::operator[](int i) const
-{
-  return active_parameters[i];
-}
-
-inline
-Real
-ParameterManager::TypicalValue(int i)
-{
-  return active_parameters[i].DefaultValue();
-}
 
 #endif // ParameterManager

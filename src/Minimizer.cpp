@@ -102,8 +102,8 @@ Real mixed_partial_centered (void* p, const std::vector<Real>& X, int i, int j)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
 
-  Real typI = std::max(s->parameter_manager.TypicalValue(i), std::abs(X[i]));
-  Real typJ = std::max(s->parameter_manager.TypicalValue(j), std::abs(X[j]));
+  Real typI = std::max(s->parameter_manager.GetParameterTypical(i), std::abs(X[i]));
+  Real typJ = std::max(s->parameter_manager.GetParameterTypical(j), std::abs(X[j]));
 
   Real hI = typI * s->param_eps * 10;
   Real hJ = typJ * s->param_eps * 10;
@@ -297,7 +297,7 @@ der_cfd(void* p, const std::vector<Real>& X, int K) {
     xdX2[ii] = X[ii];
   }
                 
-  Real typ = std::max(s->parameter_manager.TypicalValue(K), std::abs(X[K]));
+  Real typ = std::max(s->parameter_manager.GetParameterTypical(K), std::abs(X[K]));
   Real h = typ * s->param_eps;
 
   xdX1[K] += h;
@@ -331,7 +331,7 @@ der_ffd(void* p, const std::vector<Real>& X, int K) {
     xdX[ii]  = X[ii];
   }
 
-  Real typ = std::max(s->parameter_manager.TypicalValue(K), std::abs(xdX[K]));
+  Real typ = std::max(s->parameter_manager.GetParameterTypical(K), std::abs(xdX[K]));
   Real h = typ * s->param_eps;
 
   xdX[K] += h;
@@ -657,7 +657,7 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
 #elif 1
     for (int i=0; i<n; ++i) {
         
-      Real typ = std::max(s->parameter_manager.TypicalValue(i), std::abs(pvals[i]));
+      Real typ = std::max(s->parameter_manager.GetParameterTypical(i), std::abs(pvals[i]));
       Real h = typ * s->param_eps;
 
       pvals[i] = x[i] + h;
@@ -800,7 +800,7 @@ GeneralMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<
   int MODE = 2;
   if (MODE==2) {
     for (int i=0; i<num_vals; ++i) {
-      DIAG[i] = std::abs(1/s->parameter_manager[i].DefaultValue());
+      DIAG[i] = std::abs(1/s->parameter_manager.GetParameterDefault(i));
     }
   }
   Real EPSFCN=1e-6;
@@ -856,7 +856,7 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   int mode = 2;
   if (mode==2) {
     for (int i=0; i<n; ++i) {
-      diag[i] = std::abs(1/s->parameter_manager[i].DefaultValue());
+      diag[i] = std::abs(1/s->parameter_manager.GetParameterDefault(i));
     }
   }
 
@@ -906,7 +906,7 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   }
 
   for (int i=0; i<soln.size(); ++i) {
-    s->parameter_manager[i] = soln[i];      
+    s->parameter_manager.SetParameter(i,soln[i]);
   }
 
   if (info <=0 || info>4) {
@@ -995,7 +995,7 @@ NLLSMinimizer::minimize(void *p, const std::vector<Real>& guess, std::vector<Rea
   int mode = 2;
   if (mode==2) {
     for (int i=0; i<n; ++i) {
-      diag[i] = std::abs(1/s->parameter_manager[i].DefaultValue());
+      diag[i] = std::abs(1/s->parameter_manager.GetParameter.DefaultValue(i));
     }
   }
   int nprint = 1;

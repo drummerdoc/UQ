@@ -44,7 +44,7 @@ funcF(void* p, const std::vector<Real>& pvals)
   Real Fb = s->expt_manager.ComputeLikelihood(dvals);
   Real F = Fa.second + Fb;
 
-#if 0
+#if 1
   std::cout << "X = { ";
   for(int i=0; i<pvals.size(); i++){
     std::cout << pvals[i] << " ";

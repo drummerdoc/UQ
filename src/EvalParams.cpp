@@ -19,7 +19,15 @@ int
 main (int   argc,
       char* argv[])
 {
-  Driver driver(argc,argv);
+#ifdef BL_USE_MPI
+  MPI_Init (&argc, &argv);
+  Driver driver(argc,argv,1);
+  driver.SetComm(MPI_COMM_WORLD);
+  driver.init(argc,argv);
+#else
+  Driver driver(argc,argv,0);
+#endif
+
   ParameterManager& param_manager = driver.mystruct->parameter_manager;
 
   std::cout << param_manager.TrueParameters() << std::endl;
@@ -29,17 +37,17 @@ main (int   argc,
 
   std::cout << "Default values: " << std::endl;
   for (int i=0, End=active_parameters.size(); i<End; ++i) {
-    std::cout << "i,v: " << i << ", " << param_manager[i] << std::endl;
+    std::cout << "i,v: " << i << ", " << param_manager.GetParameterCurrent(i) << std::endl;
   }
 
-  // for (int i=0, End=active_parameters.size(); i<End; ++i) {
-  //   param_manager[i] = 7;
-  // }
+  for (int i=0, End=active_parameters.size(); i<End; ++i) {
+    param_manager.SetParameter(i,7);
+  }
 
-  // std::cout << "New values: " << std::endl;
-  // for (int i=0, End=active_parameters.size(); i<End; ++i) {
-  //   std::cout << "i,v: " << i << ", " << param_manager[i] << std::endl;
-  // }
+  std::cout << "New values: " << std::endl;
+  for (int i=0, End=active_parameters.size(); i<End; ++i) {
+    std::cout << "i,v: " << i << ", " << param_manager.GetParameterCurrent(i) << std::endl;
+  }
 
 }
 

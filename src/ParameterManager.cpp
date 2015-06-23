@@ -44,6 +44,8 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
   std::vector<Real> prior_std(np);
   std::vector<Real> ensemble_std(np);
 
+  bool requires_sync = false; // If there are dependent parameters, we will need to sync them before continuing
+
   for (int i=0; i<np; ++i) {
     std::string prefix = parameters[i];
     ParmParse ppp(prefix.c_str());
@@ -66,6 +68,38 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
     }
     AddParameter(reaction_id,it->second,id);
 
+    int ndp = ppp.countval("dependent_parameters");
+    if (ndp > 0) {
+      dependent_parameters[i].resize(ndp);
+      Array<std::string> dpnames; ppp.getarr("dependent_parameters",dpnames,0,ndp);
+      for (int j=0; j<ndp; ++j) {
+
+	std::string dplist = prefix + ".dependent_parameters." + dpnames[j];
+	ParmParse pppd(dplist.c_str());
+
+	int dpreaction_id; pppd.get("reaction_id",dpreaction_id);
+	if (dpreaction_id<0 || dpreaction_id > cd.numReactions()) {
+	  BoxLib::Abort("Dependent reaction ID invalid");
+	}
+
+	std::string dptype; pppd.get("type",dptype);
+	std::map<std::string,REACTION_PARAMETER>::const_iterator it = PTypeMap.find(dptype);
+	if (it == PTypeMap.end()) {
+	  BoxLib::Abort("Unrecognized dependent reaction parameter");
+	}
+
+	int did = -1;
+	if (dptype == "THIRD_BODY") {
+	  std::string dtb_name; pppd.get("tb_name",dtb_name);
+	  did = cd.index(dtb_name);
+	  BL_ASSERT(id >= 0);
+	}
+
+	dependent_parameters[i].set(j, new ChemDriver::Parameter(dpreaction_id,it->second,did));
+	requires_sync = true;
+      }
+    }
+
     ppp.get("prior_mean",prior_mean[i]);
     ppp.get("prior_std",prior_std[i]);
     ppp.get("ensemble_std",ensemble_std[i]);
@@ -73,6 +107,21 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
     ppp.get("upper_bound",upper_bound[i]);
   }
   SetStatsForPrior(prior_mean,prior_std, ensemble_std,lower_bound,upper_bound);
+
+  if (requires_sync) {
+    for (int i=0; i<active_parameters.size(); ++i) {
+      SetParameter(i,GetParameterDefault(i));
+    }
+
+    for (int i=0; i<active_parameters.size(); ++i) {
+      for (int j=0; j<dependent_parameters[i].size(); ++j) {
+	if (j==0) {
+	  std::cout << "For parameter: " << active_parameters[i] << " " << std::endl;
+	}
+	std::cout << "    added dependent parameter: " << dependent_parameters[i][j] << std::endl;
+      }
+    }
+  }
 }
 
 // Add parameter to active set, return default value
@@ -97,10 +146,41 @@ ParameterManager::NumParams() const
 }
 
 void
+ParameterManager::SetParameter(int i, Real val)
+{
+  BL_ASSERT(i>=0 && i<active_parameters.size());
+  active_parameters[i].Value() = val;
+  for (int j=0; j<dependent_parameters[i].size(); ++j) {
+    dependent_parameters[i][j].Value() = val;
+  }
+}
+
+Real
+ParameterManager::GetParameterCurrent(int i) const
+{
+  BL_ASSERT(i>=0 && i<active_parameters.size());
+  return active_parameters[i].Value();
+}
+
+Real
+ParameterManager::GetParameterDefault(int i) const
+{
+  BL_ASSERT(i>=0 && i<active_parameters.size());
+  return active_parameters[i].DefaultValue();
+}
+
+Real
+ParameterManager::GetParameterTypical(int i) const
+{
+  BL_ASSERT(i>=0 && i<active_parameters.size());
+  return active_parameters[i].DefaultValue();
+}
+
+void
 ParameterManager::ResetParametersToDefault()
 {
   for (int i=0, End=active_parameters.size(); i<End; ++i) {
-    active_parameters[i] = active_parameters[i].DefaultValue();
+    SetParameter(i,GetParameterDefault(i));
   }
 }
 
@@ -108,8 +188,10 @@ void
 ParameterManager::Clear()
 {
   ResetParametersToDefault();
+  for (int i=0; i<active_parameters.size(); ++i) {
+    dependent_parameters[i].clear();
+  }
   active_parameters.clear();
-  active_parameters.resize(0);
   prior_stats_initialized = false;
 }
 
