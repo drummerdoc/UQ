@@ -49,23 +49,22 @@ def LoadPlotfile(filename):
         
     pf = pymc.UqPlotfile()
     pf.Read(filename)
-    t_nwalkers = pf.NWALKERS()
-    t_ndim = pf.NDIM()
-    t_iters = 1
+    nwalkers = pf.NWALKERS()
+    ndim = pf.NDIM()
+    iters = pf.NITERS()
+    iter = pf.ITER()
 
-    rstate = cPickle.loads(pf.RSTATE())
-    iter = pf.ITER() + pf.NITERS() - 1
-
-    p0 = pf.LoadEnsemble(iter,t_iters)
+    p0 = pf.LoadEnsemble(iter,iters)
 
     ret = []
-    for walker in range(0,t_nwalkers):
-        ret.append(np.zeros(t_ndim))
-        for dim in range(0,t_ndim):
-            ret[walker][dim] = p0[walker + t_nwalkers*dim]
+    for walker in range(0,nwalkers):
+        for it in range(0,iters):
+            ret.append(np.zeros(ndim))
+            for dim in range(0,ndim):
+                index = walker + nwalkers*it + nwalkers*iters*dim
+                ret[-1][dim] = p0[index]
 
-    return ret, iter, rstate
-
+    return ret
 
 #
 # Simple driver to enable persistent static class wrapped around driver object
@@ -400,7 +399,7 @@ def LinearMap(NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
     return Samples, Fo
 
 
-def tDist(nu,NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
+def tDist(nu,NOS,N,neff,scaled_x,mu,lower_bounds,upper_bounds):
     print 'Sampling with t distribution'
     Samples = np.matrix(np.zeros(shape=(N,NOS)))
     Fo = np.matrix(np.zeros(shape=(NOS,1)))
@@ -417,8 +416,8 @@ def tDist(nu,NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
                 sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
             sample_oob = not sample_good
 
-        Fo[i] = ((nu+neff)/2) * np.log( 1 + F0(Samples[:,i],phi,mu.T,L2)/nu )
-        print "Sample ", i+1, " of ", NOS, ", Fo = ",Fo[i]
+        Fo[i] = ((nu+neff)/2) * np.log( 1 + F0(Samples[:,i],0,mu.T,L2)/nu )
+        #print "Sample ", i+1, " of ", NOS, ", Fo = ",Fo[i]
 
     return Samples, Fo
 
@@ -426,12 +425,29 @@ def tDist(nu,NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
 # MAIN PROGRAM
 ########################################################################################################################################
 
+np.random.seed(seed=seed)
+
 # Read data
 data = np.loadtxt(initialSamples)
 N = data.shape[-1] - 1          # Number of independent variables
 M = min(data.shape[0],numInitialSamples)  # Max number of data points to use
-scales = prior_mean             # Scale values for independent data
 
+use_plt = 1
+if use_plt == 1:
+    Samples1 = LoadPlotfile('2POINTS/hist.sorted.plt')
+    N1 = Samples1[0].shape[0]
+    M1 = len(Samples1)
+    data1 = np.array(np.zeros(shape=(len(Samples1),Samples1[0].shape[0]+1)))
+    Samples1.reverse() # reversed to agree with original data
+    for i,v in enumerate(Samples1):
+        data1[i,:-1] = v
+        #data1[i,-1] = data[i,-1]
+        v1 = data1[i,:-1] - data[i,:-1]
+        if np.dot(v1,v1) != 0:
+            print i,v1,np.dot(v1,v1)
+    data = data1
+
+scales = prior_mean             # Scale values for independent data
 lower_bounds = np.array(driver.LowerBound())/scales
 upper_bounds = np.array(driver.UpperBound())/scales
 
@@ -526,10 +542,9 @@ elif stage == 3: # use t-distribution
     for i in range(M):
         scaled_x[i] = x[i]/scales
     mu = np.matrix(np.mean(scaled_x,axis=0))
-    phi = -data[-1,-1]
-    nu = 1
+    nu = 3
     if rank == 0:
-         Samples1, Fo = tDist(nu,NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds)
+         Samples1, Fo = tDist(nu,NOS,N,neff,scaled_x,mu,lower_bounds,upper_bounds)
     NEffSamples = NOS
 
 elif stage == 4: # use log transformation on some variables
@@ -653,8 +668,4 @@ if rank == 0:
          filename = outFilePrefix + '_RS_' + (fmt % 0) + '_' + (fmt % (good_NOS-1))
          pickle.dump(w,open(filename+"/w.pic", "wb" ) )
          pickle.dump(R,open(filename+"/R.pic", "wb" ) )
-
-
-
-
 

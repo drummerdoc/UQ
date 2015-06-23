@@ -118,7 +118,7 @@ UqPlotfile::ReadSamples(const std::string& filename)
   }
 
   if (ParallelDescriptor::MyProc()>=0) {
-    ParallelDescriptor::Bcast(m_fab.dataPtr(),m_fab.box().numPts());
+    ParallelDescriptor::Bcast(m_fab.dataPtr(),m_fab.box().numPts()*m_ndim);
   }
 }
 
