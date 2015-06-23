@@ -87,7 +87,7 @@ UqPlotfile::WriteSamples(const std::string& filename) const
 {
   if (ioproc) {
     std::ofstream ofs;
-    ofs.open(DataName(filename).c_str());
+    ofs.open(DataName(filename).c_str(),std::ios::out);
     m_fab.writeOn(ofs);
     ofs.close();
   }

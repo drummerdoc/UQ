@@ -28,18 +28,8 @@ funcF(void* p, const std::vector<Real>& pvals)
   MINPACKstruct *s = (MINPACKstruct*)(p);
   s->ResizeWork();
 
-  Real* ptr = const_cast<Real*>(&(pvals[0]));
-  ParallelDescriptor::Bcast(ptr,pvals.size(),ParallelDescriptor::IOProcessorNumber());
-
   // Get prior component of likelihood
   std::pair<bool,Real> Fa = s->parameter_manager.ComputePrior(pvals);
-
-  bool all_and = Fa.first;
-  ParallelDescriptor::ReduceBoolAnd(all_and);
-  if (all_and != Fa.first) {
-      std::cout << "Parameters not compatible across procs" << std::endl;
-      BoxLib::Abort();
-  }
 
   if (!Fa.first) {
     return BAD_SAMPLE_FLAG; // Parameter OOB
@@ -52,28 +42,39 @@ funcF(void* p, const std::vector<Real>& pvals)
     return BAD_DATA_FLAG; // Experiment evaluator failed
   }
   Real Fb = s->expt_manager.ComputeLikelihood(dvals);
+  Real F = Fa.second + Fb;
 
-  // Absolutely guarantee that all processors have the same result
-  Array<Real> data(2);
-  data[0] = Fa.second;
-  data[1] = Fb;
-  ParallelDescriptor::Bcast(data.dataPtr(),data.size(),ParallelDescriptor::IOProcessorNumber());
-
-  // Return sum of pieces
-  Real F = data[0] + data[1];
-
-  if (ParallelDescriptor::IOProcessor()) {
-
-    std::cout << "X = { ";
-    for(int i=0; i<pvals.size(); i++){
-      std::cout << pvals[i] << " ";
-    }
-    std::cout << "}, D = { ";
-    for(int i=0; i<s->expt_manager.NumExptData(); i++){
-      std::cout << dvals[i] << " ";
-    }
-    std::cout << "}, F = " << F << std::endl;
+#if 0
+  std::cout << "X = { ";
+  for(int i=0; i<pvals.size(); i++){
+    std::cout << pvals[i] << " ";
   }
+  std::cout << "}, D = { ";
+  for(int i=0; i<s->expt_manager.NumExptData(); i++){
+    std::cout << dvals[i] << " ";
+  }
+  std::cout << "}, F = " << F << std::endl;
+#endif
+
+#if 0
+  std::cout << "X = { ";
+  for(int i=0; i<pvals.size(); i++){
+    std::cout << pvals[i] << " ";
+  }
+  std::cout << "}, D = { ";
+  for(int i=0; i<s->expt_manager.NumExptData(); i++){
+    std::cout << dvals[i] << " ";
+  }
+
+  const std::vector<Real>& data = s->expt_manager.TrueDataWithObservationNoise();
+  const std::vector<Real>& obs_std = s->expt_manager.ObservationSTD();
+
+  std::cout << "}, S = { ";
+  for(int i=0; i<s->expt_manager.NumExptData(); i++){
+    std::cout << (data[i] - dvals[i])/obs_std[i] << " ";
+  }
+  std::cout << "}, F = " << F << std::endl;
+#endif
 
   return F;
 }

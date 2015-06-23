@@ -105,8 +105,8 @@ main (int   argc,
       pf.Write(init_samples_file);
     }
 
-    if (pp.countval("init_samples_file" > 0) ) {
-      std::string init_samples_file = pp.get("init_samples_file",init_samples_file);
+    if (pp.countval("init_samples_file") > 0 ) {
+      std::string init_samples_file; pp.get("init_samples_file",init_samples_file);
       if (ioproc) {
 	std::cout << "Writing initial samples to: " << init_samples_file << std::endl;
       }
@@ -227,7 +227,9 @@ main (int   argc,
     if (pp.countval("hessianInFile")) {
       pp.get("hessianInFile",hessianInFile); 
       std::cout << "      Getting Hessian from file: " << hessianInFile << std::endl;
-      H = readHessian(hessianInFile);
+      std::ifstream hessianIS(hessianInFile.c_str());
+      H = readHessian(hessianIS);
+      hessianIS.close();
     }
     else {
       if (fd_Hessian) {
@@ -254,8 +256,10 @@ main (int   argc,
       pp.get("hessianOutFile",hessianOutFile); 
       if (ioproc) {
 	std::cout << "Writing Hessian to " << hessianOutFile << std::endl;
+	std::ofstream hessianOS(hessianOutFile.c_str());
+	writeHessian(H,hessianOS);
+	hessianOS.close();
       }
-      writeHessian(H,hessianOutFile);
     }
 
     InvSqrtH = Minimizer::InvSqrt((void*)driver.mystruct, H);

@@ -12,7 +12,8 @@ static std::string log_folder_name_DEF = "FAILED";
 ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool _use_synthetic_data)
   : use_synthetic_data(_use_synthetic_data),
     parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0), verbose(true),
-    log_failed_cases(log_failed_cases_DEF), log_folder_name(log_folder_name_DEF)
+    log_failed_cases(log_failed_cases_DEF), log_folder_name(log_folder_name_DEF),
+    parallel_mode(PARALLELIZE_OVER_RANK)
 {
   ParmParse pp;
 
@@ -67,6 +68,12 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, boo
       }
     }
   }
+}
+
+std::string
+ExperimentManager::GetParallelModeString() const
+{
+  return (parallel_mode == PARALLELIZE_OVER_RANK ? "PARALLELIZE_OVER_RANK" : "PARALLELIZE_OVER_THREAD");
 }
 
 int
@@ -194,29 +201,74 @@ ExperimentManager::GenerateExptData()
 }
 
 bool
-ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params,
-                                            std::vector<Real>&       test_measurements)
+ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_params,
+						 std::vector<Real>&       test_measurements)
 {
+  bool ok = true;
+  bool pvtok = ok;
+  int N = expts.size();
+  Array<int> msgID(N,-1);
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic,1) firstprivate(pvtok)
+#endif
+  for (int i=0; i<N; ++i) {
+    if (pvtok) {
+      std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
+      if (!retVal.first) {
+
+	msgID[i] = retVal.second;
+
+#ifdef _OPENMP
+#pragma omp critical (exp_failed)
+#endif
+	std::cout << "Experiment " << i << " failed.  Err msg: \""
+		  << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
+      }
+
+#ifdef _OPENMP
+#pragma omp atomic capture
+#endif
+      pvtok = ok &= retVal.first;
+
+      int offset = data_offsets[i];
+      for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
+	test_measurements[offset + j] = raw_data[i][j];
+      }
+    }
+  }
+
+  if (ok) {
+    if (verbose) {
+      for (int i=0; i<expts.size(); ++i) {
+	int offset = data_offsets[i];
+	std::cout << "Experiment " << i << " (" << expt_name[i]
+		  << ") result: " << test_measurements[offset] << std::endl;
+      }
+    }
+  }
+  else {
+    if (log_failed_cases) {
+      LogFailedCases(test_params,test_measurements,msgID);
+    }
+  }
+
+  return ok;
+}
+
+bool
+ExperimentManager::EvaluateMeasurements_masterSlave(const std::vector<Real>& test_params,
+						    std::vector<Real>&       test_measurements)
+{
+  bool ok = true;
 
 #ifdef BL_USE_MPI
-// All ranks use the parameters installed in the root
-  ParallelDescriptor::Bcast(const_cast<Real*>(&test_params[0]), test_params.size(), 0);
-#endif
-
-  for (int i=0; i<test_params.size(); ++i) {
-    parameter_manager[i] = test_params[i];      
-    if (verbose && ParallelDescriptor::IOProcessor() ){
-       std::cout <<  "parameter " << i << " value " << test_params[i] << std::endl;
-     }
-
-  }
-  test_measurements.resize(NumExptData());
-
-  bool ok = true;
   int intok = -1;
   Array<int> msgID(expts.size(),-1);
 
-#ifdef BL_USE_MPI
+  // All ranks use the parameters installed in the root
+  ParallelDescriptor::Bcast(const_cast<Real*>(&test_params[0]), test_params.size(), 0);
+
   // Task parallel option over experiments - serial option follows below
   if (ParallelDescriptor::IOProcessor() && verbose){
     std::cout << "Have " << ParallelDescriptor::NProcs() << " procs " << std::endl;
@@ -255,18 +307,17 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 
       // Get command from master
       MPI_Recv(&mycommand,1, MPI_INTEGER, master, control_tag, wcomm, MPI_STATUS_IGNORE);
-      //ParallelDescriptor::Recv(&mycommand, 1, master, control_tag);
 
       // Act on commands
       if (mycommand==STOP) {
-        more_work = false;
+	more_work = false;
       }
 
       else if (mycommand==WORK) {
 
-        // After command to work needs to come instructions on what to do
-        int which_experiment = -1;
-        ParallelDescriptor::Recv(&which_experiment,1,master,data_tag);
+	// After command to work needs to come instructions on what to do
+	int which_experiment = -1;
+	ParallelDescriptor::Recv(&which_experiment,1,master,data_tag);
 
 	if (verbose) {
 	  std::cout << " Worker " << ParallelDescriptor::MyProc() << 
@@ -275,35 +326,34 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
 	}
 	expts[which_experiment].CopyData(master,ParallelDescriptor::MyProc(),extra_tag);
 
-        // Do the work
-        std::pair<bool,int> retVal = expts[which_experiment].GetMeasurements(raw_data[which_experiment]);
-        if (retVal.first) {
-          intok = 1;
-        }
-        else {
-          intok = -1;
-        }
+	// Do the work
+	std::pair<bool,int> retVal = expts[which_experiment].GetMeasurements(raw_data[which_experiment]);
+	if (retVal.first) {
+	  intok = 1;
+	}
+	else {
+	  intok = -1;
+	}
 	if (verbose) {
 	  std::cout << " Worker " << ParallelDescriptor::MyProc() << 
 	    " finished experiment number " << which_experiment << std::endl;
 	}
-        // Send back the result
-        mystatus = HAVE_RESULTS;
-        MPI_Send(&mystatus, 1, MPI_INTEGER, master, control_tag, wcomm);
-        //ParallelDescriptor::Send(&mystatus,1,master,control_tag);
+	// Send back the result
+	mystatus = HAVE_RESULTS;
+	MPI_Send(&mystatus, 1, MPI_INTEGER, master, control_tag, wcomm);
         
-        ParallelDescriptor::Send(&which_experiment,1,master,data_tag);
-        ParallelDescriptor::Send(&intok, 1, master, data_tag);
-        ParallelDescriptor::Send(&retVal.second, 1, master, data_tag);
-        ParallelDescriptor::Send(raw_data[which_experiment], master, data_tag);
-        expts[which_experiment].CopyData(ParallelDescriptor::MyProc(),master,extra_tag);
+	ParallelDescriptor::Send(&which_experiment,1,master,data_tag);
+	ParallelDescriptor::Send(&intok, 1, master, data_tag);
+	ParallelDescriptor::Send(&retVal.second, 1, master, data_tag);
+	ParallelDescriptor::Send(raw_data[which_experiment], master, data_tag);
+	expts[which_experiment].CopyData(ParallelDescriptor::MyProc(),master,extra_tag);
 	if (verbose) {
 	  std::cout << " Worker " << ParallelDescriptor::MyProc() << 
 	    " finished sending data back " << which_experiment << std::endl;
 	}
       }
       else {
-        BoxLib::Abort("Unknown command recvd");
+	BoxLib::Abort("Unknown command recvd");
       }
     } while (more_work);
 
@@ -323,64 +373,63 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
       MPI_Status status;
       int ret = MPI_Probe(MPI_ANY_SOURCE, control_tag, wcomm, &status);
       if (ret != MPI_SUCCESS) {
-          std::cout << "MPI_Probe failure " << ret << "(";
-          if (ret == MPI_ERR_COMM) {
-              std::cout << "Invalid communicator";
-          }
-          else if (ret == MPI_ERR_TAG) {
-              std::cout << "Invalid tag";
-          }
-          else if (ret == MPI_ERR_RANK) {
-              std::cout << "Invalid rank";
-          } else {
-              std::cout << "unknown";
-          }
-          std::cout << ")" << std::endl;
+	std::cout << "MPI_Probe failure " << ret << "(";
+	if (ret == MPI_ERR_COMM) {
+	  std::cout << "Invalid communicator";
+	}
+	else if (ret == MPI_ERR_TAG) {
+	  std::cout << "Invalid tag";
+	}
+	else if (ret == MPI_ERR_RANK) {
+	  std::cout << "Invalid rank";
+	} else {
+	  std::cout << "unknown";
+	}
+	std::cout << ")" << std::endl;
       }
       current_worker = status.MPI_SOURCE;
       MPI_Recv(&worker_status, 1, MPI_INTEGER, current_worker, control_tag, 
-               wcomm, MPI_STATUS_IGNORE);
+	       wcomm, MPI_STATUS_IGNORE);
 
       if (worker_status == READY) {
-        worker_command = WORK;
-        MPI_Send(&worker_command, 1, MPI_INTEGER, current_worker, control_tag, wcomm);
-       // ParallelDescriptor::Send(&worker_command,1,current_worker,control_tag);
+	worker_command = WORK;
+	MPI_Send(&worker_command, 1, MPI_INTEGER, current_worker, control_tag, wcomm);
 
-        // Delegate next experiment to this worker
-        ParallelDescriptor::Send(&Nexperiments_dispatched,1,current_worker,data_tag);
-        expts[Nexperiments_dispatched].CopyData(master,current_worker,extra_tag);
+	// Delegate next experiment to this worker
+	ParallelDescriptor::Send(&Nexperiments_dispatched,1,current_worker,data_tag);
+	expts[Nexperiments_dispatched].CopyData(master,current_worker,extra_tag);
 
-        Nexperiments_dispatched++;
+	Nexperiments_dispatched++;
 
       }
       else if (worker_status == HAVE_RESULTS) {
-        // Fetch the results
-        int exp_num;
-        ParallelDescriptor::Recv(&exp_num,1,current_worker,data_tag);
-        ParallelDescriptor::Recv( &intok, 1, current_worker, data_tag );
-        ParallelDescriptor::Recv( &msgID[exp_num], 1, current_worker, data_tag );
+	// Fetch the results
+	int exp_num;
+	ParallelDescriptor::Recv(&exp_num,1,current_worker,data_tag);
+	ParallelDescriptor::Recv( &intok, 1, current_worker, data_tag );
+	ParallelDescriptor::Recv( &msgID[exp_num], 1, current_worker, data_tag );
 
-        if (intok < 0) {
-          std::cout << "Experiment " << exp_num
-                    << " (" << ExperimentNames() [exp_num]
-                    << ") failed! Err msg: \"" << SimulatedExperiment::ErrorString(msgID[exp_num]) << "\"" << std::endl;
-          ok = false;
-        }
+	if (intok < 0) {
+	  std::cout << "Experiment " << exp_num
+		    << " (" << ExperimentNames() [exp_num]
+		    << ") failed! Err msg: \"" << SimulatedExperiment::ErrorString(msgID[exp_num]) << "\"" << std::endl;
+	  ok = false;
+	}
 
-        int n = expts[exp_num].NumMeasuredValues();
-        ParallelDescriptor::Recv( raw_data[exp_num],  current_worker, data_tag );
-        expts[exp_num].CopyData(current_worker,master, extra_tag);
+	int n = expts[exp_num].NumMeasuredValues();
+	ParallelDescriptor::Recv( raw_data[exp_num],  current_worker, data_tag );
+	expts[exp_num].CopyData(current_worker,master, extra_tag);
 
-        // Use local data about where the results go to copy the output into the 
-        // test_measurements array
-        int offset = data_offsets[exp_num];
-        for (int j=0; j<n && (intok==1); ++j) {
-          test_measurements[offset + j] = raw_data[exp_num][j];
-        }
-        Nexperiments_finished++;
+	// Use local data about where the results go to copy the output into the 
+	// test_measurements array
+	int offset = data_offsets[exp_num];
+	for (int j=0; j<n && (intok==1); ++j) {
+	  test_measurements[offset + j] = raw_data[exp_num][j];
+	}
+	Nexperiments_finished++;
 
       } else {
-        BoxLib::Abort("Unknown status from worker");
+	BoxLib::Abort("Unknown status from worker");
       }
 
     } while (Nexperiments_dispatched < expts.size() && ok);
@@ -393,41 +442,41 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
       MPI_Recv(&worker_status, 1, MPI_INTEGER, i, control_tag, wcomm, MPI_STATUS_IGNORE);
 
       if (worker_status == READY) {
-        worker_command = STOP;
-        MPI_Send(&worker_command, 1, MPI_INTEGER, i, control_tag, wcomm);
+	worker_command = STOP;
+	MPI_Send(&worker_command, 1, MPI_INTEGER, i, control_tag, wcomm);
       } 
       else if(worker_status == HAVE_RESULTS) {
-        // Deal with the results, then get - hopefully - "READY" and tell worker to stop
-        int exp_num;
+	// Deal with the results, then get - hopefully - "READY" and tell worker to stop
+	int exp_num;
 
-        ParallelDescriptor::Recv(&exp_num,1,i,data_tag);
-        ParallelDescriptor::Recv( &intok, 1, i, data_tag );
-        ParallelDescriptor::Recv( &msgID[exp_num], 1, i, data_tag );
+	ParallelDescriptor::Recv(&exp_num,1,i,data_tag);
+	ParallelDescriptor::Recv( &intok, 1, i, data_tag );
+	ParallelDescriptor::Recv( &msgID[exp_num], 1, i, data_tag );
 
 
-        if (intok < 0) {
-          std::cout << "Experiment " << exp_num
-                    << " (" << ExperimentNames() [exp_num]
-                    << ") failed! Err msg: \"" << SimulatedExperiment::ErrorString(msgID[exp_num]) << "\"" << std::endl;
-          ok = false;
-        }
+	if (intok < 0) {
+	  std::cout << "Experiment " << exp_num
+		    << " (" << ExperimentNames() [exp_num]
+		    << ") failed! Err msg: \"" << SimulatedExperiment::ErrorString(msgID[exp_num]) << "\"" << std::endl;
+	  ok = false;
+	}
 
-        int n = expts[exp_num].NumMeasuredValues();
-        ParallelDescriptor::Recv( raw_data[exp_num],  i, data_tag );
-        expts[exp_num].CopyData(i,master, extra_tag);
-        int offset = data_offsets[exp_num];
+	int n = expts[exp_num].NumMeasuredValues();
+	ParallelDescriptor::Recv( raw_data[exp_num],  i, data_tag );
+	expts[exp_num].CopyData(i,master, extra_tag);
+	int offset = data_offsets[exp_num];
 
-        for (int j=0; j<n && (intok==1); ++j) {
-          test_measurements[offset + j] = raw_data[exp_num][j];
-        }
-        Nexperiments_finished++;
+	for (int j=0; j<n && (intok==1); ++j) {
+	  test_measurements[offset + j] = raw_data[exp_num][j];
+	}
+	Nexperiments_finished++;
 
-        MPI_Recv(&worker_status, 1, MPI_INTEGER, i, control_tag, wcomm, MPI_STATUS_IGNORE);
-        worker_command = STOP;
-        MPI_Send(&worker_command, 1, MPI_INTEGER, i, control_tag, wcomm);
+	MPI_Recv(&worker_status, 1, MPI_INTEGER, i, control_tag, wcomm, MPI_STATUS_IGNORE);
+	worker_command = STOP;
+	MPI_Send(&worker_command, 1, MPI_INTEGER, i, control_tag, wcomm);
       } 
       else { 
-        BoxLib::Abort("Bad status from worker on cleanup loop");
+	BoxLib::Abort("Bad status from worker on cleanup loop");
       }
     }
 
@@ -448,7 +497,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   // All ranks should have the same result as at root to ensure they take a reasonable
   // path through sample space when driven by an external sampler
   ParallelDescriptor::Bcast(const_cast<Real*>(&test_measurements[0]), 
-                            test_measurements.size(), 0);
+			    test_measurements.size(), 0);
 
   ParallelDescriptor::ReduceBoolAnd(ok);
 
@@ -456,52 +505,67 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
   {
     if (!ok) {
       if (log_failed_cases) {
-        LogFailedCases(test_params,test_measurements,msgID);
+	LogFailedCases(test_params,test_measurements,msgID);
       }
     }
     else {
       if (verbose) {
-        for (int i=0; i<expts.size(); ++i) {
-          int offset = data_offsets[i];
-          std::cout << "Experiment " << i << " (" << expt_name[i]
-                    << ") result: " << test_measurements[offset] << std::endl;
-        }
+	for (int i=0; i<expts.size(); ++i) {
+	  int offset = data_offsets[i];
+	  std::cout << "Experiment " << i << " (" << expt_name[i]
+		    << ") result: " << test_measurements[offset] << std::endl;
+	}
       }
     }
   }
-  
+
 #else
-  // Serial tasks 
-  for (int i=0; i<expts.size() && ok; ++i) {
-    std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
-    if (!retVal.first) {
-      std::cout << "Experiment " << i << " failed.  Err msg: \""
-                << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
-    }
-    ok &= retVal.first;
 
-    int offset = data_offsets[i];
-    for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
-      test_measurements[offset + j] = raw_data[i][j];
-    }
-  }
-
-  if (ok) {
-    if (verbose) {
-      for (int i=0; i<expts.size(); ++i) {
-        int offset = data_offsets[i];
-        std::cout << "Experiment " << i << " (" << expt_name[i]
-                  << ") result: " << test_measurements[offset] << std::endl;
-      }
-    }
-  }
-  else {
-    if (log_failed_cases) {
-      LogFailedCases(test_params,test_measurements,msgID);
-    }
-  }
+  BoxLib::Abort("Master-Slave evaluation not implemented for non-MPI build");
 
 #endif
+
+  return ok;
+}
+
+bool
+ExperimentManager::EvaluateMeasurements_parallel(const std::vector<Real>& test_params,
+						 std::vector<Real>&       test_measurements)
+{
+  bool ok;
+
+  if (ParallelDescriptor::NProcs() == 1) {
+    ok = EvaluateMeasurements_threaded(test_params, test_measurements);
+  }
+  else {
+    ok = EvaluateMeasurements_masterSlave(test_params, test_measurements);
+  }
+
+  return ok;
+}
+
+bool
+ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params,
+                                            std::vector<Real>&       test_measurements)
+{
+  for (int i=0; i<test_params.size(); ++i) {
+    parameter_manager[i] = test_params[i];      
+    if (verbose && ParallelDescriptor::IOProcessor() ){
+       std::cout <<  "parameter " << i << " value " << test_params[i] << std::endl;
+     }
+
+  }
+  test_measurements.resize(NumExptData());
+
+  bool ok = true;
+  if (parallel_mode == PARALLELIZE_OVER_RANK) {
+
+    ok = EvaluateMeasurements_parallel(test_params, test_measurements);
+
+  } else { // PARALLELIZE_OVER_THREAD
+
+    ok = EvaluateMeasurements_threaded(test_params, test_measurements);
+  }
 
   return ok;
 }
