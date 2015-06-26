@@ -549,7 +549,7 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
                                             std::vector<Real>&       test_measurements)
 {
   for (int i=0; i<test_params.size(); ++i) {
-    parameter_manager[i] = test_params[i];      
+    parameter_manager.SetParameter(i,test_params[i]);      
     if (verbose && ParallelDescriptor::IOProcessor() ){
        std::cout <<  "parameter " << i << " value " << test_params[i] << std::endl;
      }

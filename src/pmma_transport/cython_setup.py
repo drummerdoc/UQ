@@ -2,5 +2,5 @@ from distutils.core import setup
 from Cython.Build import cythonize
 
 setup(
-    ext_modules=cythonize("analy_fcn.pyx")
+    ext_modules=cythonize("analy_fcn.py")
 )

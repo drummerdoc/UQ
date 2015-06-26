@@ -306,10 +306,20 @@ if __name__ == "__main__":
 
     # Hack data so that experiment 0 and 1 has larger variance than normal
     #data_3 = copy.deepcopy(data[0:3])
-    data = copy.deepcopy(data[0:2])
+    #data = copy.deepcopy(data[0:2])
+
+    # Hack data to match Matti's variances
+    data[0].sigma = 2.3889e-8
+    data[1].sigma = 2.539e-9
+    data[2].sigma = 4.7786e-9
+    data[3].sigma = 1.3556e-8
+    print "data temperatures and variance"
+    for i in range(4):
+        print "{} => T={}, sigma={}".format(i, data[i].temp, data[i].sigma)
 
     # Plot out raw data along with error bars and MLE results
     nplots = len(data)
+    print "Working with ", nplots, " experimental data"
     ncols = 2
     if(nplots % ncols != 0):
         nrows = int(nplots/ncols) + 1
@@ -351,62 +361,64 @@ if __name__ == "__main__":
     p1 = lnlike(pg_1step, data)
     p2 = lnlike(pg_2step, data)
     print "   Likelihood for fits: 2step=", p2, " 1step=", p1
+    do_reweighting = False
+    if (do_reweighting):
 
-    # Evaluate Hessian by FD
-    FDH = FD_Hessian(lnlike, pg_2step, fcnargs = [data]) 
-    print "Hesssian: ", FDH
-    Hinv = LA.inv(FDH)
-    evals,evecs = LA.eigh(Hinv)
-    print "evals:", evals
-    print "evecs:", evecs
+        # Evaluate Hessian by FD
+        FDH = FD_Hessian(lnlike, pg_2step, fcnargs = [data]) 
+        print "Hesssian: ", FDH
+        Hinv = LA.inv(FDH)
+        evals,evecs = LA.eigh(Hinv)
+        print "evals:", evals
+        print "evecs:", evecs
 
-    samples = np.random.multivariate_normal(pg_2step, Hinv, 50000)
-    fig = triangle.corner(samples, labels=["D0", "K0", "D1", "K1"])
-    plt.savefig("triangle_Hinv.png")
-    plt.close()
+        samples = np.random.multivariate_normal(pg_2step, Hinv, 50000)
+        fig = triangle.corner(samples, labels=["D0", "K0", "D1", "K1"])
+        plt.savefig("triangle_Hinv.png")
+        plt.close()
 
 # Now reweight the samples taking into account the likelihood of exp. 3
-    F0 = np.zeros(len(samples))
-    F1 = np.zeros(len(samples))
-    w = np.zeros(len(samples))
-    from scipy.stats import multivariate_normal
-    NOS = len(samples)
-    i = 0
-    for s in samples:
-        sl = list(s)
-        F0[i] = np.log(multivariate_normal.pdf(s, mean=pg_1step, cov=Hinv, allow_singular=True))
-        F1[i] = lnlike(sl, data)
-        if(np.isnan(F1[i])):
-            F1[i] = -np.inf
-        w[i] = -F0[i] + F1[i]
-        i += 1
+        F0 = np.zeros(len(samples))
+        F1 = np.zeros(len(samples))
+        w = np.zeros(len(samples))
+        from scipy.stats import multivariate_normal
+        NOS = len(samples)
+        i = 0
+        for s in samples:
+            sl = list(s)
+            F0[i] = np.log(multivariate_normal.pdf(s, mean=pg_1step, cov=Hinv, allow_singular=True))
+            F1[i] = lnlike(sl, data)
+            if(np.isnan(F1[i])):
+                F1[i] = -np.inf
+            w[i] = -F0[i] + F1[i]
+            i += 1
 
-    fig, (ax1, ax2, ax3) = plt.subplots(3,1)
+        fig, (ax1, ax2, ax3) = plt.subplots(3,1)
 
-    wmax = np.amax(w)
-    print "F1 max: ", np.amax(F1)
-    for i in range(NOS):
-        w[i] = np.exp(w[i] - wmax)
+        wmax = np.amax(w)
+        print "F1 max: ", np.amax(F1)
+        for i in range(NOS):
+            w[i] = np.exp(w[i] - wmax)
 
-    ax1.plot(F0, 'go')
-    ax2.plot(F1, 'b.')
-    ax3.plot(w, 'mx')
-    plt.show()
+        ax1.plot(F0, 'go')
+        ax2.plot(F1, 'b.')
+        ax3.plot(w, 'mx')
+        plt.show()
 
 
-    wsum = np.sum(w)
-    w = w/wsum
-    print "w sum = ", np.sum(w)
-    
-    print 'Effective sample size: ',EffSampleSize(w)
-    print 'Quality measure R:',CompR(w)
-    print "samples.shape = ", samples.shape
-    rs_map = Resampling(w,samples.transpose())
-    Xrs = samples[rs_map,:]
+        wsum = np.sum(w)
+        w = w/wsum
+        print "w sum = ", np.sum(w)
+        
+        print 'Effective sample size: ',EffSampleSize(w)
+        print 'Quality measure R:',CompR(w)
+        print "samples.shape = ", samples.shape
+        rs_map = Resampling(w,samples.transpose())
+        Xrs = samples[rs_map,:]
 
-    fig = triangle.corner(Xrs, labels=["D0", "K0", "D1", "K1"])
-    plt.savefig("triangle_RS.png")
-    plt.close()
+        fig = triangle.corner(Xrs, labels=["D0", "K0", "D1", "K1"])
+        plt.savefig("triangle_RS.png")
+        plt.close()
 
 
  
@@ -511,7 +523,7 @@ if __name__ == "__main__":
     print "MLE solution: ", pg_2step
 
 # Sampling starts here ----------------------------------------------
-    do_global = False  # This was `step 1'
+    do_global = True  # This was `step 1'
     do_global_walkers_prior = False
     do_independent = False
     do_sequential_prior = False
@@ -524,11 +536,12 @@ if __name__ == "__main__":
     # Sampling - for each experiment sequentially, using global model
     ndim, nwalkers = 4, 8
 
-    nSamplesTotal = 5000
-    nSamplesBurnin = 1000
+    nSamplesTotal = 2000000
+    nSamplesBurnin = 100000
     ensemble_std = 0.01
 
     if(do_global):
+        print "Starting global sampling"
         samples = []
         # Sample all of the experiments together
         pg = pg_2step

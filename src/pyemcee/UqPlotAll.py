@@ -76,54 +76,55 @@ infile = infiles[-1]
 maxLag = iters / 2   # Length of the auto-correlation series to calculate and plot
 hAxis  = np.arange(0, maxLag)  # horizontal axis values
 import acor as ac
+do_acor = False
+if do_acor:
+  pl.figure()
+  for k in range(0,ndim):
+    C = ac.acor( x[0,:iters,k], maxLag)
+    labelString = "var " + str(k)
+    pl.plot( hAxis, C, label = labelString)
 
-pl.figure()
-for k in range(0,ndim):
-  C = ac.acor( x[0,:iters,k], maxLag)
-  labelString = "var " + str(k)
-  pl.plot( hAxis, C, label = labelString)
+  titleString = "Autocorrelations for first walker"
+  titleString = titleString + ", T = " + str(iters)
+  titleString = titleString + ", L = " + str(nwalkers)
 
-titleString = "Autocorrelations for first walker"
-titleString = titleString + ", T = " + str(iters)
-titleString = titleString + ", L = " + str(nwalkers)
+  pl.title(titleString)
+  pl.legend()
+  pl.grid('on')
+  pl.savefig(infile + '_AcorVars.pdf')
 
-pl.title(titleString)
-pl.legend()
-pl.grid('on')
-pl.savefig(infile + '_AcorVars.pdf')
+  #  Compute and plot auto-correlation functions,
 
-#  Compute and plot auto-correlation functions,
+  #       First for variable 0, somewalkers walkers
 
-#       First for variable 0, somewalkers walkers
+  pl.figure()
+  maxWalker = min(6,nwalkers)
+  var       = 0
 
-pl.figure()
-maxWalker = min(6,nwalkers)
-var       = 0
+  for walker in range(0,maxWalker):
+    C = ac.acor( x[ walker, 0:iters , var], maxLag)
+    labelString = "walker " + str(walker)
+    pl.plot( hAxis, C, label = labelString, linewidth = .5)
 
-for walker in range(0,maxWalker):
-  C = ac.acor( x[ walker, 0:iters , var], maxLag)
-  labelString = "walker " + str(walker)
-  pl.plot( hAxis, C, label = labelString, linewidth = .5)
+  #         Then for all walkers, and plot the average auto-correlation function
 
-#         Then for all walkers, and plot the average auto-correlation function
+  C_all = np.zeros([nwalkers,maxLag])
 
-C_all = np.zeros([nwalkers,maxLag])
+  for walker in range(0,nwalkers):
+    C_all[walker,:] = ac.acor( x[ walker, 0:iters , var], maxLag)
+  Cav = np.average( C_all, axis=0)
+  pl.plot( hAxis, Cav, label = 'Average', linewidth = 2.0, color = 'k')
 
-for walker in range(0,nwalkers):
-  C_all[walker,:] = ac.acor( x[ walker, 0:iters , var], maxLag)
-Cav = np.average( C_all, axis=0)
-pl.plot( hAxis, Cav, label = 'Average', linewidth = 2.0, color = 'k')
+  titleString = "Autocorrelations for variable " + str(var)
+  titleString = titleString + ", T = " + str(iters)
+  titleString = titleString + ", L = " + str(nwalkers)
 
-titleString = "Autocorrelations for variable " + str(var)
-titleString = titleString + ", T = " + str(iters)
-titleString = titleString + ", L = " + str(nwalkers)
+  pl.title(titleString)
+  pl.legend()
+  pl.grid('on')
+  pl.savefig(infile + '_AcorWalkers.pdf')
 
-pl.title(titleString)
-pl.legend()
-pl.grid('on')
-pl.savefig(infile + '_AcorWalkers.pdf')
-
-pl.figure()
+  pl.figure()
 
 import triangle
 
@@ -134,8 +135,19 @@ for i in range(s[2]):
 data = np.vstack(v)
 
 # Plot it.
+import time
+t0 = time.clock()
+print 'Starting triangle'
 figure = triangle.corner(data.transpose())
-figure.savefig(infile+"_Triangle.pdf")
+t1 = time.clock()
+print 'Triangle plot took',t1-t0
+print 'End triangle'
+
+t0 = time.clock()
+print 'Starting save'
+figure.savefig(infile+"_Triangle.png")
+t1 = time.clock()
+print 'save took',t1-t0
 
 
 # def doScatter(i,j,Nscatter,pl):

@@ -222,19 +222,19 @@ def WeightedVar(CondMean, w, samples):
     return CondVar
 
 def Resampling(w,samples):
-    N = samples.shape[0]
-    M = samples.shape[1]
+    M = samples.shape[0]
+    N = samples.shape[1]
     c = np.zeros(M+1)
     for j in range(1,len(c)):
         c[j] = c[j-1]+w[j-1]
     i = 0
     #u1 = np.random.rand(1)/M
-    u1 = np.random.uniform(0,1/M,1)
+    u1 = np.random.uniform(0,1.0/M,1)
     u = 0
     rs_map = np.zeros(M, dtype=int)
     for m in range(M):
         u = u1 + float(m)/M
-	while u >= c[i]:
+        while u >= c[i]:
             i += 1
         rs_map[m] = i-1 # Note: i is never 0 here
     return rs_map
@@ -456,8 +456,8 @@ if rank == 0:
     good_NOS = np.shape(good_inds)[0]
     w = w[good_inds]
 
-    plt.plot(w)
-    plt.show()
+    #plt.plot(w)
+    #plt.show()
     
     Samples = np.matrix(Samples).T
     Samples = Samples[:,good_inds]
@@ -469,8 +469,8 @@ if rank == 0:
         else:
             w[i] = np.exp(w[i] - wmax)
 
-    plt.plot(w)
-    plt.show()
+    #plt.plot(w)
+    #plt.show()
     
     wsum = np.sum(w)
     w = w/wsum
@@ -484,10 +484,28 @@ if rank == 0:
     #plt.show()
     
     Samples = np.matrix(Samples).T
-    N = Samples.shape[0]
     
     print 'Effective sample size: ',EffSampleSize(w)
     R = CompRN(w)
     print 'Quality measure R:',R
+
+    rs_map = Resampling(w,Samples)
+
+    print 'rs_map',rs_map.shape
+    print 'Samples',Samples.shape
+    Xrs = Samples[rs_map,:].T
+    print 'Xrs',Xrs.shape
+
+    nwalkers = 1
+    if good_NOS > 0:
+         nDigits = int(np.log10(good_NOS)) + 1
+         M = Xrs.shape[0]
+         WritePlotfile(Xrs,M,outFilePrefix+'_RS',nwalkers,0,good_NOS,nDigits,None)
+
+         fmt = "%0"+str(nDigits)+"d"
+         lastStep = good_NOS - 1
+         filename = outFilePrefix + '_RS_' + (fmt % 0) + '_' + (fmt % (good_NOS-1))
+         pickle.dump(w,open(filename+"/w.pic", "wb" ) )
+         pickle.dump(R,open(filename+"/R.pic", "wb" ) )
 
 
