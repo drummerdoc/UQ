@@ -15,6 +15,7 @@ struct sparsePdf {
     void normalize();
 
     std::vector<double> get_bincens(int dim);
+    std::vector<double> get_biquartic(std::vector<double> pt);
 
     // TODO(rgrout) : make one also for a list of vectors
     void addSamplePoint(std::vector<double> pt);
