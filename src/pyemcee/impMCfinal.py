@@ -12,14 +12,17 @@ import pyemcee as pymc
 import cPickle
 from mpi4py import MPI
 
-def WritePlotfile(samples,ndim,outFilePrefix,nwalkers,step,nSteps,nDigits,rstate):
-    
+def genName(nDigits, outFilePrefix, step, nSteps):
     if nDigits > 0:
         fmt = "%0"+str(nDigits)+"d"
         lastStep = step + nSteps - 1
         filename = outFilePrefix + '_' + (fmt % step) + '_' + (fmt % lastStep)
     else:
         filename = outFilePrefix
+    return filename
+
+
+def WritePlotfile(samples,ndim,filename,nwalkers,step,nSteps,nDigits,rstate):
 
     if rank == 0:
 
@@ -32,10 +35,7 @@ def WritePlotfile(samples,ndim,outFilePrefix,nwalkers,step,nSteps,nDigits,rstate
             for it in range(0,nSteps):
                 for dim in range(0,ndim):
                     index = walker + nwalkers*it + nwalkers*nSteps*dim
-                    if ndim==1:
-                        x_for_c[index] = samples[it]
-                    else:
-                        x_for_c[index] = samples[dim,it]
+                    x_for_c[index] = samples[dim,it]
 
         if rstate == None:
             rstateString = ''
@@ -494,13 +494,17 @@ if rank == 0:
     print 'rs_map',rs_map.shape
     print 'Samples',Samples.shape
     Xrs = Samples[rs_map,:].T
-    print 'Xrs',Xrs.shape
+
+    F = np.matrix(F).T
+    Frs = F[rs_map,:].T
 
     nwalkers = 1
     if good_NOS > 0:
          nDigits = int(np.log10(good_NOS)) + 1
          M = Xrs.shape[0]
-         WritePlotfile(Xrs,M,outFilePrefix+'_RS',nwalkers,0,good_NOS,nDigits,None)
+         filename = genName(nDigits, outFilePrefix+'_RS', 0, good_NOS)
+         WritePlotfile(Xrs,M,filename,nwalkers,0,good_NOS,nDigits,None)
+         WritePlotfile(Frs,1,filename+'/F',1,0,good_NOS,0,None)
 
          fmt = "%0"+str(nDigits)+"d"
          lastStep = good_NOS - 1
