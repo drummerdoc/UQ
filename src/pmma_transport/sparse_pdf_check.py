@@ -26,7 +26,33 @@ def spdf_weighted_samples(spdf, M=10000):
     # Assign weights from sparse pdf
     w = np.zeros(M)
     for i in range(M):
-        w[i] = spdf.getProbability(samples[:, i])
+
+        lin_prob = spdf.get_biquartic(samples[:, i])
+        #if(len(lin_prob)>0):
+        #    w[i] = np.sum(lin_prob)/len(lin_prob)
+        #else:
+        #    w[i] = 0.0
+        ##AA = np.reshape(lin_prob, [-1,22])
+        ##A = AA[:,0:21]
+        ##B = AA[:,21]
+        ##
+# So    ##lve Ax = B
+        ##ATA = np.dot(A.transpose(), A)
+        ###print "ATA: ", ATA, ATA.shape
+        ##ATB = np.dot(A.transpose(), B)
+        ###print "ATB: ", ATB, ATB.shape
+        ##try:
+        ##    coeffs = np.linalg.solve(ATA,ATB)
+        ##    w[i] = coeffs[0]
+        ##except np.linalg.linalg.LinAlgError as err:
+        ##    if 'Singular matrix' in err.message:
+        ##        w[i] = 0.0
+        ##    else:
+        ##        raise
+        ###lin_prob = spdf.getProbability(samples)
+        ###print coeffs[0], lin_prob
+
+        ###w[i] = spdf.getProbability(samples[:, i])
 
     wsum = np.sum(w)
     w = w/wsum
@@ -70,6 +96,19 @@ if __name__ == "__main__":
     spdf.normalize()
 
     spdf_samples = spdf_weighted_samples(spdf, M=100000)
+
+    #N = 4
+    #bins0 = spdf.get_bincens(0)
+    #bins1 = spdf.get_bincens(1)
+    #bins2 = spdf.get_bincens(2)
+    #bins3 = spdf.get_bincens(3)
+    #print len(bins0)
+    #samples = np.zeros(N)
+    #samples[0] = bins0[7]
+    #samples[1] = bins1[7]
+    #samples[2] = bins2[7]
+    #samples[3] = bins3[7]
+
 
     fig = triangle.corner(spdf_samples.transpose(),
                           labels=["D0", "K0", "D1", "K1"])

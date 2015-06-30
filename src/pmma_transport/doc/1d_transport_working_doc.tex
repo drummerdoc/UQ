@@ -4,6 +4,7 @@
 
 \usepackage{amsmath}
 
+\usepackage{ulem}
 % Set up the images/graphics package
 \usepackage{graphicx}
 \setkeys{Gin}{width=\linewidth,totalheight=\textheight,keepaspectratio}
@@ -103,6 +104,7 @@ points is the current approach to address this. That is, for the lnlikihood for
 $M$ experiments with $N_m$ datapoints
 \begin{equation}
     F_D = \sum_{m=1}^{M} \left[ -0.5\frac{1}{N_m} \sum_{n=1}^{N_m} (f_{m,n}^{\mathrm{model}} - f_{m,n}^{\mathrm{measured}})^2 \frac{1}{\sigma_{m,n}^2} \right]
+    \label{eq:FD}
 \end{equation}
 
 
@@ -159,23 +161,23 @@ provide anything useful; indeed, when the walkers are placed uniformly
 throughout the valid bounds over which the prior has uniform
 probability they become `stuck'. However, with suitable annealing, it
 seems possible to produce a posterior that is evolving towards
-something sensible---although, it seems, inconsistent with the
-baseline. In Figure \ref{fig:annealing}, the walkers were initially
+something sensible\sout{---although, it seems, inconsistent with the
+baseline}\footnote{Now that I am doing this for a consistent set of bounds / experiments it doesn't look too bad}. In Figure \ref{fig:annealing}, the walkers were initially
 placed uniformly across the valid region for the initial 'broad'
 prior. For subsequent experiment the walker positions were chosen
-randomly from the samples from the previous experiment.
+randomly from the samples from the previous experiment. 50k samples per walker were taken.
 \begin{figure}
 $\begin{array}{c c}
-\includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_0.png}
-& \includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_1.png}
+\includegraphics[width=0.48\columnwidth]{figs/50k_annealing_noclustering/triangle_seq_prior_0.png}
+& \includegraphics[width=0.48\columnwidth]{figs/50k_annealing_noclustering/triangle_seq_prior_1.png}
 \\
 n=0 & n=1 \\
-\includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_2.png}
-& \includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_3.png}
+\includegraphics[width=0.48\columnwidth]{figs/50k_annealing_noclustering/triangle_seq_prior_2.png}
+& \includegraphics[width=0.48\columnwidth]{figs/50k_annealing_noclustering/triangle_seq_prior_3.png}
 \\
 n = 2 & n=3 \\
-\includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_4.png}
-& \includegraphics[width=0.48\columnwidth]{figs/reasonable_but_wrong/triangle_seq_prior_5.png} \\
+\includegraphics[width=0.48\columnwidth]{figs/50k_annealing_noclustering/triangle_seq_prior_4.png}
+& \includegraphics[width=0.48\columnwidth]{figs/50k_annealing_noclustering/triangle_seq_prior_5.png} \\
 n = 4 & n=5 \\
 \end{array}$
   \caption{Baseline starting walkers uniformly across bounds, using
@@ -187,68 +189,106 @@ n = 4 & n=5 \\
   \setfloatalignment{b}
 \end{figure}
 
-\newthought{Sadly, this doesn't appear to be robust}; I repeated the run with a
-larger sample count ($10^6$/walker), but otherwise the same annealing schedule,
-and the walkers managed to find the `wrong' probability island. In an
-attempt to fix this, I chose $50(10^3)$ samples randomly from the
-previous posterior, sorted these
-by likelyhood, and chose 8 at random from the 99$^{th}$ percentile to
-initialize the worker positions --- this is what is shown in Figure~\ref{fig:annealing2}.
+\sout{Sadly, this doesn't appear to be robust;}\footnote{Not sure
+about this now, redoing the runs right now} I repeated the run with a larger
+sample count ($10^6$/walker), but otherwise the same annealing schedule. Results are shown 
+in Figure~\ref{fig:annealing2}
+
+%and the walkers managed to find the `wrong' probability island. In an
+%attempt to fix this, I choose $50(10^3)$ samples randomly from the
+%previous posterior, sorted these
+%by likelyhood, and chose 8 at random from the 99$^{th}$ percentile to
+%initialize the worker positions --- this is what is shown in Figure~\ref{fig:annealing2}.
 \begin{figure}[h!]
 $\begin{array}{c c}
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_0.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_1.png}
+\includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_0.png}
+& \includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_1.png}
 \\
 n=0 & n=1 \\
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_2.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_3.png}
+\includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_2.png}
+& \includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_3.png}
 \\
 n = 2 & n=3 \\
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_4.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_5.png} \\
+\includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_4.png}
+& \includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_5.png} \\
 n = 4 & n=5 \\
 \end{array}$
   \caption{Starting walkers uniformly across bounds, using
     annealing process where $\sigma = \sigma_0*(1+98)e^{-(5/4) n}$,
     where $n$ is the index of the pseudo-experiment. $n=4$ was
     experiment \#1 with $\sigma=\sigma_0$, and $n=5$ was both
-    experiments \#1 and \#2. $10^6$ samples per walker.}
+experiments \#1 and \#2. $10^6$ samples per walker. This is using normalized likelihood ($1/N_m$).}
   \label{fig:annealing2}
   \setfloatalignment{b}
 \end{figure}
 
-It would seem that choosing 8 samples from the prior does not, unsurprisingly,
-represent the prior in a meaningful way. 
-
-\newthought{To try to get around this I tried clustering the samples}
-using kmeans on the posterior samples (with $N_{walkers}+2$
-clusters)\footnote{Experimented with this a bit---using lots of
-  clusters, keeping best $N/2$ with small perturbations, etc}. Then I sorted these by the
-likelihood at the cluster centroid and kept the most likely $N$.
-Still didn't work well (see Figure~\ref{fig:annealing_clustering}).
+\newthought{Since Matti doesn't like normalizing the likelihood}, I repeated
+the exercise without the $1/N_m$ factor from Eqn.~\ref{eq:FD}. Then the
+baseline looks like Figure~\ref{fig:baseline_nonorm}. The darn thing looks Gaussian!
 \begin{figure}
+    \includegraphics[width=\columnwidth]{figs/baseline_no_norm/triangle_global.png}
+    \caption{Baseline starting walkers near the MLE, no $1/N_m$ factor, 4M samples per walker (8 walkers).}
+  \label{fig:baseline_nonorm}
+  \setfloatalignment{b}
+\end{figure}
+
+Then, the experiment with the hierarchical approach is shown in Fig.~\ref{fig:annealing_nonorm}. 
+\begin{figure}[h!]
 $\begin{array}{c c}
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_0.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_1.png}
+\includegraphics[width=0.48\columnwidth]{figs/1M_annealing_no_norm/triangle_seq_prior_0.png}
+& \includegraphics[width=0.48\columnwidth]{figs/1M_annealing_no_norm/triangle_seq_prior_1.png}
 \\
 n=0 & n=1 \\
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_2.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_3.png}
+\includegraphics[width=0.48\columnwidth]{figs/1M_annealing_no_norm/triangle_seq_prior_2.png}
+& \includegraphics[width=0.48\columnwidth]{figs/1M_annealing_no_norm/triangle_seq_prior_3.png}
 \\
 n = 2 & n=3 \\
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_4.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_5.png} \\
+\includegraphics[width=0.48\columnwidth]{figs/1M_annealing_no_norm/triangle_seq_prior_4.png} \\
+%& \includegraphics[width=0.48\columnwidth]{figs/1M_annealing_no_norm/triangle_seq_prior_5.png} \\
 n = 4 & n=5 \\
 \end{array}$
   \caption{Starting walkers uniformly across bounds, using
     annealing process where $\sigma = \sigma_0*(1+98)e^{-(5/4) n}$,
     where $n$ is the index of the pseudo-experiment. $n=4$ was
     experiment \#1 with $\sigma=\sigma_0$, and $n=5$ was both
-    experiments \#1 and \#2. $10^6$ samples per walker. Walker
-    positions based on clustering of previous samples.}
-  \label{fig:annealing_clustering}
+experiments \#1 and \#2. $10^6$ samples per walker, no $1/N_m$ factor.}
+  \label{fig:annealing_nonorm}
   \setfloatalignment{b}
 \end{figure}
+
+This time, the approach latches on to the `wrong' part of the distribution. 
+It would seem that choosing 8 samples from the prior does not, unsurprisingly,
+represent the prior in a meaningful way. 
+
+%\newthought{To try to get around this I tried clustering the samples}
+%using kmeans on the posterior samples (with $N_{walkers}+2$
+%clusters)\footnote{Experimented with this a bit---using lots of
+%  clusters, keeping best $N/2$ with small perturbations, etc}. Then I sorted these by the
+%likelihood at the cluster centroid and kept the most likely $N$.
+%Still didn't work well (see Figure~\ref{fig:annealing_clustering}).
+%\begin{figure}
+%$\begin{array}{c c}
+%\includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_0.png}
+%& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_1.png}
+%\\
+%n=0 & n=1 \\
+%\includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_2.png}
+%& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_3.png}
+%\\
+%n = 2 & n=3 \\
+%\includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_4.png}
+%& \includegraphics[width=0.48\columnwidth]{figs/long_annealing_clustering/triangle_seq_prior_5.png} \\
+%n = 4 & n=5 \\
+%\end{array}$
+%  \caption{Starting walkers uniformly across bounds, using
+%    annealing process where $\sigma = \sigma_0*(1+98)e^{-(5/4) n}$,
+%    where $n$ is the index of the pseudo-experiment. $n=4$ was
+%    experiment \#1 with $\sigma=\sigma_0$, and $n=5$ was both
+%    experiments \#1 and \#2. $10^6$ samples per walker. Walker
+%    positions based on clustering of previous samples.}
+%  \label{fig:annealing_clustering}
+%  \setfloatalignment{b}
+%\end{figure}
 
 
 
@@ -287,16 +327,16 @@ routine.\footnote{I don't think RBF is it though, because as I understand it
 that enforces some smoothness, or to add TR style smoothing. }
 \begin{figure}
 $\begin{array}{c c}
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_0.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_spdf_0.png}
+\includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_0.png}
+& \includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_spdf_0.png}
 \\
 n=0 & n=0 \\
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_1.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_spdf_1.png}
+\includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_1.png}
+& \includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_spdf_1.png}
 \\
 n = 1 & n=1 \\
-\includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_2.png}
-& \includegraphics[width=0.48\columnwidth]{figs/long_annealing/triangle_seq_prior_spdf_2.png} \\
+\includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_2.png}
+& \includegraphics[width=0.48\columnwidth]{figs/1M_annealing_norm/triangle_seq_prior_spdf_2.png} \\
 n = 2 & n=2 \\
 \end{array}$
   \caption{Comparison of distributions from sampling and those recovered from histogram based weighting.}
@@ -360,6 +400,65 @@ Normalize, exponentiate:
   X_{rs} = \mathrm{resampling}(X,w) \sim p(\theta|Z_1,Z_2)
 \end{equation*}
 
+\section{Next plan}
+\begin{enumerate}
+    \item Solve for MLE for Expt. \#1 (by itself), and evaluate Hessian\footnote{
+        This I don't think is a good idea, because it introduces the
+            complicating matter of degeneracy. I will try in a bit using \#1
+        and \#2 together, then adding \#3.}
+\item Use the inverse of the Hessian as covariance for the 'prior',
+  draw the initial walker positions from this\footnote{Maybe still use a
+    `broad prior', but use this instead of \emph{ensemble\_std}}
+\item Run the hammer
+\item Use the covariance of the samples as the covariance for a new ball
+  of walkers (N-d normal) for sampling Expt. \#1 and \#2 together.\footnote{Where
+    to center the ball? At the most likely of the samples evaluated?}
+\item Also try impilcit sampling on this
+\end{enumerate}
+
+\section{Progress on implicit sampling}
+\newthought{Going ahead with trying to evaluate the Hessian} using the first
+two experiments by finite difference produces a reasonable result, with
+eigenvalues all of the same sign. I may not have done this quite right, but it looks reasonable to me. What I did was:
+\begin{enumerate}
+    \item Solve for MLE of parameters; evaluate Hessian using finite difference about this point
+    \item Find inverse of Hessian using numpy.linalg.inv
+    \item Find eigenvalues using numpuy.linalg.eigh(Hinv) and check that they all had same sign. 
+    \item Draw 50k samples from a multivariante normal using numpy.random.multivariate\_normal with mean from MLE estimate and cov=Hinv. 
+    \item For each sample:
+        \begin{itemize}
+           \item evaluate $F0$ using scipy.stats.multivariate\_normal.pdf with mean from MLE and cov=Hinv
+           \item For each sample also evaluate $F1$ using data from Exp. \#1 and \#2.
+           \item $w_i = -F0 + F1$
+       \end{itemize}
+   \item Then rescale weights: $w_i = exp(w_i - w_{max})$
+   \item Then normalize weights: $w_i = w_i/\sum(w_i)$
+    \item Finally, use Matti's resampling routine to get new samples
+\end{enumerate}
+The outcome of all this is shown in Figure~\ref{fig:is}
+\begin{figure}
+$\begin{array}{c c}
+    \includegraphics[width=0.48\columnwidth]{figs/is_test/no_norm/triangle_Hinv.png}
+    & \includegraphics[width=0.48\columnwidth]{figs/is_test/no_norm/triangle_RS.png}\\
+    \text{Input samples} & \text{Resampled samples} \\
+\end{array}$
+\caption{Implicit sampling result for combination of Experiments \#1 and \#2, no $1/N_m$ factor.}
+  \label{fig:is}
+  \setfloatalignment{b}
+\end{figure}
+
+\begin{figure}
+$\begin{array}{c c}
+    \includegraphics[width=0.48\columnwidth]{figs/is_test/norm/triangle_Hinv.png}
+    & \includegraphics[width=0.48\columnwidth]{figs/is_test/norm/triangle_RS.png}\\
+    \text{Input samples} & \text{Resampled samples} \\
+\end{array}$
+\caption{Implicit sampling result for combination of Experiments \#1 and \#2, with $1/N_m$ factor.}
+  \label{fig:is}
+  \setfloatalignment{b}
+\end{figure}
+
+\section{More progress}
 \bibliographystyle{plainnat}
 
 
