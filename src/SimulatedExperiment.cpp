@@ -5,6 +5,7 @@
 
 #include <SimulatedExperiment.H>
 #include <ParmParse.H>
+#include <Utility.H>
 
 #include <sys/time.h>
 
@@ -22,7 +23,7 @@ static Real dOH_thresh_DEF = 1.0e-4; // Arbitrary default
 static std::string log_file_DEF = "NULL"; // if this, no log
 static int verbosity_DEF = 0;
 
-static int max_premix_iters_DEF = 10000;
+static int max_premix_iters_DEF = 100000;
 
 SimulatedExperiment::ErrMap
 SimulatedExperiment::build_err_map()
@@ -82,7 +83,7 @@ ZeroDReactor::GetMeasurementTimes() const
 }
 
 ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const REACTOR_TYPE& _type)
-  : SimulatedExperiment(), cd(_cd), reactor_type(_type),num_measured_values(0),
+  : SimulatedExperiment(), name(pp_prefix), cd(_cd), reactor_type(_type),num_measured_values(0),
     sCompY(-1), sCompT(-1), sCompR(-1), sCompRH(-1)
 {
   ParmParse pp(pp_prefix.c_str());
@@ -840,21 +841,31 @@ ZeroDReactor::InitializeExperiment()
   is_initialized = true;
 }
 
+static
+void parseLMC(const std::vector<std::string>& tokens, Array<Real>& lmc_data, int nY)
+{
+  BL_ASSERT(tokens.size() == 2*nY + 8);
+  for (int i=0; i<nY; ++i) {
+    lmc_data[i] = atof(tokens[1+i].c_str()); // mass fractions
+  }
+  lmc_data[nY]   = atof(tokens[nY+1].c_str()); // Density
+  lmc_data[nY+1] = atof(tokens[nY+2].c_str()); // Temperature
+  lmc_data[nY+2] = atof(tokens[nY+4].c_str()); // Velocity
+  lmc_data[nY+3] = atof(tokens[0].c_str()); // location
+}
 
 PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
-  : SimulatedExperiment(), cd(_cd), max_premix_iters(max_premix_iters_DEF)
+  : SimulatedExperiment(), name(pp_prefix), cd(_cd), max_premix_iters(max_premix_iters_DEF)
 {
   ParmParse pp(pp_prefix.c_str());
-
-  ncomp = cd.numSpecies() + 3;
-
   pp.query("verbosity",verbosity);
 
   measurement_error = PREMIXReactorErr_DEF;
   pp.query("measurement_error",measurement_error);
 
   int num_sol_pts = 1000; pp.query("num_sol_pts",num_sol_pts);
-  premix_sol = new PremixSol(ncomp,num_sol_pts);
+  int nComp = cd.numSpecies() + 3;
+  premix_sol = new PremixSol(nComp,num_sol_pts);
   lrstrtflag=0;
 
   pp.get("premix_input_path",premix_input_path);
@@ -886,8 +897,63 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
         std::cerr << "Experiment " <<  pp_prefix  << " registering " << nprereq << " prerequisites " << std::endl;
       }
   }
-  pp.query("max_premix_iters",max_premix_iters);
+  else {
+    lmc_soln_file = ""; pp.query("lmc_soln",lmc_soln_file);
+    if (lmc_soln_file != "") {
+      std::ifstream ifs(lmc_soln_file.c_str());
+      if (!ifs.is_open()) {
+	BoxLib::Abort("error while opening lmc file");
+      }
+      int lmc_step; ifs >> lmc_step;
+      int lmc_npts; ifs >> lmc_npts;
+      nmax = premix_sol->maxgp;
+      if (lmc_npts > nmax) {
+	BoxLib::Abort("lmc file has more points than max allowed");
+      }
+      Real lmc_time; ifs >> lmc_time;
 
+      int nY = -1;
+      std::string line;
+      bool ok = std::getline(ifs, line);
+      while (ok && line.size() == 0) {ok = std::getline(ifs, line);}
+
+      std::vector<std::string> tokens = BoxLib::Tokenize(line, " ");
+      nY = (tokens.size() - 8) / 2;
+      BL_ASSERT(2*nY+8 == tokens.size());
+
+      Array<Array<Real> > lmc_data(lmc_npts, Array<Real>(nY+4));
+      int j = 0;
+      parseLMC(tokens,lmc_data[j++],nY);
+
+      while(std::getline(ifs, line)) {
+	BL_ASSERT(j<lmc_npts);
+	tokens = BoxLib::Tokenize(line, " ");
+	parseLMC(tokens,lmc_data[j++],nY);
+      }
+
+      Real Pcgs = atof(tokens[nY+6].c_str());
+
+      if (ifs.bad()) {
+	BoxLib::Abort("error while reading lmc file");
+      }
+      ifs.close();
+
+      double * solvec = premix_sol->solvec;
+      premix_sol->ngp = lmc_npts;
+      for (int j=0; j<lmc_npts; ++j) {
+	solvec[ j + 0 * nmax ] = lmc_data[j][nY+3]; // position
+	solvec[ j + 1 * nmax ] = lmc_data[j][nY+1]; // temperature
+	for (int n=0; n<nY; ++n) {
+	  solvec[ j + (n+2) * nmax ] = lmc_data[j][n]; // mass fractions
+	}
+	solvec[ j + (nY+2) * nmax ] = lmc_data[j][nY] * lmc_data[j][nY+2]; // flow rate
+      }
+      solvec[lmc_npts + (nY+2)*nmax    ] = Pcgs;
+      solvec[lmc_npts + (nY+2)*nmax + 1] = lmc_data[0][nY] * lmc_data[0][nY+2];
+
+    }
+  }
+  pp.query("max_premix_iters",max_premix_iters);
 }
 
 PREMIXReactor::~PREMIXReactor()
@@ -917,7 +983,6 @@ PREMIXReactor::ValidMeasurement(Real data) const
   // A reasonable test for data = flame speed
   return ( data > 0 && data < 1.e5 );
 }
-
 
 std::pair<bool,int>
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
@@ -1027,6 +1092,10 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   BL_ASSERT(savesol != NULL );
   BL_ASSERT(solsz != NULL );
 
+  if (lmc_soln_file != "") {
+    lrstrtflag = 1; 
+  }
+
   //std::cerr << "Restart solution size: " << *solsz << std::endl;
   // Pass input dir + file names to fortran
   int charlen = premix_input_file.size();
@@ -1083,7 +1152,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
   if( is_good > 0 && *solsz > 0 ) {
     //std::cout << "Premix generated a viable solution " << std::endl;
-    simulated_observations[0]  = savesol[*solsz + nmax*(ncomp-1)-1+3];
+    int nComp = cd.numSpecies() + 3;
+    simulated_observations[0]  = savesol[*solsz + nmax*(nComp-1)-1+3];
     if (! ValidMeasurement(simulated_observations[0])) {
       return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_7"));
     }
@@ -1172,10 +1242,6 @@ PREMIXReactor::InitializeExperiment()
     linck=25;
     linmc=35;
 
-    // Sizes of data stored in object
-    maxsolsz = nmax;
-    //ncomp = 12;
-
     // Check input file
     if( premix_input_file.empty() ){
         std::cerr << "No input file specified for premixed reactor \n";
@@ -1196,12 +1262,6 @@ const PremixSol&
 PREMIXReactor::getPremixSol() const
 {
   return *premix_sol;
-}
-
-int
-PREMIXReactor::numComp() const
-{
-  return ncomp;
 }
 
 void 

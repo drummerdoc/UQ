@@ -154,34 +154,34 @@ C///  WRITE ALL MESSAGES.
 
 C                     123456789_123456789_123456789_123456789_1234
 C                     123456   123456   123456   123456   12345
-C      HEADER(1, 1) = '  TIME   LOG10                      NEWTON S'
-C      HEADER(1, 2) = ' POINT   ------------------------   --------'
-C      HEADER(1, 3) = 'NUMBER   NORM F   CHANGE   STRIDE   STEPS   '
+      HEADER(1, 1) = '  TIME   LOG10                      NEWTON S'
+      HEADER(1, 2) = ' POINT   ------------------------   --------'
+      HEADER(1, 3) = 'NUMBER   NORM F   CHANGE   STRIDE   STEPS   '
 
 C                     123456789_123456789_1
 C                     123   123456   123456
-C      HEADER(2, 1) = 'EARCH                '
-C      HEADER(2, 2) = '---------------------'
-C      HEADER(2, 3) = 'J''S   COND J   REMARK'
+      HEADER(2, 1) = 'EARCH                '
+      HEADER(2, 2) = '---------------------'
+      HEADER(2, 3) = 'J''S   COND J   REMARK'
 
       IF (MESS .AND. 0 .LT. TEXT) THEN
          ROUTE = 0
          YNORM = 1.0E-4
          CALL TWLOGR (YWORD, YNORM)
 
-C         WRITE (TEXT, 10001) ID, HEADER, STEP, YWORD
-C         WRITE (TEXT, 20001) ID, STEP, YWORD, LOG10 (STRID0)
-C         WRITE (TEXT, 10002) ID, HEADER, STEP, YWORD
-C         WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRID0)
-C         WRITE (TEXT, 20003) ID, STEP, YWORD, LOG10 (STRID0)
-C         WRITE (TEXT, 10006) ID
-C         WRITE (TEXT, 10008) ID
-C         WRITE (TEXT, 20007) ID, STEP, YWORD
-C         WRITE (TEXT, 20004) ID, STEP, YWORD, LOG10 (STRID0)
-C         WRITE (TEXT, 10007) ID
-C         WRITE (TEXT, 20006) ID, STEP, YWORD
-C         WRITE (TEXT, 20008) ID
-C         WRITE (TEXT, 20005) ID, STEP, YWORD, LOG10 (STRID0)
+         WRITE (TEXT, 10001) ID, HEADER, STEP, YWORD
+         WRITE (TEXT, 20001) ID, STEP, YWORD, LOG10 (STRID0)
+         WRITE (TEXT, 10002) ID, HEADER, STEP, YWORD
+         WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRID0)
+         WRITE (TEXT, 20003) ID, STEP, YWORD, LOG10 (STRID0)
+         WRITE (TEXT, 10006) ID
+         WRITE (TEXT, 10008) ID
+         WRITE (TEXT, 20007) ID, STEP, YWORD
+         WRITE (TEXT, 20004) ID, STEP, YWORD, LOG10 (STRID0)
+         WRITE (TEXT, 10007) ID
+         WRITE (TEXT, 20006) ID, STEP, YWORD
+         WRITE (TEXT, 20008) ID
+         WRITE (TEXT, 20005) ID, STEP, YWORD, LOG10 (STRID0)
 
          GO TO 9001
       END IF
@@ -229,15 +229,15 @@ C        GO TO 1020 WHEN ROUTE = 2
 
          IF (1 .EQ. LEVELM) THEN
             IF (STEP .EQ. 0) THEN
-C               WRITE (TEXT, 10001) ID, HEADER, STEP, YWORD
+               WRITE (TEXT, 10001) ID, HEADER, STEP, YWORD
             ELSE
-C               WRITE (TEXT, 10002) ID, HEADER, STEP, YWORD
+               WRITE (TEXT, 10002) ID, HEADER, STEP, YWORD
             END IF
          ELSE IF (1 .LT. LEVELM .AND. 0 .EQ. STEP) THEN
             IF (STEP .EQ. 0) THEN
-C               WRITE (TEXT, 20001) ID, STEP, YWORD, LOG10 (STRIDE)
+               WRITE (TEXT, 20001) ID, STEP, YWORD, LOG10 (STRIDE)
             ELSE
-C               WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRIDE)
+               WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRIDE)
             END IF
          END IF
 1030  CONTINUE
@@ -258,11 +258,11 @@ C///  STRIDE.
          EXIST = .FALSE.
          LOW = STRIDE * TDEC
          STRIDE = MIN (HIGH, STRIDE * TINC)
-C         IF (1 .LT. LEVELM .AND. 0 .LT. TEXT)
-C     +      WRITE (TEXT, 20003) ID, STEP, YWORD, LOG10 (STRIDE)
+         IF (1 .LT. LEVELM .AND. 0 .LT. TEXT)
+     +      WRITE (TEXT, 20003) ID, STEP, YWORD, LOG10 (STRIDE)
       ELSE
-C         IF (1 .LT. LEVELM .AND. 0 .LT. TEXT .AND. 0 .LT. STEP)
-C     +      WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRIDE)
+         IF (1 .LT. LEVELM .AND. 0 .LT. TEXT .AND. 0 .LT. STEP)
+     +      WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRIDE)
       END IF
 
 C///  NEWTON SEARCH.
@@ -327,8 +327,8 @@ C///  UNSUCCESSFUL?
                LENGTH = 1
                REMARK = ' '
             END IF
-C            WRITE (TEXT, 10003) STEP + 1, LOG10 (STRIDE), NUMBER, JWORD,
-C     +         REMARK (1 : LENGTH)
+            WRITE (TEXT, 10003) STEP + 1, LOG10 (STRIDE), NUMBER, JWORD,
+     +         REMARK (1 : LENGTH)
          END IF
 
 C///  IF ALSO LOW < STRIDE AND 1 < TDEC, THEN DECREASE STRIDE.
@@ -339,8 +339,8 @@ C///  IF ALSO LOW < STRIDE AND 1 < TDEC, THEN DECREASE STRIDE.
             EXIST = .FALSE.
             HIGH = STRIDE / TINC
             STRIDE = MAX (LOW, STRIDE / TDEC)
-C            IF (1 .LT. LEVELM .AND. 0 .LT. TEXT) WRITE (TEXT, 20004)
-C     +         ID, STEP, YWORD, LOG10 (STRIDE)
+            IF (1 .LT. LEVELM .AND. 0 .LT. TEXT) WRITE (TEXT, 20004)
+     +         ID, STEP, YWORD, LOG10 (STRIDE)
             GO TO 1050
          END IF
 
@@ -359,18 +359,18 @@ C///  INCREASE STRIDE.  OTHERWISE END, FAILURE.
       CALL TWLOGR (CWORD, CHANGE)
 
       IF (CHANGE .EQ. 0.0) THEN
-C         IF (1 .EQ. LEVELM .AND. 0 .LT. TEXT) THEN
-C            WRITE (TEXT, 10004)
-C     +         STEP + 1, '  ZERO', LOG10 (STRIDE), NUMBER, JWORD
-C         END IF
+         IF (1 .EQ. LEVELM .AND. 0 .LT. TEXT) THEN
+            WRITE (TEXT, 10004)
+     +         STEP + 1, '  ZERO', LOG10 (STRIDE), NUMBER, JWORD
+         END IF
 
          IF (1.0 .LT. TINC .AND. STRIDE .LT. HIGH) THEN
             AGE = 0
             EXIST = .FALSE.
             LOW = STRIDE * TDEC
             STRIDE = MIN (HIGH, STRIDE * TINC)
-C            IF (1 .LT. LEVELM .AND. 0 .LT. TEXT)
-C     +         WRITE (TEXT, 20005) ID, STEP, YWORD, LOG10 (STRIDE)
+            IF (1 .LT. LEVELM .AND. 0 .LT. TEXT)
+     +         WRITE (TEXT, 20005) ID, STEP, YWORD, LOG10 (STRIDE)
             GO TO 1050
          END IF
          GO TO 2010
@@ -404,8 +404,8 @@ C        GO TO 1090 WHEN ROUTE = 5
          CALL TWNORM (GROUPA + COMPS * POINTS + GROUPB, YNORM, BUFFER)
          CALL TWLOGR (YWORD, YNORM)
 
-C         IF (1 .EQ. LEVELM) WRITE (TEXT, 10005)
-C     +      STEP, YWORD, CWORD, LOG10 (STRIDE), NUMBER, JWORD
+         IF (1 .EQ. LEVELM) WRITE (TEXT, 10005)
+     +      STEP, YWORD, CWORD, LOG10 (STRIDE), NUMBER, JWORD
 1100  CONTINUE
 
 C///  M < LAST?
@@ -422,34 +422,34 @@ C///////////////////////////////////////////////////////////////////////
 
 C///  PRINT.
 
-C      IF (0 .LT. LEVELM .AND. 0 .LT. TEXT) THEN
-C         IF (1 .EQ. LEVELM) THEN
-C            IF (STEP .EQ. FIRST) THEN
-C               WRITE (TEXT, 10006) ID
-C            ELSE IF (STEP .EQ. LAST) THEN
-C               WRITE (TEXT, 10007) ID
-C            ELSE
-C               WRITE (TEXT, 10008) ID
-C            END IF
-C         ELSE IF (1 .LT. LEVELM) THEN
-C            IF (STEP .EQ. FIRST) THEN
-C               WRITE (TEXT, 10006) ID
-C            ELSE IF (STEP .EQ. LAST) THEN
-C               WRITE (TEXT, 20006) ID, STEP, YWORD
-C            ELSE
-C               WRITE (TEXT, 20007) ID, STEP, YWORD
-C            END IF
-C         END IF
+      IF (0 .LT. LEVELM .AND. 0 .LT. TEXT) THEN
+         IF (1 .EQ. LEVELM) THEN
+            IF (STEP .EQ. FIRST) THEN
+               WRITE (TEXT, 10006) ID
+            ELSE IF (STEP .EQ. LAST) THEN
+               WRITE (TEXT, 10007) ID
+            ELSE
+               WRITE (TEXT, 10008) ID
+            END IF
+         ELSE IF (1 .LT. LEVELM) THEN
+            IF (STEP .EQ. FIRST) THEN
+               WRITE (TEXT, 10006) ID
+            ELSE IF (STEP .EQ. LAST) THEN
+               WRITE (TEXT, 20006) ID, STEP, YWORD
+            ELSE
+               WRITE (TEXT, 20007) ID, STEP, YWORD
+            END IF
+         END IF
 
-C         IF (FIRST .LT. LAST .AND. 1 .EQ. LEVELD) THEN
-CC            WRITE (TEXT, 20008) ID
-C            CALL TWCOPY (GROUPA + COMPS * POINTS + GROUPB, V0, BUFFER)
-C            SIGNAL = 'SHOW'
-CC           GO TO 2020 WHEN ROUTE = 6
-C            ROUTE = 6
-C            GO TO 99999
-C         END IF
-C      END IF
+         IF (FIRST .LT. LAST .AND. 1 .EQ. LEVELD) THEN
+            WRITE (TEXT, 20008) ID
+            CALL TWCOPY (GROUPA + COMPS * POINTS + GROUPB, V0, BUFFER)
+            SIGNAL = 'SHOW'
+C           GO TO 2020 WHEN ROUTE = 6
+            ROUTE = 6
+            GO TO 99999
+         END IF
+      END IF
 
 2020  CONTINUE
       SIGNAL = ' '
@@ -765,8 +765,8 @@ C///  WRITE ALL MESSAGES.
       IF (MESS .AND. 0 .LT. TEXT) THEN
          ROUTE = 0
 
-C         WRITE (TEXT, 10003) ID
-C         WRITE (TEXT, 10002) ID
+         WRITE (TEXT, 10003) ID
+         WRITE (TEXT, 10002) ID
          COUNT = 0
          DO 1030 J = 1, GROUPA + COMPS * POINTS + GROUPB
             COUNT = COUNT + 1
@@ -811,13 +811,13 @@ C         WRITE (TEXT, 10002) ID
                   LENGTH = 30
                END IF
 
-C               WRITE (TEXT, 80003) 'LOWER', V0(J), STRING (1 : LENGTH)
+               WRITE (TEXT, 80003) 'LOWER', V0(J), STRING (1 : LENGTH)
             END IF
 1030     CONTINUE
-C         IF (LINES .LT. COUNT) WRITE (TEXT, 80004)
-C         WRITE (TEXT, 10001) ID
-C         WRITE (TEXT, 10006) ID
-C         WRITE (TEXT, 10005) ID
+         IF (LINES .LT. COUNT) WRITE (TEXT, 80004)
+         WRITE (TEXT, 10001) ID
+         WRITE (TEXT, 10006) ID
+         WRITE (TEXT, 10005) ID
 
          GO TO 9001
       END IF
@@ -837,8 +837,8 @@ C                     123456   123456  123456
       HEADER(3, 2) = 'ND REL    DELTA B AND D'
 
       IF (LEVELM .GE. 1 .OR. MESS) THEN
-C         IF (0 .LT. TEXT) WRITE (TEXT, 10001)
-C     +      ID, ((HEADER(J, K), K = 1, 2), J = 1, 3)
+         IF (0 .LT. TEXT) WRITE (TEXT, 10001)
+     +      ID, ((HEADER(J, K), K = 1, 2), J = 1, 3)
       END IF
 
 C///////////////////////////////////////////////////////////////////////
@@ -964,8 +964,8 @@ C///  0 < DELTAB?
             IF (DELTAB .NE. 1.0) CALL TWLOGR (COLUMN(6), DELTAB)
             COLUMN(7) = ' '
             IF (DELTAD .NE. 1.0) CALL TWLOGR (COLUMN(7), DELTAD)
-C            WRITE (TEXT, 10004) NUMBER, COLUMN
-C            WRITE (TEXT, 10002) ID
+            WRITE (TEXT, 10004) NUMBER, COLUMN
+            WRITE (TEXT, 10002) ID
 
             COUNT = 0
             DO 2090 J = 1, GROUPA + COMPS * POINTS + GROUPB
@@ -1014,16 +1014,16 @@ C            WRITE (TEXT, 10002) ID
                      END IF
 
                      IF (BELOW(J) .EQ. V0(J)) THEN
-C                        WRITE (TEXT, 80003)
-C     +                     'LOWER', V0(J), STRING (1 : LENGTH)
+                        WRITE (TEXT, 80003)
+     +                     'LOWER', V0(J), STRING (1 : LENGTH)
                      ELSE
-C                        WRITE (TEXT, 80003)
-C     +                     'UPPER', V0(J), STRING (1 : LENGTH)
+                        WRITE (TEXT, 80003)
+     +                     'UPPER', V0(J), STRING (1 : LENGTH)
                      END IF
                   END IF
                END IF
 2090        CONTINUE
-C            IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
+            IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
          END IF
 
          REPORT = QBNDS
@@ -1103,8 +1103,8 @@ C///  NORM S1 < OR = NORM S0?
                   IF (DELTAB .NE. 1.0) CALL TWLOGR (COLUMN(6), DELTAB)
                   COLUMN(7) = ' '
                   IF (DELTAD .NE. 1.0) CALL TWLOGR (COLUMN(7), DELTAD)
-C                  WRITE (TEXT, 10004) NUMBER, COLUMN
-C                  WRITE (TEXT, 10003) ID
+                  WRITE (TEXT, 10004) NUMBER, COLUMN
+                  WRITE (TEXT, 10003) ID
                END IF
                REPORT = QDVRG
                SUCCES = .FALSE.
@@ -1122,7 +1122,7 @@ C///  PRINT.
          IF (DELTAB .NE. 1.0) CALL TWLOGR (COLUMN(6), DELTAB)
          COLUMN(7) = ' '
          IF (DELTAD .NE. 1.0) CALL TWLOGR (COLUMN(7), DELTAD)
-C         WRITE (TEXT, 10004) NUMBER, COLUMN
+         WRITE (TEXT, 10004) NUMBER, COLUMN
          COLUMN(2) = ' '
       END IF
 
@@ -1159,16 +1159,16 @@ C///  PRINT.
          COLUMN(6) = ' '
          COLUMN(7) = ' '
          IF (0 .LT. LEVELD) THEN
-C            WRITE (TEXT, 10004) NUMBER, COLUMN
-C            WRITE (TEXT, 10005) ID
+            WRITE (TEXT, 10004) NUMBER, COLUMN
+            WRITE (TEXT, 10005) ID
             SIGNAL = 'SHOW'
             CALL TWCOPY (GROUPA + COMPS * POINTS + GROUPB, V0, BUFFER)
 C           GO TO 2180 WHEN ROUTE = 6
             ROUTE = 6
             GO TO 99999
          ELSE
-C            WRITE (TEXT, 10004) NUMBER, COLUMN
-C            WRITE (TEXT, 10006) ID
+            WRITE (TEXT, 10004) NUMBER, COLUMN
+            WRITE (TEXT, 10006) ID
          END IF
       END IF
 
@@ -1247,8 +1247,8 @@ C///////////////////////////////////////////////////////////////////////
       IF (.NOT. MESS) GO TO 99999
 
 9004  IF (0 .LT. TEXT) THEN
-C         WRITE (TEXT, 99004) ID,
-C     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
+         WRITE (TEXT, 99004) ID,
+     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
          COUNT = 0
          DO 8010 J = 1, GROUPA + COMPS + GROUPB
             IF (.NOT. (BELOW(J) .LT. ABOVE(J)) .OR. MESS) THEN
@@ -1285,18 +1285,18 @@ C     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
                      LENGTH = 40
                   END IF
 
-C                  WRITE (TEXT, 80006)
-C     +               BELOW(J), ABOVE(J), STRING (1 : LENGTH)
+                  WRITE (TEXT, 80006)
+     +               BELOW(J), ABOVE(J), STRING (1 : LENGTH)
                END IF
             END IF
 8010     CONTINUE
-C         IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
+         IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
-C         WRITE (TEXT, 99005) ID, GROUPA, GROUPB, COMPS, POINTS,
-C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
+         WRITE (TEXT, 99005) ID, GROUPA, GROUPB, COMPS, POINTS,
+     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
          COUNT = 0
          DO 8020 J = 1, GROUPA + COMPS * POINTS + GROUPB
             IF (.NOT. (BELOW(J) .LE. V0(J) .AND. V0(J) .LE. ABOVE(J))
@@ -1343,25 +1343,22 @@ C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
                      LENGTH = 30
                   END IF
 
-C                  WRITE (TEXT, 80007)
-C     +               BELOW(J), V0(J), ABOVE(J), STRING (1 : LENGTH)
+                  WRITE (TEXT, 80007)
+     +               BELOW(J), V0(J), ABOVE(J), STRING (1 : LENGTH)
                END IF
             END IF
 8020     CONTINUE
-C         IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
+         IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9006  continue 
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID, XXABS, XXREL
+9006  IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID, XXABS, XXREL
       IF (.NOT. MESS) GO TO 99999
 
-9007  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99007) ID, XXAGE
+9007  IF (0 .LT. TEXT) WRITE (TEXT, 99007) ID, XXAGE
       IF (.NOT. MESS) GO TO 99999
 
-9008  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99008) ID, DELTAB
+9008  IF (0 .LT. TEXT) WRITE (TEXT, 99008) ID, DELTAB
       IF (.NOT. MESS) GO TO 99999
 
 99001 FORMAT
@@ -2002,26 +1999,14 @@ C///////////////////////////////////////////////////////////////////////
       IMPLICIT COMPLEX (A - Z)
       CHARACTER
      +   ID*9
-C*****PRECISION > DOUBLE
-      DOUBLE PRECISION
-C*****END PRECISION > DOUBLE
-C*****PRECISION > SINGLE
-C      REAL
-C*****END PRECISION > SINGLE
-     +   RVALUE
       INTEGER
-     +   CNTRLS, COUNT, IVALUE, TEXT
+     +   COUNT, TEXT
       LOGICAL
-     +   ERROR, FIRST, FORCE, LVALUE, MESS
+     +   ERROR, FIRST, FORCE, MESS
 
       PARAMETER (ID = 'TWINIT:  ')
-      PARAMETER (CNTRLS = 22)
 
-      DIMENSION IVALUE(CNTRLS), LVALUE(CNTRLS), RVALUE(CNTRLS)
-
-      COMMON / TWCOMI / IVALUE
-      COMMON / TWCOML / LVALUE
-      COMMON / TWCOMR / RVALUE
+      include 'twcom.fh'
 
 C     THE GNU F77 COMPILER REQUIRES THE SAVE TO PRECEED THE DATA
 
@@ -2165,8 +2150,7 @@ C///  ERROR MESSAGES.
 
       GO TO 99999
 
-9001  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, CNTRLS, COUNT
+9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
 99001 FORMAT
@@ -2339,7 +2323,7 @@ C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   ABOVE, BELOW, BUFFER, CONDIT, DETAIL, MAXCON, RATIO, RVALUE,
+     +   ABOVE, BELOW, BUFFER, CONDIT, DETAIL, MAXCON, RATIO,
      +   RWORK, SSABS, SSREL, STRID0, STRIDE, TDABS, TDEC, TDREL, TEMP,
      +   TIMER, TINC, TMAX, TMIN, TOLER0, TOLER1, TOLER2, TOTAL, U, X,
      +   YNORM
@@ -2347,8 +2331,8 @@ C*****END PRECISION > SINGLE
      +   EVOLVE, REFINE, SEARCH, TWCOPY, TWGRAB, TWLAPS, TWLAST, TWLOGR,
      +   TWNORM, TWSQEZ, TWTIME, TWINIT
       INTEGER
-     +   AGE, CNTRLS, COMPS, COUNT, DESIRE, EVENT, GMAX, GRID, GROUPA,
-     +   GROUPB, ILAST, ISIZE, IVALUE, IWORK, J, JACOBS, K, LABEL, LEN1,
+     +   AGE, COMPS, COUNT, DESIRE, EVENT, GMAX, GRID, GROUPA,
+     +   GROUPB, ILAST, ISIZE, IWORK, J, JACOBS, K, LABEL, LEN1,
      +   LEN2, LENGTH, LEVELD, LEVELM, LINES, NAMES, NSTEPS, PADD, PMAX,
      +   POINTS, PSAVE, QABOVE, QBELOW, QBNDS, QDVRG, QENTRY, QEXIT,
      +   QFUNCT, QGRID, QJACOB, QNULL, QOTHER, QRAT1, QRAT2, QREFIN,
@@ -2359,11 +2343,10 @@ C*****END PRECISION > SINGLE
       INTRINSIC
      +   MAX
       LOGICAL
-     +   ACTIVE, ADAPT, ALLOW, ERROR, EXIST, FIRST, FLAG, FOUND, LVALUE,
+     +   ACTIVE, ADAPT, ALLOW, ERROR, EXIST, FIRST, FLAG, FOUND,
      +   MARK, MESS, SATISF, STEADY, TIME
 
       PARAMETER (ID = 'TWOPNT:  ')
-      PARAMETER (CNTRLS = 22)
       PARAMETER (GMAX = 100)
       PARAMETER (LINES = 20)
       PARAMETER (VNMBRS = 12)
@@ -2393,14 +2376,12 @@ C     MNEMONIC VALUES FOR QTASK.
      +   ABOVE(GROUPA + COMPS + GROUPB), ACTIVE(*), BELOW(GROUPA + COMPS
      +   + GROUPB), BUFFER(GROUPA + COMPS * PMAX + GROUPB), COLUMN(3),
      +   DETAIL(GMAX, QTOTAL), EVENT(GMAX, QTOTAL), HEADER(6),
-     +   IVALUE(CNTRLS), IWORK(ISIZE), LVALUE(CNTRLS), MARK(*),
-     +   NAME(NAMES), RATIO(2), RVALUE(CNTRLS), RWORK(RSIZE),
+     +   IWORK(ISIZE), MARK(*),
+     +   NAME(NAMES), RATIO(2), RWORK(RSIZE),
      +   SIZE(GMAX), TIMER(QTOTAL), TOTAL(QTOTAL), U(GROUPA + COMPS *
      +   PMAX + GROUPB), VNMBR(VNMBRS), X(*)
 
-      COMMON / TWCOMI / IVALUE
-      COMMON / TWCOML / LVALUE
-      COMMON / TWCOMR / RVALUE
+      include 'twcom.fh'
 
 C///  SAVE LOCAL VALUES DURING RETURNS FOR REVERSE COMMUNCIATION.
 
@@ -2446,29 +2427,29 @@ C///  WRITE ALL MESSAGES.
          RETURN = 0
          ROUTE = 0
 
-C         WRITE (TEXT, 10004) ID, '???'
-C         WRITE (TEXT, 10020) ID
-C         WRITE (TEXT, 10017) ID
-C         WRITE (TEXT, 10014) ID
+         WRITE (TEXT, 10004) ID, '???'
+         WRITE (TEXT, 10020) ID
+         WRITE (TEXT, 10017) ID
+         WRITE (TEXT, 10014) ID
          STRING = VNMBR(VNMBRS)
          CALL TWLAST (LENGTH, STRING)
-C         WRITE (TEXT, 10001) ID, 'DOUBLE PRECISION', STRING (1 : LENGTH)
-C         WRITE (TEXT, 10022) ID
-C         WRITE (TEXT, 10021) ID
-C         WRITE (TEXT, 10011) ID, '???', RATIO, TOLER1, TOLER2
-C         WRITE (TEXT, 10013) ID, '???', RATIO, TOLER1, TOLER2
-C         WRITE (TEXT, 10012) ID
-C         WRITE (TEXT, 10002) ID, 'FINAL SOLUTION:'
-C         WRITE (TEXT, 10002) ID, 'INITIAL GUESS:'
-C         WRITE (TEXT, 10019) ID
-C         WRITE (TEXT, 10018) ID
-C         WRITE (TEXT, 10016) ID
-C         WRITE (TEXT, 10015) ID
+         WRITE (TEXT, 10001) ID, 'DOUBLE PRECISION', STRING (1 : LENGTH)
+         WRITE (TEXT, 10022) ID
+         WRITE (TEXT, 10021) ID
+         WRITE (TEXT, 10011) ID, '???', RATIO, TOLER1, TOLER2
+         WRITE (TEXT, 10013) ID, '???', RATIO, TOLER1, TOLER2
+         WRITE (TEXT, 10012) ID
+         WRITE (TEXT, 10002) ID, 'FINAL SOLUTION:'
+         WRITE (TEXT, 10002) ID, 'INITIAL GUESS:'
+         WRITE (TEXT, 10019) ID
+         WRITE (TEXT, 10018) ID
+         WRITE (TEXT, 10016) ID
+         WRITE (TEXT, 10015) ID
          STRING = VNMBR(VNMBRS)
          CALL TWLAST (LENGTH, STRING)
-C         WRITE (TEXT, 10001) ID, 'SINGLE PRECISION', STRING (1 : LENGTH)
-C         WRITE (TEXT, 10002) ID, 'SOLVE THE PROBLEM.'
-C         WRITE (TEXT, 10010) ID
+         WRITE (TEXT, 10001) ID, 'SINGLE PRECISION', STRING (1 : LENGTH)
+         WRITE (TEXT, 10002) ID, 'SOLVE THE PROBLEM.'
+         WRITE (TEXT, 10010) ID
 
          GO TO 9001
       END IF
@@ -2578,10 +2559,10 @@ C///  PRINT THE ENTRY BANNER AT ALL PRINT LEVELS.
 
       STRING = VNMBR(VNMBRS)
       CALL TWLAST (LENGTH, STRING)
-C      IF ((0 .LT. LEVELM .OR. MESS) .AND. 0 .LT. TEXT)
-C     +   WRITE (TEXT, 10001) ID,
+      IF ((0 .LT. LEVELM .OR. MESS) .AND. 0 .LT. TEXT)
+     +   WRITE (TEXT, 10001) ID,
 C*****PRECISION > DOUBLE
-C     +   'DOUBLE PRECISION', STRING (1 : LENGTH)
+     +   'DOUBLE PRECISION', STRING (1 : LENGTH)
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C     +   'SINGLE PRECISION', STRING (1 : LENGTH)
@@ -2763,7 +2744,7 @@ C     GO TO 1090 WHEN RETURN = 1
 C///  PRINT LEVELS 11, 21, AND 22.
 
       IF (0 .LT. LEVELD .AND. 0 .LT. TEXT) THEN
-C         WRITE (TEXT, 10002) ID, 'INITIAL GUESS:'
+         WRITE (TEXT, 10002) ID, 'INITIAL GUESS:'
 C        GO TO 1100 WHEN RETURN = 2
          RETURN = 2
          GO TO 9921
@@ -2778,9 +2759,9 @@ C                  12345678   123456  123456   123456
       HEADER(2) = '    TASK   NORM F  COND J   REMARK'
 
       IF (LEVELM .EQ. 1 .AND. 0 .LT. TEXT) THEN
-C         IF (0 .LT. LEVELD) WRITE (TEXT, 10002) ID,
-C     +      'SOLVE THE PROBLEM.'
-C         WRITE (TEXT, 10003) (HEADER(J), J = 1, 2)
+         IF (0 .LT. LEVELD) WRITE (TEXT, 10002) ID,
+     +      'SOLVE THE PROBLEM.'
+         WRITE (TEXT, 10003) (HEADER(J), J = 1, 2)
 C        GO TO 1110 WHEN LABEL = 1
          LABEL = 1
          GO TO 7010
@@ -2912,7 +2893,7 @@ C     SAVE THE STATUS REPORTS DURING REVERSE COMMUNICATION
       STRING = REPORT
 
       IF (LEVELD .EQ. 1 .AND. 0 .LT. TEXT) THEN
-C         WRITE (TEXT, 10002) ID, 'FINAL SOLUTION:'
+         WRITE (TEXT, 10002) ID, 'FINAL SOLUTION:'
 C        GO TO 3020 WHEN RETURN = 3
          RETURN = 3
          GO TO 9921
@@ -2946,7 +2927,7 @@ C///  REPORT TOTAL COMPUTER TIME.
       END IF
 
       CALL TWSQEZ (LENGTH, STRING)
-C      WRITE (TEXT, 10004) ID, STRING (1 : LENGTH)
+      WRITE (TEXT, 10004) ID, STRING (1 : LENGTH)
 
 C///  REPORT PERCENT OF TOTAL COMPUTER TIME.
 
@@ -2965,10 +2946,10 @@ C                  123456 123456 123456 123456
       HEADER(4) = '---------------------------'
       HEADER(6) = 'EVAL F PREP J  SOLVE  OTHER'
 
-C      WRITE (TEXT, 10005) HEADER,
-C     +   (SIZE(J), (TEMP * DETAIL(J, K), K = 1, 8), J = 1, GRID)
-C      IF (1 .LT. GRID) WRITE (TEXT, 10006) (TEMP * TOTAL(K), K = 2, 8)
-C      IF (GMAX .LT. GRID) WRITE (TEXT, 10007)
+      WRITE (TEXT, 10005) HEADER,
+     +   (SIZE(J), (TEMP * DETAIL(J, K), K = 1, 8), J = 1, GRID)
+      IF (1 .LT. GRID) WRITE (TEXT, 10006) (TEMP * TOTAL(K), K = 2, 8)
+      IF (GMAX .LT. GRID) WRITE (TEXT, 10007)
 
       ELSE
 
@@ -2978,12 +2959,12 @@ C                  123456   123456   123456   123456   123456   123456
       HEADER(2) = '---------------------------------   ---------------'
       HEADER(3) = 'EVAL F   PREP J    SOLVE    OTHER   EVOLVE   SEARCH'
 
-C      WRITE (TEXT, 10008)
-C     +   (HEADER(J), J = 1, 3), '  % OF TOTAL',
-C     +   (TEMP * TOTAL(K), K = 5, 8), (TEMP * TOTAL(K), K = 2, 3),
-C     +   'MEAN SECONDS', (DETAIL(1, K) / EVENT(1, K), K = 5, 7),
-C     +   '    QUANTITY', (EVENT(1, K), K = 5, 7)
-C
+      WRITE (TEXT, 10008)
+     +   (HEADER(J), J = 1, 3), '  % OF TOTAL',
+     +   (TEMP * TOTAL(K), K = 5, 8), (TEMP * TOTAL(K), K = 2, 3),
+     +   'MEAN SECONDS', (DETAIL(1, K) / EVENT(1, K), K = 5, 7),
+     +   '    QUANTITY', (EVENT(1, K), K = 5, 7)
+
       END IF
 
 C///  REPORT AVERAGE COMPUTER TIME.
@@ -3001,9 +2982,9 @@ C                  1234567  1234567  1234567
       HEADER(4) = '-------------------------'
       HEADER(6) = ' EVAL F   PREP J    SOLVE'
 
-C      IF (ADAPT) WRITE (TEXT, 10009) HEADER,
-C     +   (SIZE(J), (DETAIL(J, K) / EVENT(J, K), K = 5, 7),
-C     +   (EVENT(J, K), K = 5, 7), J = 1, GRID)
+      IF (ADAPT) WRITE (TEXT, 10009) HEADER,
+     +   (SIZE(J), (DETAIL(J, K) / EVENT(J, K), K = 5, 7),
+     +   (EVENT(J, K), K = 5, 7), J = 1, GRID)
 
       END IF
 
@@ -3011,19 +2992,19 @@ C///  REPORT THE COMPLETION STATUS.
 
       IF (0 .LT. LEVELM) THEN
          IF (REPORT .EQ. ' ') THEN
-C            WRITE (TEXT, 10010) ID
+            WRITE (TEXT, 10010) ID
          ELSE IF (REPORT .EQ. 'NO SPACE') THEN
-C            WRITE (STRING, '(I10)') POINTS
+            WRITE (STRING, '(I10)') POINTS
             CALL TWSQEZ (LENGTH, STRING)
-C            WRITE (TEXT, 10011)
-C     +         ID, STRING (1 : LENGTH), RATIO, TOLER1, TOLER2
+            WRITE (TEXT, 10011)
+     +         ID, STRING (1 : LENGTH), RATIO, TOLER1, TOLER2
          ELSE IF (REPORT .EQ. 'NOT SOLVED') THEN
-C            WRITE (TEXT, 10012) ID
+            WRITE (TEXT, 10012) ID
          ELSE IF (REPORT .EQ. 'SOME SOLVED') THEN
-C            WRITE (STRING, '(I10)') POINTS
+            WRITE (STRING, '(I10)') POINTS
             CALL TWSQEZ (LENGTH, STRING)
-C            WRITE (TEXT, 10013)
-C     +         ID, STRING (1 : LENGTH), RATIO, TOLER1, TOLER2
+            WRITE (TEXT, 10013)
+     +         ID, STRING (1 : LENGTH), RATIO, TOLER1, TOLER2
          ELSE
             ERROR = .TRUE.
             GO TO 9016
@@ -3056,7 +3037,7 @@ C///  INITIALIZE STATISTICS ON ENTRY TO THE SEARCH BLOCK.
 C///  PRINT LEVEL 20, 21, OR 22 ON ENTRY TO THE SEARCH BLOCK.
 
       IF (1 .LT. LEVELM) THEN
-C         IF (0 .LT. TEXT) WRITE (TEXT, 10014) ID
+         IF (0 .LT. TEXT) WRITE (TEXT, 10014) ID
       END IF
 
 C///  PREPARE TO CALL SEARCH.
@@ -3136,9 +3117,9 @@ C///  PRINT LEVEL 20, 21, OR 22 ON EXIT FROM THE SEARCH BLOCK.
 
       IF (1 .LT. LEVELM) THEN
          IF (FOUND) THEN
-C            IF (0 .LT. TEXT) WRITE (TEXT, 10015) ID
+            IF (0 .LT. TEXT) WRITE (TEXT, 10015) ID
          ELSE
-C            IF (0 .LT. TEXT) WRITE (TEXT, 10016) ID
+            IF (0 .LT. TEXT) WRITE (TEXT, 10016) ID
          END IF
       END IF
 
@@ -3161,7 +3142,7 @@ C///  INITIALIZE STATISTICS ON ENTRY TO THE REFINE BLOCK.
 C///  PRINT LEVEL 20, 21, OR 22 ON ENTRY TO THE REFINE BLOCK.
 
       IF (1 .LT. LEVELM) THEN
-C         IF (0 .LT. TEXT) WRITE (TEXT, 10017) ID
+         IF (0 .LT. TEXT) WRITE (TEXT, 10017) ID
       END IF
 
 C///  PREPARE TO CALL REFINE.
@@ -3268,7 +3249,7 @@ C///  COMPLETE STATISTICS FOR THE REFINE BLOCK.
 C///  PRINT LEVEL 10 OR 11 ON EXIT FROM THE REFINE BLOCK.
 
       IF (LEVELM .EQ. 1 .AND. 0 .LT. TEXT) THEN
-C         WRITE (TEXT, '()')
+         WRITE (TEXT, '()')
 C        GO TO 5120 WHEN LABEL = 3
          LABEL = 3
          GO TO 7010
@@ -3279,9 +3260,9 @@ C///  PRINT LEVEL 20, 21, OR 22 ON EXIT FROM THE REFINE BLOCK.
 
       IF (1 .LT. LEVELM) THEN
          IF (FOUND) THEN
-C            IF (0 .LT. TEXT) WRITE (TEXT, 10018) ID
+            IF (0 .LT. TEXT) WRITE (TEXT, 10018) ID
          ELSE
-C            IF (0 .LT. TEXT) WRITE (TEXT, 10019) ID
+            IF (0 .LT. TEXT) WRITE (TEXT, 10019) ID
          END IF
       END IF
 
@@ -3308,7 +3289,7 @@ C///  INITIALIZE STATISTICS ON ENTRY TO THE EVOLVE BLOCK.
 C///  PRINT LEVEL 20, 21, OR 22 ON ENTRY TO THE EVOLVE BLOCK.
 
       IF (1 .LT. LEVELM) THEN
-C         IF (0 .LT. TEXT) WRITE (TEXT, 10020) ID
+         IF (0 .LT. TEXT) WRITE (TEXT, 10020) ID
       END IF
 
 C///  CALL EVOLVE.
@@ -3375,11 +3356,9 @@ C///  PRINT LEVEL 20, 21, OR 22 ON EXIT FROM THE EVOLVE BLOCK.
 
       IF (1 .LT. LEVELM) THEN
          IF (FOUND) THEN
-!            IF (0 .LT. TEXT) WRITE (TEXT, 10021) ID
-             continue
+            IF (0 .LT. TEXT) WRITE (TEXT, 10021) ID
          ELSE
-!            IF (0 .LT. TEXT) WRITE (TEXT, 10022) ID
-             continue
+            IF (0 .LT. TEXT) WRITE (TEXT, 10022) ID
          END IF
       END IF
 
@@ -3428,9 +3407,9 @@ C     REMARK
             STRING = 'DIVERGING'
          ELSE IF (XREPOR .EQ. QNULL) THEN
             IF (NSTEPS .EQ. 1) THEN
-C               WRITE (STRING, '(I10, A)') NSTEPS, ' SEARCH STEP'
+               WRITE (STRING, '(I10, A)') NSTEPS, ' SEARCH STEP'
             ELSE
-C               WRITE (STRING, '(I10, A)') NSTEPS, ' SEARCH STEPS'
+               WRITE (STRING, '(I10, A)') NSTEPS, ' SEARCH STEPS'
             END IF
          ELSE IF (XREPOR .EQ. QBNDS) THEN
             STRING = 'GOING OUT OF BOUNDS'
@@ -3440,26 +3419,26 @@ C               WRITE (STRING, '(I10, A)') NSTEPS, ' SEARCH STEPS'
       ELSE IF (QTASK .EQ. QTIMST) THEN
          IF (XREPOR .EQ. QBNDS .OR. XREPOR .EQ. QDVRG .OR.
      +      XREPOR .EQ. QNULL) THEN
-C            WRITE (STRING, '(I10, A, 1P, E10.1, A)')
-C     +         STEPS, ' TIME STEPS, ', STRIDE, ' LAST STRIDE'
+            WRITE (STRING, '(I10, A, 1P, E10.1, A)')
+     +         STEPS, ' TIME STEPS, ', STRIDE, ' LAST STRIDE'
          ELSE
             STRING = '?'
          END IF
       ELSE IF (QTASK .EQ. QENTRY .AND. ADAPT) THEN
-C         WRITE (STRING, '(I10, A)') POINTS, ' GRID POINTS'
+         WRITE (STRING, '(I10, A)') POINTS, ' GRID POINTS'
       ELSE IF (QTASK .EQ. QREFIN) THEN
          IF (FOUND) THEN
-C            WRITE (STRING, '(F10.2, A, F10.2, A, I10, A)')
-C     +         RATIO(1), ' AND ', RATIO(2), ' RATIOS, ', POINTS,
-C     +         ' GRID POINTS'
+            WRITE (STRING, '(F10.2, A, F10.2, A, I10, A)')
+     +         RATIO(1), ' AND ', RATIO(2), ' RATIOS, ', POINTS,
+     +         ' GRID POINTS'
          ELSE
-C            WRITE (STRING, '(F10.2, A, F10.2, A)')
-C     +         RATIO(1), ' AND ', RATIO(2), ' RATIOS'
+            WRITE (STRING, '(F10.2, A, F10.2, A)')
+     +         RATIO(1), ' AND ', RATIO(2), ' RATIOS'
          END IF
       END IF
 
       CALL TWSQEZ (LENGTH, STRING)
-C      IF (0 .LT. TEXT) WRITE (TEXT, 10023) COLUMN, STRING (1 : LENGTH)
+      IF (0 .LT. TEXT) WRITE (TEXT, 10023) COLUMN, STRING (1 : LENGTH)
 
       GO TO (1110, 4040, 5120, 6040) LABEL
       ERROR = .TRUE.
@@ -3686,17 +3665,16 @@ C///////////////////////////////////////////////////////////////////////
 
 C     GO TO 99999
 
-9001  continue
-c     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
+9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
       IF (.NOT. MESS) GO TO 99999
 
 9002  IF (0 .LT. TEXT) THEN
          CALL TWLAST (LENGTH, VERSIO)
-C         WRITE (TEXT, 99002) ID, VERSIO (1 : LENGTH), VNMBR(VNMBRS)
-C         DO 9901 J = VNMBRS - 1, 1, - 1
-C            WRITE (TEXT, '(10X, A, A)')
+         WRITE (TEXT, 99002) ID, VERSIO (1 : LENGTH), VNMBR(VNMBRS)
+         DO 9901 J = VNMBRS - 1, 1, - 1
+            WRITE (TEXT, '(10X, A, A)')
 C*****PRECISION > DOUBLE
-C     +         ' CAN REPLACE:  DOUBLE PRECISION VERSION ', VNMBR(J)
+     +         ' CAN REPLACE:  DOUBLE PRECISION VERSION ', VNMBR(J)
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C     +         ' CAN REPLACE:  SINGLE PRECISION VERSION ', VNMBR(J)
@@ -3705,44 +3683,36 @@ C*****END PRECISION > SINGLE
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9003  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID
+9003  IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID
       IF (.NOT. MESS) GO TO 99999
 
-9004  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
+9004  IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
-9005  continue
-C      IF (0 .LT. TEXT) WRITE (TEXT, 99005) ID, LEVELD, LEVELM
+9005  IF (0 .LT. TEXT) WRITE (TEXT, 99005) ID, LEVELD, LEVELM
       IF (.NOT. MESS) GO TO 99999
 
-9006   continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID,
-C     +   COMPS, POINTS, GROUPA, GROUPB
+9006  IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID,
+     +   COMPS, POINTS, GROUPA, GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-9007  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99007) ID, COMPS, POINTS
+9007  IF (0 .LT. TEXT) WRITE (TEXT, 99007) ID, COMPS, POINTS
       IF (.NOT. MESS) GO TO 99999
 
-9008  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99008) ID,
-C     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
+9008  IF (0 .LT. TEXT) WRITE (TEXT, 99008) ID,
+     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-9009  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99009) ID,
-C     +   NAMES, COMPS, GROUPA, GROUPB, GROUPA + COMPS + GROUPB
+9009  IF (0 .LT. TEXT) WRITE (TEXT, 99009) ID,
+     +   NAMES, COMPS, GROUPA, GROUPB, GROUPA + COMPS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-9010  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99010) ID, POINTS, PMAX
+9010  IF (0 .LT. TEXT) WRITE (TEXT, 99010) ID, POINTS, PMAX
       IF (.NOT. MESS) GO TO 99999
 
 9011  IF (0 .LT. TEXT) THEN
-C         WRITE (TEXT, 99011) ID,
-C     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
+         WRITE (TEXT, 99011) ID,
+     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
          COUNT = 0
          DO 8010 J = 1, GROUPA + COMPS + GROUPB
             IF (.NOT. (BELOW(J) .LT. ABOVE(J)) .OR. MESS) THEN
@@ -3779,54 +3749,44 @@ C     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
                      LENGTH = 40
                   END IF
 
-C                  WRITE (TEXT, 80002)
-C     +               BELOW(J), ABOVE(J), STRING (1 : LENGTH)
+                  WRITE (TEXT, 80002)
+     +               BELOW(J), ABOVE(J), STRING (1 : LENGTH)
                END IF
             END IF
 8010     CONTINUE
-C         IF (LINES .LT. COUNT) WRITE (TEXT, 80003)
+         IF (LINES .LT. COUNT) WRITE (TEXT, 80003)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9012  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99012) ID
+9012  IF (0 .LT. TEXT) WRITE (TEXT, 99012) ID
       IF (.NOT. MESS) GO TO 99999
 
-9013  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99013) ID,
-C     +   ISIZE, RSIZE, ILAST, RLAST
+9013  IF (0 .LT. TEXT) WRITE (TEXT, 99013) ID,
+     +   ISIZE, RSIZE, ILAST, RLAST
       IF (.NOT. MESS) GO TO 99999
 
-9014  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99014) ID
+9014  IF (0 .LT. TEXT) WRITE (TEXT, 99014) ID
       IF (.NOT. MESS) GO TO 99999
 
-9015  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99015) ID
+9015  IF (0 .LT. TEXT) WRITE (TEXT, 99015) ID
       IF (.NOT. MESS) GO TO 99999
 
-9016  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99016) ID
+9016  IF (0 .LT. TEXT) WRITE (TEXT, 99016) ID
       IF (.NOT. MESS) GO TO 99999
 
-9017  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99017) ID
+9017  IF (0 .LT. TEXT) WRITE (TEXT, 99017) ID
       IF (.NOT. MESS) GO TO 99999
 
-9018  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99018) ID
+9018  IF (0 .LT. TEXT) WRITE (TEXT, 99018) ID
       IF (.NOT. MESS) GO TO 99999
 
-9019  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99019) ID
+9019  IF (0 .LT. TEXT) WRITE (TEXT, 99019) ID
       IF (.NOT. MESS) GO TO 99999
 
-9020  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99020) ID, LABEL
+9020  IF (0 .LT. TEXT) WRITE (TEXT, 99020) ID, LABEL
       IF (.NOT. MESS) GO TO 99999
 
-9021  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99021) ID, RETURN
+9021  IF (0 .LT. TEXT) WRITE (TEXT, 99021) ID, RETURN
       IF (.NOT. MESS) GO TO 99999
 
 99001 FORMAT
@@ -4347,24 +4307,21 @@ C///////////////////////////////////////////////////////////////////////
 
       GO TO 99999
 
-9001  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
+9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
       IF (.NOT. MESS) GO TO 99999
 
-9002  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
-C     +   COMPS, POINTS, GROUPA, GROUPB, N
+9002  IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
+     +   COMPS, POINTS, GROUPA, GROUPB, N
       IF (.NOT. MESS) GO TO 99999
 
-9003  continue
-C      IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID,
-C     +   COMPS, POINTS, GROUPA, GROUPB, N, WIDTH,
-C     +   (3 * WIDTH + 2) * N, ASIZE
+9003  IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID,
+     +   COMPS, POINTS, GROUPA, GROUPB, N, WIDTH,
+     +   (3 * WIDTH + 2) * N, ASIZE
       IF (.NOT. MESS) GO TO 99999
 
 9004  IF (0 .LT. TEXT) THEN
-C         WRITE (TEXT, 99004) ID, COMPS, POINTS, GROUPA, GROUPB,
-C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
+         WRITE (TEXT, 99004) ID, COMPS, POINTS, GROUPA, GROUPB,
+     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
          COUNT = 0
          DO 8010 J = 1, GROUPA + COMPS * POINTS + GROUPB
             IF (A(J) .EQ. 0.0 .OR. MESS) THEN
@@ -4381,17 +4338,17 @@ C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
      +                  'GROUP B ', J - GROUPA - COMPS * POINTS
                   END IF
                   CALL TWSQEZ (LENGTH, STRING)
-C                  WRITE (TEXT, 80001) STRING (1 : LENGTH)
+                  WRITE (TEXT, 80001) STRING (1 : LENGTH)
                END IF
             END IF
 8010     CONTINUE
-C         IF (LINES .LT. COUNT) WRITE (TEXT, 80002)
+         IF (LINES .LT. COUNT) WRITE (TEXT, 80002)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
-C         WRITE (TEXT, 99005) ID, COMPS, POINTS, GROUPA, GROUPB,
-C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
+         WRITE (TEXT, 99005) ID, COMPS, POINTS, GROUPA, GROUPB,
+     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
          COUNT = 0
          DO 8020 J = 1, GROUPA + COMPS * POINTS + GROUPB
             IF (A(J) .EQ. 0.0 .OR. MESS) THEN
@@ -4408,16 +4365,15 @@ C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
      +                  'GROUP B ', J - GROUPA - COMPS * POINTS
                   END IF
                   CALL TWSQEZ (LENGTH, STRING)
-C                  WRITE (TEXT, 80001) STRING (1 : LENGTH)
+                  WRITE (TEXT, 80001) STRING (1 : LENGTH)
                END IF
             END IF
 8020     CONTINUE
-C         IF (LINES .LT. COUNT) WRITE (TEXT, 80002)
+         IF (LINES .LT. COUNT) WRITE (TEXT, 80002)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9006  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID
+9006  IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID
       IF (.NOT. MESS) GO TO 99999
 
 99001 FORMAT
@@ -4495,17 +4451,13 @@ C///////////////////////////////////////////////////////////////////////
       EXTERNAL
      +   TWINIT, TWLAST
       INTEGER
-     +   CNTRLS, COUNT, IVALUE, LENGTH, TEXT, VALUE
+     +   COUNT, LENGTH, TEXT, VALUE
       LOGICAL
-     +   ERROR, FOUND, MESS, LVALUE
+     +   ERROR, FOUND, MESS
 
       PARAMETER (ID = 'TWSETI:  ')
-      PARAMETER (CNTRLS = 22)
 
-      DIMENSION IVALUE(CNTRLS), LVALUE(CNTRLS)
-
-      COMMON / TWCOMI / IVALUE
-      COMMON / TWCOML / LVALUE
+      include 'twcom.fh'
 
 C///  WRITE ALL MESSAGES.
 
@@ -4711,8 +4663,7 @@ C///  ERROR MESSAGES.
 
       GO TO 99999
 
-9001  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
+9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
       IF (.NOT. MESS) GO TO 99999
 
 9002  IF (0 .LT. TEXT) THEN
@@ -4723,7 +4674,7 @@ C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-C         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
+         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -4735,12 +4686,11 @@ C         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-C         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
+         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9004  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
+9004  IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
@@ -4751,7 +4701,7 @@ C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-C         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
+         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -4801,16 +4751,13 @@ C///////////////////////////////////////////////////////////////////////
       EXTERNAL
      +   TWINIT, TWLAST
       INTEGER
-     +   CNTRLS, COUNT, LENGTH, TEXT
+     +   COUNT, LENGTH, TEXT
       LOGICAL
-     +   ERROR, FOUND, LVALUE, MESS, VALUE
+     +   ERROR, FOUND, MESS, VALUE
 
       PARAMETER (ID = 'TWSETL:  ')
-      PARAMETER (CNTRLS = 22)
 
-      DIMENSION LVALUE(CNTRLS)
-
-      COMMON / TWCOML / LVALUE
+      include 'twcom.fh'
 
 C///  WRITE ALL MESSAGES.
 
@@ -5015,8 +4962,7 @@ C///  ERROR MESSAGES.
 
       GO TO 99999
 
-9001  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
+9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
       IF (.NOT. MESS) GO TO 99999
 
 9002  IF (0 .LT. TEXT) THEN
@@ -5027,7 +4973,7 @@ C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-C         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
+         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -5039,12 +4985,11 @@ C         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-C         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
+         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9004  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
+9004  IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
@@ -5055,7 +5000,7 @@ C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-C         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
+         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -5108,20 +5053,17 @@ C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   RVALUE, VALUE
+     +   VALUE
       EXTERNAL
      +   TWINIT, TWLAST
       INTEGER
-     +   CNTRLS, COUNT, LENGTH, TEXT
+     +   COUNT, LENGTH, TEXT
       LOGICAL
      +   ERROR, FOUND, MESS
 
       PARAMETER (ID = 'TWSETR:  ')
-      PARAMETER (CNTRLS = 22)
 
-      DIMENSION RVALUE(CNTRLS)
-
-      COMMON / TWCOMR / RVALUE
+      include 'twcom.fh'
 
 C///  WRITE ALL MESSAGES.
 
@@ -5326,8 +5268,7 @@ C///  ERROR MESSAGES.
 
       GO TO 99999
 
-9001  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
+9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
       IF (.NOT. MESS) GO TO 99999
 
 9002  IF (0 .LT. TEXT) THEN
@@ -5338,7 +5279,7 @@ C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-C         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
+         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -5350,12 +5291,11 @@ C         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-C         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
+         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9004  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
+9004  IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
@@ -5366,7 +5306,7 @@ C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-C         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
+         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -5480,14 +5420,14 @@ C///////////////////////////////////////////////////////////////////////
       IF (0 .LT. TEXT) THEN
 
       IF (0 .LT. GROUPA) THEN
-C         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'GROUP A UNKNOWNS'
-C         WRITE (TEXT, 10002) (J, BUFFER(J), J = 1, GROUPA)
+         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'GROUP A UNKNOWNS'
+         WRITE (TEXT, 10002) (J, BUFFER(J), J = 1, GROUPA)
       END IF
 
       IF (0 .LT. GROUPB) THEN
-C         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'GROUP B UNKNOWNS'
-C         WRITE (TEXT, 10002)
-C     +      (J, BUFFER(GROUPA + COMPS * POINTS + J), J = 1, GROUPB)
+         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'GROUP B UNKNOWNS'
+         WRITE (TEXT, 10002)
+     +      (J, BUFFER(GROUPA + COMPS * POINTS + J), J = 1, GROUPB)
       END IF
 
 C///////////////////////////////////////////////////////////////////////
@@ -5497,7 +5437,7 @@ C
 C///////////////////////////////////////////////////////////////////////
 
       IF (0 .LT. COMPS .AND. 0 .LT. POINTS) THEN
-C         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'COMPONENTS AT POINTS'
+         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'COMPONENTS AT POINTS'
 
          DO 2030 FIRST = 1, COMPS, COLS
             COUNT = 0
@@ -5511,32 +5451,32 @@ C         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'COMPONENTS AT POINTS'
 2010        CONTINUE
 
             IF (GRID) THEN
-C               WRITE (TEXT, 10003)
-C     +            'GRID POINT', (TITLE(J), J = 1, COUNT)
+               WRITE (TEXT, 10003)
+     +            'GRID POINT', (TITLE(J), J = 1, COUNT)
             ELSE
-C               WRITE (TEXT, 10003) (TITLE(J), J = 1, COUNT)
+               WRITE (TEXT, 10003) (TITLE(J), J = 1, COUNT)
             END IF
 
             IF (COUNT .EQ. COLS) THEN
                IF (GRID) THEN
-C                  WRITE (TEXT, 10004) (POINT, X(POINT),
-C     +               (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
-C     +               COMP = FIRST, LAST), POINT = 1, POINTS)
+                  WRITE (TEXT, 10004) (POINT, X(POINT),
+     +               (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
+     +               COMP = FIRST, LAST), POINT = 1, POINTS)
                ELSE
-C                  WRITE (TEXT, 10005) (POINT,
-C     +               (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
-C     +               COMP = FIRST, LAST), POINT = 1, POINTS)
+                  WRITE (TEXT, 10005) (POINT,
+     +               (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
+     +               COMP = FIRST, LAST), POINT = 1, POINTS)
                END IF
             ELSE
                DO 2020 POINT = 1, POINTS
                   IF (GRID) THEN
-C                     WRITE (TEXT, 10004) POINT, X(POINT),
-C     +                  (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
-C     +                  COMP = FIRST, LAST)
+                     WRITE (TEXT, 10004) POINT, X(POINT),
+     +                  (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
+     +                  COMP = FIRST, LAST)
                   ELSE
-C                     WRITE (TEXT, 10005) POINT,
-C     +                  (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
-C     +                  COMP = FIRST, LAST)
+                     WRITE (TEXT, 10005) POINT,
+     +                  (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
+     +                  COMP = FIRST, LAST)
                   END IF
 2020           CONTINUE
             END IF
@@ -5574,9 +5514,8 @@ C///////////////////////////////////////////////////////////////////////
 
       GO TO 99999
 
-9001  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID,
-C          +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
+9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID,
+     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
 99001 FORMAT
@@ -5684,15 +5623,13 @@ C///////////////////////////////////////////////////////////////////////
 
       GO TO 99999
 
-9001  continue
-C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID,
-C     +   COMPS, POINTS, GROUPA, GROUPB, N
+9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID,
+     +   COMPS, POINTS, GROUPA, GROUPB, N
       IF (.NOT. MESS) GO TO 99999
 
-9002  continue
-C IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
-C      +   COMPS, POINTS, GROUPA, GROUPB, N, WIDTH,
-C      +   (3 * WIDTH + 2) * N, ASIZE
+9002  IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
+     +   COMPS, POINTS, GROUPA, GROUPB, N, WIDTH,
+     +   (3 * WIDTH + 2) * N, ASIZE
       IF (.NOT. MESS) GO TO 99999
 
 99001 FORMAT

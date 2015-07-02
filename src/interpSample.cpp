@@ -44,6 +44,7 @@ main (int   argc,
 
   std::vector<Real> stateL(num_params), stateR(num_params);
 
+  bool Lonly = false;
   if (nL==1 && nR==1) {
 
     std::string restartL; pp.get("restartL",restartL);
@@ -72,24 +73,34 @@ main (int   argc,
   }
   else {
     int nsL = pp.countval("stateL");
-    int nsR = pp.countval("stateR");
-    BL_ASSERT(nsL == nsR == num_params);
+    BL_ASSERT(nsL == num_params);
     pp.getarr("stateL",stateL,0,num_params);
-    pp.getarr("stateR",stateR,0,num_params);
+
+    int nsR = pp.countval("stateR");
+    if (nsR == 0) {
+      Lonly = true;
+    } else {
+      BL_ASSERT(nsR == num_params);
+      pp.getarr("stateR",stateR,0,num_params);
+    }
   }
 
-  int intervals=10; pp.query("intervals",intervals);
-  int niters = intervals + 1;
-  std::vector<Real> samples(num_params * niters);
-  std::vector<Real> sample(num_params);
-  for (int n=0; n<niters; ++n) {
-    Real eta = (Real) n / intervals;
-    for (int i=0; i<num_params; ++i) {
-      sample[i] = (1 - eta)*stateL[i] + eta*stateR[i];
-      int index = n + niters*i;
+  if (Lonly) {
+    Real F = NegativeLogLikelihood(stateL);
+  } else {
+    int intervals=10; pp.query("intervals",intervals);
+    int niters = intervals + 1;
+    std::vector<Real> samples(num_params * niters);
+    std::vector<Real> sample(num_params);
+    for (int n=0; n<niters; ++n) {
+      Real eta = (Real) n / intervals;
+      for (int i=0; i<num_params; ++i) {
+	sample[i] = (1 - eta)*stateL[i] + eta*stateR[i];
+	int index = n + niters*i;
       samples[index] = sample[i];
+      }
+      Real F = NegativeLogLikelihood(sample);
     }
-    Real F = NegativeLogLikelihood(sample);
   }
 
   BoxLib::Finalize();

@@ -193,7 +193,7 @@ C
       PARAMETER (IFMT='(10I12)', CFMT='(8A16)', RFMT='(1P,5E24.16)',
      1           LFMT='(L8)')
 C
-      COMMON /CKCONS/ PREC, FILVER, PRVERS, KERR, LENI, LENR, LENC
+      include 'ckcom.fh'
       DATA LIST(1) /'1.0'/
 C
       FILVER = ' '
@@ -611,8 +611,7 @@ C      IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
 c      INCLUDE 'ckstrt.h'
-      COMMON /CMIN/ CKMIN
-      COMMON /CKCONS/ PREC, FILVER, PRVERS, KERR, LENI, LENR, LENC
+      include 'ckcom.fh'
 C
       DIMENSION ICKWRK(*), RCKWRK(*)
       CHARACTER*(*) CCKWRK(*)

@@ -1087,11 +1087,11 @@ void CKXNUM(char * line, int * nexp, int * lout, int * nval, double * restrict r
     /* Strip Comments  */
     for (i=0; i<lenline; ++i) {
         if (line[i]=='!') {
-            cstr[i] = '\0';
-            break;
+	     break;
         }
         cstr[i] = line[i];
     }
+    cstr[i] = '\0';
 
     p = strtok(cstr," ");
     if (!p) {

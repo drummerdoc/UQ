@@ -262,14 +262,7 @@ C*****precision > single
 C      IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
 C
       CHARACTER CCKWRK(LENCCK)*(*), KSYM(KK)*(16), NAME(NATJ)*(*),
      1          ISOLUT*16, ISENSI*16, IHSENS*16, ID*9
@@ -599,14 +592,8 @@ C*****precision > single
 C        IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
+
 C     Integer arrays
       DIMENSION ICKWRK(LENICK), IMCWRK(LENIMC)
 C     Real arrays
@@ -619,9 +606,6 @@ C     Real arrays
 C
       LOGICAL LBURNR, LENRGY, LTDIF, LVARMC, LTIME, LMULTI, LVCOR, MATCH
       EXTERNAL CKBSEC, AREA, VTRACE
-
-      logical LULNUM
-      common / MARC / DFTH, CHTH, LULNUM
 
       double precision CONV,DIFF,REAC,DIFFE
       integer iBudget
@@ -982,18 +966,8 @@ C*****precision > single
 C        IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
 C
-      logical LULNUM
-      common / MARC / DFTH, CHTH, LULNUM
-
       DIMENSION X(JJ), S(NATJ,JJ), WT(KK), YAV(KK), XMF(KK), XMFP(KK),
      1          D(KK,JJ), TDR(KK,JJ), YV(KK,JJ), DKJ(KK,KK,JJ), XAV(KK)
 C
@@ -1138,14 +1112,7 @@ C*****precision > single
 C        IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
 C
       DIMENSION X(JJ), S(NATJ,JJ), YAV(KK), ICKWRK(LENICK),
      1          RCKWRK(LENRCK),
@@ -1230,14 +1197,7 @@ C*****precision > single
 C        IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
 C
       DIMENSION X(JJ), S(NATJ,JJ), YAV(KK), ICKWRK(LENICK),
      1          RCKWRK(LENRCK),
@@ -1361,19 +1321,7 @@ C*****precision > single
 C      IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
-      COMMON /FLFLFL/
-     +   ICC, ICKW, IIP, IKI, IKP, IKR, IKS, IMCW, INAME, LAC, LMK, NA,
-     +   NABV, NBLW, NBUF, NCKW, NCON, NREG, ND, NDKJ, NDS, NEPS, NF,
-     +   NFN,  NKA6, NMCW, NRE,  NRKFT,NRKRT,NRSAVE, NS, NSCH, NSN,
-     +   NTDR, NTGV, NSSAVE, NWT, NX, NXGV, NYV
+      include 'prcom.fh'
 C
       DIMENSION I(LENIWK), R(LENRWK)
       CHARACTER C(LENCWK)*(*)
@@ -1528,22 +1476,8 @@ C*****precision > single
 C        IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
-      COMMON /FLFLFL/
-     +   ICC, ICKW, IIP, IKI, IKP, IKR, IKS, IMCW, INAME, LAC, LMK, NA,
-     +   NABV, NBLW, NBUF, NCKW, NCON, NREG, ND, NDKJ, NDS, NEPS, NF,
-     +   NFN,  NKA6, NMCW, NRE,  NRKFT,NRKRT,NRSAVE, NS, NSCH, NSN,
-     +   NTDR, NTGV, NSSAVE, NWT, NX, NXGV, NYV
+      include 'prcom.fh'
 C
-#include "REAL.H"
-#include "cdwrk.H"
       DIMENSION I(LENIWK), R(LENRWK)
       CHARACTER C(LENCWK)*(16), PRVERS*16, PRDATE*16, PREC*16, REPORT*16
       LOGICAL L(LENLWK)
@@ -1704,21 +1638,13 @@ C      IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
       INTEGER CALL, CALLS
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
 C
       CHARACTER VERSIO*80, SIGNAL*16, REPORT*16, NAME(NATJ)*(*),
      1          KSYM(KK)*(*), CCKWRK(LENCCK)*(*), ISOLUT*16
       LOGICAL LENRGY, ENERGY, LBURNR, BURNER, LMULTI, LVCOR, LVARMC,
      1        LTDIF, LTIME, LMOLE, ACTIVE(NATJ), ERROR, MARK(JMAX),
-     2        RETURN, KERR, latom, lfuel, lpath, lrrop, lsolve, ldflx,
-     +        lewis, lheat, ldiff
+     2        RETURN, KERR
 C     Integer arrays
       DIMENSION ICKWRK(LENICK), IMCWRK(LENIMC), ITWWRK(LENITW),
      1          IPIVOT(NATJ,JMAX)
@@ -1735,8 +1661,6 @@ C
       EXTERNAL CKBSEC
       PARAMETER (ISOLUT='SOLUTION')
 
-      common / prlcon / 
-     +   latom, ldflx, ldiff, lewis, lfuel, lheat, lpath, lrrop, lsolve
 C
 C///////////////////////////////////////////////////////////////////////
 C
@@ -2034,20 +1958,9 @@ C     +   rho, sum, tav, tdr, thermalConductivity, thisarea, xav, xmf,
 C     +   xmfp, yav, yv, z, z0, mixtureViscosity
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
-      LOGICAL
-     +   kerr, lewis, lfuel, LMOLE, lpath, lrrop, lsolve, latom, ldflx, 
-     +   LMULTI, LENRGY, LTDIF, LVCOR, lheat, ldiff
+      include 'prcom.fh'
 
-      common / prlcon / 
-     +   latom, ldflx, ldiff, lewis, lfuel, lheat, lpath, lrrop, lsolve
+      LOGICAL kerr, LMOLE, LMULTI, LENRGY, LTDIF, LVCOR
 C
       allocatable cond
       allocatable d
@@ -2622,11 +2535,7 @@ C*****precision > single
 C      IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
+      include 'prcom.fh'
 C
       DIMENSION X(JMAX), S(NATJ,JMAX)
       CHARACTER*16 ICHR, ICKLNK, IMCLNK, ISOLUT, ISENSI, IHSENS
@@ -2653,6 +2562,18 @@ C
       ENDDO
       P = SAVESOL( JJ + NATJ*JMAX + 1 )
       DMFLRT = SAVESOL( JJ + NATJ*JMAX + 2 )
+
+      TFIXT = 0.5d0 * (S(NT,1)+S(NT,JJ))
+      JFIXT = 1
+      MINDT = ABS(S(NT,JFIXT)-TFIXT)
+      DO 1300 J = 1, JJ
+         MINDTJ = ABS(S(NT,J)-TFIXT)
+         IF (MINDTJ .LE. MINDT) THEN
+            JFIXT = J
+            MINDT = MINDTJ
+         ENDIF
+1300  CONTINUE
+      TFIXT = S(NT,JFIXT)
 
       return
 
@@ -2731,11 +2652,7 @@ C*****precision > single
 C      IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
+      include 'prcom.fh'
 C
       DIMENSION ICKWRK(LENICK), RCKWRK(LENRCK),
      1          IMCWRK(LENIMC), RMCWRK(LENRMC)
@@ -2846,14 +2763,7 @@ C*****END precision > single
 C
       CHARACTER ISENS*(*)
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
 C
       LOGICAL
      +   ERROR, LBURNR, LENRGY, LMOLE, LMULTI, LTDIF, LTIME, LVARMC,
@@ -3097,26 +3007,13 @@ C*****precision > single
 C      IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
-      common / prlcon / 
-     +   latom, ldflx, ldiff, lewis, lfuel, lheat, lpath, lrrop, lsolve
-
-      logical LULNUM
-      common / MARC / DFTH, CHTH, LULNUM
+      include 'prcom.fh'
 C
       LOGICAL
      +   CNTNUD, IERR, KERR, ERROR, LASEN, LBURNR, LCNTUE,
      +   LENRGY, LFIRST, LHSEN, LMOLE, LMULTI,
      +   LRSTRT, LTDIF, LTIME, LTIME2, LUMESH, LUSTGV,
-     +   LVCOR, NEC, NOPT, LREGRD, lpath, lrrop, lfuel, latom,
-     +   lsolve, linflow, ldflx, lheat, lewis, ldiff
+     +   LVCOR, NEC, NOPT, LREGRD, linflow
       INTEGER 
      +   CKLSCH, FIRST, IFUEL, LAST
       EXTERNAL CKLSCH
@@ -3875,14 +3772,8 @@ C*****precision > single
 C        IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
+
 C     Integer arrays
       DIMENSION ICKWRK(LENICK)
 C     Real arrays
@@ -4019,14 +3910,7 @@ C*****precision > single
 C        IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
 C
       LOGICAL LBURNR, LMOLE, LUMESH, KERR
 C     Integer arrays
@@ -4366,14 +4250,7 @@ C*****precision > single
 C      IMPLICIT REAL (A-H, O-Z), INTEGER (I-N)
 C*****END precision > single
 C
-      COMMON / PRICON / KK, II, NATJ, JJ, IASIZE, LENICK, LENRCK,
-     1                  LENCCK, LENIMC, LENRMC,
-     2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
-     3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
-     +                  ifuel
-      COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
-     1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
-     2                  TFIXT, TRFAC
+      include 'prcom.fh'
 C
       LOGICAL LBURNR, LFIXT
       DIMENSION SN(NATJ,JJ), S(NATJ,JJ), REG(JJ), X(JJ), COND(JJ),
