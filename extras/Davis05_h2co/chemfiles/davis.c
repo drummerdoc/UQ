@@ -1078,15 +1078,15 @@ void CKINDX(int * iwrk, double * restrict rwrk, int * mm, int * kk, int * ii, in
 }
 
 static char cstr[1000];
+static char *p; /*String Tokens */
 #ifdef _OPENMP
-#pragma omp threadprivate(cstr)
+#pragma omp threadprivate(cstr, p)
 #endif
 
 /* ckxnum... for parsing strings  */
 void CKXNUM(char * line, int * nexp, int * lout, int * nval, double * restrict rval, int * kerr, int lenline )
 {
     int n,i; /*Loop Counters */
-    char *p; /*String Tokens */
     /* Strip Comments  */
     for (i=0; i<lenline; ++i) {
         if (line[i]=='!') {
