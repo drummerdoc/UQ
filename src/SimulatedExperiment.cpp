@@ -989,9 +989,6 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
   BL_PROFILE("PREMIXReactor::GetMeasurements()");
 
-  BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX", myname);
-  BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX-a", myname1);
-
   // This set to return a single value - the flame speed
   simulated_observations.resize(1);
 
@@ -1109,12 +1106,27 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   for(int i=0; i<pathcharlen; i++){
     pathcoded[i] = premix_input_path[i];
   }
+
+  int increment = 1;
+  // Unit numbers for input/output files
+#ifdef _OPENMP
+  increment = omp_get_num_threads();
+  lout = 6 + omp_get_thread_num();
+#else
+  lout = 6;
+#endif
+
+  lin=lout+increment;
+  lrin=lin+increment;
+  lrout=lrin+increment;
+  lrcvr=lrout+increment;
+  linck=lrcvr+increment;
+  linmc=linck+increment;
+  
   open_premix_files_( &lin, &lout, &linmc, &lrin,
                       &lrout, &lrcvr, infilecoded,
                       &charlen, pathcoded, &pathcharlen );
 
-  BL_PROFILE_VAR_STOP(myname1);
-  BL_PROFILE_VAR_STOP(myname);
   // Call the simulation
   //timeval tp;
   //timezone tz;
@@ -1144,8 +1156,6 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   //    fprintf(FP,"\n");
   //}
   //fclose(FP);
-  BL_PROFILE_VAR_START(myname);
-  BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX-b", myname2);
   
   // Extract the measurements - should probably put into an 'ExtractMeasurements'
   // for consistency with ZeroDReactor
@@ -1189,8 +1199,6 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   //        is ok wrt to flame speed measurements
   // Try sampling to get distribution of 1 reaction rate
   //       consistent with observation distribution
-  BL_PROFILE_VAR_STOP(myname2);
-  BL_PROFILE_VAR_STOP(myname);
 
   return std::pair<bool,int>(true,ErrorID("SUCCESS"));
 }
@@ -1233,15 +1241,6 @@ PREMIXReactor::InitializeExperiment()
     lencwk=202;
     lensym=16;
     
-    // Unit numbers for input/output files
-    lin=10;
-    lout=6;
-    lrin=14;
-    lrout=15;
-    lrcvr=16;
-    linck=25;
-    linmc=35;
-
     // Check input file
     if( premix_input_file.empty() ){
         std::cerr << "No input file specified for premixed reactor \n";

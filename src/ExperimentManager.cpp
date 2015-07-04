@@ -10,8 +10,8 @@ static bool log_failed_cases_DEF = true;
 static std::string log_folder_name_DEF = "FAILED";
   
 ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool _use_synthetic_data)
-  : use_synthetic_data(_use_synthetic_data),
-    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0), verbose(true),
+  : use_synthetic_data(_use_synthetic_data), verbose(true),
+    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0),
     log_failed_cases(log_failed_cases_DEF), log_folder_name(log_folder_name_DEF),
     parallel_mode(PARALLELIZE_OVER_RANK)
 {

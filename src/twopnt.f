@@ -56,7 +56,9 @@ C///////////////////////////////////////////////////////////////////////
 
       IMPLICIT COMPLEX (A - P, R - Z), INTEGER (Q)
       CHARACTER
-     +   CWORD*80, HEADER*80, ID*9, JWORD*80, NAME*(*), REMARK*80,
+     +     CWORD*80,
+c      HEADER*80,
+     +     ID*9, JWORD*80, NAME*(*), REMARK*80,
      +   SIGNAL*(*), YWORD*80
 C*****PRECISION > DOUBLE
       DOUBLE PRECISION
@@ -87,7 +89,8 @@ C     REPORT CODES
       DIMENSION
      +   ABOVE(GROUPA + COMPS * POINTS + GROUPB),
      +   BELOW(GROUPA + COMPS * POINTS + GROUPB),
-     +   BUFFER(GROUPA + COMPS * POINTS + GROUPB), HEADER(2, 3),
+     +     BUFFER(GROUPA + COMPS * POINTS + GROUPB),
+c     +     HEADER(2, 3),
      +   NAME(NAMES), S0(GROUPA + COMPS * POINTS + GROUPB),
      +   V0(GROUPA + COMPS * POINTS + GROUPB),
      +   V1(GROUPA + COMPS * POINTS + GROUPB),
@@ -154,34 +157,34 @@ C///  WRITE ALL MESSAGES.
 
 C                     123456789_123456789_123456789_123456789_1234
 C                     123456   123456   123456   123456   12345
-      HEADER(1, 1) = '  TIME   LOG10                      NEWTON S'
-      HEADER(1, 2) = ' POINT   ------------------------   --------'
-      HEADER(1, 3) = 'NUMBER   NORM F   CHANGE   STRIDE   STEPS   '
+C      HEADER(1, 1) = '  TIME   LOG10                      NEWTON S'
+C      HEADER(1, 2) = ' POINT   ------------------------   --------'
+C      HEADER(1, 3) = 'NUMBER   NORM F   CHANGE   STRIDE   STEPS   '
 
 C                     123456789_123456789_1
 C                     123   123456   123456
-      HEADER(2, 1) = 'EARCH                '
-      HEADER(2, 2) = '---------------------'
-      HEADER(2, 3) = 'J''S   COND J   REMARK'
+C      HEADER(2, 1) = 'EARCH                '
+C      HEADER(2, 2) = '---------------------'
+C      HEADER(2, 3) = 'J''S   COND J   REMARK'
 
       IF (MESS .AND. 0 .LT. TEXT) THEN
          ROUTE = 0
          YNORM = 1.0E-4
          CALL TWLOGR (YWORD, YNORM)
 
-         WRITE (TEXT, 10001) ID, HEADER, STEP, YWORD
-         WRITE (TEXT, 20001) ID, STEP, YWORD, LOG10 (STRID0)
-         WRITE (TEXT, 10002) ID, HEADER, STEP, YWORD
-         WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRID0)
-         WRITE (TEXT, 20003) ID, STEP, YWORD, LOG10 (STRID0)
-         WRITE (TEXT, 10006) ID
-         WRITE (TEXT, 10008) ID
-         WRITE (TEXT, 20007) ID, STEP, YWORD
-         WRITE (TEXT, 20004) ID, STEP, YWORD, LOG10 (STRID0)
-         WRITE (TEXT, 10007) ID
-         WRITE (TEXT, 20006) ID, STEP, YWORD
-         WRITE (TEXT, 20008) ID
-         WRITE (TEXT, 20005) ID, STEP, YWORD, LOG10 (STRID0)
+C         WRITE (TEXT, 10001) ID, HEADER, STEP, YWORD
+C         WRITE (TEXT, 20001) ID, STEP, YWORD, LOG10 (STRID0)
+C         WRITE (TEXT, 10002) ID, HEADER, STEP, YWORD
+C         WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRID0)
+C         WRITE (TEXT, 20003) ID, STEP, YWORD, LOG10 (STRID0)
+C         WRITE (TEXT, 10006) ID
+C         WRITE (TEXT, 10008) ID
+C         WRITE (TEXT, 20007) ID, STEP, YWORD
+C         WRITE (TEXT, 20004) ID, STEP, YWORD, LOG10 (STRID0)
+C         WRITE (TEXT, 10007) ID
+C         WRITE (TEXT, 20006) ID, STEP, YWORD
+C         WRITE (TEXT, 20008) ID
+C         WRITE (TEXT, 20005) ID, STEP, YWORD, LOG10 (STRID0)
 
          GO TO 9001
       END IF
@@ -229,15 +232,15 @@ C        GO TO 1020 WHEN ROUTE = 2
 
          IF (1 .EQ. LEVELM) THEN
             IF (STEP .EQ. 0) THEN
-               WRITE (TEXT, 10001) ID, HEADER, STEP, YWORD
+C               WRITE (TEXT, 10001) ID, HEADER, STEP, YWORD
             ELSE
-               WRITE (TEXT, 10002) ID, HEADER, STEP, YWORD
+C               WRITE (TEXT, 10002) ID, HEADER, STEP, YWORD
             END IF
          ELSE IF (1 .LT. LEVELM .AND. 0 .EQ. STEP) THEN
             IF (STEP .EQ. 0) THEN
-               WRITE (TEXT, 20001) ID, STEP, YWORD, LOG10 (STRIDE)
+C               WRITE (TEXT, 20001) ID, STEP, YWORD, LOG10 (STRIDE)
             ELSE
-               WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRIDE)
+C               WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRIDE)
             END IF
          END IF
 1030  CONTINUE
@@ -258,11 +261,11 @@ C///  STRIDE.
          EXIST = .FALSE.
          LOW = STRIDE * TDEC
          STRIDE = MIN (HIGH, STRIDE * TINC)
-         IF (1 .LT. LEVELM .AND. 0 .LT. TEXT)
-     +      WRITE (TEXT, 20003) ID, STEP, YWORD, LOG10 (STRIDE)
+C         IF (1 .LT. LEVELM .AND. 0 .LT. TEXT)
+C     +      WRITE (TEXT, 20003) ID, STEP, YWORD, LOG10 (STRIDE)
       ELSE
-         IF (1 .LT. LEVELM .AND. 0 .LT. TEXT .AND. 0 .LT. STEP)
-     +      WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRIDE)
+C         IF (1 .LT. LEVELM .AND. 0 .LT. TEXT .AND. 0 .LT. STEP)
+C     +      WRITE (TEXT, 20002) ID, STEP, YWORD, LOG10 (STRIDE)
       END IF
 
 C///  NEWTON SEARCH.
@@ -327,8 +330,8 @@ C///  UNSUCCESSFUL?
                LENGTH = 1
                REMARK = ' '
             END IF
-            WRITE (TEXT, 10003) STEP + 1, LOG10 (STRIDE), NUMBER, JWORD,
-     +         REMARK (1 : LENGTH)
+C            WRITE (TEXT, 10003) STEP + 1, LOG10 (STRIDE), NUMBER, JWORD,
+C     +         REMARK (1 : LENGTH)
          END IF
 
 C///  IF ALSO LOW < STRIDE AND 1 < TDEC, THEN DECREASE STRIDE.
@@ -339,8 +342,8 @@ C///  IF ALSO LOW < STRIDE AND 1 < TDEC, THEN DECREASE STRIDE.
             EXIST = .FALSE.
             HIGH = STRIDE / TINC
             STRIDE = MAX (LOW, STRIDE / TDEC)
-            IF (1 .LT. LEVELM .AND. 0 .LT. TEXT) WRITE (TEXT, 20004)
-     +         ID, STEP, YWORD, LOG10 (STRIDE)
+C            IF (1 .LT. LEVELM .AND. 0 .LT. TEXT) WRITE (TEXT, 20004)
+C     +         ID, STEP, YWORD, LOG10 (STRIDE)
             GO TO 1050
          END IF
 
@@ -359,18 +362,18 @@ C///  INCREASE STRIDE.  OTHERWISE END, FAILURE.
       CALL TWLOGR (CWORD, CHANGE)
 
       IF (CHANGE .EQ. 0.0) THEN
-         IF (1 .EQ. LEVELM .AND. 0 .LT. TEXT) THEN
-            WRITE (TEXT, 10004)
-     +         STEP + 1, '  ZERO', LOG10 (STRIDE), NUMBER, JWORD
-         END IF
+C         IF (1 .EQ. LEVELM .AND. 0 .LT. TEXT) THEN
+C            WRITE (TEXT, 10004)
+C     +         STEP + 1, '  ZERO', LOG10 (STRIDE), NUMBER, JWORD
+C         END IF
 
          IF (1.0 .LT. TINC .AND. STRIDE .LT. HIGH) THEN
             AGE = 0
             EXIST = .FALSE.
             LOW = STRIDE * TDEC
             STRIDE = MIN (HIGH, STRIDE * TINC)
-            IF (1 .LT. LEVELM .AND. 0 .LT. TEXT)
-     +         WRITE (TEXT, 20005) ID, STEP, YWORD, LOG10 (STRIDE)
+C            IF (1 .LT. LEVELM .AND. 0 .LT. TEXT)
+C     +         WRITE (TEXT, 20005) ID, STEP, YWORD, LOG10 (STRIDE)
             GO TO 1050
          END IF
          GO TO 2010
@@ -404,8 +407,8 @@ C        GO TO 1090 WHEN ROUTE = 5
          CALL TWNORM (GROUPA + COMPS * POINTS + GROUPB, YNORM, BUFFER)
          CALL TWLOGR (YWORD, YNORM)
 
-         IF (1 .EQ. LEVELM) WRITE (TEXT, 10005)
-     +      STEP, YWORD, CWORD, LOG10 (STRIDE), NUMBER, JWORD
+C         IF (1 .EQ. LEVELM) WRITE (TEXT, 10005)
+C     +      STEP, YWORD, CWORD, LOG10 (STRIDE), NUMBER, JWORD
 1100  CONTINUE
 
 C///  M < LAST?
@@ -422,34 +425,34 @@ C///////////////////////////////////////////////////////////////////////
 
 C///  PRINT.
 
-      IF (0 .LT. LEVELM .AND. 0 .LT. TEXT) THEN
-         IF (1 .EQ. LEVELM) THEN
-            IF (STEP .EQ. FIRST) THEN
-               WRITE (TEXT, 10006) ID
-            ELSE IF (STEP .EQ. LAST) THEN
-               WRITE (TEXT, 10007) ID
-            ELSE
-               WRITE (TEXT, 10008) ID
-            END IF
-         ELSE IF (1 .LT. LEVELM) THEN
-            IF (STEP .EQ. FIRST) THEN
-               WRITE (TEXT, 10006) ID
-            ELSE IF (STEP .EQ. LAST) THEN
-               WRITE (TEXT, 20006) ID, STEP, YWORD
-            ELSE
-               WRITE (TEXT, 20007) ID, STEP, YWORD
-            END IF
-         END IF
+C      IF (0 .LT. LEVELM .AND. 0 .LT. TEXT) THEN
+C         IF (1 .EQ. LEVELM) THEN
+C            IF (STEP .EQ. FIRST) THEN
+C               WRITE (TEXT, 10006) ID
+C            ELSE IF (STEP .EQ. LAST) THEN
+C               WRITE (TEXT, 10007) ID
+C            ELSE
+C               WRITE (TEXT, 10008) ID
+C            END IF
+C         ELSE IF (1 .LT. LEVELM) THEN
+C            IF (STEP .EQ. FIRST) THEN
+C               WRITE (TEXT, 10006) ID
+C            ELSE IF (STEP .EQ. LAST) THEN
+C               WRITE (TEXT, 20006) ID, STEP, YWORD
+C            ELSE
+C               WRITE (TEXT, 20007) ID, STEP, YWORD
+C            END IF
+C         END IF
 
-         IF (FIRST .LT. LAST .AND. 1 .EQ. LEVELD) THEN
-            WRITE (TEXT, 20008) ID
-            CALL TWCOPY (GROUPA + COMPS * POINTS + GROUPB, V0, BUFFER)
-            SIGNAL = 'SHOW'
-C           GO TO 2020 WHEN ROUTE = 6
-            ROUTE = 6
-            GO TO 99999
-         END IF
-      END IF
+C         IF (FIRST .LT. LAST .AND. 1 .EQ. LEVELD) THEN
+CC            WRITE (TEXT, 20008) ID
+C            CALL TWCOPY (GROUPA + COMPS * POINTS + GROUPB, V0, BUFFER)
+C            SIGNAL = 'SHOW'
+CC           GO TO 2020 WHEN ROUTE = 6
+C            ROUTE = 6
+C            GO TO 99999
+C         END IF
+C      END IF
 
 2020  CONTINUE
       SIGNAL = ' '
@@ -465,82 +468,82 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-10001 FORMAT
-     +  (/1X, A9, 'BEGIN TIME EVOLUTION.'
-     +  /3(/10X, A44, A21)
-     +  /10X, I6, 3X, A6)
-
-10002 FORMAT
-     +  (/1X, A9, 'CONTINUE TIME EVOLUTION.'
-     +  /3(/10X, A44, A21)
-     +  /10X, I6, 3X, A6)
-
-10003 FORMAT
-     +  (10X, I6, 21X, F6.2, 3X, I5, 3X, A12, 3X, A)
-
-10004 FORMAT
-     +  (10X, I6, 12X, A6, 3X, F6.2, 3X, I5, 3X, A12)
-
-10005 FORMAT
-     +  (10X, I6, 2(3X, A6), 3X, F6.2, 3X, I5, 3X, A12)
-
-10006 FORMAT
-     +  (/1X, A9, 'FAILURE.  NO TIME EVOLUTION.')
-
-10007 FORMAT
-     +  (/1X, A9, 'SUCCESS.  TIME EVOLUTION COMPLETED.')
-
-10008 FORMAT
-     +  (/1X, A9, 'PARTIAL SUCCESS.  TIME EVOLUTION INCOMPLETE.')
-
-20001 FORMAT
-     +  (/1X, A9, 'BEGIN TIME EVOLUTION.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
-
-20002 FORMAT
-     +  (/1X, A9, 'CONTINUE TIME EVOLUTION.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
-
-20003 FORMAT
-     +  (/1X, A9, 'CONTINUE TIME EVOLUTION WITH INCREASED STRIDE.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 INCREASED STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
-
-20004 FORMAT
-     +  (/1X, A9, 'RETRY THE STEP WITH A DECREASED TIME STRIDE.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 DECREASED STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE, AGAIN.')
-
-20005 FORMAT
-     +  (/1X, A9, 'THE SOLUTION DID NOT CHANGE.  RETRYING THE STEP'
-     +  /10X, 'WITH AN INCREASED TIME STRIDE.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 INCREASED STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE, AGAIN.')
-
-20006 FORMAT
-     +  (/1X, A9, 'SUCCESS.  TIME EVOLUTION COMPLETED.'
-     + //10X, I10, '  LAST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE')
-
-20007 FORMAT
-     +  (/1X, A9, 'PARTIAL SUCCESS.  TIME EVOLUTION INCOMPLETE.'
-     + //10X, I10, '  LAST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE')
-
-20008 FORMAT
-     + (/1X, A9, 'THE LATEST SOLUTION:')
+c$$$10001 FORMAT
+c$$$     +  (/1X, A9, 'BEGIN TIME EVOLUTION.'
+c$$$     +  /3(/10X, A44, A21)
+c$$$     +  /10X, I6, 3X, A6)
+c$$$
+c$$$10002 FORMAT
+c$$$     +  (/1X, A9, 'CONTINUE TIME EVOLUTION.'
+c$$$     +  /3(/10X, A44, A21)
+c$$$     +  /10X, I6, 3X, A6)
+c$$$
+c$$$10003 FORMAT
+c$$$     +  (10X, I6, 21X, F6.2, 3X, I5, 3X, A12, 3X, A)
+c$$$
+c$$$10004 FORMAT
+c$$$     +  (10X, I6, 12X, A6, 3X, F6.2, 3X, I5, 3X, A12)
+c$$$
+c$$$10005 FORMAT
+c$$$     +  (10X, I6, 2(3X, A6), 3X, F6.2, 3X, I5, 3X, A12)
+c$$$
+c$$$10006 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  NO TIME EVOLUTION.')
+c$$$
+c$$$10007 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.  TIME EVOLUTION COMPLETED.')
+c$$$
+c$$$10008 FORMAT
+c$$$     +  (/1X, A9, 'PARTIAL SUCCESS.  TIME EVOLUTION INCOMPLETE.')
+c$$$
+c$$$20001 FORMAT
+c$$$     +  (/1X, A9, 'BEGIN TIME EVOLUTION.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
+c$$$
+c$$$20002 FORMAT
+c$$$     +  (/1X, A9, 'CONTINUE TIME EVOLUTION.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
+c$$$
+c$$$20003 FORMAT
+c$$$     +  (/1X, A9, 'CONTINUE TIME EVOLUTION WITH INCREASED STRIDE.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 INCREASED STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
+c$$$
+c$$$20004 FORMAT
+c$$$     +  (/1X, A9, 'RETRY THE STEP WITH A DECREASED TIME STRIDE.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 DECREASED STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE, AGAIN.')
+c$$$
+c$$$20005 FORMAT
+c$$$     +  (/1X, A9, 'THE SOLUTION DID NOT CHANGE.  RETRYING THE STEP'
+c$$$     +  /10X, 'WITH AN INCREASED TIME STRIDE.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 INCREASED STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE, AGAIN.')
+c$$$
+c$$$20006 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.  TIME EVOLUTION COMPLETED.'
+c$$$     + //10X, I10, '  LAST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE')
+c$$$
+c$$$20007 FORMAT
+c$$$     +  (/1X, A9, 'PARTIAL SUCCESS.  TIME EVOLUTION INCOMPLETE.'
+c$$$     + //10X, I10, '  LAST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE')
+c$$$
+c$$$0008 FORMAT
+c$$$c     + (/1X, A9, 'THE LATEST SOLUTION:')
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -669,7 +672,8 @@ C*****END PRECISION > SINGLE
       EXTERNAL
      +   TWCOPY, TWLOGR, TWNORM, TWSQEZ
       INTEGER
-     +   AGE, COMPS, COUNT, ENTRY, EXPONE, GROUPA, GROUPB, I, J, K,
+     +     AGE, COMPS, COUNT, ENTRY, EXPONE, GROUPA, GROUPB, I, J,
+c      K,
      +   LEN1, LEN2, LENGTH, LEVELD, LEVELM, LINES, NAMES, NUMBER,
      +   POINTS, QBNDS, QDVRG, QNULL, REPORT, ROUTE, STEPS, TEXT, XXAGE
       INTRINSIC
@@ -765,8 +769,8 @@ C///  WRITE ALL MESSAGES.
       IF (MESS .AND. 0 .LT. TEXT) THEN
          ROUTE = 0
 
-         WRITE (TEXT, 10003) ID
-         WRITE (TEXT, 10002) ID
+C         WRITE (TEXT, 10003) ID
+C         WRITE (TEXT, 10002) ID
          COUNT = 0
          DO 1030 J = 1, GROUPA + COMPS * POINTS + GROUPB
             COUNT = COUNT + 1
@@ -787,12 +791,12 @@ C///  WRITE ALL MESSAGES.
                CALL TWSQEZ (LEN1, CTEMP1)
 
                IF (J .LE. GROUPA) THEN
-                  WRITE (CTEMP2, 80001) 'A', I
+c                  WRITE (CTEMP2, 80001) 'A', I
                ELSE IF (J .LE. GROUPA + COMPS * POINTS) THEN
-                  WRITE (CTEMP2, 80002) 'C', I,
-     +               'P', INT ((J - GROUPA - 1) / COMPS) + 1
+c                  WRITE (CTEMP2, 80002) 'C', I,
+c     +               'P', INT ((J - GROUPA - 1) / COMPS) + 1
                ELSE
-                  WRITE (CTEMP2, 80001) 'B', I
+c                  WRITE (CTEMP2, 80001) 'B', I
                END IF
                CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -811,13 +815,13 @@ C///  WRITE ALL MESSAGES.
                   LENGTH = 30
                END IF
 
-               WRITE (TEXT, 80003) 'LOWER', V0(J), STRING (1 : LENGTH)
+C               WRITE (TEXT, 80003) 'LOWER', V0(J), STRING (1 : LENGTH)
             END IF
 1030     CONTINUE
-         IF (LINES .LT. COUNT) WRITE (TEXT, 80004)
-         WRITE (TEXT, 10001) ID
-         WRITE (TEXT, 10006) ID
-         WRITE (TEXT, 10005) ID
+C         IF (LINES .LT. COUNT) WRITE (TEXT, 80004)
+C         WRITE (TEXT, 10001) ID
+C         WRITE (TEXT, 10006) ID
+C         WRITE (TEXT, 10005) ID
 
          GO TO 9001
       END IF
@@ -837,8 +841,8 @@ C                     123456   123456  123456
       HEADER(3, 2) = 'ND REL    DELTA B AND D'
 
       IF (LEVELM .GE. 1 .OR. MESS) THEN
-         IF (0 .LT. TEXT) WRITE (TEXT, 10001)
-     +      ID, ((HEADER(J, K), K = 1, 2), J = 1, 3)
+C         IF (0 .LT. TEXT) WRITE (TEXT, 10001)
+C     +      ID, ((HEADER(J, K), K = 1, 2), J = 1, 3)
       END IF
 
 C///////////////////////////////////////////////////////////////////////
@@ -964,8 +968,8 @@ C///  0 < DELTAB?
             IF (DELTAB .NE. 1.0) CALL TWLOGR (COLUMN(6), DELTAB)
             COLUMN(7) = ' '
             IF (DELTAD .NE. 1.0) CALL TWLOGR (COLUMN(7), DELTAD)
-            WRITE (TEXT, 10004) NUMBER, COLUMN
-            WRITE (TEXT, 10002) ID
+C            WRITE (TEXT, 10004) NUMBER, COLUMN
+C            WRITE (TEXT, 10002) ID
 
             COUNT = 0
             DO 2090 J = 1, GROUPA + COMPS * POINTS + GROUPB
@@ -989,12 +993,12 @@ C///  0 < DELTAB?
                      CALL TWSQEZ (LEN1, CTEMP1)
 
                      IF (J .LE. GROUPA) THEN
-                        WRITE (CTEMP2, 80001) 'A', I
+c                        WRITE (CTEMP2, 80001) 'A', I
                      ELSE IF (J .LE. GROUPA + COMPS * POINTS) THEN
-                        WRITE (CTEMP2, 80002) 'C', I,
-     +                     'P', INT ((J - GROUPA - 1) / COMPS) + 1
+c                        WRITE (CTEMP2, 80002) 'C', I,
+c     +                     'P', INT ((J - GROUPA - 1) / COMPS) + 1
                      ELSE
-                        WRITE (CTEMP2, 80001) 'B', I
+c                        WRITE (CTEMP2, 80001) 'B', I
                      END IF
                      CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -1014,16 +1018,16 @@ C///  0 < DELTAB?
                      END IF
 
                      IF (BELOW(J) .EQ. V0(J)) THEN
-                        WRITE (TEXT, 80003)
-     +                     'LOWER', V0(J), STRING (1 : LENGTH)
+C                        WRITE (TEXT, 80003)
+C     +                     'LOWER', V0(J), STRING (1 : LENGTH)
                      ELSE
-                        WRITE (TEXT, 80003)
-     +                     'UPPER', V0(J), STRING (1 : LENGTH)
+C                        WRITE (TEXT, 80003)
+C     +                     'UPPER', V0(J), STRING (1 : LENGTH)
                      END IF
                   END IF
                END IF
 2090        CONTINUE
-            IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
+C            IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
          END IF
 
          REPORT = QBNDS
@@ -1103,8 +1107,8 @@ C///  NORM S1 < OR = NORM S0?
                   IF (DELTAB .NE. 1.0) CALL TWLOGR (COLUMN(6), DELTAB)
                   COLUMN(7) = ' '
                   IF (DELTAD .NE. 1.0) CALL TWLOGR (COLUMN(7), DELTAD)
-                  WRITE (TEXT, 10004) NUMBER, COLUMN
-                  WRITE (TEXT, 10003) ID
+C                  WRITE (TEXT, 10004) NUMBER, COLUMN
+C                  WRITE (TEXT, 10003) ID
                END IF
                REPORT = QDVRG
                SUCCES = .FALSE.
@@ -1122,7 +1126,7 @@ C///  PRINT.
          IF (DELTAB .NE. 1.0) CALL TWLOGR (COLUMN(6), DELTAB)
          COLUMN(7) = ' '
          IF (DELTAD .NE. 1.0) CALL TWLOGR (COLUMN(7), DELTAD)
-         WRITE (TEXT, 10004) NUMBER, COLUMN
+C         WRITE (TEXT, 10004) NUMBER, COLUMN
          COLUMN(2) = ' '
       END IF
 
@@ -1159,16 +1163,16 @@ C///  PRINT.
          COLUMN(6) = ' '
          COLUMN(7) = ' '
          IF (0 .LT. LEVELD) THEN
-            WRITE (TEXT, 10004) NUMBER, COLUMN
-            WRITE (TEXT, 10005) ID
+C            WRITE (TEXT, 10004) NUMBER, COLUMN
+C            WRITE (TEXT, 10005) ID
             SIGNAL = 'SHOW'
             CALL TWCOPY (GROUPA + COMPS * POINTS + GROUPB, V0, BUFFER)
 C           GO TO 2180 WHEN ROUTE = 6
             ROUTE = 6
             GO TO 99999
          ELSE
-            WRITE (TEXT, 10004) NUMBER, COLUMN
-            WRITE (TEXT, 10006) ID
+C            WRITE (TEXT, 10004) NUMBER, COLUMN
+C            WRITE (TEXT, 10006) ID
          END IF
       END IF
 
@@ -1183,49 +1187,49 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-10001 FORMAT
-     +  (/1X, A9, 'SOLVE NONLINEAR, NONDIFFERENTIAL EQUATIONS.'
-     +  /4(/10X, A44, A23)/)
-
-10002 FORMAT
-     + (/1X, A9, 'FAILURE.  THE SEARCH FOR THE FOLLOWING UNKNOWNS GOES'
-     +  /10X, 'OUT OF BOUNDS.'
-C              12345  123456789_
-     + //10X, 'BOUND       VALUE   UNKNOWN'
-     +  /)
-
-10003 FORMAT
-     +  (/1X, A9, 'FAILURE.  THE SEARCH DIVERGES.')
-
-10004 FORMAT
-     +  (10X, I6, 3(3X, A6), 2(3X, A6, 2X, A6))
-
-10005 FORMAT
-     +  (/1X, A9, 'SUCCESS.  THE SOLUTION:')
-
-10006 FORMAT
-     +  (/1X, A9, 'SUCCESS.')
-
-80001 FORMAT
-     +   ('(', A, ' ', I10, ')')
-
-80002 FORMAT
-     +  ('(', A, ' ', I10, ' ', A, ' ', I10, ')')
-
-80003 FORMAT
-     +  (10X, A5, 2X, 1P, E10.2, 3X, A)
-
-80004 FORMAT
-     +  (30X, '... MORE')
-
-80005 FORMAT
-     +  (10X, '  ... MORE')
-
-80006 FORMAT
-     +  (10X, 1P, E10.2, 2X, E10.2, 3X, A)
-
-80007 FORMAT
-     +  (10X, 1P, E10.2, 2X, E10.2, 2X, E10.2, 3X, A)
+c$$$10001 FORMAT
+c$$$     +  (/1X, A9, 'SOLVE NONLINEAR, NONDIFFERENTIAL EQUATIONS.'
+c$$$     +  /4(/10X, A44, A23)/)
+c$$$
+c$$$10002 FORMAT
+c$$$     + (/1X, A9, 'FAILURE.  THE SEARCH FOR THE FOLLOWING UNKNOWNS GOES'
+c$$$     +  /10X, 'OUT OF BOUNDS.'
+c$$$C              12345  123456789_
+c$$$     + //10X, 'BOUND       VALUE   UNKNOWN'
+c$$$     +  /)
+c$$$
+c$$$10003 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  THE SEARCH DIVERGES.')
+c$$$
+c$$$10004 FORMAT
+c$$$     +  (10X, I6, 3(3X, A6), 2(3X, A6, 2X, A6))
+c$$$
+c$$$10005 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.  THE SOLUTION:')
+c$$$
+c$$$10006 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.')
+c$$$
+c$$$80001 FORMAT
+c$$$     +   ('(', A, ' ', I10, ')')
+c$$$
+c$$$80002 FORMAT
+c$$$     +  ('(', A, ' ', I10, ' ', A, ' ', I10, ')')
+c$$$
+c$$$80003 FORMAT
+c$$$     +  (10X, A5, 2X, 1P, E10.2, 3X, A)
+c$$$
+c$$$80004 FORMAT
+c$$$     +  (30X, '... MORE')
+c$$$
+c$$$80005 FORMAT
+c$$$     +  (10X, '  ... MORE')
+c$$$
+c$$$80006 FORMAT
+c$$$     +  (10X, 1P, E10.2, 2X, E10.2, 3X, A)
+c$$$
+c$$$80007 FORMAT
+c$$$     +  (10X, 1P, E10.2, 2X, E10.2, 2X, E10.2, 3X, A)
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -1235,20 +1239,23 @@ C///////////////////////////////////////////////////////////////////////
 
       GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
+ 9001 CONTINUE
+c      IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
       IF (.NOT. MESS) GO TO 99999
 
-9002  IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
-     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
+ 9002 CONTINUE
+c      IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
+c     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-9003  IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID,
-     +   NAMES, COMPS, GROUPA, GROUPB, GROUPA + COMPS + GROUPB
+ 9003 CONTINUE
+c      IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID,
+c     +   NAMES, COMPS, GROUPA, GROUPB, GROUPA + COMPS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
 9004  IF (0 .LT. TEXT) THEN
-         WRITE (TEXT, 99004) ID,
-     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
+C         WRITE (TEXT, 99004) ID,
+C     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
          COUNT = 0
          DO 8010 J = 1, GROUPA + COMPS + GROUPB
             IF (.NOT. (BELOW(J) .LT. ABOVE(J)) .OR. MESS) THEN
@@ -1262,11 +1269,11 @@ C///////////////////////////////////////////////////////////////////////
                   CALL TWSQEZ (LEN1, CTEMP1)
 
                   IF (J .LE. GROUPA) THEN
-                     WRITE (CTEMP2, 80001) 'A', J
+c                     WRITE (CTEMP2, 80001) 'A', J
                   ELSE IF (J .LE. GROUPA + COMPS) THEN
-                     WRITE (CTEMP2, 80001) 'C', J - GROUPA
+c                     WRITE (CTEMP2, 80001) 'C', J - GROUPA
                   ELSE
-                     WRITE (CTEMP2, 80001) 'B', J - GROUPA - COMPS
+c                     WRITE (CTEMP2, 80001) 'B', J - GROUPA - COMPS
                   END IF
                   CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -1285,18 +1292,18 @@ C///////////////////////////////////////////////////////////////////////
                      LENGTH = 40
                   END IF
 
-                  WRITE (TEXT, 80006)
-     +               BELOW(J), ABOVE(J), STRING (1 : LENGTH)
+C                  WRITE (TEXT, 80006)
+C     +               BELOW(J), ABOVE(J), STRING (1 : LENGTH)
                END IF
             END IF
 8010     CONTINUE
-         IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
+C         IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
-         WRITE (TEXT, 99005) ID, GROUPA, GROUPB, COMPS, POINTS,
-     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
+C         WRITE (TEXT, 99005) ID, GROUPA, GROUPB, COMPS, POINTS,
+C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
          COUNT = 0
          DO 8020 J = 1, GROUPA + COMPS * POINTS + GROUPB
             IF (.NOT. (BELOW(J) .LE. V0(J) .AND. V0(J) .LE. ABOVE(J))
@@ -1319,12 +1326,12 @@ C///////////////////////////////////////////////////////////////////////
                   CALL TWSQEZ (LEN1, CTEMP1)
 
                   IF (J .LE. GROUPA) THEN
-                     WRITE (CTEMP2, 80001) 'A', I
+c                     WRITE (CTEMP2, 80001) 'A', I
                   ELSE IF (J .LE. GROUPA + COMPS * POINTS) THEN
-                     WRITE (CTEMP2, 80002) 'C', I,
-     +                  'P', INT ((J - GROUPA - 1) / COMPS) + 1
+c                     WRITE (CTEMP2, 80002) 'C', I,
+c     +                  'P', INT ((J - GROUPA - 1) / COMPS) + 1
                   ELSE
-                     WRITE (CTEMP2, 80001) 'B', I
+c                     WRITE (CTEMP2, 80001) 'B', I
                   END IF
                   CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -1343,89 +1350,92 @@ C///////////////////////////////////////////////////////////////////////
                      LENGTH = 30
                   END IF
 
-                  WRITE (TEXT, 80007)
-     +               BELOW(J), V0(J), ABOVE(J), STRING (1 : LENGTH)
+C                  WRITE (TEXT, 80007)
+C     +               BELOW(J), V0(J), ABOVE(J), STRING (1 : LENGTH)
                END IF
             END IF
 8020     CONTINUE
-         IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
+C         IF (LINES .LT. COUNT) WRITE (TEXT, 80005)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9006  IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID, XXABS, XXREL
+9006  continue 
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID, XXABS, XXREL
       IF (.NOT. MESS) GO TO 99999
 
-9007  IF (0 .LT. TEXT) WRITE (TEXT, 99007) ID, XXAGE
+9007  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99007) ID, XXAGE
       IF (.NOT. MESS) GO TO 99999
 
-9008  IF (0 .LT. TEXT) WRITE (TEXT, 99008) ID, DELTAB
+9008  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99008) ID, DELTAB
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  ROUTE')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
-     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL UNKNOWNS')
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF NAMES IS WRONG.'
-     + //10X, I10, '  NAMES'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL NUMBER')
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE LOWER AND UPPER BOUNDS ON SOME UNKNOWNS'
-     +  /10X, 'ARE OUT OF ORDER.'
-     + //10X, I10, '  GROUP A UNKNOWNS (A)'
-     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
-     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
-     +  /10X, I10, '  TOTAL TYPES OF UNKNOWNS'
-     +  /10X, I10, '  NUMBER OF BOUNDS OUT OF ORDER'
-C              123456789_  123456789_
-     + //10X, '     LOWER       UPPER'
-     +  /10X, '     BOUND       BOUND   UNKNOWN'
-     +  /)
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE GUESSES FOR SOME UNKNOWNS ARE OUT OF'
-     +  /10X, 'BOUNDS.'
-     + //10X, I10, '  GROUP A UNKNOWNS (A)'
-     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
-     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
-     +  /10X, I10, '  POINTS (P)'
-     +  /10X, I10, '  TOTAL UNKNOWNS'
-     +  /10X, I10, '  NUMBER OUT OF BOUNDS'
-C              123456789_  123456789_  123456789_
-     + //10X, '     LOWER                   UPPER'
-     +  /10X, '     BOUND       VALUE       BOUND   UNKNOWN'
-     +  /)
-
-99006 FORMAT
-     +  (/1X, A9, 'ERROR.  THE BOUNDS FOR THE ABSOLUTE AND RELATIVE'
-     +  /10X, 'CONVERGENCE TESTS MUST BE ZERO OR POSITIVE.'
-     + //10X, 1P, E10.2, '  SSABS OR TDABS, ABSOLUTE ERROR'
-     +  /10X, 1P, E10.2, '  SSREL OR TDREL, RELATIVE ERROR')
-
-99007 FORMAT
-     +  (/1X, A9, 'ERROR.  THE RETIREMENT AGE OF THE JACOBIAN MATRIX'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  SSAGE OR TDAGE, MATRIX RETIREMENT AGE')
-
-99008 FORMAT
-     +  (/1X, A9, 'ERROR.  THE DAMPING COEFFICIENT FOR STAYING'
-     +  /10X, 'IN BOUNDS IS NEGATIVE.'
-     + //10X, 1P, E10.2, '  DELTA B')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  ROUTE')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
+c$$$     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS')
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF NAMES IS WRONG.'
+c$$$     + //10X, I10, '  NAMES'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL NUMBER')
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE LOWER AND UPPER BOUNDS ON SOME UNKNOWNS'
+c$$$     +  /10X, 'ARE OUT OF ORDER.'
+c$$$     + //10X, I10, '  GROUP A UNKNOWNS (A)'
+c$$$     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
+c$$$     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
+c$$$     +  /10X, I10, '  TOTAL TYPES OF UNKNOWNS'
+c$$$     +  /10X, I10, '  NUMBER OF BOUNDS OUT OF ORDER'
+c$$$C              123456789_  123456789_
+c$$$     + //10X, '     LOWER       UPPER'
+c$$$     +  /10X, '     BOUND       BOUND   UNKNOWN'
+c$$$     +  /)
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE GUESSES FOR SOME UNKNOWNS ARE OUT OF'
+c$$$     +  /10X, 'BOUNDS.'
+c$$$     + //10X, I10, '  GROUP A UNKNOWNS (A)'
+c$$$     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
+c$$$     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
+c$$$     +  /10X, I10, '  POINTS (P)'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS'
+c$$$     +  /10X, I10, '  NUMBER OUT OF BOUNDS'
+c$$$C              123456789_  123456789_  123456789_
+c$$$     + //10X, '     LOWER                   UPPER'
+c$$$     +  /10X, '     BOUND       VALUE       BOUND   UNKNOWN'
+c$$$     +  /)
+c$$$
+c$$$99006 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE BOUNDS FOR THE ABSOLUTE AND RELATIVE'
+c$$$     +  /10X, 'CONVERGENCE TESTS MUST BE ZERO OR POSITIVE.'
+c$$$     + //10X, 1P, E10.2, '  SSABS OR TDABS, ABSOLUTE ERROR'
+c$$$     +  /10X, 1P, E10.2, '  SSREL OR TDREL, RELATIVE ERROR')
+c$$$
+c$$$99007 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE RETIREMENT AGE OF THE JACOBIAN MATRIX'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  SSAGE OR TDAGE, MATRIX RETIREMENT AGE')
+c$$$
+c$$$99008 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE DAMPING COEFFICIENT FOR STAYING'
+c$$$     +  /10X, 'IN BOUNDS IS NEGATIVE.'
+c$$$     + //10X, 1P, E10.2, '  DELTA B')
 
 C///  EXIT.
 
@@ -2005,7 +2015,6 @@ C///////////////////////////////////////////////////////////////////////
      +   ERROR, FIRST, FORCE, MESS
 
       PARAMETER (ID = 'TWINIT:  ')
-
       include 'twcom.fh'
 
 C     THE GNU F77 COMPILER REQUIRES THE SAVE TO PRECEED THE DATA
@@ -2150,13 +2159,14 @@ C///  ERROR MESSAGES.
 
       GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, CNTRLS, COUNT
+9001  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
 
 C///  EXIT.
 
@@ -2382,7 +2392,7 @@ C     MNEMONIC VALUES FOR QTASK.
      +   PMAX + GROUPB), VNMBR(VNMBRS), X(*)
 
       include 'twcom.fh'
-
+      
 C///  SAVE LOCAL VALUES DURING RETURNS FOR REVERSE COMMUNCIATION.
 
       SAVE
@@ -2427,29 +2437,29 @@ C///  WRITE ALL MESSAGES.
          RETURN = 0
          ROUTE = 0
 
-         WRITE (TEXT, 10004) ID, '???'
-         WRITE (TEXT, 10020) ID
-         WRITE (TEXT, 10017) ID
-         WRITE (TEXT, 10014) ID
+C         WRITE (TEXT, 10004) ID, '???'
+C         WRITE (TEXT, 10020) ID
+C         WRITE (TEXT, 10017) ID
+C         WRITE (TEXT, 10014) ID
          STRING = VNMBR(VNMBRS)
          CALL TWLAST (LENGTH, STRING)
-         WRITE (TEXT, 10001) ID, 'DOUBLE PRECISION', STRING (1 : LENGTH)
-         WRITE (TEXT, 10022) ID
-         WRITE (TEXT, 10021) ID
-         WRITE (TEXT, 10011) ID, '???', RATIO, TOLER1, TOLER2
-         WRITE (TEXT, 10013) ID, '???', RATIO, TOLER1, TOLER2
-         WRITE (TEXT, 10012) ID
-         WRITE (TEXT, 10002) ID, 'FINAL SOLUTION:'
-         WRITE (TEXT, 10002) ID, 'INITIAL GUESS:'
-         WRITE (TEXT, 10019) ID
-         WRITE (TEXT, 10018) ID
-         WRITE (TEXT, 10016) ID
-         WRITE (TEXT, 10015) ID
+C         WRITE (TEXT, 10001) ID, 'DOUBLE PRECISION', STRING (1 : LENGTH)
+C         WRITE (TEXT, 10022) ID
+C         WRITE (TEXT, 10021) ID
+C         WRITE (TEXT, 10011) ID, '???', RATIO, TOLER1, TOLER2
+C         WRITE (TEXT, 10013) ID, '???', RATIO, TOLER1, TOLER2
+C         WRITE (TEXT, 10012) ID
+C         WRITE (TEXT, 10002) ID, 'FINAL SOLUTION:'
+C         WRITE (TEXT, 10002) ID, 'INITIAL GUESS:'
+C         WRITE (TEXT, 10019) ID
+C         WRITE (TEXT, 10018) ID
+C         WRITE (TEXT, 10016) ID
+C         WRITE (TEXT, 10015) ID
          STRING = VNMBR(VNMBRS)
          CALL TWLAST (LENGTH, STRING)
-         WRITE (TEXT, 10001) ID, 'SINGLE PRECISION', STRING (1 : LENGTH)
-         WRITE (TEXT, 10002) ID, 'SOLVE THE PROBLEM.'
-         WRITE (TEXT, 10010) ID
+C         WRITE (TEXT, 10001) ID, 'SINGLE PRECISION', STRING (1 : LENGTH)
+C         WRITE (TEXT, 10002) ID, 'SOLVE THE PROBLEM.'
+C         WRITE (TEXT, 10010) ID
 
          GO TO 9001
       END IF
@@ -2559,10 +2569,10 @@ C///  PRINT THE ENTRY BANNER AT ALL PRINT LEVELS.
 
       STRING = VNMBR(VNMBRS)
       CALL TWLAST (LENGTH, STRING)
-      IF ((0 .LT. LEVELM .OR. MESS) .AND. 0 .LT. TEXT)
-     +   WRITE (TEXT, 10001) ID,
+C      IF ((0 .LT. LEVELM .OR. MESS) .AND. 0 .LT. TEXT)
+C     +   WRITE (TEXT, 10001) ID,
 C*****PRECISION > DOUBLE
-     +   'DOUBLE PRECISION', STRING (1 : LENGTH)
+C     +   'DOUBLE PRECISION', STRING (1 : LENGTH)
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C     +   'SINGLE PRECISION', STRING (1 : LENGTH)
@@ -2744,7 +2754,7 @@ C     GO TO 1090 WHEN RETURN = 1
 C///  PRINT LEVELS 11, 21, AND 22.
 
       IF (0 .LT. LEVELD .AND. 0 .LT. TEXT) THEN
-         WRITE (TEXT, 10002) ID, 'INITIAL GUESS:'
+C         WRITE (TEXT, 10002) ID, 'INITIAL GUESS:'
 C        GO TO 1100 WHEN RETURN = 2
          RETURN = 2
          GO TO 9921
@@ -2759,9 +2769,9 @@ C                  12345678   123456  123456   123456
       HEADER(2) = '    TASK   NORM F  COND J   REMARK'
 
       IF (LEVELM .EQ. 1 .AND. 0 .LT. TEXT) THEN
-         IF (0 .LT. LEVELD) WRITE (TEXT, 10002) ID,
-     +      'SOLVE THE PROBLEM.'
-         WRITE (TEXT, 10003) (HEADER(J), J = 1, 2)
+C         IF (0 .LT. LEVELD) WRITE (TEXT, 10002) ID,
+C     +      'SOLVE THE PROBLEM.'
+C         WRITE (TEXT, 10003) (HEADER(J), J = 1, 2)
 C        GO TO 1110 WHEN LABEL = 1
          LABEL = 1
          GO TO 7010
@@ -2893,7 +2903,7 @@ C     SAVE THE STATUS REPORTS DURING REVERSE COMMUNICATION
       STRING = REPORT
 
       IF (LEVELD .EQ. 1 .AND. 0 .LT. TEXT) THEN
-         WRITE (TEXT, 10002) ID, 'FINAL SOLUTION:'
+C         WRITE (TEXT, 10002) ID, 'FINAL SOLUTION:'
 C        GO TO 3020 WHEN RETURN = 3
          RETURN = 3
          GO TO 9921
@@ -2927,7 +2937,7 @@ C///  REPORT TOTAL COMPUTER TIME.
       END IF
 
       CALL TWSQEZ (LENGTH, STRING)
-      WRITE (TEXT, 10004) ID, STRING (1 : LENGTH)
+C      WRITE (TEXT, 10004) ID, STRING (1 : LENGTH)
 
 C///  REPORT PERCENT OF TOTAL COMPUTER TIME.
 
@@ -2946,10 +2956,10 @@ C                  123456 123456 123456 123456
       HEADER(4) = '---------------------------'
       HEADER(6) = 'EVAL F PREP J  SOLVE  OTHER'
 
-      WRITE (TEXT, 10005) HEADER,
-     +   (SIZE(J), (TEMP * DETAIL(J, K), K = 1, 8), J = 1, GRID)
-      IF (1 .LT. GRID) WRITE (TEXT, 10006) (TEMP * TOTAL(K), K = 2, 8)
-      IF (GMAX .LT. GRID) WRITE (TEXT, 10007)
+C      WRITE (TEXT, 10005) HEADER,
+C     +   (SIZE(J), (TEMP * DETAIL(J, K), K = 1, 8), J = 1, GRID)
+C      IF (1 .LT. GRID) WRITE (TEXT, 10006) (TEMP * TOTAL(K), K = 2, 8)
+C      IF (GMAX .LT. GRID) WRITE (TEXT, 10007)
 
       ELSE
 
@@ -2959,12 +2969,12 @@ C                  123456   123456   123456   123456   123456   123456
       HEADER(2) = '---------------------------------   ---------------'
       HEADER(3) = 'EVAL F   PREP J    SOLVE    OTHER   EVOLVE   SEARCH'
 
-      WRITE (TEXT, 10008)
-     +   (HEADER(J), J = 1, 3), '  % OF TOTAL',
-     +   (TEMP * TOTAL(K), K = 5, 8), (TEMP * TOTAL(K), K = 2, 3),
-     +   'MEAN SECONDS', (DETAIL(1, K) / EVENT(1, K), K = 5, 7),
-     +   '    QUANTITY', (EVENT(1, K), K = 5, 7)
-
+C      WRITE (TEXT, 10008)
+C     +   (HEADER(J), J = 1, 3), '  % OF TOTAL',
+C     +   (TEMP * TOTAL(K), K = 5, 8), (TEMP * TOTAL(K), K = 2, 3),
+C     +   'MEAN SECONDS', (DETAIL(1, K) / EVENT(1, K), K = 5, 7),
+C     +   '    QUANTITY', (EVENT(1, K), K = 5, 7)
+C
       END IF
 
 C///  REPORT AVERAGE COMPUTER TIME.
@@ -2982,9 +2992,9 @@ C                  1234567  1234567  1234567
       HEADER(4) = '-------------------------'
       HEADER(6) = ' EVAL F   PREP J    SOLVE'
 
-      IF (ADAPT) WRITE (TEXT, 10009) HEADER,
-     +   (SIZE(J), (DETAIL(J, K) / EVENT(J, K), K = 5, 7),
-     +   (EVENT(J, K), K = 5, 7), J = 1, GRID)
+C      IF (ADAPT) WRITE (TEXT, 10009) HEADER,
+C     +   (SIZE(J), (DETAIL(J, K) / EVENT(J, K), K = 5, 7),
+C     +   (EVENT(J, K), K = 5, 7), J = 1, GRID)
 
       END IF
 
@@ -2992,19 +3002,19 @@ C///  REPORT THE COMPLETION STATUS.
 
       IF (0 .LT. LEVELM) THEN
          IF (REPORT .EQ. ' ') THEN
-            WRITE (TEXT, 10010) ID
+C            WRITE (TEXT, 10010) ID
          ELSE IF (REPORT .EQ. 'NO SPACE') THEN
-            WRITE (STRING, '(I10)') POINTS
+C            WRITE (STRING, '(I10)') POINTS
             CALL TWSQEZ (LENGTH, STRING)
-            WRITE (TEXT, 10011)
-     +         ID, STRING (1 : LENGTH), RATIO, TOLER1, TOLER2
+C            WRITE (TEXT, 10011)
+C     +         ID, STRING (1 : LENGTH), RATIO, TOLER1, TOLER2
          ELSE IF (REPORT .EQ. 'NOT SOLVED') THEN
-            WRITE (TEXT, 10012) ID
+C            WRITE (TEXT, 10012) ID
          ELSE IF (REPORT .EQ. 'SOME SOLVED') THEN
-            WRITE (STRING, '(I10)') POINTS
+C            WRITE (STRING, '(I10)') POINTS
             CALL TWSQEZ (LENGTH, STRING)
-            WRITE (TEXT, 10013)
-     +         ID, STRING (1 : LENGTH), RATIO, TOLER1, TOLER2
+C            WRITE (TEXT, 10013)
+C     +         ID, STRING (1 : LENGTH), RATIO, TOLER1, TOLER2
          ELSE
             ERROR = .TRUE.
             GO TO 9016
@@ -3037,7 +3047,7 @@ C///  INITIALIZE STATISTICS ON ENTRY TO THE SEARCH BLOCK.
 C///  PRINT LEVEL 20, 21, OR 22 ON ENTRY TO THE SEARCH BLOCK.
 
       IF (1 .LT. LEVELM) THEN
-         IF (0 .LT. TEXT) WRITE (TEXT, 10014) ID
+C         IF (0 .LT. TEXT) WRITE (TEXT, 10014) ID
       END IF
 
 C///  PREPARE TO CALL SEARCH.
@@ -3117,9 +3127,9 @@ C///  PRINT LEVEL 20, 21, OR 22 ON EXIT FROM THE SEARCH BLOCK.
 
       IF (1 .LT. LEVELM) THEN
          IF (FOUND) THEN
-            IF (0 .LT. TEXT) WRITE (TEXT, 10015) ID
+C            IF (0 .LT. TEXT) WRITE (TEXT, 10015) ID
          ELSE
-            IF (0 .LT. TEXT) WRITE (TEXT, 10016) ID
+C            IF (0 .LT. TEXT) WRITE (TEXT, 10016) ID
          END IF
       END IF
 
@@ -3142,7 +3152,7 @@ C///  INITIALIZE STATISTICS ON ENTRY TO THE REFINE BLOCK.
 C///  PRINT LEVEL 20, 21, OR 22 ON ENTRY TO THE REFINE BLOCK.
 
       IF (1 .LT. LEVELM) THEN
-         IF (0 .LT. TEXT) WRITE (TEXT, 10017) ID
+C         IF (0 .LT. TEXT) WRITE (TEXT, 10017) ID
       END IF
 
 C///  PREPARE TO CALL REFINE.
@@ -3249,7 +3259,7 @@ C///  COMPLETE STATISTICS FOR THE REFINE BLOCK.
 C///  PRINT LEVEL 10 OR 11 ON EXIT FROM THE REFINE BLOCK.
 
       IF (LEVELM .EQ. 1 .AND. 0 .LT. TEXT) THEN
-         WRITE (TEXT, '()')
+C         WRITE (TEXT, '()')
 C        GO TO 5120 WHEN LABEL = 3
          LABEL = 3
          GO TO 7010
@@ -3260,9 +3270,9 @@ C///  PRINT LEVEL 20, 21, OR 22 ON EXIT FROM THE REFINE BLOCK.
 
       IF (1 .LT. LEVELM) THEN
          IF (FOUND) THEN
-            IF (0 .LT. TEXT) WRITE (TEXT, 10018) ID
+C            IF (0 .LT. TEXT) WRITE (TEXT, 10018) ID
          ELSE
-            IF (0 .LT. TEXT) WRITE (TEXT, 10019) ID
+C            IF (0 .LT. TEXT) WRITE (TEXT, 10019) ID
          END IF
       END IF
 
@@ -3289,7 +3299,7 @@ C///  INITIALIZE STATISTICS ON ENTRY TO THE EVOLVE BLOCK.
 C///  PRINT LEVEL 20, 21, OR 22 ON ENTRY TO THE EVOLVE BLOCK.
 
       IF (1 .LT. LEVELM) THEN
-         IF (0 .LT. TEXT) WRITE (TEXT, 10020) ID
+C         IF (0 .LT. TEXT) WRITE (TEXT, 10020) ID
       END IF
 
 C///  CALL EVOLVE.
@@ -3356,9 +3366,11 @@ C///  PRINT LEVEL 20, 21, OR 22 ON EXIT FROM THE EVOLVE BLOCK.
 
       IF (1 .LT. LEVELM) THEN
          IF (FOUND) THEN
-            IF (0 .LT. TEXT) WRITE (TEXT, 10021) ID
+!            IF (0 .LT. TEXT) WRITE (TEXT, 10021) ID
+             continue
          ELSE
-            IF (0 .LT. TEXT) WRITE (TEXT, 10022) ID
+!            IF (0 .LT. TEXT) WRITE (TEXT, 10022) ID
+             continue
          END IF
       END IF
 
@@ -3407,9 +3419,9 @@ C     REMARK
             STRING = 'DIVERGING'
          ELSE IF (XREPOR .EQ. QNULL) THEN
             IF (NSTEPS .EQ. 1) THEN
-               WRITE (STRING, '(I10, A)') NSTEPS, ' SEARCH STEP'
+C               WRITE (STRING, '(I10, A)') NSTEPS, ' SEARCH STEP'
             ELSE
-               WRITE (STRING, '(I10, A)') NSTEPS, ' SEARCH STEPS'
+C               WRITE (STRING, '(I10, A)') NSTEPS, ' SEARCH STEPS'
             END IF
          ELSE IF (XREPOR .EQ. QBNDS) THEN
             STRING = 'GOING OUT OF BOUNDS'
@@ -3419,26 +3431,26 @@ C     REMARK
       ELSE IF (QTASK .EQ. QTIMST) THEN
          IF (XREPOR .EQ. QBNDS .OR. XREPOR .EQ. QDVRG .OR.
      +      XREPOR .EQ. QNULL) THEN
-            WRITE (STRING, '(I10, A, 1P, E10.1, A)')
-     +         STEPS, ' TIME STEPS, ', STRIDE, ' LAST STRIDE'
+C            WRITE (STRING, '(I10, A, 1P, E10.1, A)')
+C     +         STEPS, ' TIME STEPS, ', STRIDE, ' LAST STRIDE'
          ELSE
             STRING = '?'
          END IF
       ELSE IF (QTASK .EQ. QENTRY .AND. ADAPT) THEN
-         WRITE (STRING, '(I10, A)') POINTS, ' GRID POINTS'
+C         WRITE (STRING, '(I10, A)') POINTS, ' GRID POINTS'
       ELSE IF (QTASK .EQ. QREFIN) THEN
          IF (FOUND) THEN
-            WRITE (STRING, '(F10.2, A, F10.2, A, I10, A)')
-     +         RATIO(1), ' AND ', RATIO(2), ' RATIOS, ', POINTS,
-     +         ' GRID POINTS'
+C            WRITE (STRING, '(F10.2, A, F10.2, A, I10, A)')
+C     +         RATIO(1), ' AND ', RATIO(2), ' RATIOS, ', POINTS,
+C     +         ' GRID POINTS'
          ELSE
-            WRITE (STRING, '(F10.2, A, F10.2, A)')
-     +         RATIO(1), ' AND ', RATIO(2), ' RATIOS'
+C            WRITE (STRING, '(F10.2, A, F10.2, A)')
+C     +         RATIO(1), ' AND ', RATIO(2), ' RATIOS'
          END IF
       END IF
 
       CALL TWSQEZ (LENGTH, STRING)
-      IF (0 .LT. TEXT) WRITE (TEXT, 10023) COLUMN, STRING (1 : LENGTH)
+C      IF (0 .LT. TEXT) WRITE (TEXT, 10023) COLUMN, STRING (1 : LENGTH)
 
       GO TO (1110, 4040, 5120, 6040) LABEL
       ERROR = .TRUE.
@@ -3558,104 +3570,104 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-10001 FORMAT
-     +   (/1X, A9, A, ' (TWO POINT BOUNDARY VALUE PROBLEM) SOLVER,'
-     +   /10X, 'VERSION ', A,
-     +   ' OF APRIL 1998 BY DR. JOSEPH F. GRCAR.')
-
-10002 FORMAT
-     +   (/1X, A9, A)
-
-10003 FORMAT
-     +   (3(/10X, A35)/)
-
-10004 FORMAT
-     +  (/1X, A9, A, ' TOTAL COMPUTER TIME (SEE BREAKDOWN BELOW).')
-
-10005 FORMAT
-     +  (/10X, 'PERCENT OF TOTAL COMPUTER TIME FOR VARIOUS TASKS:'
-     +   /3(/10X, A38, A27)
-     +  //(10X, I6, 2X, F6.1, 1X, 3(1X, F6.1), 1X, 4(1X, F6.1)))
-
-10006 FORMAT
-     +  (/12X, 'TASK TOTALS:', 1X, 3(1X, F6.1), 1X, 4(1X, F6.1))
-
-10007 FORMAT
-     +  (/10X, 'SOME GRIDS ARE OMITTED, BUT THE TOTALS ARE FOR ALL.')
-
-10008 FORMAT
-     +  (3(/24X, A51)
-     +  //10X, A12, F8.1, 5F9.1
-     +   /10X, A12, F8.3, 2F9.3
-     +   /10X, A12, I8, 2I9)
-
-10009 FORMAT
-     +  (/10X, 'AVERAGE COMPUTER TIMES FOR, AND NUMBERS OF, SUBTASKS:'
-     +   /3(/10X, A37, A25)
-     +  //(10X, I6, 3X, F7.3, 2X, F7.3, 2X, F7.3, 1X, 3(2X, I7)))
-
-10010 FORMAT
-     +  (/1X, A9, 'SUCCESS.  PROBLEM SOLVED.')
-
-10011 FORMAT
-     +  (/1X, A9, 'FAILURE.  A SOLUTION WAS FOUND FOR A GRID WITH ', A
-     +  /10X, 'POINTS, BUT ONE OR BOTH RATIOS ARE TOO LARGE.'
-C               123456789_  123456789_
-     +  //22X, '   RATIO 1     RATIO 2'
-     +  //10X, '     FOUND', 2F12.2
-     +   /10X, '   DESIRED', 2F12.2
-     +  //10X, 'A LARGER GRID COULD NOT BE FORMED.')
-
-10012 FORMAT
-     +  (/1X, A9, 'FAILURE.  NO SOLUTION WAS FOUND.')
-
-10013 FORMAT
-     +  (/1X, A9, 'FAILURE.  A SOLUTION WAS FOUND FOR A GRID WITH ', A
-     +  /10X, 'POINTS, BUT ONE OR BOTH RATIOS ARE TOO LARGE.'
-C               123456789_  123456789_
-     +  //22X, '   RATIO 1     RATIO 2'
-     +  //10X, '     FOUND', 2F12.2
-     +   /10X, '   DESIRED', 2F12.2
-     +  //10X, 'A SOLUTION COULD NOT BE FOUND FOR A LARGER GRID.')
-
-10014 FORMAT
-     +  (/1X, A9, 'CALLING SEARCH TO SOLVE THE STEADY STATE PROBLEM.')
-
-10015 FORMAT
-     +  (/1X, A9, 'SEARCH FOUND THE STEADY STATE.')
-
-10016 FORMAT
-     +  (/1X, A9, 'SEARCH DID NOT FIND THE STEADY STATE.')
-
-10017 FORMAT
-     +  (/1X, A9, 'CALLING REFINE TO PRODUCE A NEW GRID.')
-
-10018 FORMAT
-     +  (/1X, A9, 'REFINE SELECTED A NEW GRID.')
-
-10019 FORMAT
-     +  (/1X, A9, 'REFINE DID NOT SELECT A NEW GRID.')
-
-10020 FORMAT
-     +  (/1X, A9, 'CALLING EVOLVE TO PERFORM TIME EVOLUTION.')
-
-10021 FORMAT
-     +  (/1X, A9, 'EVOLVE PERFORMED A TIME EVOLUTION.')
-
-10022 FORMAT
-     +  (/1X, A9, 'EVOLVE DID NOT PERFORM A TIME EVOLUTION.')
-
-10023 FORMAT
-     +   (10X, A8, 3X, A6, 2X, A6, 3X, A)
-
-80001 FORMAT
-     +   ('(', A, ' ', I10, ')')
-
-80002 FORMAT
-     +   (10X, 1P, E10.2, 2X, E10.2, 3X, A)
-
-80003 FORMAT
-     +   (10X, '  ... MORE')
+c$$$10001 FORMAT
+c$$$     +   (/1X, A9, A, ' (TWO POINT BOUNDARY VALUE PROBLEM) SOLVER,'
+c$$$     +   /10X, 'VERSION ', A,
+c$$$     +   ' OF APRIL 1998 BY DR. JOSEPH F. GRCAR.')
+c$$$
+c$$$10002 FORMAT
+c$$$     +   (/1X, A9, A)
+c$$$
+c$$$10003 FORMAT
+c$$$     +   (3(/10X, A35)/)
+c$$$
+c$$$10004 FORMAT
+c$$$     +  (/1X, A9, A, ' TOTAL COMPUTER TIME (SEE BREAKDOWN BELOW).')
+c$$$
+c$$$10005 FORMAT
+c$$$     +  (/10X, 'PERCENT OF TOTAL COMPUTER TIME FOR VARIOUS TASKS:'
+c$$$     +   /3(/10X, A38, A27)
+c$$$     +  //(10X, I6, 2X, F6.1, 1X, 3(1X, F6.1), 1X, 4(1X, F6.1)))
+c$$$
+c$$$10006 FORMAT
+c$$$     +  (/12X, 'TASK TOTALS:', 1X, 3(1X, F6.1), 1X, 4(1X, F6.1))
+c$$$
+c$$$10007 FORMAT
+c$$$     +  (/10X, 'SOME GRIDS ARE OMITTED, BUT THE TOTALS ARE FOR ALL.')
+c$$$
+c$$$10008 FORMAT
+c$$$     +  (3(/24X, A51)
+c$$$     +  //10X, A12, F8.1, 5F9.1
+c$$$     +   /10X, A12, F8.3, 2F9.3
+c$$$     +   /10X, A12, I8, 2I9)
+c$$$
+c$$$10009 FORMAT
+c$$$     +  (/10X, 'AVERAGE COMPUTER TIMES FOR, AND NUMBERS OF, SUBTASKS:'
+c$$$     +   /3(/10X, A37, A25)
+c$$$     +  //(10X, I6, 3X, F7.3, 2X, F7.3, 2X, F7.3, 1X, 3(2X, I7)))
+c$$$
+c$$$10010 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.  PROBLEM SOLVED.')
+c$$$
+c$$$10011 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  A SOLUTION WAS FOUND FOR A GRID WITH ', A
+c$$$     +  /10X, 'POINTS, BUT ONE OR BOTH RATIOS ARE TOO LARGE.'
+c$$$C               123456789_  123456789_
+c$$$     +  //22X, '   RATIO 1     RATIO 2'
+c$$$     +  //10X, '     FOUND', 2F12.2
+c$$$     +   /10X, '   DESIRED', 2F12.2
+c$$$     +  //10X, 'A LARGER GRID COULD NOT BE FORMED.')
+c$$$
+c$$$10012 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  NO SOLUTION WAS FOUND.')
+c$$$
+c$$$10013 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  A SOLUTION WAS FOUND FOR A GRID WITH ', A
+c$$$     +  /10X, 'POINTS, BUT ONE OR BOTH RATIOS ARE TOO LARGE.'
+c$$$C               123456789_  123456789_
+c$$$     +  //22X, '   RATIO 1     RATIO 2'
+c$$$     +  //10X, '     FOUND', 2F12.2
+c$$$     +   /10X, '   DESIRED', 2F12.2
+c$$$     +  //10X, 'A SOLUTION COULD NOT BE FOUND FOR A LARGER GRID.')
+c$$$
+c$$$10014 FORMAT
+c$$$     +  (/1X, A9, 'CALLING SEARCH TO SOLVE THE STEADY STATE PROBLEM.')
+c$$$
+c$$$10015 FORMAT
+c$$$     +  (/1X, A9, 'SEARCH FOUND THE STEADY STATE.')
+c$$$
+c$$$10016 FORMAT
+c$$$     +  (/1X, A9, 'SEARCH DID NOT FIND THE STEADY STATE.')
+c$$$
+c$$$10017 FORMAT
+c$$$     +  (/1X, A9, 'CALLING REFINE TO PRODUCE A NEW GRID.')
+c$$$
+c$$$10018 FORMAT
+c$$$     +  (/1X, A9, 'REFINE SELECTED A NEW GRID.')
+c$$$
+c$$$10019 FORMAT
+c$$$     +  (/1X, A9, 'REFINE DID NOT SELECT A NEW GRID.')
+c$$$
+c$$$10020 FORMAT
+c$$$     +  (/1X, A9, 'CALLING EVOLVE TO PERFORM TIME EVOLUTION.')
+c$$$
+c$$$10021 FORMAT
+c$$$     +  (/1X, A9, 'EVOLVE PERFORMED A TIME EVOLUTION.')
+c$$$
+c$$$10022 FORMAT
+c$$$     +  (/1X, A9, 'EVOLVE DID NOT PERFORM A TIME EVOLUTION.')
+c$$$
+c$$$10023 FORMAT
+c$$$     +   (10X, A8, 3X, A6, 2X, A6, 3X, A)
+c$$$
+c$$$80001 FORMAT
+c$$$     +   ('(', A, ' ', I10, ')')
+c$$$
+c$$$80002 FORMAT
+c$$$     +   (10X, 1P, E10.2, 2X, E10.2, 3X, A)
+c$$$
+c$$$80003 FORMAT
+c$$$     +   (10X, '  ... MORE')
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -3665,54 +3677,63 @@ C///////////////////////////////////////////////////////////////////////
 
 C     GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
+9001  continue
+c     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
       IF (.NOT. MESS) GO TO 99999
 
 9002  IF (0 .LT. TEXT) THEN
          CALL TWLAST (LENGTH, VERSIO)
-         WRITE (TEXT, 99002) ID, VERSIO (1 : LENGTH), VNMBR(VNMBRS)
-         DO 9901 J = VNMBRS - 1, 1, - 1
-            WRITE (TEXT, '(10X, A, A)')
+C         WRITE (TEXT, 99002) ID, VERSIO (1 : LENGTH), VNMBR(VNMBRS)
+C         DO 9901 J = VNMBRS - 1, 1, - 1
+C            WRITE (TEXT, '(10X, A, A)')
 C*****PRECISION > DOUBLE
-     +         ' CAN REPLACE:  DOUBLE PRECISION VERSION ', VNMBR(J)
+C     +         ' CAN REPLACE:  DOUBLE PRECISION VERSION ', VNMBR(J)
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C     +         ' CAN REPLACE:  SINGLE PRECISION VERSION ', VNMBR(J)
 C*****END PRECISION > SINGLE
-9901     CONTINUE
+c9901     CONTINUE
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9003  IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID
+9003  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID
       IF (.NOT. MESS) GO TO 99999
 
-9004  IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
+9004  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
-9005  IF (0 .LT. TEXT) WRITE (TEXT, 99005) ID, LEVELD, LEVELM
+9005  continue
+C      IF (0 .LT. TEXT) WRITE (TEXT, 99005) ID, LEVELD, LEVELM
       IF (.NOT. MESS) GO TO 99999
 
-9006  IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID,
-     +   COMPS, POINTS, GROUPA, GROUPB
+9006   continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID,
+C     +   COMPS, POINTS, GROUPA, GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-9007  IF (0 .LT. TEXT) WRITE (TEXT, 99007) ID, COMPS, POINTS
+9007  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99007) ID, COMPS, POINTS
       IF (.NOT. MESS) GO TO 99999
 
-9008  IF (0 .LT. TEXT) WRITE (TEXT, 99008) ID,
-     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
+9008  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99008) ID,
+C     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-9009  IF (0 .LT. TEXT) WRITE (TEXT, 99009) ID,
-     +   NAMES, COMPS, GROUPA, GROUPB, GROUPA + COMPS + GROUPB
+9009  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99009) ID,
+C     +   NAMES, COMPS, GROUPA, GROUPB, GROUPA + COMPS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-9010  IF (0 .LT. TEXT) WRITE (TEXT, 99010) ID, POINTS, PMAX
+9010  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99010) ID, POINTS, PMAX
       IF (.NOT. MESS) GO TO 99999
 
 9011  IF (0 .LT. TEXT) THEN
-         WRITE (TEXT, 99011) ID,
-     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
+C         WRITE (TEXT, 99011) ID,
+C     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
          COUNT = 0
          DO 8010 J = 1, GROUPA + COMPS + GROUPB
             IF (.NOT. (BELOW(J) .LT. ABOVE(J)) .OR. MESS) THEN
@@ -3726,11 +3747,11 @@ C*****END PRECISION > SINGLE
                   CALL TWSQEZ (LEN1, CTEMP1)
 
                   IF (J .LE. GROUPA) THEN
-                     WRITE (CTEMP2, 80001) 'A', J
+c                     WRITE (CTEMP2, 80001) 'A', J
                   ELSE IF (J .LE. GROUPA + COMPS) THEN
-                     WRITE (CTEMP2, 80001) 'C', J - GROUPA
+c                     WRITE (CTEMP2, 80001) 'C', J - GROUPA
                   ELSE
-                     WRITE (CTEMP2, 80001) 'B', J - GROUPA - COMPS
+c                     WRITE (CTEMP2, 80001) 'B', J - GROUPA - COMPS
                   END IF
                   CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -3749,160 +3770,170 @@ C*****END PRECISION > SINGLE
                      LENGTH = 40
                   END IF
 
-                  WRITE (TEXT, 80002)
-     +               BELOW(J), ABOVE(J), STRING (1 : LENGTH)
+C                  WRITE (TEXT, 80002)
+C     +               BELOW(J), ABOVE(J), STRING (1 : LENGTH)
                END IF
             END IF
 8010     CONTINUE
-         IF (LINES .LT. COUNT) WRITE (TEXT, 80003)
+C         IF (LINES .LT. COUNT) WRITE (TEXT, 80003)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9012  IF (0 .LT. TEXT) WRITE (TEXT, 99012) ID
+9012  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99012) ID
       IF (.NOT. MESS) GO TO 99999
 
-9013  IF (0 .LT. TEXT) WRITE (TEXT, 99013) ID,
-     +   ISIZE, RSIZE, ILAST, RLAST
+9013  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99013) ID,
+C     +   ISIZE, RSIZE, ILAST, RLAST
       IF (.NOT. MESS) GO TO 99999
 
-9014  IF (0 .LT. TEXT) WRITE (TEXT, 99014) ID
+9014  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99014) ID
       IF (.NOT. MESS) GO TO 99999
 
-9015  IF (0 .LT. TEXT) WRITE (TEXT, 99015) ID
+9015  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99015) ID
       IF (.NOT. MESS) GO TO 99999
 
-9016  IF (0 .LT. TEXT) WRITE (TEXT, 99016) ID
+9016  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99016) ID
       IF (.NOT. MESS) GO TO 99999
 
-9017  IF (0 .LT. TEXT) WRITE (TEXT, 99017) ID
+9017  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99017) ID
       IF (.NOT. MESS) GO TO 99999
 
-9018  IF (0 .LT. TEXT) WRITE (TEXT, 99018) ID
+9018  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99018) ID
       IF (.NOT. MESS) GO TO 99999
 
-9019  IF (0 .LT. TEXT) WRITE (TEXT, 99019) ID
+9019  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99019) ID
       IF (.NOT. MESS) GO TO 99999
 
-9020  IF (0 .LT. TEXT) WRITE (TEXT, 99020) ID, LABEL
+9020  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99020) ID, LABEL
       IF (.NOT. MESS) GO TO 99999
 
-9021  IF (0 .LT. TEXT) WRITE (TEXT, 99021) ID, RETURN
+9021  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99021) ID, RETURN
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  ROUTE')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CALLING PROGRAM EXPECTS A VERSION OF'
-     +  /10X, 'TWOPNT NOT COMPATIBLE WITH THIS VERSION.'
-     + //10X, '     EXPECTS:  ', A
-C*****PRECISION > DOUBLE
-     + //10X, 'THIS VERSION:  DOUBLE PRECISION VERSION ', A)
-C*****END PRECISION > DOUBLE
-C*****PRECISION > SINGLE
-C     + //10X, 'THIS VERSION:  SINGLE PRECISION VERSION ', A)
-C*****END PRECISION > SINGLE
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE PRINTING LEVELS ARE OUT OF ORDER.'
-     +  /10X, 'LEVELD CANNOT EXCEED LEVELM.'
-     + //10X, I10, '  LEVELD, FOR SOLUTIONS'
-     +  /10X, I10, '  LEVELM, FOR MESSAGES')
-
-99006 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF ALL TYPES OF UNKNOWNS MUST BE AT'
-     +  /10X, 'LEAST ZERO.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS')
-
-99007 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS')
-
-99008 FORMAT
-     +  (/1X, A9, 'ERROR.  TOTAL UNKNOWNS MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL NUMBER')
-
-99009 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF NAMES IS WRONG.'
-     + //10X, I10, '  NAMES'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL NUMBER')
-
-99010 FORMAT
-     +  (/1X, A9, 'ERROR.  THERE ARE TOO MANY POINTS.'
-     + //10X, I10, '  POINTS'
-     +  /10X, I10, '  PMAX, LIMIT ON POINTS')
-
-99011 FORMAT
-     +  (/1X, A9, 'ERROR.  THE LOWER AND UPPER BOUNDS ON SOME UNKNOWNS'
-     +  /10X, 'ARE OUT OF ORDER.'
-     + //10X, I10, '  GROUP A UNKNOWNS (A)'
-     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
-     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
-     +  /10X, I10, '  TOTAL TYPES OF UNKNOWNS'
-     +  /10X, I10, '  NUMBER OF BOUNDS OUT OF ORDER'
-C              123456789_  123456789_
-     + //10X, '     LOWER       UPPER'
-     +  /10X, '     BOUND       BOUND   UNKNOWN'
-     +  /)
-
-99012 FORMAT
-     +  (/1X, A9, 'ERROR.  TWGRAB FAILS.')
-
-99013 FORMAT
-     +  (/1X, A9, 'ERROR.  ONE OR BOTH WORK SPACES ARE TOO SMALL.'
-C              123456789_  123456789_
-     + //25X, '   INTEGER        REAL'
-C              123456789_123
-     + //10X, ' PRESENT SIZE', 2I12
-     +  /10X, 'REQUIRED SIZE', 2I12)
-
-99014 FORMAT
-     +  (/1X, A9, 'ERROR.  NEITHER THE INITIAL TIME EVOLUTION NOR THE'
-     +  /10X, 'SEARCH FOR THE STEADY STATE IS ALLOWED.')
-
-99015 FORMAT
-     +  (/1X, A9, 'ERROR.  UNKNOWN TASK.')
-
-99016 FORMAT
-     +  (/1X, A9, 'ERROR.  UNKNOWN REPORT CODE.')
-
-99017 FORMAT
-     +  (/1X, A9, 'ERROR.  SEARCH FAILS.')
-
-99018 FORMAT
-     +  (/1X, A9, 'ERROR.  REFINE FAILS.')
-
-99019 FORMAT
-     +  (/1X, A9, 'ERROR.  EVOLVE FAILS.')
-
-99020 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  LABEL')
-
-99021 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  RETURN')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  ROUTE')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CALLING PROGRAM EXPECTS A VERSION OF'
+c$$$     +  /10X, 'TWOPNT NOT COMPATIBLE WITH THIS VERSION.'
+c$$$     + //10X, '     EXPECTS:  ', A
+c$$$C*****PRECISION > DOUBLE
+c$$$     + //10X, 'THIS VERSION:  DOUBLE PRECISION VERSION ', A)
+c$$$C*****END PRECISION > DOUBLE
+c$$$C*****PRECISION > SINGLE
+c$$$C     + //10X, 'THIS VERSION:  SINGLE PRECISION VERSION ', A)
+c$$$C*****END PRECISION > SINGLE
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE PRINTING LEVELS ARE OUT OF ORDER.'
+c$$$     +  /10X, 'LEVELD CANNOT EXCEED LEVELM.'
+c$$$     + //10X, I10, '  LEVELD, FOR SOLUTIONS'
+c$$$     +  /10X, I10, '  LEVELM, FOR MESSAGES')
+c$$$
+c$$$99006 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF ALL TYPES OF UNKNOWNS MUST BE AT'
+c$$$     +  /10X, 'LEAST ZERO.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS')
+c$$$
+c$$$99007 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS')
+c$$$
+c$$$99008 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TOTAL UNKNOWNS MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL NUMBER')
+c$$$
+c$$$99009 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF NAMES IS WRONG.'
+c$$$     + //10X, I10, '  NAMES'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL NUMBER')
+c$$$
+c$$$99010 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THERE ARE TOO MANY POINTS.'
+c$$$     + //10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  PMAX, LIMIT ON POINTS')
+c$$$
+c$$$99011 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE LOWER AND UPPER BOUNDS ON SOME UNKNOWNS'
+c$$$     +  /10X, 'ARE OUT OF ORDER.'
+c$$$     + //10X, I10, '  GROUP A UNKNOWNS (A)'
+c$$$     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
+c$$$     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
+c$$$     +  /10X, I10, '  TOTAL TYPES OF UNKNOWNS'
+c$$$     +  /10X, I10, '  NUMBER OF BOUNDS OUT OF ORDER'
+c$$$C              123456789_  123456789_
+c$$$     + //10X, '     LOWER       UPPER'
+c$$$     +  /10X, '     BOUND       BOUND   UNKNOWN'
+c$$$     +  /)
+c$$$
+c$$$99012 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWGRAB FAILS.')
+c$$$
+c$$$99013 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  ONE OR BOTH WORK SPACES ARE TOO SMALL.'
+c$$$C              123456789_  123456789_
+c$$$     + //25X, '   INTEGER        REAL'
+c$$$C              123456789_123
+c$$$     + //10X, ' PRESENT SIZE', 2I12
+c$$$     +  /10X, 'REQUIRED SIZE', 2I12)
+c$$$
+c$$$99014 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NEITHER THE INITIAL TIME EVOLUTION NOR THE'
+c$$$     +  /10X, 'SEARCH FOR THE STEADY STATE IS ALLOWED.')
+c$$$
+c$$$99015 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  UNKNOWN TASK.')
+c$$$
+c$$$99016 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  UNKNOWN REPORT CODE.')
+c$$$
+c$$$99017 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  SEARCH FAILS.')
+c$$$
+c$$$99018 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  REFINE FAILS.')
+c$$$
+c$$$99019 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  EVOLVE FAILS.')
+c$$$
+c$$$99020 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  LABEL')
+c$$$
+c$$$99021 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  RETURN')
 
 C///  EXIT.
 
@@ -4293,11 +4324,11 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-80001 FORMAT
-     +  (10X, A)
-
-80002 FORMAT
-     +  (10X, '... MORE')
+c$$$80001 FORMAT
+c$$$     +  (10X, A)
+c$$$
+c$$$80002 FORMAT
+c$$$     +  (10X, '... MORE')
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -4307,21 +4338,24 @@ C///////////////////////////////////////////////////////////////////////
 
       GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
+9001  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
       IF (.NOT. MESS) GO TO 99999
 
-9002  IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
-     +   COMPS, POINTS, GROUPA, GROUPB, N
+9002  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
+C     +   COMPS, POINTS, GROUPA, GROUPB, N
       IF (.NOT. MESS) GO TO 99999
 
-9003  IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID,
-     +   COMPS, POINTS, GROUPA, GROUPB, N, WIDTH,
-     +   (3 * WIDTH + 2) * N, ASIZE
+9003  continue
+C      IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID,
+C     +   COMPS, POINTS, GROUPA, GROUPB, N, WIDTH,
+C     +   (3 * WIDTH + 2) * N, ASIZE
       IF (.NOT. MESS) GO TO 99999
 
 9004  IF (0 .LT. TEXT) THEN
-         WRITE (TEXT, 99004) ID, COMPS, POINTS, GROUPA, GROUPB,
-     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
+C         WRITE (TEXT, 99004) ID, COMPS, POINTS, GROUPA, GROUPB,
+C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
          COUNT = 0
          DO 8010 J = 1, GROUPA + COMPS * POINTS + GROUPB
             IF (A(J) .EQ. 0.0 .OR. MESS) THEN
@@ -4338,17 +4372,17 @@ C///////////////////////////////////////////////////////////////////////
      +                  'GROUP B ', J - GROUPA - COMPS * POINTS
                   END IF
                   CALL TWSQEZ (LENGTH, STRING)
-                  WRITE (TEXT, 80001) STRING (1 : LENGTH)
+C                  WRITE (TEXT, 80001) STRING (1 : LENGTH)
                END IF
             END IF
 8010     CONTINUE
-         IF (LINES .LT. COUNT) WRITE (TEXT, 80002)
+C         IF (LINES .LT. COUNT) WRITE (TEXT, 80002)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
-         WRITE (TEXT, 99005) ID, COMPS, POINTS, GROUPA, GROUPB,
-     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
+C         WRITE (TEXT, 99005) ID, COMPS, POINTS, GROUPA, GROUPB,
+C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
          COUNT = 0
          DO 8020 J = 1, GROUPA + COMPS * POINTS + GROUPB
             IF (A(J) .EQ. 0.0 .OR. MESS) THEN
@@ -4365,67 +4399,68 @@ C///////////////////////////////////////////////////////////////////////
      +                  'GROUP B ', J - GROUPA - COMPS * POINTS
                   END IF
                   CALL TWSQEZ (LENGTH, STRING)
-                  WRITE (TEXT, 80001) STRING (1 : LENGTH)
+C                  WRITE (TEXT, 80001) STRING (1 : LENGTH)
                END IF
             END IF
 8020     CONTINUE
-         IF (LINES .LT. COUNT) WRITE (TEXT, 80002)
+C         IF (LINES .LT. COUNT) WRITE (TEXT, 80002)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9006  IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID
+9006  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  ROUTE')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
-     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL UNKNOWNS')
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE MATRIX SPACE IS TOO SMALL.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  MATRIX ORDER'
-     +  /10X, I10, '  STRICT HALF BANDWIDTH'
-     + //10X, I10, '  SPACE REQUIRED'
-     +  /10X, I10, '  ASIZE, PROVIDED')
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  SOME COLUMNS ARE ZERO.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL COLUMNS'
-     +  /10X, I10, '  ZERO COLUMNS'
-     + //10X, 'UNKNOWNS WITH ZERO COLUMNS:'
-     +  /)
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  SOME ROWS ARE ZERO.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL ROWS'
-     +  /10X, I10, '  ZERO ROWS'
-     + //10X, 'ZERO ROWS:'
-     +  /)
-
-99006 FORMAT
-     +  (/1X, A9, 'ERROR.  THE JACOBIAN MATRIX IS SINGULAR.')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  ROUTE')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
+c$$$     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS')
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE MATRIX SPACE IS TOO SMALL.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  MATRIX ORDER'
+c$$$     +  /10X, I10, '  STRICT HALF BANDWIDTH'
+c$$$     + //10X, I10, '  SPACE REQUIRED'
+c$$$     +  /10X, I10, '  ASIZE, PROVIDED')
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  SOME COLUMNS ARE ZERO.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL COLUMNS'
+c$$$     +  /10X, I10, '  ZERO COLUMNS'
+c$$$     + //10X, 'UNKNOWNS WITH ZERO COLUMNS:'
+c$$$     +  /)
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  SOME ROWS ARE ZERO.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL ROWS'
+c$$$     +  /10X, I10, '  ZERO ROWS'
+c$$$     + //10X, 'ZERO ROWS:'
+c$$$     +  /)
+c$$$
+c$$$99006 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE JACOBIAN MATRIX IS SINGULAR.')
 
 C///  EXIT.
 
@@ -4663,7 +4698,8 @@ C///  ERROR MESSAGES.
 
       GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
+9001  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
       IF (.NOT. MESS) GO TO 99999
 
 9002  IF (0 .LT. TEXT) THEN
@@ -4674,7 +4710,7 @@ C///  ERROR MESSAGES.
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
+C         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -4686,11 +4722,12 @@ C///  ERROR MESSAGES.
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
+C         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9004  IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
+9004  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
@@ -4701,31 +4738,31 @@ C///  ERROR MESSAGES.
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
+C         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A LOGICAL VALUE WHICH'
-     +  /10X, 'MUST BE SET USING TWSETL.'
-     + //10X, '     CONTROL:  ', A)
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A REAL VALUE WHICH MUST BE'
-     +  /10X, 'SET USING TWSETR.'
-     + //10X, '     CONTROL:  ', A)
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
-     + //10X, '     CONTROL:  ', A)
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A LOGICAL VALUE WHICH'
+c$$$     +  /10X, 'MUST BE SET USING TWSETL.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A REAL VALUE WHICH MUST BE'
+c$$$     +  /10X, 'SET USING TWSETR.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
+c$$$     + //10X, '     CONTROL:  ', A)
 
 C///  EXIT.
 
@@ -4962,7 +4999,8 @@ C///  ERROR MESSAGES.
 
       GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
+9001  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
       IF (.NOT. MESS) GO TO 99999
 
 9002  IF (0 .LT. TEXT) THEN
@@ -4973,7 +5011,7 @@ C///  ERROR MESSAGES.
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
+C         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -4985,11 +5023,12 @@ C///  ERROR MESSAGES.
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
+C         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9004  IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
+9004  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
@@ -5000,31 +5039,31 @@ C///  ERROR MESSAGES.
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
+C         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES AN INTEGER VALUE WHICH'
-     +  /10X, 'MUST BE SET USING TWSETI.'
-     + //10X, '     CONTROL:  ', A)
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A REAL VALUE WHICH MUST BE'
-     +  /10X, 'SET USING TWSETR.'
-     + //10X, '     CONTROL:  ', A)
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
-     + //10X, '     CONTROL:  ', A)
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES AN INTEGER VALUE WHICH'
+c$$$     +  /10X, 'MUST BE SET USING TWSETI.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A REAL VALUE WHICH MUST BE'
+c$$$     +  /10X, 'SET USING TWSETR.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
+c$$$     + //10X, '     CONTROL:  ', A)
 
 C///  EXIT.
 
@@ -5268,7 +5307,8 @@ C///  ERROR MESSAGES.
 
       GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
+9001  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID
       IF (.NOT. MESS) GO TO 99999
 
 9002  IF (0 .LT. TEXT) THEN
@@ -5279,7 +5319,7 @@ C///  ERROR MESSAGES.
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
+C         WRITE (TEXT, 99002) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -5291,11 +5331,12 @@ C///  ERROR MESSAGES.
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
+C         WRITE (TEXT, 99003) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-9004  IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
+9004  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99004) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
 9005  IF (0 .LT. TEXT) THEN
@@ -5306,31 +5347,31 @@ C///  ERROR MESSAGES.
             LENGTH = 40
             STRING = CONTRL (1 : 37) // '...'
          END IF
-         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
+C         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A LOGICAL VALUE WHICH'
-     +  /10X, 'MUST BE SET USING TWSETL.'
-     + //10X, '     CONTROL:  ', A)
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES AN INTEGER VALUE WHICH'
-     +  /10X, 'MUST BE SET USING TWSETI.'
-     + //10X, '     CONTROL:  ', A)
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
-     + //10X, '     CONTROL:  ', A)
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A LOGICAL VALUE WHICH'
+c$$$     +  /10X, 'MUST BE SET USING TWSETL.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES AN INTEGER VALUE WHICH'
+c$$$     +  /10X, 'MUST BE SET USING TWSETI.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
+c$$$     + //10X, '     CONTROL:  ', A)
 
 C///  EXIT.
 
@@ -5364,7 +5405,8 @@ C*****END PRECISION > SINGLE
       EXTERNAL
      +   TWSQEZ
       INTEGER
-     +   COLS, COMP, COMPS, COUNT, FIRST, GROUPA, GROUPB, GROUPS, J,
+     +     COLS, COMP, COMPS, COUNT, FIRST, GROUPA, GROUPB, GROUPS,
+c      J,
      +   LAST, LENGTH, POINT, POINTS, TEXT
       INTRINSIC
      +   MIN
@@ -5420,14 +5462,14 @@ C///////////////////////////////////////////////////////////////////////
       IF (0 .LT. TEXT) THEN
 
       IF (0 .LT. GROUPA) THEN
-         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'GROUP A UNKNOWNS'
-         WRITE (TEXT, 10002) (J, BUFFER(J), J = 1, GROUPA)
+C         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'GROUP A UNKNOWNS'
+C         WRITE (TEXT, 10002) (J, BUFFER(J), J = 1, GROUPA)
       END IF
 
       IF (0 .LT. GROUPB) THEN
-         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'GROUP B UNKNOWNS'
-         WRITE (TEXT, 10002)
-     +      (J, BUFFER(GROUPA + COMPS * POINTS + J), J = 1, GROUPB)
+C         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'GROUP B UNKNOWNS'
+C         WRITE (TEXT, 10002)
+C     +      (J, BUFFER(GROUPA + COMPS * POINTS + J), J = 1, GROUPB)
       END IF
 
 C///////////////////////////////////////////////////////////////////////
@@ -5437,7 +5479,7 @@ C
 C///////////////////////////////////////////////////////////////////////
 
       IF (0 .LT. COMPS .AND. 0 .LT. POINTS) THEN
-         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'COMPONENTS AT POINTS'
+C         IF (1 .LT. GROUPS) WRITE (TEXT, 10001) 'COMPONENTS AT POINTS'
 
          DO 2030 FIRST = 1, COMPS, COLS
             COUNT = 0
@@ -5451,32 +5493,32 @@ C///////////////////////////////////////////////////////////////////////
 2010        CONTINUE
 
             IF (GRID) THEN
-               WRITE (TEXT, 10003)
-     +            'GRID POINT', (TITLE(J), J = 1, COUNT)
+C               WRITE (TEXT, 10003)
+C     +            'GRID POINT', (TITLE(J), J = 1, COUNT)
             ELSE
-               WRITE (TEXT, 10003) (TITLE(J), J = 1, COUNT)
+C               WRITE (TEXT, 10003) (TITLE(J), J = 1, COUNT)
             END IF
 
             IF (COUNT .EQ. COLS) THEN
                IF (GRID) THEN
-                  WRITE (TEXT, 10004) (POINT, X(POINT),
-     +               (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
-     +               COMP = FIRST, LAST), POINT = 1, POINTS)
+C                  WRITE (TEXT, 10004) (POINT, X(POINT),
+C     +               (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
+C     +               COMP = FIRST, LAST), POINT = 1, POINTS)
                ELSE
-                  WRITE (TEXT, 10005) (POINT,
-     +               (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
-     +               COMP = FIRST, LAST), POINT = 1, POINTS)
+C                  WRITE (TEXT, 10005) (POINT,
+C     +               (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
+C     +               COMP = FIRST, LAST), POINT = 1, POINTS)
                END IF
             ELSE
                DO 2020 POINT = 1, POINTS
                   IF (GRID) THEN
-                     WRITE (TEXT, 10004) POINT, X(POINT),
-     +                  (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
-     +                  COMP = FIRST, LAST)
+C                     WRITE (TEXT, 10004) POINT, X(POINT),
+C     +                  (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
+C     +                  COMP = FIRST, LAST)
                   ELSE
-                     WRITE (TEXT, 10005) POINT,
-     +                  (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
-     +                  COMP = FIRST, LAST)
+C                     WRITE (TEXT, 10005) POINT,
+C     +                  (BUFFER(GROUPA + COMP + COMPS * (POINT - 1)),
+C     +                  COMP = FIRST, LAST)
                   END IF
 2020           CONTINUE
             END IF
@@ -5491,20 +5533,20 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-10001 FORMAT
-     +  (/10X, A)
-
-10002 FORMAT
-     + (/(10X, 4(I3, '> ', 1PE10.3)))
-
-10003 FORMAT
-     +  (/14X, 6(1X, A10))
-
-10004 FORMAT
-     +  (10X, 0P, I3, '>', F11.6, 1P, 5E11.3)
-
-10005 FORMAT
-     +  (10X, 0P, I3, '>', 1P, 6E11.3)
+c$$$10001 FORMAT
+c$$$     +  (/10X, A)
+c$$$
+c$$$10002 FORMAT
+c$$$     + (/(10X, 4(I3, '> ', 1PE10.3)))
+c$$$
+c$$$10003 FORMAT
+c$$$     +  (/14X, 6(1X, A10))
+c$$$
+c$$$10004 FORMAT
+c$$$     +  (10X, 0P, I3, '>', F11.6, 1P, 5E11.3)
+c$$$
+c$$$10005 FORMAT
+c$$$     +  (10X, 0P, I3, '>', 1P, 6E11.3)
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -5514,20 +5556,21 @@ C///////////////////////////////////////////////////////////////////////
 
       GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID,
-     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
+9001  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID,
+C          +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
-     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL UNKNOWNS')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
+c$$$     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS')
       IF (.NOT. MESS) GO TO 99999
 
 C///  EXIT.
@@ -5623,36 +5666,38 @@ C///////////////////////////////////////////////////////////////////////
 
       GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID,
-     +   COMPS, POINTS, GROUPA, GROUPB, N
+9001  continue
+C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID,
+C     +   COMPS, POINTS, GROUPA, GROUPB, N
       IF (.NOT. MESS) GO TO 99999
 
-9002  IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
-     +   COMPS, POINTS, GROUPA, GROUPB, N, WIDTH,
-     +   (3 * WIDTH + 2) * N, ASIZE
+9002  continue
+C IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
+C      +   COMPS, POINTS, GROUPA, GROUPB, N, WIDTH,
+C      +   (3 * WIDTH + 2) * N, ASIZE
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
-     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL UNKNOWNS')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE MATRIX SPACE IS TOO SMALL.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  MATRIX ORDER'
-     +  /10X, I10, '  STRICT HALF BANDWIDTH'
-     + //10X, I10, '  SPACE EXPECTED'
-     +  /10X, I10, '  ASIZE, PROVIDED')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
+c$$$     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE MATRIX SPACE IS TOO SMALL.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  MATRIX ORDER'
+c$$$     +  /10X, I10, '  STRICT HALF BANDWIDTH'
+c$$$     + //10X, I10, '  SPACE EXPECTED'
+c$$$     +  /10X, I10, '  ASIZE, PROVIDED')
 
 C///  EXIT.
 

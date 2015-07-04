@@ -70,9 +70,9 @@ protected:
   bool ValidMeasurement(Real data) const;
   void Reset();
 
+  std::string name;
   ChemDriver& cd;
   REACTOR_TYPE reactor_type;
-  std::string name;
 
   std::vector<Real> measurement_times;
   std::vector<int> measured_comps;

@@ -1335,7 +1335,10 @@ C      NM  = KK+2
 C
       !CALL CKLEN (LINKCK, LOUT, LENICK, LENRCK, LENCCK, IFLAG)
 
-      CALL MCLEN (LINKMC, LOUT, LENIMC, LENRMC, IFLAG)
+c     CALL MCLEN (LINKMC, LOUT, LENIMC, LENRMC, IFLAG)
+      call egtransetLENIMC(LENIMC)
+      call egtransetLENRMC(LENRMC)
+
 C
 C     real chemkin work space
       NCKW = 1
@@ -1366,7 +1369,7 @@ C
 C
          CALL MCINITCD (LOUT, LENIMC, LENRMC, I(IMCW), R(NMCW),
      1        IFLAG)
-         REWIND LSAVE
+c         REWIND LSAVE
 c         CALL PRSAVE (I, R, C, I(IMCW), R(NMCW), LOUT, LSAVE)
 !      ENDIF
 C
@@ -1859,13 +1862,13 @@ C
             ELSEIF (SIGNAL .EQ. 'SAVE') THEN
 
 C              Save the solution
-               REWIND LRCRVR
+c               REWIND LRCRVR
 c               CALL PRSAVE (ICKWRK, RCKWRK, CCKWRK,
 c     1                      IMCWRK, RMCWRK, LOUT, LRCRVR)
-               WRITE (LRCRVR) ISOLUT
-               WRITE (LRCRVR) NATJ, JJ, P, BUFFER(NM, 1)
-               WRITE (LRCRVR) (X(J), J = 1, JJ)
-               WRITE (LRCRVR) ((BUFFER(N, J), N=1,NATJ), J=1,JJ)
+c               WRITE (LRCRVR) ISOLUT
+c               WRITE (LRCRVR) NATJ, JJ, P, BUFFER(NM, 1)
+c               WRITE (LRCRVR) (X(J), J = 1, JJ)
+c               WRITE (LRCRVR) ((BUFFER(N, J), N=1,NATJ), J=1,JJ)
 C
             ELSEIF (SIGNAL .EQ. 'UPDATE') THEN
 C              Update the solution to a new grid.
@@ -2660,11 +2663,11 @@ C
       CHARACTER*16 ILINK
 C
       ILINK = 'CKLINK          '
-      WRITE (LSAVE) ILINK
+c      WRITE (LSAVE) ILINK
       CALL CKSAVE (LOUT, LSAVE, ICKWRK, RCKWRK, CCKWRK)
 C
       ILINK = 'MCLINK          '
-      WRITE (LSAVE) ILINK
+c      WRITE (LSAVE) ILINK
       CALL MCSAVE (LOUT, LSAVE, IMCWRK, RMCWRK)
 C
 C     end of SUBROUTINE PRSAVE
@@ -2840,7 +2843,7 @@ C
 C///////////////////////////////////////////////////////////////////////
 C
 C     Write the binary solution file header.
-      WRITE (LSAVE) ISENS
+c      WRITE (LSAVE) ISENS
 C
 C     Top of the loop over reactions.
       IF (ISENS .EQ. 'SENSITIVITY') THEN
@@ -2930,8 +2933,8 @@ C
 0900     CONTINUE
 C
 C        write out the sensitivities
-         WRITE (LSAVE) IND, ((SN(N, J), N=1,NATJ), J=1,JJ)
-         WRITE (LRCRVR) IND,((SN(N, J), N=1,NATJ), J=1,JJ)
+c         WRITE (LSAVE) IND, ((SN(N, J), N=1,NATJ), J=1,JJ)
+c         WRITE (LRCRVR) IND,((SN(N, J), N=1,NATJ), J=1,JJ)
 C
 C        bottom of the loop over reactions
 1000  CONTINUE
