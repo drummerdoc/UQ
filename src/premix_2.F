@@ -3014,10 +3014,10 @@ C
       include 'prcom.fh'
 C
       LOGICAL
-     +   CNTNUD, IERR, KERR, ERROR, LASEN, LBURNR, LCNTUE,
+     +   IERR, KERR, ERROR, LASEN, LBURNR, LCNTUE,
      +   LENRGY, LFIRST, LHSEN, LMOLE, LMULTI,
      +   LRSTRT, LTDIF, LTIME, LTIME2, LUMESH, LUSTGV,
-     +   LVCOR, NEC, NOPT, LREGRD, linflow
+     +   LVCOR, LREGRD, linflow
       INTEGER 
      +   CKLSCH, FIRST, IFUEL, LAST
       EXTERNAL CKLSCH
@@ -3026,11 +3026,16 @@ C
       EXTERNAL CKCHUP
       PARAMETER (ID = ' RDKEY:  ')
 C
-      DIMENSION KI(KK), KP(KK), KR(KK), NEC(8), NOPT(5), PROD(KK),
-     1          REAC(KK), TT(JMAX), VALUE(5), X(JMAX), XINTM(KK),
+      DIMENSION KI(KK), KP(KK), KR(KK), PROD(KK),
+     1          REAC(KK), TT(JMAX), X(JMAX), XINTM(KK),
      2          XX(JMAX)
-      SAVE NEC, NOPT, VALUE
-!$omp threadprivate(NEC,NOPT,VALUE)
+
+      LOGICAL, save ::  NEC(8) = .FALSE.
+      LOGICAL, save ::  NOPT(5) = .FALSE.
+      LOGICAL, save ::  CNTNUD = .FALSE.
+      double precision, save :: VALUE(5)
+
+!$omp threadprivate(NEC,NOPT,CNTNUD,VALUE)
 
 C
 C///////////////////////////////////////////////////////////////////////
@@ -3039,7 +3044,6 @@ C     INITIALIZE VARIABLES
 C
 C///////////////////////////////////////////////////////////////////////
 C
-      DATA NEC,NOPT,CNTNUD/ 14*.FALSE./
 C
       KERR = .FALSE.
       IF (LCNTUE) THEN
