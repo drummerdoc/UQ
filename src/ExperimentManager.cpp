@@ -226,10 +226,20 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 		  << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
       }
 
+// #ifdef _OPENMP
+// #pragma omp atomic
+// #endif
+//       ok &= retVal.first;
+//       pvtok = ok;
+
 #ifdef _OPENMP
-#pragma omp atomic capture
+//#pragma omp atomic capture
+#pragma omp critical (pvtokok)
 #endif
-      pvtok = ok &= retVal.first;
+      {
+	ok &= retVal.first;
+	pvtok = ok;
+      }
 
       int offset = data_offsets[i];
       for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {

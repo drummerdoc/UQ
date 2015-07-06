@@ -56,51 +56,69 @@ C///////////////////////////////////////////////////////////////////////
 
 C      IMPLICIT COMPLEX (A - P, R - Z), INTEGER (Q)
       IMPLICIT NONE
-      CHARACTER
-     +     CWORD*80,
-c      HEADER*80,
-     +     ID*9, JWORD*80, NAME*(*), REMARK*80,
-     +   SIGNAL*(*), YWORD*80
+      CHARACTER NAME*(*), SIGNAL*(*)
 C*****PRECISION > DOUBLE
       DOUBLE PRECISION
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   ABOVE, BELOW, BUFFER, CHANGE, CONDIT, CSAVE, DUMMY, HIGH, LOW,
+     +   ABOVE, BELOW, BUFFER, CONDIT,
      +   S0, S1, STRID0, STRIDE, TDABS, TDEC, TDREL, TINC, TMAX, TMIN,
      +   V0, V1, VSAVE, Y0, Y1, YNORM
       EXTERNAL
      +   SEARCH, TWCOPY, TWLOGR, TWNORM
       INTEGER
-     +   AGE, AGEJ, COMPS, COUNT, DESIRE, FIRST, GROUPA, GROUPB, J,
-     +   LAST, LENGTH, LEVELD, LEVELM, NAMES, NUMBER, POINTS, QBNDS,
-     +   QDVRG, QNULL, REPORT, ROUTE, STEP, STEPS2, TDAGE, TEXT,
-     +   XREPOR
+     +   COMPS, DESIRE, GROUPA, GROUPB,
+     +   LEVELD, LEVELM, NAMES, POINTS,
+     +   REPORT, STEP, STEPS2, TEXT, TDAGE
       INTRINSIC
      +   LOG10, MAX, MIN
       LOGICAL
-     +   ERROR, EXIST, JACOB, MESS, SUCCES, TIME, XSUCCE
+     +   ERROR, SUCCES, TIME
 
-      PARAMETER (ID = 'EVOLVE:  ')
 
-C     REPORT CODES
-      PARAMETER (QNULL = 0, QBNDS = 1, QDVRG = 2)
+      CHARACTER, save ::
+     +     CWORD*80, JWORD*80, REMARK*80, YWORD*80
+C*****PRECISION > DOUBLE
+      DOUBLE PRECISION, save::
+C*****END PRECISION > DOUBLE
+C*****PRECISION > SINGLE
+C      REAL
+C*****END PRECISION > SINGLE
+     +   CHANGE, CSAVE, DUMMY, HIGH, LOW
+      INTEGER, save ::
+     +   AGE, AGEJ, COUNT, FIRST, J,
+     +   LAST, LENGTH, NUMBER, ROUTE,
+     +   XREPOR
+      LOGICAL, save::
+     +   EXIST, JACOB, MESS, XSUCCE
 
       DIMENSION
      +   ABOVE(GROUPA + COMPS * POINTS + GROUPB),
      +   BELOW(GROUPA + COMPS * POINTS + GROUPB),
      +     BUFFER(GROUPA + COMPS * POINTS + GROUPB),
-c     +     HEADER(2, 3),
      +   NAME(NAMES), S0(GROUPA + COMPS * POINTS + GROUPB),
      +   V0(GROUPA + COMPS * POINTS + GROUPB),
      +   V1(GROUPA + COMPS * POINTS + GROUPB),
      +   VSAVE(GROUPA + COMPS * POINTS + GROUPB),
      +   Y0(GROUPA + COMPS * POINTS + GROUPB)
 
-C///  SAVE LOCAL VALUES DURING RETURNS FOR REVERSE COMMUNCIATION.
 
-      SAVE
+c local
+      character, parameter :: ID*9 = 'EVOLVE:  '
+
+C     REPORT CODES
+      integer, PARAMETER :: QNULL = 0, QBNDS = 1, QDVRG = 2
+
+
+!$omp threadprivate(CWORD,JWORD,REMARK,YWORD)
+!$omp threadprivate(CHANGE, CSAVE, DUMMY, HIGH, LOW)
+!$omp threadprivate(AGE, AGEJ, COUNT, FIRST, J)
+!$omp threadprivate(LAST, LENGTH, NUMBER, ROUTE, XREPOR)
+!$omp threadprivate(EXIST, JACOB, MESS, XSUCCE)
+
+
 
 C///////////////////////////////////////////////////////////////////////
 C

@@ -267,7 +267,7 @@ C
       CHARACTER CCKWRK(LENCCK)*(*), KSYM(KK)*(16), NAME(NATJ)*(*),
      1          ISOLUT*16, ISENSI*16, IHSENS*16, ID*9
 C
-      LOGICAL ACTIVE(NATJ), IERR, LASEN, LBURNR, LCNTUE, KERR,
+      LOGICAL ACTIVE(NATJ), IERR, LASEN, LBURNR, KERR,
      1        LENRGY, LHSEN, LMOLE, LMULTI, LRSTRT, LTDIF, LTIME,
      2        LUMESH, LUSTGV, LVARMC, LVCOR, MARK(JMAX), RSTCNT, LREGRD,
      3        linflow
@@ -287,7 +287,6 @@ C     Real arrays
 C
       PARAMETER (ID='FLDRIV:  ', ISOLUT='SOLUTION',
      1           ISENSI='SENSITIVITY', IHSENS='HSENSITIITY')
-      DATA LCNTUE /.FALSE./
 
       INTEGER CKLSCH, dckspnam
       EXTERNAL CKLSCH, dckspnam
@@ -299,6 +298,8 @@ C
       CHARACTER scratcha*80
 
       INTEGER LRSTRTORIDE,LREGRIDORIDE,ISGOOD,MAXST
+      LOGICAL, save ::  LCNTUE = .FALSE.
+!$omp threadprivate(LCNTUE)
 C
 C///  INITIALIZATION.
 C
@@ -3028,6 +3029,9 @@ C
       DIMENSION KI(KK), KP(KK), KR(KK), NEC(8), NOPT(5), PROD(KK),
      1          REAC(KK), TT(JMAX), VALUE(5), X(JMAX), XINTM(KK),
      2          XX(JMAX)
+      SAVE NEC, NOPT, VALUE
+!$omp threadprivate(NEC,NOPT,VALUE)
+
 C
 C///////////////////////////////////////////////////////////////////////
 C
