@@ -54,7 +54,8 @@ C     PERFORM TIME EVOLUTION.
 C
 C///////////////////////////////////////////////////////////////////////
 
-      IMPLICIT COMPLEX (A - P, R - Z), INTEGER (Q)
+C      IMPLICIT COMPLEX (A - P, R - Z), INTEGER (Q)
+      IMPLICIT NONE
       CHARACTER
      +     CWORD*80,
 c      HEADER*80,
@@ -655,31 +656,42 @@ C     PERFORM THE DAMPED, MODIFIED NEWTON'S SEARCH.
 C
 C///////////////////////////////////////////////////////////////////////
 
-      IMPLICIT COMPLEX (A - Z)
+C      IMPLICIT COMPLEX (A - Z)
+      IMPLICIT NONE
 
-      CHARACTER
-     +   COLUMN*16, CTEMP1*80, CTEMP2*80, HEADER*80, ID*9, NAME*(*),
-     +   SIGNAL*(*), STRING*80
+      logical :: error, exist, succes
+      integer :: text, age, comps, groupa, groupb, leveld, levelm, names
+     $     , points, report, steps, XXAGE
+      double precision :: above, below, buffer, condit, s0, s1, v0, v1
+     $     , XXABS, XXREL, Y0, Y0NORM, Y1
+      character :: name*(*), signal*(*)
+
+C local
+
+      character :: ID*9
+      integer  :: lines, QNULL, QBNDS, QDVRG
+      double precision :: zero
+
+      CHARACTER, save ::
+     +   COLUMN*16, CTEMP1*80, CTEMP2*80, HEADER*80,
+     +   STRING*80
 C*****PRECISION > DOUBLE
-      DOUBLE PRECISION
+      DOUBLE PRECISION, save ::
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   ABOVE, ABS0, ABS1, BELOW, BUFFER, CONDIT, DELTAB, DELTAD, REL0,
-     +   REL1, S0, S0NORM, S1, S1NORM, SJ, TEMP, V0, V1, VALUE, VJ,
-     +   XXABS, XXREL, Y0, Y0NORM, Y1, Y1NORM, ZERO
+     +   ABS0, ABS1, DELTAB, DELTAD, REL0,
+     +   REL1, S0NORM, S1NORM, SJ, TEMP, VALUE, VJ,
+     +   Y1NORM
       EXTERNAL
      +   TWCOPY, TWLOGR, TWNORM, TWSQEZ
-      INTEGER
-     +     AGE, COMPS, COUNT, ENTRY, EXPONE, GROUPA, GROUPB, I, J,
-c      K,
-     +   LEN1, LEN2, LENGTH, LEVELD, LEVELM, LINES, NAMES, NUMBER,
-     +   POINTS, QBNDS, QDVRG, QNULL, REPORT, ROUTE, STEPS, TEXT, XXAGE
+      INTEGER, save :: 
+     +     COUNT, ENTRY, EXPONE, I, J,
+     +   LEN1, LEN2, LENGTH, NUMBER, ROUTE
       INTRINSIC
      +   ABS, INT, LOG10, MAX, MIN, MOD
-      LOGICAL
-     +   ERROR, EXIST, FORCE, MESS, SUCCES
+      LOGICAL, save :: FORCE, MESS
 
       PARAMETER (ID = 'SEARCH:  ')
       PARAMETER (LINES = 20)
@@ -702,7 +714,11 @@ C     REPORT CODES
 
 C///  SAVE LOCAL VALUES DURING RETURNS FOR REVERSE COMMUNCIATION.
 
-      SAVE
+!$omp threadprivate(COLUMN,CTEMP1,CTEMP2,HEADER,STRING)
+!$omp threadprivate(ABS0,ABS1, DELTAB, DELTAD, REL0)
+!$omp threadprivate(REL1,S0NORM,S1NORM,SJ,TEMP,VALUE,VJ,Y1NORM)
+!$omp threadprivate(COUNT,ENTRY,EXPONE,I,J,LEN1,LEN2,LENGTH)
+!$omp threadprivate(NUMBER,ROUTE,FORCE,MESS)
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -2012,16 +2028,18 @@ C///////////////////////////////////////////////////////////////////////
       INTEGER
      +   COUNT, TEXT
       LOGICAL
-     +   ERROR, FIRST, FORCE, MESS
+     +   ERROR, FORCE, MESS
 
       PARAMETER (ID = 'TWINIT:  ')
       include 'twcom.fh'
 
 C     THE GNU F77 COMPILER REQUIRES THE SAVE TO PRECEED THE DATA
 
-      SAVE FIRST
-
-      DATA FIRST / .TRUE. /
+C      SAVE FIRST
+C
+C      DATA FIRST / .TRUE. /
+      logical, save :: first = .true.
+!$omp threadprivate(first)
 
 C///  WRITE ALL MESSAGES.
 
@@ -2323,38 +2341,50 @@ C     TWOPNT
 C
 C///////////////////////////////////////////////////////////////////////
 
-      IMPLICIT COMPLEX (A - Z)
-      CHARACTER
-     +   COLUMN*80, CTEMP1*80, CTEMP2*80, HEADER*80, ID*9, NAME*(*),
-     +   REPORT*(*), SIGNAL*(*), STRING*80, VERSIO*(*), VNMBR*8
+C      IMPLICIT COMPLEX (A - Z)
+      IMPLICIT NONE
+
+      logical :: error, active, mark, time
+      integer :: text, COMPS, GROUPA, groupb, ISIZE,IWORK,NAMES,POINTS,
+     $     pmax, rsize
+      character :: VERSIO*(*), NAME*(*), REPORT*(*), SIGNAL*(*)
+      double precision :: above, below, buffer, condit,RWORK,U,X,STRIDE
+
+C local
+      character :: id*9
+      integer :: gmax, lines, vnmbrs, qnull, qbnds, qdvrg
+
+      CHARACTER, save :: 
+     +   COLUMN*80, CTEMP1*80, CTEMP2*80, HEADER*80, 
+     +   STRING*80, VNMBR*8
 C*****PRECISION > DOUBLE
-      DOUBLE PRECISION
+      DOUBLE PRECISION, save ::
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   ABOVE, BELOW, BUFFER, CONDIT, DETAIL, MAXCON, RATIO,
-     +   RWORK, SSABS, SSREL, STRID0, STRIDE, TDABS, TDEC, TDREL, TEMP,
-     +   TIMER, TINC, TMAX, TMIN, TOLER0, TOLER1, TOLER2, TOTAL, U, X,
+     +   DETAIL, MAXCON, RATIO,
+     +   SSABS, SSREL, STRID0, TDABS, TDEC, TDREL, TEMP,
+     +   TIMER, TINC, TMAX, TMIN, TOLER0, TOLER1, TOLER2, TOTAL,
      +   YNORM
       EXTERNAL
      +   EVOLVE, REFINE, SEARCH, TWCOPY, TWGRAB, TWLAPS, TWLAST, TWLOGR,
      +   TWNORM, TWSQEZ, TWTIME, TWINIT
-      INTEGER
-     +   AGE, COMPS, COUNT, DESIRE, EVENT, GMAX, GRID, GROUPA,
-     +   GROUPB, ILAST, ISIZE, IWORK, J, JACOBS, K, LABEL, LEN1,
-     +   LEN2, LENGTH, LEVELD, LEVELM, LINES, NAMES, NSTEPS, PADD, PMAX,
-     +   POINTS, PSAVE, QABOVE, QBELOW, QBNDS, QDVRG, QENTRY, QEXIT,
-     +   QFUNCT, QGRID, QJACOB, QNULL, QOTHER, QRAT1, QRAT2, QREFIN,
-     +   QS0, QS1, QSEARC, QSOLVE, QTASK, QTIMST, QTOTAL, QTYPE, QUSAVE,
+      INTEGER, save ::
+     +   AGE, COUNT, DESIRE, EVENT, GRID, 
+     +   ILAST, J, JACOBS, K, LABEL, LEN1,
+     +   LEN2, LENGTH, LEVELD, LEVELM, NSTEPS, PADD, 
+     +   PSAVE, QABOVE, QBELOW,
+     +   QRAT1, QRAT2,
+     +   QS0, QS1, QTASK, QTYPE, QUSAVE,
      +   QV1, QVARY, QVARY1, QVARY2, QVSAVE, QXSAVE, QY0, QY1, RETURN,
-     +   RLAST, ROUTE, RSIZE, SIZE, SSAGE, STEP, STEPS, STEPS0, STEPS1,
-     +   STEPS2, TDAGE, TEXT, VNMBRS, XREPOR
+     +   RLAST, ROUTE, SIZE, SSAGE, STEP, STEPS, STEPS0, STEPS1,
+     +   STEPS2, TDAGE, XREPOR
       INTRINSIC
      +   MAX
-      LOGICAL
-     +   ACTIVE, ADAPT, ALLOW, ERROR, EXIST, FIRST, FLAG, FOUND,
-     +   MARK, MESS, SATISF, STEADY, TIME
+      LOGICAL, save ::
+     +   ADAPT, ALLOW, EXIST, FIRST, FLAG, FOUND,
+     +   MESS, SATISF, STEADY
 
       PARAMETER (ID = 'TWOPNT:  ')
       PARAMETER (GMAX = 100)
@@ -2369,8 +2399,8 @@ C     LOCATIONS ARE CHOSEN TO SIMPLIFY WRITE STATEMENTS.  DETAIL USES
 C     ONLY 1 : 8, EVENT USES ONLY 5 : 8, TIMER USES 1 : 9, AND TOTAL
 C     USES ONLY 2 : 9.  IN ADDITION, 2, 3, 4, 10, AND 11 ARE USED AS
 C     MNEMONIC VALUES FOR QTASK.
-      PARAMETER
-     +  (QGRID  =  1,
+      integer, PARAMETER ::
+     +   QGRID  =  1,
      +   QTIMST =  2,
      +   QSEARC =  3,
      +   QREFIN =  4,
@@ -2380,7 +2410,7 @@ C     MNEMONIC VALUES FOR QTASK.
      +   QOTHER =  8,
      +   QTOTAL =  9,
      +   QENTRY = 10,
-     +   QEXIT  = 11)
+     +   QEXIT  = 11
 
       DIMENSION
      +   ABOVE(GROUPA + COMPS + GROUPB), ACTIVE(*), BELOW(GROUPA + COMPS
@@ -2395,7 +2425,22 @@ C     MNEMONIC VALUES FOR QTASK.
       
 C///  SAVE LOCAL VALUES DURING RETURNS FOR REVERSE COMMUNCIATION.
 
-      SAVE
+!$omp threadprivate(COLUMN,CTEMP1,CTEMP2,HEADER,STRING,VNMBR)
+!$omp threadprivate(DETAIL, MAXCON, RATIO, SSABS, SSREL, STRID0)
+!$omp threadprivate(TDABS, TDEC, TDREL, TEMP, TIMER, TINC)
+!$omp threadprivate(TMAX, TMIN, TOLER0, TOLER1, TOLER2, TOTAL,YNORM)
+!$omp threadprivate(AGE, COUNT, DESIRE, EVENT, GRID)
+!$omp threadprivate(ILAST, J, JACOBS, K, LABEL, LEN1)
+!$omp threadprivate(LEN2,LENGTH,LEVELD,LEVELM,NSTEPS,PADD)
+!$omp threadprivate(PSAVE,QABOVE,QBELOW)
+!$omp threadprivate(QRAT1,QRAT2)
+!$omp threadprivate(QS0,QS1,QTASK,QTYPE)
+!$omp threadprivate(QV1,QVARY,QVARY1,QVARY2,QVSAVE,QXSAVE,QY0,QY1,RETURN)
+!$omp threadprivate(RLAST,ROUTE,SIZE,SSAGE,STEP,STEPS,STEPS0)
+!$omp threadprivate(STEPS2,TDAGE,XREPOR,QUSAVE,STEPS1)
+!$omp threadprivate(ADAPT, ALLOW, EXIST, FIRST, FLAG, FOUND)
+!$omp threadprivate(MESS, SATISF, STEADY)
+
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -3959,36 +4004,49 @@ C     LINPACK'S SGBCO.
 C
 C///////////////////////////////////////////////////////////////////////
 
-      IMPLICIT COMPLEX (A - Z)
+C      IMPLICIT COMPLEX (A - Z)
+      IMPLICIT NONE
 
-      CHARACTER
-     +   ID*9, STRING*80
+      logical :: ERROR, return
+      integer :: TEXT, asize, COMPS, GROUPA, GROUPB, PIVOT, POINTS
+      double precision :: A, BUFFER, CONDIT
+
+c local
+
+      character :: id*9
+
+      CHARACTER, save :: STRING*80
 C*****PRECISION > DOUBLE
-      DOUBLE PRECISION
+      DOUBLE PRECISION, save ::
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   A, ABSOL, BUFFER, CONDIT, DELTA, EPS, RELAT, SUM, TEMP
+     +   ABSOL, DELTA, EPS, RELAT, SUM, TEMP
       EXTERNAL
      +   TWEPS, TWGBCO, TWSQEZ
-      INTEGER
-     +   ASIZE, BLOCK, BLOCKS, CFIRST, CLAST, COL, COMPS, COUNT, DIAG,
-     +   GROUPA, GROUPB, J, LDA, LENGTH, LINES, N, OFFSET, PIVOT,
-     +   POINTS, RFIRST, RLAST, ROUTE, ROW, SKIP, TEXT, WIDTH
+      INTEGER, save ::
+     +   BLOCK, BLOCKS, CFIRST, CLAST, COL, COUNT, DIAG,
+     +   J, LDA, LENGTH, N, OFFSET,
+     +   RFIRST, RLAST, ROUTE, ROW, SKIP, WIDTH
       INTRINSIC
      +   ABS, INT, MAX, MIN, MOD, SQRT
-      LOGICAL
-     +   ERROR, FOUND, MESS, RETURN
+      LOGICAL, save ::
+     +   FOUND, MESS
 
       PARAMETER (ID = 'TWPREP:  ')
-      PARAMETER (LINES = 20)
+      integer, PARAMETER :: LINES = 20
 
       DIMENSION
      +   A(ASIZE), PIVOT(GROUPA + COMPS * POINTS + GROUPB),
      +   BUFFER(GROUPA + COMPS * POINTS + GROUPB)
 
-      SAVE
+!$omp threadprivate(STRING)
+!$omp threadprivate(ABSOL,DELTA,EPS,RELAT,SUM,TEMP)
+!$omp threadprivate(BLOCK,BLOCKS,CFIRST,CLAST,COL,COUNT,DIAG)
+!$omp threadprivate(J,LDA,LENGTH,N,OFFSET)
+!$omp threadprivate(RFIRST,RLAST,ROUTE,ROW,SKIP,WIDTH)
+!$omp threadprivate(FOUND,MESS)
 
 C///////////////////////////////////////////////////////////////////////
 C
