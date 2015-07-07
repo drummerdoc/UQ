@@ -24,6 +24,7 @@ static std::string log_file_DEF = "NULL"; // if this, no log
 static int verbosity_DEF = 0;
 
 static int max_premix_iters_DEF = 100000;
+static int min_reasonable_regrid_DEF = 24;
 
 SimulatedExperiment::ErrMap
 SimulatedExperiment::build_err_map()
@@ -956,14 +957,6 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
 PREMIXReactor::~PREMIXReactor()
 {
   delete premix_sol;
-  // Clean up the mess of prereq_reactors if there are any
-//  if( prereq_reactors.size() > 0 ){
-//      for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.end();
-//              pr!=prereq_reactors.begin(); --pr ){                                                                                
-//          delete *pr;
-//          prereq_reactors.erase(pr);
-//      }
-//  }
 }
 
 void
@@ -991,7 +984,6 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
   int lregrid;
   int lrstrt = 0;
-
   int v = Verbosity();
 
 #ifndef PREMIX_RESTART
@@ -1003,84 +995,85 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
    */
   lrstrtflag = 0; 
 #endif
-  // When doing a fresh start, 
-  // run through prereqs. First starts fresh, subsequent start from
-  // solution from the previous.
-  // Once the prereqs are done, set restart flag so that solution
+
+  // When doing a fresh start, run through prereqs. First starts fresh, subsequent start from
+  // solution from the previous. Once the prereqs are done, set restart flag so that solution
   // will pick up from where  prereqs finished. 
-  if( lrstrtflag == 0 ){
-      //std::cerr << "No restart info... " <<std::endl;
-      //std::cout << " makepr: " << makepr << " prereq_reactors.size() " << 
-      //    prereq_reactors.size() << std::endl;
-      if( prereq_reactors.size() > 0 ){
-        if (v > 0 && ParallelDescriptor::IOProcessor()) {
-          std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
-        }
-
-        for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr )
-        {
-              if( lrstrt == 1  ){
-                  (*pr)->solCopyIn(premix_sol);
-                  (*pr)->lrstrtflag = 1;
-                  //std::cerr <<  "restart this time" << std::endl;
-              }
-              else{
-                  (*pr)->lrstrtflag = 0;
-                  lrstrt = 1; // restart on the next time through
-  //                std::cerr <<  "restart next time" << std::endl;
-              }
-              std::vector<Real> pr_obs;
-              if (v > 0 && ParallelDescriptor::IOProcessor()) {
-                std::cerr << " Running " << (*pr)->premix_input_file
-                          << " with restart = " << (*pr)->lrstrtflag << std::endl;
-              }
-              std::pair<bool,int> retVal = (*pr)->GetMeasurements(pr_obs);
-              if (!retVal.first) {
-                return std::pair<bool,int>(false,ErrorID("PREREQ_FAILED"));
-              }
-
-              if (v > 0 && ParallelDescriptor::IOProcessor()) {
-                std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
-              }
-              (*pr)->solCopyOut(premix_sol);
-          }
-          lrstrtflag = 1;
-          // If restarting from a prereq, don't regrid, but otherwise
-          // regrid the solution
+  if( lrstrtflag == 0 )
+  {
+    if( prereq_reactors.size() > 0 )
+    {
+      if (v > 0 && ParallelDescriptor::IOProcessor())
+      {
+	std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
       }
-      lregrid = -1;
+
+      for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr )
+      {
+	if( lrstrt == 1  ){
+	  (*pr)->solCopyIn(premix_sol);
+	  (*pr)->lrstrtflag = 1;
+	}
+	else {
+	  (*pr)->lrstrtflag = 0;
+	  lrstrt = 1; // restart on the next time through
+	}
+
+	std::vector<Real> pr_obs;
+	if (v > 0 && ParallelDescriptor::IOProcessor()) {
+	  std::cerr << " Running " << (*pr)->premix_input_file
+		    << " with restart = " << (*pr)->lrstrtflag << std::endl;
+	}
+
+	std::pair<bool,int> retVal = (*pr)->GetMeasurements(pr_obs);
+	if (!retVal.first) {
+	  return std::pair<bool,int>(false,ErrorID("PREREQ_FAILED"));
+	}
+
+	if (v > 0 && ParallelDescriptor::IOProcessor()) {
+	  std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
+	}
+
+	(*pr)->solCopyOut(premix_sol);
+      }
+
+      // If restarting from a prereq, don't regrid, but otherwise regrid the solution
+      lrstrtflag = 1;
+    }
+    lregrid = -1;
   }
   else{
-      std::cerr << "Restarting from previous solution... " 
-          << std::endl;
-      // Regrid when restarting from a previous solution of 
-      // this experiment
-      lregrid = 1;
+
+    if (v > 0 && ParallelDescriptor::IOProcessor()) {
+      std::cerr << "Restarting from previous solution... " << std::endl;
+    }
+
+    // Regrid when restarting from a previous solution of this experiment
+    lregrid = 1;
   }
+
   BL_ASSERT(premix_sol != 0);
   double * savesol = premix_sol->solvec; 
   int * solsz = &(premix_sol->ngp);
 
   // Regrid to some size less than the restart solution size
-  if( lregrid > 0 ){
-      const int min_reasonable_regrid = 24;
-      int regrid_sz = *solsz/4;
+  if( lregrid > 0 )
+  {
+    const int min_reasonable_regrid = min_reasonable_regrid_DEF;
+    int regrid_sz = *solsz/4;
 
-      // Regrid to larger of regrid_sz estimate from previous
-      // solution or some reasonable minimum, but don't regrid
-      // if that would be bigger than previous solution
-      lregrid = std::max(min_reasonable_regrid, regrid_sz); 
-      if( lregrid > *solsz ) lregrid = -1;
+    // Regrid to larger of regrid_sz estimate from previous
+    // solution or some reasonable minimum, but don't regrid
+    // if that would be bigger than previous solution
+    lregrid = std::max(min_reasonable_regrid, regrid_sz); 
+    if( lregrid > *solsz ) lregrid = -1;
 
-      if( lregrid > 0 ) {
-          std::cout << "----- Setting up premix to regrid to " 
-              << lregrid <<  " from " <<  *solsz  << std::endl;
+    if( lregrid > 0) {
+      if (ParallelDescriptor::IOProcessor()) {
+	std::cout << "----- Setting up premix to regrid to " 
+		  << lregrid <<  " from " <<  *solsz  << std::endl;
       }
-      else{
-//          std::cout << "----- Skipping regrid to " 
-//              << lregrid <<  " (maybe because it would be too big) " 
-//              << *solsz << std::endl;
-      }
+    }
   }
 
   BL_ASSERT(savesol != NULL );
@@ -1090,23 +1083,21 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     lrstrtflag = 1; 
   }
 
-  //std::cerr << "Restart solution size: " << *solsz << std::endl;
-  // Pass input dir + file names to fortran
   int charlen = premix_input_file.size();
-  int pathcharlen = premix_input_path.size();
-
   int infilecoded[charlen];
   for(int i=0; i<charlen; i++){
     infilecoded[i] = premix_input_file[i];
   }
+
+  int pathcharlen = premix_input_path.size();
   int pathcoded[pathcharlen];
   for(int i=0; i<pathcharlen; i++){
     pathcoded[i] = premix_input_path[i];
   }
 
+  // Build unit numbers, unique to each thread
   int increment = 1;
   int threadid = 0;
-  // Unit numbers for input/output files
 #ifdef _OPENMP
   increment = omp_get_num_threads();
   threadid = omp_get_thread_num();
@@ -1120,46 +1111,22 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   linck = lrcvr + increment;
   linmc = linck + increment;
 
+  // TODO: Remove all unused units
   open_premix_files_( &lin, &lout, &linmc, &lrin,
                       &lrout, &lrcvr, infilecoded,
                       &charlen, pathcoded, &pathcharlen );
 
-  // Call the simulation
-  //timeval tp;
-  //timezone tz;
-  //gettimeofday(&tp, NULL);
-  //int startPMtime = tp.tv_sec;
-
-  //std::cout << "Calling PREMIX" << std::endl;
   int is_good = 0;
   int num_steps = 0;
-
   premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
           &lenlwk, &leniwk, &lenrwk, &lencwk, 
           savesol, solsz, &lrstrtflag, &lregrid, &is_good, &max_premix_iters, &num_steps);
-
-  //gettimeofday(&tp, NULL);
-  //int stopPMtime = tp.tv_sec;
-  //std::cout << "PREMIX call took approximately " << (stopPMtime - startPMtime) << " seconds (gettimeofday) " << std::endl;
-
-  //std::cerr << "solsz=" << *solsz << std::endl;
-  //// DEBUG Check if something reasonable was saved for solution
-  //printf("Grid for saved solution: (%d points)\n", *solsz);
-  //FILE * FP = fopen("sol.txt","w");
-  //for (int i=0; i<*solsz; i++) {
-  //    fprintf(FP,"%d\t", i);
-  //    for( int j=0; j<ncomp; j++){
-  //        fprintf(FP,"%10.3g\t", savesol[i + j*nmax]);
-  //    }
-  //    fprintf(FP,"\n");
-  //}
-  //fclose(FP);
   
-  // Extract the measurements - should probably put into an 'ExtractMeasurements'
-  // for consistency with ZeroDReactor
+  // Extract the measurements
+  // TODO: put into an 'ExtractMeasurements' for consistency with ZeroDReactor
 
-  if( is_good > 0 && *solsz > 0 ) {
-    //std::cout << "Premix generated a viable solution " << std::endl;
+  if( is_good > 0 && *solsz > 0 )
+  {
     int nComp = cd.numSpecies() + 3;
     simulated_observations[0]  = savesol[*solsz + nmax*(nComp-1)-1+3];
     if (! ValidMeasurement(simulated_observations[0])) {
@@ -1167,8 +1134,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     }
     lrstrtflag = 1;
   }
-  else{
-    //std::cout << "Premix failed to find a viable solution " << std::endl;
+  else {
     simulated_observations[0]  = -1;
     lrstrtflag = 0;
     if (num_steps == max_premix_iters) {
@@ -1180,24 +1146,6 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   // Cleanup fortran remains
   close_premix_files_( &lin, &linck, &lrin, &lrout, &lrcvr );
 
-
-  // NEXT STEPS:
-  // General cleanup
-  //     - Take out unused file handles
-  //     - Split out ckinit / mcinit calls
-  // Try with Davis mechanism
-  //     - General code compile with Davis mechanism
-  //     - See if I can get a solution
-  // Make sure it is robust to changing chemical parameters
-  // Put in context of sampling framework
-  // Generate 'pseudo-experimental' data
-  //      - Need separate object to sample from distribution?
-  // Infrastructure to manage set of experiments
-  //      - think Marc largely has this done, check that it 
-  //        is ok wrt to flame speed measurements
-  // Try sampling to get distribution of 1 reaction rate
-  //       consistent with observation distribution
-
   return std::pair<bool,int>(true,ErrorID("SUCCESS"));
 }
 
@@ -1207,8 +1155,9 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
  * restart (or anything not present after InitializeExperiment call )
  * so that experiment can be moved
  */
-void PREMIXReactor::CopyData(int src, int dest, int tag) {
-
+void
+PREMIXReactor::CopyData(int src, int dest, int tag)
+{
   // things to copy:
   // 1. Solution vector
   // 2. Number of gridpoints
