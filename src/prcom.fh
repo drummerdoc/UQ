@@ -3,24 +3,28 @@
      2                  LENITW, LENRTW, NT, NM, NYS, NY, NTR, NTEMP,
      3                  NREACTANT, NPROD, NINTM, JJREGD, JFIXT, NUMDT2,
      +                  ifuel
+      save /PRICON/
       COMMON / PRRCON / RELAT, ABSOL, SPOS, GFAC, PATM, FLRT, SFLR,
      1                  XSTR, XCEN, XEND, WMIX, WNDFAC, P, DT, DT2,
      2                  TFIXT, TRFAC
+      save /PRRCON/
 
       LOGICAL latom, lfuel, lpath, lrrop, lsolve, ldflx,
      +        lewis, lheat, ldiff
 
       common / prlcon / 
      +   latom, ldflx, ldiff, lewis, lfuel, lheat, lpath, lrrop, lsolve
+      save /prlcon/
 
       COMMON /FLFLFL/
      +   ICC, ICKW, IIP, IKI, IKP, IKR, IKS, IMCW, INAME, LAC, LMK, NA,
      +   NABV, NBLW, NBUF, NCKW, NCON, NREG, ND, NDKJ, NDS, NEPS, NF,
      +   NFN,  NKA6, NMCW, NRE,  NRKFT,NRKRT,NRSAVE, NS, NSCH, NSN,
      +   NTDR, NTGV, NSSAVE, NWT, NX, NXGV, NYV
+      save /FLFLFL/
 
       logical LULNUM
       common / MARC / DFTH, CHTH, LULNUM
-
+      save /MARC/
 
 !$omp threadprivate(/PRICON/,/PRRCON/,/prlcon/,/FLFLFL/,/MARC/)

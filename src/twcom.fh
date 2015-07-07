@@ -6,6 +6,9 @@
       DIMENSION IVALUE(CNTRLS), LVALUE(CNTRLS), RVALUE(CNTRLS)
 
       COMMON / TWCOMI / IVALUE
+      save /TWCOMI/
       COMMON / TWCOML / LVALUE
+      save /TWCOML/
       COMMON / TWCOMR / RVALUE
+      save /TWCOMR/
 !$omp threadprivate(/TWCOMI/,/TWCOML/,/TWCOMR/)

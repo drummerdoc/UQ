@@ -293,9 +293,9 @@ C
 C
 C     Generic Formats - limit lines to 132 characters
 C
-8001  FORMAT (10I12)
-8002  FORMAT (1P,5E24.16)
-8003  FORMAT (8A16)
+c8001  FORMAT (10I12)
+c8002  FORMAT (1P,5E24.16)
+c8003  FORMAT (8A16)
 C
 C     end of SUBROUTINE CKLEN
       RETURN
@@ -450,7 +450,7 @@ C        bisect interval
          ENDIF
       ENDIF
 C
-  100 CONTINUE
+c  100 CONTINUE
       CKBSEC      = TT(N) + S * (X - XX(N))
 C
 C     end of FUNCTION CKBSEC
