@@ -267,7 +267,7 @@ C
       CHARACTER CCKWRK(LENCCK)*(*), KSYM(KK)*(16), NAME(NATJ)*(*),
      1          ISOLUT*16, ISENSI*16, IHSENS*16, ID*9
 C
-      LOGICAL ACTIVE(NATJ), IERR, LASEN, LBURNR, KERR,
+      LOGICAL ACTIVE(NATJ), LASEN, LBURNR, KERR,
      1        LENRGY, LHSEN, LMOLE, LMULTI, LRSTRT, LTDIF, LTIME,
      2        LUMESH, LUSTGV, LVARMC, LVCOR, MARK(JMAX), RSTCNT, LREGRD,
      3        linflow
@@ -294,8 +294,6 @@ C
       DOUBLE PRECISION SAVESOL(*)
       INTEGER SAVESZ
       CHARACTER REPORT*16
-
-      CHARACTER scratcha*80
 
       INTEGER LRSTRTORIDE,LREGRIDORIDE,ISGOOD,MAXST
       LOGICAL, save ::  LCNTUE = .FALSE.
@@ -489,7 +487,7 @@ C      write (string, '(F10.3, a)') telaps, ' SECONDS FOR SOLUTION.'
 C      endif
 C      CALL TWSQEZ (LENGTH, STRING)
 C      WRITE (LOUT, 10001) ID, STRING (1 : LENGTH)
-10001 FORMAT (/1X, A9, A)
+c10001 FORMAT (/1X, A9, A)
 C
       IF (.NOT. LCNTUE) RETURN
 C
@@ -605,7 +603,7 @@ C     Real arrays
      4          DKJ(KK,KK,JJ), XAV(KK), SSAVE(NATJ,JJ), RKFT(II,JJ),
      5          RKRT(II,JJ), RSAVE(KK,JJ)
 C
-      LOGICAL LBURNR, LENRGY, LTDIF, LVARMC, LTIME, LMULTI, LVCOR, MATCH
+      LOGICAL LBURNR, LENRGY, LTDIF, LVARMC, LTIME, LMULTI, LVCOR
       EXTERNAL CKBSEC, AREA, VTRACE
 
       double precision CONV,DIFF,REAC,DIFFE
@@ -893,7 +891,7 @@ C
 C
       F(NM, JJ) = S(NM,JJ) - S(NM,JJM1)
 C
- 9988 format(10e14.6)
+c 9988 format(10e14.6)
 c      close(4411)
 c      print *,'stopped in FUN'
 c      stop
@@ -970,7 +968,7 @@ C
       include 'prcom.fh'
 C
       DIMENSION X(JJ), S(NATJ,JJ), WT(KK), YAV(KK), XMF(KK), XMFP(KK),
-     1          D(KK,JJ), TDR(KK,JJ), YV(KK,JJ), DKJ(KK,KK,JJ), XAV(KK)
+     1          D(KK,JJ), TDR(KK,JJ), YV(KK,JJ), DKJ(KK,KK,JJ)
 C
       LOGICAL LTDIF, LMULTI, LVCOR
 C
@@ -1973,7 +1971,6 @@ C
       allocatable elementConcentration
       allocatable elementName
       allocatable hml
-      allocatable ki
       allocatable labels
       allocatable moleFractions
       allocatable negativeIntegral
@@ -1993,7 +1990,7 @@ C
       DIMENSION 
      +   CCKWRK(LENCCK), cond(:), d(:,:), diffusionCoefficients(:),
      +   dkj(:,:,:), 
-     +   elementConcentration(:), elementName(:), hml(:), ki(:),
+     +   elementConcentration(:), elementName(:), hml(:),
      +   ICKWRK(LENICK), labels(:), moleFractions(:),
      +   negativeIntegral(:),
      +   positiveIntegral(:), quantity(:, :), RCKWRK(LENRCK),
@@ -3744,7 +3741,7 @@ C     EXIT.
 C
 C///////////////////////////////////////////////////////////////////////
 C
-99999 CONTINUE
+c99999 CONTINUE
 C
 C     end of SUBROUTINE RDKEY
       RETURN
@@ -4288,7 +4285,7 @@ C
          ENDIF
       ENDIF
 C
-  100 CONTINUE
+c  100 CONTINUE
 C
       write(*,*) ' regridding with JJREGD=', JJREGD, 'JJ=', JJ
       RATGTC=1
