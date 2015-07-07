@@ -535,9 +535,6 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
         numer_stop = -1;
         i++;
     }
-    Real dt = 0;
-
-
 
     finished = false;
     bool first = true;
@@ -1108,21 +1105,21 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   }
 
   int increment = 1;
+  int threadid = 0;
   // Unit numbers for input/output files
 #ifdef _OPENMP
   increment = omp_get_num_threads();
-  lout = 6 + omp_get_thread_num();
-#else
-  lout = 6;
+  threadid = omp_get_thread_num();
 #endif
 
-  lin=lout+increment;
-  lrin=lin+increment;
-  lrout=lrin+increment;
-  lrcvr=lrout+increment;
-  linck=lrcvr+increment;
-  linmc=linck+increment;
-  
+  lout  = 6     + threadid;
+  lin   = lout  + increment;
+  lrin  = lin   + increment;
+  lrout = lrin  + increment;
+  lrcvr = lrout + increment;
+  linck = lrcvr + increment;
+  linmc = linck + increment;
+
   open_premix_files_( &lin, &lout, &linmc, &lrin,
                       &lrout, &lrcvr, infilecoded,
                       &charlen, pathcoded, &pathcharlen );
@@ -1135,7 +1132,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
   //std::cout << "Calling PREMIX" << std::endl;
   int is_good = 0;
-  int num_steps;
+  int num_steps = 0;
+
   premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
           &lenlwk, &leniwk, &lenrwk, &lencwk, 
           savesol, solsz, &lrstrtflag, &lregrid, &is_good, &max_premix_iters, &num_steps);
@@ -1235,7 +1233,7 @@ PREMIXReactor::InitializeExperiment()
     nmax=premix_sol->maxgp;
 
     // Sizes for work arrays
-    lenlwk=4055;
+    lenlwk=4270;
     leniwk=241933;
     lenrwk=90460799;
     lencwk=202;

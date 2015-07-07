@@ -14,6 +14,8 @@ int
 main (int   argc,
       char* argv[])
 {
+  ChemDriver::SetTransport(ChemDriver::CD_TRANLIB);
+
 #ifdef BL_USE_MPI
   MPI_Init (&argc, &argv);
   Driver driver(argc,argv,MPI_COMM_WORLD);
@@ -102,7 +104,5 @@ main (int   argc,
       Real F = NegativeLogLikelihood(sample);
     }
   }
-
-  BoxLib::Finalize();
 }
 
