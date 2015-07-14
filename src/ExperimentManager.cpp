@@ -10,8 +10,8 @@ static bool log_failed_cases_DEF = true;
 static std::string log_folder_name_DEF = "FAILED";
   
 ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool _use_synthetic_data)
-  : use_synthetic_data(_use_synthetic_data),
-    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0), verbose(true),
+  : use_synthetic_data(_use_synthetic_data), verbose(true),
+    parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0),
     log_failed_cases(log_failed_cases_DEF), log_folder_name(log_folder_name_DEF),
     parallel_mode(PARALLELIZE_OVER_RANK)
 {
@@ -226,10 +226,20 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 		  << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
       }
 
+// #ifdef _OPENMP
+// #pragma omp atomic
+// #endif
+//       ok &= retVal.first;
+//       pvtok = ok;
+
 #ifdef _OPENMP
-#pragma omp atomic capture
+//#pragma omp atomic capture
+#pragma omp critical (pvtokok)
 #endif
-      pvtok = ok &= retVal.first;
+      {
+	ok &= retVal.first;
+	pvtok = ok;
+      }
 
       int offset = data_offsets[i];
       for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {

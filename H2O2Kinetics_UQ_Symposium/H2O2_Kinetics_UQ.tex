@@ -10,6 +10,7 @@
 %\thispagestyle{empty}
 %\hyphenation{roddick}
 
+\usepackage{booktabs}
 
 \usepackage{graphicx}
 \usepackage{amssymb}
@@ -72,14 +73,265 @@
 
 \section{Introduction}
 
-\begin{itemize}
-    \item Evolution of hydrogen oxidation mechanisms:
-        \begin{itemize}
-            \item Early work: \citet{TsangH86} source of many coefficients used in mechanism assembled by \citet{MuellerKYD99}
-        \end{itemize}
+Evolution of hydrogen oxidation mechanisms:
+        \begin{description}
+            \item[Early work]
+              \begin{itemize}
+              \item \citet{WangR93} reduced mechanism (to 1 step) for
+                CO oxidation, starting from full mechanism published
+                in \citet{PetersR93}.
+              \item$^S$ \citet{KimYD94}  CO mechanism and experiments; mechanism is
+                revision to \citet{YetterDR91}. Flow reactor. Data for $\phi=0.3,1$
+                up to 10atm, $\sim 1100k$. (RG: There is a comment by
+                \cite{Konnov08} that there was a misprint in Yetter et
+                al. paper, we should follow up if we use any Yetter et
+                al. data to see if the misprint makes a difference to us)
+              \item  \citet{TsangH86} source of many coefficients used
+                in mechanism assembled by \citet{MuellerKYD99}. Experimental
+                data from \citet{AungHF97, AungHF98}.
+                \item \citet{KwonF01} Flame/stretch
+                  interaction. Pressure exploration $<3$ atm.
+                  \item \citet{TseZL00} published experimental data on
+                    laminar flame speeds for $H_2/O_2/diluent$ based
+                    on spherical expanding flame. Complementary
+                    simulations based on Mueller mechanism. $0.5 <
+                    \phi < 5$, $1 < p < 20atm$.
+              \end{itemize}
+                
+            \item[2004] \citet{LiZKD04} publishes a revision of the Mueller et al. mechanism, by modifying:
+                \begin{enumerate}
+                    \item OH enthalpy of formation
+                    \item Rate constant of the chain-branching reaction $H+O_2 = OH + O$, to match that suggested by Hessler.
+                    \item The Troe formulation was applied to add the low
+                        pressure limit for chain-termination reaction $H + O_2 (+M)
+                        = HO_2 (+M)$ 
+                    \item The rate constant of $H + OH + M = H_2O + M$
+                        to match laminar flame speed predictions. Li notes that the
+                        reported values of this constant span an order of magnitude
+                        and that ``laminar flame speed predictions using any
+                        particular set of diffusion coefficients recommended by
+                        various authors can be forced dot predict the same flame
+                        speed simply by adjusting the value of this single rate
+                        constant''.
+                \end{enumerate}
+                \item[2004] \citet{ConaireCSPW04}. Published revised
+                  mechanism with the same 19 reactions as the
+                  near-simultaneously published Li mechanism. Differences:
+                  \begin{enumerate}
+                  \item Coefficients for reactions 1,8, 17
+                    \item No bath gas dependent duplicate reactions
+                      for reaction 5, 6
+                      \item No Troe formulation for reactions 9, 15
+                  \end{enumerate}
+            \item[2005]$^S$ \citet{DavisJWE05} Optimization of Mueller
+                mechanism against at library of shock tube, laminar flame
+                experiments. Mostly moderate pressure (1-5atm), stoichiometric
+                to rich
+            \item[2006] \citet{SaxenaW06} extracted the
+              hydrogen/syngas sub-mechanism from their propane
+              mechanism  \citet{PetrovaW06} (check citation)
+                \begin{enumerate}
+                    \item Tested their sub-mechanism against data from
+                      \citet{TseZL00} and \citet{KwonF01}
+                      \item Also tested against diffusion flame
+                        extinction data from \citet{BalakrishnanTW94}
+                    \item Reference \citet{BalakrishnanW94} as ancestor of mechanism
+                    \item Reference \citet{LiZKD04}, \citet{ConaireCSPW04}, and
+                      \citet{DavisJWE05} as `newer' literature supporting
+                        tweaking some of the rate parameters
+                \end{enumerate}
+                \item[2006] \citet{FrassoldatiFR06}, primarily
+                  interested in nitrogen chemistry and $NO_x$
+                  formation in hydrogen combustion. 
+                  \begin{enumerate}
+                    \item Starting mechanism \citet{RanziFGF05}.
+                    \item Experimental data for $H_2$/air premixed
+                      flames \cite{HarringtonSBNJC96}, stirred
+                      reactor \cite{XieHH96}. 
+                  \item Adjusted rate parameters for $H + OH + M =
+                    H_2O$ to improve predictions of high pressure
+                    flames. 
+                    \item In appendix, note results sensitive to
+                      competition between $H + O_2 + M = HO_2 + M$ and
+                      $H+O2 = OH + O$, especially starting at about 3
+                      atm
+                      \item In low pressure sweep of temperature found
+                        Li mechanism, Mass and Warnatz mechanism and
+                        their tweaked mechanism worked pretty
+                        well. Konnov, O Conaire, previous Ranzi
+                        mechanism not so well. 
+                        \item Note bath gas effects due to flame
+                          temperatures, Chaperon efficiencies and
+                          transport properties.
+                        \item Ref experiments adding water to
+                          autoignition of hydrogen flaems in
+                          counterflow. Note autoignition temperature
+                          in this case extremely sensitive to third
+                          body efficiency of $H_2O$ in the $H + O_2 +
+                          M = HO_2 +M$ reaction.
+                  \end{enumerate}
+                  \item[2007] \citet{LiZKCDS07} Li mechanism for $C_1$ chemistry
+            \item[2007] \citet{StrohleM07} examine $H_2$ mechanisms
+              under gas turbine conditions
+              \item[2008] \citet{Konnov08}. References to updated
+                mechanism of \citet{Konnov04}, from \citet{Konnov00}. Mechanism has 21
+                reactions.  Need to read carefully, appears to be
+                mechanism with separate geneology. 
+            \item[2010]$^S$ \citet{BurkeCDJ10} collection of experimental data
+                for high pressure (1-25atm), low temperature flames for $\phi
+                \ge 0.85$. Expanding spherical flames in pressure vessel with
+                optical access. 
+                \begin{enumerate}
+                    \item Group most sensitive reactions as: their R5-R7, R1,
+                        which are sensitive under all conditions, including
+                        those studied; $HO_2 + R$ reactions, as major pathways
+                        at high pressures when $HO_2$ concentrations are
+                        higher, and radical-radical recombination reactions
+                        such as $H + OH + M = H_2O + M$,  $O + OH + M = HO_2 +
+                        M$ and $H + HO_2 + M = H_2O_2 + M$, important in high
+                        pressure flames where concentration of radicals and
+                        collision partners is higher. 
+                    \item Note that existing mechanisms fail to predict high pressure fall off
+                    \item Note $O + OH + M = HO_2 + M$ demonstrated to
+                        significantly impact lean high pressure flames and
+                        frequently absent. 
+                    \item High pressure flames much more sensitive to recombination reactions
+                    \item Pressure shifts flames structure, makes branching activity narrower
+                \end{enumerate}
+            \item[2011] \citet{YouPF11} establish data collaboration method
+                \begin{enumerate}
+                    \item Explicitly, focus not on building a better hydrogen mechanism, but on establishing a workflow to automate generation of mechanisms
+                    \item Assembled trial model of 10 species and 21 reactions 
+                    \item Rate coefficients taken form GRImech, Tsang and Thompson, Davis, Hong, Baulch, Michael, Saxena and Williams, Burke`
+                \end{enumerate}
+                        
+            \item[2011 (2010)] \citet{BurkeCJDK12} publish and update to the
+                2004 Li mechanism with an emphasis on high-pressure,
+                low-temperature flames
+                \begin{enumerate}
+                    \item $H + HO_2 = H_2O +O$ might be necessary
+                    \item Bath gas mixing rule improvement for $H + O_2 (+M) =
+                        HO_2 (+M)$ might be necessary for multicomponent bath
+                        gases at high pressure
+                    \item Kinetic regime relevant to gas turbine combustion
+                        largely controlled by $HO_2$ and $H_2O_2$ pathways. Due
+                        to higher pressures (10-30atm) and lower flame
+                        temperatures (<1800K) as well as high collision
+                        efficiency diluents (e.g., $CO_2, H_2O$). 
+                    \item $HO_2$ and $H_2O_2$ pathways less well characterized
+                        than branching reactions that dominate traditional
+                        validation targets
+                    \item Notes Hong model improves homogeneous target
+                        performance considerably, but not high pressure /
+                        dilute flame speeds
+                    \item Sensitivity analysis suggested imprecise
+                        experimental boundary and initial conditions
+                        significant
+                    \item Tested new model against all targets they used for 2004 Li mechanism + new targets
+                    \item Note that Wang transport is better and should be
+                        used, but that they could get just as good agreement
+                        with chemkin compatible LJ transport
+                    \item $H + O_2 (+M) = HO_2 (+M)$ competes with branching
+                        reaction for H atoms, governing overall branching ratio.
+                        Very well studied. Changed TBE for $H_2O$ and
+                        broadening factor;  high pressure premixed flames
+                        highly sensitive to TBE for $H_2O$ for this rxn. Also updated falloff behavior.
+                    \item $H + O_2 = OH + O$. Branching reaction. Used new expression from Hong instead Hessler expression used in 2004.
+                    \item $H+HO_2 = P$. Consumption of $HO_2$ and $H$ important
+                        for higher pressures. Use theoretical result for 1
+                        pathway then decreased it by 25\%. Other pathways
+                        tweaked to get branching ratio reasonable. 
+                    \item $OH + HO_2 = O_2 + H_2O$. Lean flames very sensitive
+                        to this chain termination rxn. Used old rate constants,
+                        because literature is uninformative about the correct
+                        value, although non-Arrhenius behavior has been
+                        identified between 900--1300K.
+                    \item $H_2O (+M) = H + OH (+M)$. Large uncertainties.
+                        Previously multiplied by 2. Needs to be bigger still;
+                        tweaked to match experiments. 
+                    \item Experimental data: shock tube speciation, ignition delay, laminar flame speeds, speciation in burner stabilized flames
+                    \item Note high pressure lean flames highly sensitive to
+                        neglected rxn X6 ($O + OH + M = HO_2 + M$). However,
+                        present validation targets not sensitive\ldots and lack
+                        of good estimates. (see Burke C\&F paper)
+                \end{enumerate}
 
-\end{itemize}
+                \item[2013]$^S$
+                  \citet{Keromnes_Many_Curran13}. Update to mechanism
+                  of \cite{ConaireCSPW04}. Add RCM data.
+                  \begin{enumerate}
+                  \item \citet{MittalSY06} considered experimental
+                    benchmark
+                    \item From intro... reactivity of hydrogen
+                      controlled by cometition between chain branch
+                      rxn $H + O_2 = O + OH$ and pressure-dependent
+                      chain-propagation reaction $H + O_2 + M = HO_2 +M$.
+                    \item From intro... At high pressure, dominant
+                      chain branching rxn is $H_2O_2 +M = OH + OH +
+                      M$.
+                    \item From intro... Prediction of ignition delay times flows
+                      from $H_2 + HO_2 + H_2O_ 2+ H$
+                    \item High pressure /low temperature in RCM
+                      experiments high sensitivity to $H_2 + HO_2 =
+                      H_2O_2 + H$
+                      \item Pressure dependent rxns... R9 ($H + O_2 +
+                        M  = HO_2 + M$) controls reactivity at `low
+                        (<10atm)' pressure. At higher pressures, R15
+                        ($H_2O_2 + M = OH +OH + M$) controls
+                        reactivity. Ignition delay times highly
+                        sensitive to this chain branching at
+                        low-intermediate temperatures and high
+                        pressures. 
+                      \item $H+O_2 +M = HO_2 +M$ pressure dependent;
+                        ref high-pressure flow cell of
+                        \cite{FernandesLTU08}
+                        \item Lean flame speeds sensitive to $H_2 + OH
+                          = H + H_2O$.
+                        \item $HO_2 + OH = H_2O + O_2$. Important
+                          chain termination for fuel lean
+                          flames. Well studied, but not well
+                          known. non-Arrhenius behaviour c. 1200k.
+                        \item $HO_2 + HO_2 = H_2O_2 + O_2$ noted as
+                          inhibiting reactivity under low T, high P
+                          conditions. 
+                  \end{enumerate}
+                  \item[2011] \citet{HongDH11} Mechanism update using
+                    shock tube/laser absorption measurements
+                    \begin{enumerate}
+                    \item Focus on rate constants for: 
+                      \begin{itemize}
+                      \item $H + O_2 = OH + O$
+                      \item $H_2O_2 +M = 2OH +M$
+                      \item $OH + H_2O_2 = HO_2 + H_2O$
+                      \item $O_2 + H_2O = OH + HO_2$
+                      \end{itemize}
+                    \item Note that $O + OH + M = HO_2 + M$ included
+                      rarely (exception Williams mechanisms). Notes
+                      Burke demonstrates this may impact lean
+                      high-pressure flames, but choose to leave it out
+                      because it is poorly known. 
+                      \item Starting mechanism $H_2/O_2$ submechanism
+                        from GRImech.
+                    \end{enumerate}
+\item[2014]$^S$ \citet{GoswamiBKG14} 
+  \begin{enumerate}
+  \item New experiments at 1--10atm using `heat flux method'; only
+    $H_2-CO$ blends
+  \item Update to the Konnov mechanism
+  \end{enumerate}
+            \item[2015]$^S$  \citet{LiYWL15}; reconsidered syngas mechanism taking H2 sub-mechanism from previous You et al. paper, CO submodel from Davis mechanism. 
+                \begin{enumerate}
+                    \item Tweaked rate parameters for $CO$ sub-mechanism for $CO + HO_2 = CO_2 + OH$ and $CO+OH = CO_2 + H$. 
+                    \item Applied data collaboration method and found some of the experiments (at rich conditions) from Burke were inconsistent with the rest the model
+                    \item Redid those experiments and found a consistent set
+                \end{enumerate}
 
+        \end{description}
+
+\section{Experimental Targets}
+{\scriptsize
+\input{expts.tex}
+}
 
 \section{Conclusion}
 

@@ -129,7 +129,7 @@ def get_datasets():
     files[1] = './1d_pmma/R5590-20-3_5590-16-2_082714.xlsx'
     files[2] = './1d_pmma/R5590-20-5_5590-16-2_082814.xlsx'
     files[3] = './1d_pmma/R5590-20-2_5590-16-2_082614.xlsx'
-    files = allfiles
+    #files = allfiles
     files_txt = "{}".format(files)
 
     alltimes = []

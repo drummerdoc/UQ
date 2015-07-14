@@ -4,6 +4,7 @@
 #include<iostream>
 #include<vector>
 #include<map>
+#include<math.h>
 
 sparsePdf::sparsePdf(int ndim) {
     _ndim = ndim;
@@ -124,5 +125,73 @@ double sparsePdf::getProbability(std::vector<double> pt) {
     } else {
         return jpdf[idx];
     }
+}
+
+
+/*
+ *
+ * Get the matrix to solve for the coefficients in the bi-quartic
+ * interpolant using nearby bins 
+ *
+ */
+std::vector<double> sparsePdf::get_biquartic(std::vector<double> pt) {
+
+    std::vector<int> idx;
+    std::vector<int> near_idx;
+    std::vector<double> lin_problem;
+    // std::cout << "Testing.... " << std::endl;
+    if (pt.size() != _ndim) {
+        std::cerr << "Wrong number of dimensions for pt; "
+                  << _ndim << std::endl;
+    }
+    idx.resize(_ndim);
+    for (int i = 0; i < _ndim; ++i) {
+        idx[i] = (pt[i] - bin_minval[i])/bin_delta[i];
+    }
+
+    near_idx.resize(_ndim);
+    int klim = 3; // Only works for klim odd
+    int cntr = 0;
+    for (int jj = 0; jj < pow(klim,_ndim); ++jj) {
+        int this_idx = jj;
+        for (int i=0; i < _ndim; ++i) {
+            near_idx[i] = idx[i] + this_idx % klim - (klim-1)/2;
+            this_idx = (this_idx - this_idx % klim)/klim;
+        }
+        if (jpdf.find(near_idx) != jpdf.end()) {
+             lin_problem.push_back(1.0);
+            for (int i=0; i < _ndim; ++i) {
+                lin_problem.push_back( near_idx[i]*bin_delta[i] );
+            }
+            //for (int i=0; i < _ndim; ++i) {
+            //    for (int j=0; j < _ndim; ++j) {
+            //        lin_problem.push_back(near_idx[i]*bin_delta[i]
+            //                              *near_idx[j]*bin_delta[j]);
+            //        cntr++;
+            //    }
+            //}
+            lin_problem.push_back(jpdf[near_idx]);
+            cntr++;
+        }
+    }
+
+    std::cout << "Added rows from " << cntr << " bins" << std::endl;
+
+    return lin_problem;
+
+    //     for (int kk = -klim; kk <= klim; ++kk) {
+    //             near_idx[i] = idx[i] + kk;
+    //         }
+    //         if (jpdf.find(idx) != jpdf.end()) {
+    //             lin_problem.push_back(1.0);
+    //             lin_problem.push_back(kk*bin_delta[jj]);
+    //                     }
+    //                     }
+    // }
+    // if (jpdf.find(idx) == jpdf.end()) {
+    //     return 0.0;
+    // } else {
+    //     return jpdf[idx];
+    // }
 }
 
