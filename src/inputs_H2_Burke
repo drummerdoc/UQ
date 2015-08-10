@@ -1,285 +1,285 @@
-#which_sampler=linear_map
-
-nwalkers      = 20
-maxStep       = 100000         # Number of MCMC samples for each walker
+nwalkers     = 64
+maxStep       = 100000     # Number of MCMC samples for each walker/number of (requested) samples for (two-stage) implicit sampling
 outFilePrefix = "Results" # Prefix to output file names, to be appended with step range
 outFilePeriod = 100         # Number of samples between calls to write data
 seed          = 17        # seed, used if no restart file provided
-#restartFile = Results_00_10
+#restartFile = Results_001700_001799
+
 
 ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12
-verbose = 0
 
 # Davis
-parameters = p1 p2 p3 p9 p9L p10 p13 p14 p15a
-
-p1.type = FWD_A
-p1.reaction_id = 0
-p1.prior_mean =  2.644e16
-p1.prior_std =   2.e16
-p1.ensemble_std =   2.e15
-#p1.upper_bound = 2.9e16
-#p1.lower_bound = 2.6e16
-p1.upper_bound = 5.e16
-p1.lower_bound = 1.e16
-
-p2.type = FWD_A
-p2.reaction_id = 1
-p2.prior_mean =  4.589e4
-p2.prior_std =   4.e4
-p2.ensemble_std =   4.e3
-p2.upper_bound = 1.0e5 
-p2.lower_bound = 1.0e4
-
-p3.type = FWD_A
-p3.reaction_id = 2
-p3.prior_mean =  1.734e8
-#p3.prior_std =   3.e5
-p3.prior_std =   2.e8
-p3.ensemble_std =   3.e7
-#p3.upper_bound = 1.8e8
-#p3.lower_bound = 1.6e8
-p3.upper_bound = 4.e8
-p3.lower_bound = 4.e7
-
-p4.type = FWD_A
-p4.reaction_id = 3
-p4.prior_mean =  3.973e4
-p4.prior_std =   4.e4
-p4.ensemble_std =   4.e3
-p4.upper_bound = 8.e4
-p4.lower_bound = 8.e3
-
-p5.type = FWD_A
-p5.reaction_id = 4
-p5.prior_mean =  1.78e18
-p5.prior_std =   1.78e18
-p5.ensemble_std = 1.78e17
-p5.upper_bound = 6.e18
-p5.lower_bound = 0
-
-p5a.type = FWD_A
-p5a.reaction_id = 6
-p5a.prior_mean =  5.624e19
-p5a.prior_std =   5.624e19
-p5a.ensemble_std = 5.624e18
-p5a.upper_bound = 1.6e20
-p5a.lower_bound = 0
-
-p6.type = FWD_A
-p6.reaction_id = 8
-p6.prior_mean =  4.4e22
-p6.prior_std =   4.4e22
-p6.ensemble_std = 4.4e21
-p6.upper_bound = 1.e23
-p6.lower_bound = 1.e21
-
-p7.type = FWD_A
-p7.reaction_id = 9
-p7.prior_mean =  9.428e18
-p7.prior_std =   9.428e18
-p7.ensemble_std = 4.e17
-p7.upper_bound = 1.e20
-p7.lower_bound = 0
-
-p9.type = FWD_A
-p9.reaction_id = 11
-p9.prior_mean =  5.116e12
-p9.prior_std =   5.116e12
-p9.ensemble_std = 5.116e11
-p9.upper_bound = 1.6e13
-p9.lower_bound = 0
-
-p9L.type = LOW_A
-p9L.reaction_id = 11
-p9L.prior_mean =  6.328e19
-p9L.prior_std =   6.328e19
-p9L.ensemble_std = 6.328e18
-p9L.upper_bound = 2.e20
-p9L.lower_bound = 0
-
-p9a.type = THIRD_BODY
-p9a.tb_name = AR
-p9a.reaction_id = 11
-p9a.prior_mean =  0.4
-p9a.prior_std =   0.4
-p9a.ensemble_std = 0.04
-p9a.upper_bound = 5
-p9a.lower_bound = 0
-
-p9b.type = THIRD_BODY
-p9b.tb_name = HE
-p9b.reaction_id = 11
-p9b.prior_mean =  0.46
-p9b.prior_std =   0.46
-p9b.ensemble_std = 0.046
-p9b.upper_bound = 5
-p9b.lower_bound = 0
-
-p9c.type = THIRD_BODY
-p9c.tb_name = O2
-p9c.reaction_id = 11
-p9c.prior_mean =  0.85
-p9c.prior_std =   0.85
-p9c.ensemble_std = 0.085
-p9c.upper_bound = 5
-p9c.lower_bound = 0
-
-p9d.type = THIRD_BODY
-p9d.tb_name = H2O
-p9d.reaction_id = 11
-p9d.prior_mean =  11.89
-#p9d.prior_std =   11.89
-p9d.prior_std =   11.
-p9d.ensemble_std = 1.189d0
-#p9d.upper_bound = 20
-#p9d.lower_bound = 0
-p9d.upper_bound = 40
-p9d.lower_bound = 0
-
-p9e.type = THIRD_BODY
-p9e.tb_name = H2
-p9e.reaction_id = 11
-p9e.prior_mean =  0.75
-p9e.prior_std =   0.75
-p9e.ensemble_std = 0.075
-p9e.upper_bound = 5
-p9e.lower_bound = 0
-
-p10.type = FWD_A
-p10.reaction_id = 12
-p10.prior_mean =  591600
-p10.prior_std =   591600.
-p10.ensemble_std = 50000.
-p10.upper_bound = 2000000
-p10.lower_bound = 0
-
-p11.type = FWD_A
-p11.reaction_id = 13
-p11.prior_mean =  1.11e14
-p11.prior_std =   1.11e14
-p11.ensemble_std = 1.11e13
-p11.upper_bound = 4e14
-p11.lower_bound = 0
-
-p11L.type = LOW_A
-p11L.reaction_id = 13
-p11L.prior_mean =  2.01e17
-p11L.prior_std =   2.01e17
-p11L.ensemble_std = 2.01e16
-p11L.upper_bound = 5e17
-p11L.lower_bound = 0
-
-p13.type = FWD_A
-p13.reaction_id = 15
-p13.prior_mean =  7.485e13
-p13.prior_std =   7.485e13
-p13.ensemble_std = 7.485e12
-p13.upper_bound = 2e14
-p13.lower_bound = 0
+parameters = p14 p14l p14h2 p14h2o p14o2 p14arhe p15 p16 p17 p18 p19 p20 p21 p21l p21h2o p21h2o2 p21o2 p21n2 p21h2 p21arhe p22 p23 p24 p25 p26 p27 p28 p28h2 p28h20 p29arhe
 
 p14.type = FWD_A
-p14.reaction_id = 16
-p14.prior_mean =  4e13
-p14.prior_std =   4e13
-p14.ensemble_std = 4e12
-p14.upper_bound = 2e14
-p14.lower_bound = 0
+p14.reaction_id = 14
+p14.prior_mean =  4.65084e12
+p14.prior_std =   4.65084e11
+p14.ensemble_std =   2.e11
+p14.upper_bound = 7.e12
+p14.lower_bound = 2.e12
 
-p15a.type = FWD_A
-p15a.reaction_id = 17
-p15a.prior_mean =  2.375e13
-p15a.prior_std =   2.375e13
-p15a.ensemble_std = 2.375e12
-p15a.upper_bound = 1e14
-p15a.lower_bound = 0
+p14L.type = LOW_A
+p14L.reaction_id = 14
+p14L.prior_mean =  6.366e20
+p14L.prior_std =   6.366e20
+p14L.ensemble_std = 6.328e19
+p14L.upper_bound = 8e20
+p14L.lower_bound = 0
 
-p16b.type = FWD_A
-p16b.reaction_id = 20
-p16b.prior_mean =  3.658e14
-p16b.prior_std =   3.658e14
-p16b.ensemble_std = 3.658e13
-p16b.upper_bound = 1e15
-p16b.lower_bound = 0
+p14h2.type = THIRD_BODY
+p14h2.tb_name = H2
+p14h2.reaction_id = 14
+p14h2.prior_mean =  2.
+p14h2.prior_std =   2.
+p14h2.ensemble_std = 0.2
+p14h2.upper_bound = 4
+p14h2.lower_bound = 0
+
+p14h2o.type = THIRD_BODY
+p14h2o.tb_name = H2O
+p14h2o.reaction_id = 14
+p14h2o.prior_mean =  14.
+p14h2o.prior_std =   14.
+p14h2o.ensemble_std = 1.4
+p14h2o.upper_bound = 28.
+p14h2o.lower_bound = 0
+
+p14o2.type = THIRD_BODY
+p14o2.tb_name = O2
+p14o2.reaction_id = 14
+p14o2.prior_mean =  0.78
+p14o2.prior_std =   0.78
+p14o2.ensemble_std = 0.078
+p14o2.upper_bound = 3
+p14o2.lower_bound = 0
+
+p14arhe.type = THIRD_BODY
+p14arhe.tb_name = AR
+p14arhe.reaction_id = 14
+p14arhe.prior_mean =  0.67
+p14arhe.prior_std =   0.67
+p14arhe.ensemble_std = 0.067
+p14arhe.upper_bound = 3
+p14arhe.lower_bound = 0
+p14arhe.dependent_parameters = tb_HE
+p14arhe.dependent_parameters.tb_HE.type = THIRD_BODY
+p14arhe.dependent_parameters.tb_HE.tb_name = HE
+p14arhe.dependent_parameters.tb_HE.reaction_id = 14
+
+p15.type = FWD_A
+p15.reaction_id = 15
+p15.prior_mean =  2.75e6
+p15.prior_std =   2.75e6
+p15.ensemble_std =   2.75e4
+p15.upper_bound = 5.e16
+p15.lower_bound = 1.e6
+
+p16.type = FWD_A
+p16.reaction_id = 16
+p16.prior_mean =  7.079e13
+p16.prior_std =   7.079e13
+p16.ensemble_std =   7.079e12
+p16.upper_bound = 1.e14
+p16.lower_bound = 2.e13
 
 p17.type = FWD_A
-p17.reaction_id = 21
-p17.prior_mean =  6.05e6
-p17.prior_std =   6.05e6
-p17.ensemble_std = 6.05e5
-p17.upper_bound = 1.5e7
-p17.lower_bound = 0.
+p17.reaction_id = 17
+p17.prior_mean =  2.85e10
+p17.prior_std =   2.85e10
+p17.ensemble_std =   2.85e9
+p17.upper_bound = 5.e10
+p17.lower_bound = 1.e10
+
+p18.type = FWD_A
+p18.reaction_id = 18
+p18.prior_mean =  2.89e13
+p18.prior_std =   2.89e13
+p18.ensemble_std =   2.89e12
+p18.upper_bound = 6.e13
+p18.lower_bound = 1.e13
+
+p19.type = FWD_A
+p19.reaction_id = 19
+p19.prior_mean =  4.2e14
+p19.prior_std =   4.2e14
+p19.ensemble_std =   4.2e13
+p19.upper_bound = 7.e14
+p19.lower_bound = 1.e14
+
+p20.type = FWD_A
+p20.reaction_id = 20
+p20.prior_mean =  1.3e11
+p20.prior_std =   1.3e11
+p20.ensemble_std =   1.3e10
+p20.upper_bound = 4.e11
+p20.lower_bound = 5.e10
 
 p21.type = FWD_A
-p21.reaction_id = 26
-p21.prior_mean =  1.362e10
-p21.prior_std =   1.362e10
-p21.ensemble_std = 1.362e9
-p21.upper_bound = 4e10
-p21.lower_bound = 0
+p21.reaction_id = 21
+p21.prior_mean =  2.e12
+p21.prior_std =   2.e12
+p21.ensemble_std =   2.e11
+p21.upper_bound = 5.e12
+p21.lower_bound = 1.e12
 
 p21L.type = LOW_A
-p21L.reaction_id = 26
-p21L.prior_mean =  1.173e24
-p21L.prior_std =   1.173e24
-p21L.ensemble_std = 1.173e23
-p21L.upper_bound = 4e24
-p21L.lower_bound = 0
+p21L.reaction_id = 21
+p21L.prior_mean =  2.29e24
+p21L.prior_std =   2.29e24
+p21L.ensemble_std = 2.29e23
+p21L.upper_bound = 8e24
+p21L.lower_bound = 5.e23
 
-p22a.type = FWD_A
-p22a.reaction_id = 27
-p22a.prior_mean =  8.e11
-p22a.prior_std =   8.e11
-p22a.ensemble_std = 8.e10
-p22a.upper_bound = 2.e12
-p22a.lower_bound = 0
+p21h2.type = THIRD_BODY
+p21h2.tb_name = H2
+p21h2.reaction_id = 21
+p21h2.prior_mean =  3.7
+p21h2.prior_std =   3.7
+p21h2.ensemble_std = 0.37
+p21h2.upper_bound = 8
+p21h2.lower_bound = 0
 
-p22b.type = FWD_A
-p22b.reaction_id = 28
-p22b.prior_mean =  8.784e10
-p22b.prior_std =   8.784e10
-p22b.ensemble_std = 8.784e9
-p22b.upper_bound = 2e11
-p22b.lower_bound = 0
+p21h2o.type = THIRD_BODY
+p21h2o.tb_name = H2O
+p21h2o.reaction_id = 21
+p21h2o.prior_mean =  7.5
+p21h2o.prior_std =   7.5
+p21h2o.ensemble_std = .75
+p21h2o.upper_bound = 15
+p21h2o.lower_bound = 0
+
+p21h2o2.type = THIRD_BODY
+p21h2o2.tb_name = H2O2
+p21h2o2.reaction_id = 21
+p21h2o2.prior_mean =  7.7
+p21h2o2.prior_std =   7.7
+p21h2o2.ensemble_std = 0.77
+p21h2o2.upper_bound = 15
+p21h2o2.lower_bound = 0
+
+p21o2.type = THIRD_BODY
+p21o2.tb_name = O2
+p21o2.reaction_id = 21
+p21o2.prior_mean =  1.2
+p21o2.prior_std =   1.2
+p21o2.ensemble_std = 0.12
+p21o2.upper_bound = 5
+p21o2.lower_bound = 0
+
+p21n2.type = THIRD_BODY
+p21n2.tb_name = N2
+p21n2.reaction_id = 21
+p21n2.prior_mean =  1.5
+p21n2.prior_std =   1.5
+p21n2.ensemble_std = .15
+p21n2.upper_bound = 5
+p21n2.lower_bound = 0
+
+p21arhe.type = THIRD_BODY
+p21arhe.tb_name = AR
+p21arhe.reaction_id = 21
+p21arhe.prior_mean =  0.65
+p21arhe.prior_std =   0.65
+p21arhe.ensemble_std = 0.065
+p21arhe.upper_bound = 4
+p21arhe.lower_bound = 0
+p21arhe.dependent_parameters = tb_HE
+p21arhe.dependent_parameters.tb_HE.type = THIRD_BODY
+p21arhe.dependent_parameters.tb_HE.tb_name = HE
+p21arhe.dependent_parameters.tb_HE.reaction_id = 21
+
+p22.type = FWD_A
+p22.reaction_id = 22
+p22.prior_mean =  2.41e13
+p22.prior_std =   2.41e13
+p22.ensemble_std =   2.41e12
+p22.upper_bound = 5.e13
+p22.lower_bound = 1.e13
 
 p23.type = FWD_A
-p23.reaction_id = 29
-p23.prior_mean =  1.112e12
-p23.prior_std =   1.112e12
-p23.ensemble_std = 1.112e11
-p23.upper_bound = 4e12
-p23.lower_bound = 0
+p23.reaction_id = 23
+p23.prior_mean =  4.82e13
+p23.prior_std =   4.82e13
+p23.ensemble_std =   4.82e12
+p23.upper_bound = 9.e13
+p23.lower_bound = 1.e13
+
+p24.type = FWD_A
+p24.reaction_id = 24
+p24.prior_mean =  9.55e6
+p24.prior_std =   9.55e6
+p24.ensemble_std =   9.55e5
+p24.upper_bound = 3.e7
+p24.lower_bound = 3.e6
 
 p25.type = FWD_A
-p25.reaction_id = 31
-p25.prior_mean =  1.2e14
-p25.prior_std =   1.2e14
-p25.ensemble_std = 1.2e13
-p25.upper_bound = 4e14
-p25.lower_bound = 0
+p25.reaction_id = 25
+p25.prior_mean =  1.74e12
+p25.prior_std =   1.74e12
+p25.ensemble_std =   1.74e11
+p25.upper_bound = 5.e12
+p25.lower_bound = 5.e11
 
-p29.type = FWD_A
-p29.reaction_id = 35
-p29.prior_mean =  1.87e17
-p29.prior_std =   1.87e17
-p29.ensemble_std = 1.87e16
-p29.upper_bound = 6.e17
-p29.lower_bound = 0
+p26.type = FWD_A
+p26.reaction_id = 26
+p26.prior_mean =  7.59e13
+p26.prior_std =   7.59e13
+p26.ensemble_std =   7.59e12
+p26.upper_bound = 2.e14
+p26.lower_bound = 2.e13
 
-p29a.type = FWD_A
-p29a.reaction_id = 36
-p29a.prior_mean =  2.244e18
-p29a.prior_std =   2.244e18
-p29a.ensemble_std = 2.244e17
-p29a.upper_bound = 8e18
-p29a.lower_bound = 0
+p27.type = FWD_A
+p27.reaction_id = 27
+p27.prior_mean =  3.97e12
+p27.prior_std =   3.97e12
+p27.ensemble_std =   3.97e11
+p27.upper_bound = 9.e12
+p27.lower_bound = 1.e12
 
+p28.type = FWD_A
+p28.reaction_id = 28
+p28.prior_mean =  8.e15
+p28.prior_std =   8.e15
+p28.ensemble_std =   8.e14
+p28.upper_bound = 2.e16
+p28.lower_bound = 2.e15
+
+p28h2.type = THIRD_BODY
+p28h2.tb_name = H2
+p28h2.reaction_id = 28
+p28h2.prior_mean =  2.0
+p28h2.prior_std =   2.0
+p28h2.ensemble_std = .20
+p28h2.upper_bound = 6
+p28h2.lower_bound = 0
+
+p28h2o.type = THIRD_BODY
+p28h2o.tb_name = H2O
+p28h2o.reaction_id = 28
+p28h2o.prior_mean =  12.0
+p28h2o.prior_std =   12.0
+p28h2o.ensemble_std = 1.20
+p28h2o.upper_bound = 25
+p28h2o.lower_bound = 0
+
+p28arhe.type = THIRD_BODY
+p28arhe.tb_name = AR
+p28arhe.reaction_id = 28
+p28arhe.prior_mean =  0.7
+p28h2.prior_std =   0.7
+p28h2.ensemble_std = 0.07
+p28h2.upper_bound = 3
+p28h2.lower_bound = 0
+p28arhe.dependent_parameters = tb_HE
+p28arhe.dependent_parameters.tb_HE.type = THIRD_BODY
+p28arhe.dependent_parameters.tb_HE.tb_name = HE
+p28arhe.dependent_parameters.tb_HE.reaction_id = 28
 
 # Targets from S.G. Davis et al, PCI 30, 2005. First group is premixed
 # laminar flames, second group is ignition delay calculations
-experiments = flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a 
-experiments = ign1a ign1b ign2a ign2b flw1a flw2a flw3a flw4a flw8a flw8b ign3a ign4a ign4b ign5a 
+experiments = fls3a fls3b fls1a fls1b fls2a fls2b flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a 
 
 #use_synthetic_data = t
 

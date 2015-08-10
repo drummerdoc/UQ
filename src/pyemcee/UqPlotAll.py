@@ -64,7 +64,7 @@ def LoadPlotfile(filenames):
       for it in range(0,iters1):
         for dim in range(0,ndim):
           index = walker + nwalkers*it + nwalkers*iters1*dim
-          ret[walker,iter1+it,dim] = p0[index]
+          ret[walker,iter1+it-iter,dim] = p0[index]
 
   return ret, nwalkers, ndim, iters, iter
 

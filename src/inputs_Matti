@@ -1,8 +1,8 @@
 #which_sampler=linear_map
-nwalkers     = 1
-maxStep       = 300000   # Number of MCMC samples for each walker/number of (requested) samples for (two-stage) implicit sampling
-outFilePrefix = "ResultsT" # Prefix to output file names, to be appended with step range
-outFilePeriod = 1000000   # Number of samples between calls to write data
+nwalkers     = 20
+maxStep       = 100000       # Number of MCMC samples for each walker/number of (requested) samples for (two-stage) implicit sampling
+outFilePrefix = "Results" # Prefix to output file names, to be appended with step range
+outFilePeriod = 100         # Number of samples between calls to write data
 seed          = 17        # seed, used if no restart file provided
 #restartFile = Results_00_10
 
