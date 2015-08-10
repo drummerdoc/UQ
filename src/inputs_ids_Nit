@@ -1,0 +1,370 @@
+nwalkers     = 1
+maxStep       = 100000   # Number of MCMC samples for each walker/number of (requested) samples for (two-stage) implicit sampling
+outFilePrefix = "ids_Nit5"    # Prefix to output file names, to be appended with step range
+outFilePeriod = 1000000  # Number of samples between calls to write data
+seed          = 18       # seed, used if no restart file provided
+#restartFile = Results_00_10
+
+# SAMPLING
+###################################################
+whichSampler = 1	# 1 - Gaussian
+	      		# 2 - t
+nu = 3
+neff = 9 		   # Number of eigenvalues of Hessian at the minimum to keep
+
+#initial_samples = 2POINTS/hist_likelyhood
+initial_samples = ids_Nit4_RS
+use_plt = 1
+infl = 2
+num_initial_samples = 100000
+###################################################
+
+#12
+#stateL = 3.46861599308e+16 66348.2612954 118085774.543 6.21381407353e+12 9.66641491718e+19 637651.252483 9.50134293125e+13 1.16676525184e+13 1.8782709429e+13
+#stateR = 3.30986325388e+16 71190.5542776 117854272.577 3.31215195907e+12 9.11628407693e+19 616330.748884 8.76198886872e+13 1.25976811237e+13 1.91144943484e+13 
+
+#23
+#stateL = 3.30986325388e+16 71190.5542776 117854272.577 3.31215195907e+12 9.11628407693e+19 616330.748884 8.76198886872e+13 1.25976811237e+13 1.91144943484e+13 
+#stateR = 3.37539008232e+16 71888.242486 114693759.93 4.72187222772e+12 8.98190544086e+19 622197.134869 8.76676706372e+13 1.89478193522e+13 1.84813184708e+13
+
+#13
+#stateL = 3.46861599308e+16 66348.2612954 118085774.543 6.21381407353e+12 9.66641491718e+19 637651.252483 9.50134293125e+13 1.16676525184e+13 1.8782709429e+13
+#stateR = 3.37539008232e+16 71888.242486 114693759.93 4.72187222772e+12 8.98190544086e+19 622197.134869 8.76676706372e+13 1.89478193522e+13 1.84813184708e+13
+
+ht.vode_rtol = 1.e-12
+ht.vode_atol = 1.e-12
+verbose = 0
+
+# Davis
+parameters = p1 p2 p3 p9 p9L p10 p13 p14 p15a
+
+p1.type = FWD_A
+p1.reaction_id = 0
+p1.prior_mean =  2.644e16
+p1.prior_std =   2.e16
+p1.ensemble_std =   2.e15
+#p1.upper_bound = 2.9e16
+#p1.lower_bound = 2.6e16
+p1.upper_bound = 5.e16
+p1.lower_bound = 1.e16
+
+p2.type = FWD_A
+p2.reaction_id = 1
+p2.prior_mean =  4.589e4
+p2.prior_std =   4.e4
+p2.ensemble_std =   4.e3
+p2.upper_bound = 1.0e5 
+p2.lower_bound = 1.0e4
+
+p3.type = FWD_A
+p3.reaction_id = 2
+p3.prior_mean =  1.734e8
+#p3.prior_std =   3.e5
+p3.prior_std =   2.e8
+p3.ensemble_std =   3.e7
+#p3.upper_bound = 1.8e8
+#p3.lower_bound = 1.6e8
+p3.upper_bound = 4.e8
+p3.lower_bound = 4.e7
+
+p9.type = FWD_A
+p9.reaction_id = 11
+p9.prior_mean =  5.116e12
+p9.prior_std =   5.116e12
+p9.ensemble_std = 5.116e11
+p9.upper_bound = 1.6e13
+p9.lower_bound = 0
+
+p9L.type = LOW_A
+p9L.reaction_id = 11
+p9L.prior_mean =  6.328e19
+p9L.prior_std =   6.328e19
+p9L.ensemble_std = 6.328e18
+p9L.upper_bound = 2.e20
+p9L.lower_bound = 0
+
+p10.type = FWD_A
+p10.reaction_id = 12
+p10.prior_mean =  591600
+p10.prior_std =   591600.
+p10.ensemble_std = 50000.
+p10.upper_bound = 2000000
+p10.lower_bound = 0
+
+p13.type = FWD_A
+p13.reaction_id = 15
+p13.prior_mean =  7.485e13
+p13.prior_std =   7.485e13
+p13.ensemble_std = 7.485e12
+p13.upper_bound = 2e14
+p13.lower_bound = 0
+
+p14.type = FWD_A
+p14.reaction_id = 16
+p14.prior_mean =  4e13
+p14.prior_std =   4e13
+p14.ensemble_std = 4e12
+p14.upper_bound = 2e14
+p14.lower_bound = 0
+
+p15a.type = FWD_A
+p15a.reaction_id = 17
+p15a.prior_mean =  2.375e13
+p15a.prior_std =   2.375e13
+p15a.ensemble_std = 2.375e12
+p15a.upper_bound = 1e14
+p15a.lower_bound = 0
+
+
+# Targets from S.G. Davis et al, PCI 30, 2005. First group is premixed
+# laminar flames, second group is ignition delay calculations
+experiments = ign1a ign1b ign2a ign2b flw1a flw2a flw3a flw4a flw8a flw8b ign3a ign4a ign4b ign5a 
+
+#use_synthetic_data = t
+
+
+# These are the Flow reactor targets
+
+flw1a.type = CPReactor
+flw1a.data = 8.6
+flw1a.Patm = 15.7
+flw1a.T  = 914
+flw1a.H2 = 0.0118
+flw1a.O2 = 0.0061
+flw1a.N2 = 0.9821
+flw1a.data_num_points = 1001
+flw1a.data_tstart = 0.
+flw1a.data_tend = 4
+flw1a.diagnostic_name = mean_difference
+flw1a.measurement_error = 0.5
+#flw1a.mean_delta_cond_start = 0.4
+#flw1a.mean_delta_cond_stop = 0.6
+flw1a.mean_delta_cond_start = 0.4
+flw1a.mean_delta_cond_stop = 0.6
+flw1a.mean_delta_cond_spec = H2
+flw1a.mean_delta_numer_spec = H2
+flw1a.mean_delta_denom_spec = time
+
+flw2a.type = CPReactor
+flw2a.data = 13.0
+flw2a.Patm = 6
+flw2a.T  = 935
+flw2a.H2 = 0.0101
+flw2a.O2 = 0.0052
+flw2a.N2 = 0.9847
+flw2a.data_num_points = 1000
+flw2a.data_tstart = 0.
+flw2a.data_tend = 4
+flw2a.diagnostic_name = mean_difference
+flw2a.measurement_error = 0.5
+flw2a.mean_delta_cond_start = 0.4
+flw2a.mean_delta_cond_stop = 0.6
+flw2a.mean_delta_cond_spec = H2
+flw2a.mean_delta_numer_spec = H2
+flw2a.mean_delta_denom_spec = time
+
+flw3a.type = CPReactor
+flw3a.data = 98
+flw3a.Patm = 2.5
+flw3a.T  = 943
+flw3a.H2 = 0.01
+flw3a.O2 = 0.015
+flw3a.N2 = 0.975
+flw3a.data_num_points = 1500
+flw3a.data_tstart = 0.
+flw3a.data_tend = 6
+flw3a.diagnostic_name = mean_difference
+flw3a.measurement_error = 10
+flw3a.mean_delta_cond_start = 0.4
+flw3a.mean_delta_cond_stop = 0.6
+flw3a.mean_delta_cond_spec = H2
+flw3a.mean_delta_numer_spec = H2
+flw3a.mean_delta_denom_spec = time
+
+flw4a.type = CPReactor
+flw4a.data = 261
+flw4a.Patm = 0.3
+flw4a.T  = 880
+flw4a.H2 = 0.005
+flw4a.O2 = 0.005
+flw4a.N2 = 0.99
+flw4a.data_num_points = 1000
+flw4a.data_tstart = 0.
+flw4a.data_tend = 0.15
+flw4a.diagnostic_name = mean_difference
+flw4a.measurement_error = 20
+flw4a.mean_delta_cond_start = 0.4
+flw4a.mean_delta_cond_stop = 0.6
+flw4a.mean_delta_cond_spec = H2
+flw4a.mean_delta_numer_spec = H2
+flw4a.mean_delta_denom_spec = time
+
+flw8a.type = CPReactor
+flw8a.data = 19
+flw8a.Patm = 3.02
+flw8a.T  = 934
+flw8a.H2 = 0.0095
+flw8a.O2 = 0.0049
+flw8a.N2 = 0.9856
+flw8a.data_num_points = 1000
+flw8a.data_tstart = 0.
+flw8a.data_tend = 5
+flw8a.diagnostic_name = mean_difference
+flw8a.measurement_error = 1.0
+flw8a.mean_delta_cond_start = 0.05
+flw8a.mean_delta_cond_stop = 0.15
+flw8a.mean_delta_cond_spec = H2
+flw8a.mean_delta_numer_spec = H2
+flw8a.mean_delta_denom_spec = time
+
+flw8b.type = CPReactor
+flw8b.data = 70
+flw8b.Patm = 3.02
+flw8b.T  = 934
+flw8b.H2 = 0.0095
+flw8b.O2 = 0.0049
+flw8b.N2 = 0.9856
+flw8b.data_num_points = 1000
+flw8b.data_tstart = 0.
+flw8b.data_tend = 5
+flw8b.diagnostic_name = mean_difference
+flw8b.measurement_error = 5.0
+flw8b.mean_delta_cond_start = 0.1
+flw8b.mean_delta_cond_stop = 0.6
+flw8b.mean_delta_cond_spec = H2
+flw8b.mean_delta_numer_spec = time
+flw8b.mean_delta_denom_spec = unity
+
+
+# This group is the ignition delay targets
+
+
+# Target ign1a in Davis paper
+ign1a.type = CVReactor
+ign1a.data = 231
+ign1a.Patm = 1.729
+ign1a.T  = 1051
+ign1a.H2 = .0667
+ign1a.O2 = .0333
+ign1a.AR = .9000
+ign1a.data_num_points = 100001
+ign1a.data_tstart = 0.
+ign1a.data_tend = 600e-6
+ign1a.diagnostic_name = onset_pressure_rise
+ign1a.measurement_error = 120.
+ign1a.dpdt_thresh = 20
+
+# Target ign1b in Davis paper
+ign1b.type = CVReactor
+ign1b.data = 50
+ign1b.Patm = 2.008
+ign1b.T  = 1312
+ign1b.H2 = .0667
+ign1b.O2 = .0333
+ign1b.AR = .9000
+#ign1b.data_num_points = 1001
+ign1b.data_num_points = 100001
+ign1b.data_tstart = 0.
+#ign1b.data_tstart = 25.e-6
+#ign1b.data_tend = 200e-5
+ign1b.data_tend = 200e-6
+ign1b.diagnostic_name = onset_pressure_rise
+ign1b.measurement_error = 25.
+ign1b.dpdt_thresh = 20
+
+
+# Target ign2a in Davis paper
+ign2a.type = CVReactor
+ign2a.data = 238
+ign2a.Patm = 0.518
+ign2a.T  = 1033
+ign2a.H2 = .20
+ign2a.O2 = .10
+ign2a.AR = .70
+ign2a.data_num_points = 120000
+ign2a.data_tstart = 0.
+ign2a.data_tend = 800e-6
+#ign2a.diagnostic_name = max_pressure
+ign2a.diagnostic_name = onset_pressure_rise
+ign2a.measurement_error = 140
+#ign2a.p_thresh = 0.6
+
+
+# Target ign2b in Davis paper
+ign2b.type = CVReactor
+ign2b.data = 29
+ign2b.Patm = 0.493
+ign2b.T  = 1510
+ign2b.H2 = .20
+ign2b.O2 = .10
+ign2b.AR = .70
+ign2b.data_num_points = 60000
+ign2b.data_tstart = 0.
+ign2b.data_tend = 150e-6
+#ign2b.diagnostic_name = max_pressure
+ign2b.diagnostic_name = onset_pressure_rise
+ign2b.measurement_error = 20.
+#ign2b.p_thresh = 0.6
+
+
+# Target ign3a in Davis paper
+ign3a.type = CVReactor
+ign3a.data = 10
+ign3a.Patm = 33.0
+ign3a.T  = 1754
+ign3a.H2 = .005
+ign3a.O2 = .0025
+ign3a.AR = .9925
+ign3a.data_num_points = 30000
+ign3a.data_tstart = 0.
+ign3a.data_tend = 50e-6
+ign3a.diagnostic_name = inflect_OH
+ign3a.measurement_error = 3
+ign3a.dOH_thresh = 1.0e-6
+
+
+# Target ign4a in Davis paper
+ign4a.type = CVReactor
+ign4a.data = 293
+ign4a.Patm = 33.0
+ign4a.T  = 1189
+ign4a.H2 = .02
+ign4a.O2 = .01
+ign4a.AR = .97
+ign4a.data_num_points = 100000
+ign4a.data_tstart = 0.
+ign4a.data_tend = 2800e-6
+ign4a.diagnostic_name = max_OH
+ign4a.measurement_error = 100.
+ign4a.dOH_thresh = 1.0e-6
+
+# Target ign4b in Davis paper
+ign4b.type = CVReactor
+ign4b.data = 11
+ign4b.Patm = 33.0
+ign4b.T  = 1300
+ign4b.H2 = .02
+ign4b.O2 = .01
+ign4b.AR = .97
+ign4b.data_num_points = 30000
+ign4b.data_tstart = 0.
+ign4b.data_tend = 450e-6
+ign4b.diagnostic_name = max_OH
+ign4b.measurement_error = 4.
+ign4b.dOH_thresh = 1.0e-6
+#
+# Target ign5a in Davis paper
+ign5a.type = CVReactor
+ign5a.data = 54
+ign5a.Patm = 64.0
+ign5a.T  = 1524
+ign5a.H2 = 0.001
+ign5a.O2 = 0.0005
+ign5a.AR = 0.9985
+ign5a.data_num_points = 30000
+ign5a.data_tstart = 0.
+ign5a.data_tend = 150e-6
+ign5a.diagnostic_name = inflect_OH
+ign5a.measurement_error = 25.
+ign5a.dOH_thresh = 1.0e-6
+

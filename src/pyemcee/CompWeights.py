@@ -2,14 +2,8 @@ import numpy as np
 import sys
 import scipy.linalg
 
-import scipy.optimize as optimize
-import scipy.interpolate as inter
-import dill
-import klepto
-import cPickle as pickle
-
+import pickle
 import pyemcee as pymc
-import cPickle
 from mpi4py import MPI
 
 def genName(nDigits, outFilePrefix, step, nSteps):
@@ -23,9 +17,7 @@ def genName(nDigits, outFilePrefix, step, nSteps):
 
 
 def WritePlotfile(samples,ndim,filename,nwalkers,step,nSteps,nDigits,rstate):
-
     if rank == 0:
-
         print('Writing plotfile: '+filename)
         
         C_array_size = nSteps*ndim*nwalkers
@@ -44,6 +36,7 @@ def WritePlotfile(samples,ndim,filename,nwalkers,step,nSteps,nDigits,rstate):
 
         pf = pymc.UqPlotfile(x_for_c, ndim, nwalkers, step, nSteps, rstateString)
         pf.Write(filename)
+
 
 def LoadPlotfile(filename):
     
@@ -146,14 +139,6 @@ restartFile       =     pp['restartFile']
 initialSamples    =     pp['initial_samples']
 numInitialSamples = int(pp['num_initial_samples'])
 neff              = int(pp['neff'])
-ampFactor         = int(pp['ampFactor'])
-stage             = int(pp['stage'])
-buildRBF          = int(pp['buildRBF'])
-rbfLoadFile       =     pp['rbfLoadFile']
-rbfDumpFile       =     pp['rbfDumpFile']
-minimizeRBF       = int(pp['minimizeRBF'])
-optLoadFile       =     pp['optLoadFile']
-optDumpFile       =     pp['optDumpFile']
 whichSampler      = int(pp['whichSampler'])
 
 if rank == 0:
@@ -163,7 +148,6 @@ if rank == 0:
     print '         seed: ',seed
     print '  restartFile: ',restartFile
     print '         neff: ',neff
-    print '    ampFactor: ',ampFactor
     print ''
 
     print 'Number of Parameters:',ndim
@@ -176,9 +160,6 @@ if rank == 0:
 NOS = maxStep
 np.set_printoptions(linewidth=200)
 
-def F0(x,phi,mu,L2):
-    y =  L2*(x-mu)
-    return phi + 0.5*(np.linalg.norm(y)**2)
 
 def EffSampleSize(w):
     n = w.shape[0]
@@ -203,24 +184,6 @@ def CompRN(w): # normalized weights only
         w2 += w[i]*w[i]
     return N*w2
 
-def WeightedMean(w, samples):
-    N = samples.shape[0]
-    M = samples.shape[1]
-    CondMean = np.zeros(N)
-    for n in range(N):
-        for m in range(M):
-            CondMean[n] += w[m]*samples[n,m]
-    return CondMean
-
-def WeightedVar(CondMean, w, samples):
-    N = samples.shape[0]
-    M = samples.shape[1]
-    CondVar = np.zeros(N)
-    for n in range(N):
-        for m in range(M):
-            CondVar[n] += w[m]*(samples[n,m]-CondMean[n])*(samples[n,m]-CondMean[n])
-    return CondVar
-
 def Resampling(w,samples):
     M = samples.shape[0]
     N = samples.shape[1]
@@ -238,170 +201,6 @@ def Resampling(w,samples):
             i += 1
         rs_map[m] = i-1 # Note: i is never 0 here
     return rs_map
-
-def EvalRBF(x,rbf):
-	tmp = rbf(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8])
-	return tmp
-
-def G(l,phi,mu,Leta,rho,rbf):
-    x = (mu+l*Leta)
-    F = EvalRBF(np.array(x)[0],rbf)
-    return F - phi -0.5*rho
-
-
-# Forward finite differences
-def ffd(x,rbf,k,h):
-    h = x[k] * h
-
-    xpdx = x.copy()
-    xpdx[k] = xpdx[k]+ h
-    
-    fx = EvalRBF(x,rbf)
-    fxpdx = EvalRBF(xpdx,rbf)
-    
-    return (fxpdx - fx)/(xpdx[k]-x[k])
-
-
-# Gradient of rbf approximate likelihood
-def GradRBF(x,rbf,h):
-    grad = np.matrix(np.zeros(shape=(N,1)))
-    for i in range(N):
-        grad[i] = ffd(x,rbf,i,h)
-    return grad
-
-# optimization with rbf                                                                       
-def OptimizeRBF(rbf,lower_bounds,upper_bounds,scaled_x,scales):
-    print 'Optimizing rbf model'
-    bnds = []
-    for i in range(N):
-        bnds.append((lower_bounds[i],upper_bounds[i]))
-    bnds = tuple(bnds)
-    xopt = optimize.minimize(EvalRBF,scaled_x[-1,:],args = (rbf,),method='TNC',bounds=bnds,options=dict({'maxiter':1000}))
-    print 'Minimizer of rbf:', np.multiply(np.matrix(xopt.x),np.matrix(scales))
-    print 'Minimizer in hammer:', np.multiply(np.matrix(scaled_x[-1,:]),np.matrix(scales))
-    print 'Minimum of rbf', xopt
-    return xopt
-
-# Evals and evecs of Hessian
-def ComputeHessEvals(scaled_x,neff):
-    Hinv = np.cov(scaled_x.T)
-    evals,evecs = np.linalg.eigh(Hinv)
-    evecs = np.matrix(evecs)
-    sl = np.argsort(evals)
-    evals = evals[sl]
-    evecs = evecs[:,sl]
-    
-    evals = evals[-neff:]
-    evecs = evecs[:,-neff:]        
-
-    L = evecs * np.diag(evals)
-    L2 = np.diag(np.sqrt(1/evals)) * evecs.T
-
-    return evecs, evals, L, L2
-
-# random map with rbf 
-def RandomMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
-    print 'Sampling with random maps and rbf'
-
-    Samples = np.matrix(np.zeros(shape=(N,NOS)))
-    Fo = np.matrix(np.zeros(shape=(NOS,1)))
-    w  = np.array(np.zeros(shape=(NOS1,1)))
-
-    evecs,evals,L,L2 = ComputeHessEvals(scaled_x,neff)
-    phi = xopt.fun
-    mu  = np.matrix(xopt.x)
-
-    for i in range(NOS):
-        sample_oob = True
-        while sample_oob == True:
-           xi  = L*np.matrix(np.random.randn(neff,1))
-           rho = np.linalg.norm(xi)**2
-           lopt1 = optimize.fsolve(G,1,args = (phi,mu,xi.T,rho,rbf,))#,epsfcn = 1e-5,xtol = 1e-6)
-           lopt2 = optimize.fsolve(G,-1,args = (phi,mu,xi.T,rho,rbf,))
-           if np.abs(1-lopt1)<np.abs(1-lopt2):
-               lopt = lopt1
-           else:
-               lopt = lopt2
-
-           print 'lopt1 = ',lopt1,'lopt2 = ',lopt2
-           Samples[:,i] = (mu+lopt*xi.T).T
-           sample_good = True
-           for n in range(N):
-               sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
-           sample_oob = not sample_good
-        
-        Fo[i] = EvalRBF(np.array(Samples[:,i].T)[0],rbf)
-        print "Sample ",i , "of ", NOS, ', Fo = ',Fo[i],' lopt = ',lopt                                                   
-                  
-        gradF = GradRBF(Samples[:,i],rbf,1e-6)
-        w[i] =  (neff-1)*np.log(np.abs(lopt)) + np.log(rho) - np.log(np.abs( xi.T*gradF ))                   
-
-    # normalize weights                                                                                   
-    wmax = np.amax(w)
-    w = np.exp(w - wmax)
-    wsum = np.sum(w)
-    w = w/wsum
-
-    return Samples, w, Fo
-
-
-# linear map with RBF
-def LinearMap_rbf(NOS,N,neff,scaled_x,xopt,rbf,lower_bounds,upper_bounds):
-    print 'Sampling with linar maps and rbf'
-    Samples = np.matrix(np.zeros(shape=(N,NOS)))
-    Fo = np.matrix(np.zeros(shape=(NOS,1)))
-    F_rbf = np.matrix(np.zeros(shape=(NOS,1)))
-    w  = np.array(np.zeros(shape=(NOS1,1)))
-
-    evecs,evals,L,L2 = ComputeHessEvals(scaled_x,neff)
-    phi = xopt.fun
-    mu  = np.matrix(xopt.x)
-    
-    for i in range(NOS):
-        sample_oob = True
-        while sample_oob == True:
-            Samples[:,i] = mu.T +  L*np.random.randn(neff,1)
-            sample_good = True
-            for n in range(N):
-                sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
-            sample_oob = not sample_good
-
-        Fo[i] = F0(Samples[:,i],phi,mu.T,L2)
-        #F_rbf[i] = EvalRBF(np.array(mu.T),rbf)
-
-        F_rbf[i] = EvalRBF(np.array(Samples[:,i].T)[0],rbf)
-        w[i] = Fo[i] - F_rbf[i]   
-        print "Sample ", i+1, " of ", NOS, ", Fo = ",Fo[i], " F_rbf = ",F_rbf[i]
-
-    # normalize weights   
-    wmax = np.amax(w)
-    w = np.exp(w - wmax)
-    wsum = np.sum(w)
-    w = w/wsum
-    
-    return Samples, w, Fo
-
-# linear map                                                                                             
-def LinearMap(NOS,N,neff,scaled_x,mu,phi,lower_bounds,upper_bounds):
-    print 'Sampling with linar maps'
-    Samples = np.matrix(np.zeros(shape=(N,NOS)))
-    Fo = np.matrix(np.zeros(shape=(NOS,1)))
-
-    evecs,evals,L,L2 = ComputeHessEvals(scaled_x,neff)
-   
-    for i in range(NOS):
-        sample_oob = True
-        while sample_oob == True:
-            Samples[:,i] = mu.T +  L*np.random.randn(neff,1)
-            sample_good = True
-            for n in range(N):
-                sample_good &= Samples[n,i]>=lower_bounds[n] and Samples[n,i]<=upper_bounds[n]
-            sample_oob = not sample_good
-
-        Fo[i] = F0(Samples[:,i],phi,mu.T,L2)
-        print "Sample ", i+1, " of ", NOS, ", Fo = ",Fo[i]
-
-    return Samples, Fo
 
 def whist(x,w,nbins):
     xl = np.min(x)
@@ -443,21 +242,15 @@ for i in range(NOS):
         if F[i] <= 0:
             w[i] = np.inf
         else:
-            if stage == 2:
-                w[i] = Fo[p] - F[i]
-            else:
-                w[i] = Fo[i] - F[i]
+            w[i] = Fo[i] - F[i]
                 
-import matplotlib.pyplot as plt
-
 if rank == 0:
 
     good_inds = np.nonzero(np.isinf(w)==0)[0]
     good_NOS = np.shape(good_inds)[0]
     w = w[good_inds]
-
-    #plt.plot(w)
-    #plt.show()
+    F = np.matrix(F).T
+    F = F[good_inds,:]
     
     Samples = np.matrix(Samples).T
     Samples = Samples[:,good_inds]
@@ -468,20 +261,9 @@ if rank == 0:
             w[i] = 0
         else:
             w[i] = np.exp(w[i] - wmax)
-
-    #plt.plot(w)
-    #plt.show()
     
     wsum = np.sum(w)
     w = w/wsum
-
-    #plt.plot(w*good_NOS)
-    #plt.show()
-
-    #nbins = 100
-    #axw,binsw = whist(w,np.ones(good_NOS)/float(good_NOS),nbins)
-    #plt.plot(axw,binsw,'b')
-    #plt.show()
     
     Samples = np.matrix(Samples).T
     
@@ -490,12 +272,7 @@ if rank == 0:
     print 'Quality measure R:',R
 
     rs_map = Resampling(w,Samples)
-
-    print 'rs_map',rs_map.shape
-    print 'Samples',Samples.shape
     Xrs = Samples[rs_map,:].T
-
-    F = np.matrix(F).T
     Frs = F[rs_map,:].T
 
     nwalkers = 1
@@ -511,5 +288,3 @@ if rank == 0:
          filename = outFilePrefix + '_RS_' + (fmt % 0) + '_' + (fmt % (good_NOS-1))
          pickle.dump(w,open(filename+"/w.pic", "wb" ) )
          pickle.dump(R,open(filename+"/R.pic", "wb" ) )
-
-

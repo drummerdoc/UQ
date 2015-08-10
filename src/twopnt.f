@@ -54,49 +54,71 @@ C     PERFORM TIME EVOLUTION.
 C
 C///////////////////////////////////////////////////////////////////////
 
-      IMPLICIT COMPLEX (A - P, R - Z), INTEGER (Q)
-      CHARACTER
-     +   CWORD*80, HEADER*80, ID*9, JWORD*80, NAME*(*), REMARK*80,
-     +   SIGNAL*(*), YWORD*80
+C      IMPLICIT COMPLEX (A - P, R - Z), INTEGER (Q)
+      IMPLICIT NONE
+      CHARACTER NAME*(*), SIGNAL*(*)
 C*****PRECISION > DOUBLE
       DOUBLE PRECISION
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   ABOVE, BELOW, BUFFER, CHANGE, CONDIT, CSAVE, DUMMY, HIGH, LOW,
+     +   ABOVE, BELOW, BUFFER, CONDIT,
      +   S0, S1, STRID0, STRIDE, TDABS, TDEC, TDREL, TINC, TMAX, TMIN,
      +   V0, V1, VSAVE, Y0, Y1, YNORM
       EXTERNAL
      +   SEARCH, TWCOPY, TWLOGR, TWNORM
       INTEGER
-     +   AGE, AGEJ, COMPS, COUNT, DESIRE, FIRST, GROUPA, GROUPB, J,
-     +   LAST, LENGTH, LEVELD, LEVELM, NAMES, NUMBER, POINTS, QBNDS,
-     +   QDVRG, QNULL, REPORT, ROUTE, STEP, STEPS2, TDAGE, TEXT,
-     +   XREPOR
+     +   COMPS, DESIRE, GROUPA, GROUPB,
+     +   LEVELD, LEVELM, NAMES, POINTS,
+     +   REPORT, STEP, STEPS2, TEXT, TDAGE
       INTRINSIC
      +   LOG10, MAX, MIN
       LOGICAL
-     +   ERROR, EXIST, JACOB, MESS, SUCCES, TIME, XSUCCE
+     +   ERROR, SUCCES, TIME
 
-      PARAMETER (ID = 'EVOLVE:  ')
 
-C     REPORT CODES
-      PARAMETER (QNULL = 0, QBNDS = 1, QDVRG = 2)
+      CHARACTER, save ::
+     +     CWORD*80, JWORD*80, REMARK*80, YWORD*80
+C*****PRECISION > DOUBLE
+      DOUBLE PRECISION, save::
+C*****END PRECISION > DOUBLE
+C*****PRECISION > SINGLE
+C      REAL
+C*****END PRECISION > SINGLE
+     +   CHANGE, CSAVE, DUMMY, HIGH, LOW
+      INTEGER, save ::
+     +   AGE, AGEJ, COUNT, FIRST, J,
+     +   LAST, LENGTH, NUMBER, ROUTE,
+     +   XREPOR
+      LOGICAL, save::
+     +   EXIST, JACOB, MESS, XSUCCE
 
       DIMENSION
      +   ABOVE(GROUPA + COMPS * POINTS + GROUPB),
      +   BELOW(GROUPA + COMPS * POINTS + GROUPB),
-     +   BUFFER(GROUPA + COMPS * POINTS + GROUPB), HEADER(2, 3),
+     +     BUFFER(GROUPA + COMPS * POINTS + GROUPB),
      +   NAME(NAMES), S0(GROUPA + COMPS * POINTS + GROUPB),
      +   V0(GROUPA + COMPS * POINTS + GROUPB),
      +   V1(GROUPA + COMPS * POINTS + GROUPB),
      +   VSAVE(GROUPA + COMPS * POINTS + GROUPB),
      +   Y0(GROUPA + COMPS * POINTS + GROUPB)
 
-C///  SAVE LOCAL VALUES DURING RETURNS FOR REVERSE COMMUNCIATION.
 
-      SAVE
+c local
+      character, parameter :: ID*9 = 'EVOLVE:  '
+
+C     REPORT CODES
+      integer, PARAMETER :: QNULL = 0, QBNDS = 1, QDVRG = 2
+
+
+!$omp threadprivate(CWORD,JWORD,REMARK,YWORD)
+!$omp threadprivate(CHANGE, CSAVE, DUMMY, HIGH, LOW)
+!$omp threadprivate(AGE, AGEJ, COUNT, FIRST, J)
+!$omp threadprivate(LAST, LENGTH, NUMBER, ROUTE, XREPOR)
+!$omp threadprivate(EXIST, JACOB, MESS, XSUCCE)
+
+
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -465,82 +487,82 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-10001 FORMAT
-     +  (/1X, A9, 'BEGIN TIME EVOLUTION.'
-     +  /3(/10X, A44, A21)
-     +  /10X, I6, 3X, A6)
-
-10002 FORMAT
-     +  (/1X, A9, 'CONTINUE TIME EVOLUTION.'
-     +  /3(/10X, A44, A21)
-     +  /10X, I6, 3X, A6)
-
-10003 FORMAT
-     +  (10X, I6, 21X, F6.2, 3X, I5, 3X, A12, 3X, A)
-
-10004 FORMAT
-     +  (10X, I6, 12X, A6, 3X, F6.2, 3X, I5, 3X, A12)
-
-10005 FORMAT
-     +  (10X, I6, 2(3X, A6), 3X, F6.2, 3X, I5, 3X, A12)
-
-10006 FORMAT
-     +  (/1X, A9, 'FAILURE.  NO TIME EVOLUTION.')
-
-10007 FORMAT
-     +  (/1X, A9, 'SUCCESS.  TIME EVOLUTION COMPLETED.')
-
-10008 FORMAT
-     +  (/1X, A9, 'PARTIAL SUCCESS.  TIME EVOLUTION INCOMPLETE.')
-
-20001 FORMAT
-     +  (/1X, A9, 'BEGIN TIME EVOLUTION.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
-
-20002 FORMAT
-     +  (/1X, A9, 'CONTINUE TIME EVOLUTION.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
-
-20003 FORMAT
-     +  (/1X, A9, 'CONTINUE TIME EVOLUTION WITH INCREASED STRIDE.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 INCREASED STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
-
-20004 FORMAT
-     +  (/1X, A9, 'RETRY THE STEP WITH A DECREASED TIME STRIDE.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 DECREASED STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE, AGAIN.')
-
-20005 FORMAT
-     +  (/1X, A9, 'THE SOLUTION DID NOT CHANGE.  RETRYING THE STEP'
-     +  /10X, 'WITH AN INCREASED TIME STRIDE.'
-     + //10X, I10, '  LATEST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
-     +  /10X, F10.2, '  LOG10 INCREASED STRIDE TO NEXT TIME POINT'
-     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE, AGAIN.')
-
-20006 FORMAT
-     +  (/1X, A9, 'SUCCESS.  TIME EVOLUTION COMPLETED.'
-     + //10X, I10, '  LAST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE')
-
-20007 FORMAT
-     +  (/1X, A9, 'PARTIAL SUCCESS.  TIME EVOLUTION INCOMPLETE.'
-     + //10X, I10, '  LAST TIME POINT'
-     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE')
-
-20008 FORMAT
-     + (/1X, A9, 'THE LATEST SOLUTION:')
+c$$$10001 FORMAT
+c$$$     +  (/1X, A9, 'BEGIN TIME EVOLUTION.'
+c$$$     +  /3(/10X, A44, A21)
+c$$$     +  /10X, I6, 3X, A6)
+c$$$
+c$$$10002 FORMAT
+c$$$     +  (/1X, A9, 'CONTINUE TIME EVOLUTION.'
+c$$$     +  /3(/10X, A44, A21)
+c$$$     +  /10X, I6, 3X, A6)
+c$$$
+c$$$10003 FORMAT
+c$$$     +  (10X, I6, 21X, F6.2, 3X, I5, 3X, A12, 3X, A)
+c$$$
+c$$$10004 FORMAT
+c$$$     +  (10X, I6, 12X, A6, 3X, F6.2, 3X, I5, 3X, A12)
+c$$$
+c$$$10005 FORMAT
+c$$$     +  (10X, I6, 2(3X, A6), 3X, F6.2, 3X, I5, 3X, A12)
+c$$$
+c$$$10006 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  NO TIME EVOLUTION.')
+c$$$
+c$$$10007 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.  TIME EVOLUTION COMPLETED.')
+c$$$
+c$$$10008 FORMAT
+c$$$     +  (/1X, A9, 'PARTIAL SUCCESS.  TIME EVOLUTION INCOMPLETE.')
+c$$$
+c$$$20001 FORMAT
+c$$$     +  (/1X, A9, 'BEGIN TIME EVOLUTION.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
+c$$$
+c$$$20002 FORMAT
+c$$$     +  (/1X, A9, 'CONTINUE TIME EVOLUTION.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
+c$$$
+c$$$20003 FORMAT
+c$$$     +  (/1X, A9, 'CONTINUE TIME EVOLUTION WITH INCREASED STRIDE.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 INCREASED STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE.')
+c$$$
+c$$$20004 FORMAT
+c$$$     +  (/1X, A9, 'RETRY THE STEP WITH A DECREASED TIME STRIDE.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 DECREASED STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE, AGAIN.')
+c$$$
+c$$$20005 FORMAT
+c$$$     +  (/1X, A9, 'THE SOLUTION DID NOT CHANGE.  RETRYING THE STEP'
+c$$$     +  /10X, 'WITH AN INCREASED TIME STRIDE.'
+c$$$     + //10X, I10, '  LATEST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE'
+c$$$     +  /10X, F10.2, '  LOG10 INCREASED STRIDE TO NEXT TIME POINT'
+c$$$     + //10X, 'SEARCHING FOR THE NEXT TRANSIENT STATE, AGAIN.')
+c$$$
+c$$$20006 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.  TIME EVOLUTION COMPLETED.'
+c$$$     + //10X, I10, '  LAST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE')
+c$$$
+c$$$20007 FORMAT
+c$$$     +  (/1X, A9, 'PARTIAL SUCCESS.  TIME EVOLUTION INCOMPLETE.'
+c$$$     + //10X, I10, '  LAST TIME POINT'
+c$$$     +  /14X, A6, '  LOG10 STEADY STATE RESIDUAL HERE')
+c$$$
+c$$$0008 FORMAT
+c$$$c     + (/1X, A9, 'THE LATEST SOLUTION:')
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -652,30 +674,42 @@ C     PERFORM THE DAMPED, MODIFIED NEWTON'S SEARCH.
 C
 C///////////////////////////////////////////////////////////////////////
 
-      IMPLICIT COMPLEX (A - Z)
+C      IMPLICIT COMPLEX (A - Z)
+      IMPLICIT NONE
 
-      CHARACTER
-     +   COLUMN*16, CTEMP1*80, CTEMP2*80, HEADER*80, ID*9, NAME*(*),
-     +   SIGNAL*(*), STRING*80
+      logical :: error, exist, succes
+      integer :: text, age, comps, groupa, groupb, leveld, levelm, names
+     $     , points, report, steps, XXAGE
+      double precision :: above, below, buffer, condit, s0, s1, v0, v1
+     $     , XXABS, XXREL, Y0, Y0NORM, Y1
+      character :: name*(*), signal*(*)
+
+C local
+
+      character :: ID*9
+      integer  :: lines, QNULL, QBNDS, QDVRG
+      double precision :: zero
+
+      CHARACTER, save ::
+     +   COLUMN*16, CTEMP1*80, CTEMP2*80, HEADER*80,
+     +   STRING*80
 C*****PRECISION > DOUBLE
-      DOUBLE PRECISION
+      DOUBLE PRECISION, save ::
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   ABOVE, ABS0, ABS1, BELOW, BUFFER, CONDIT, DELTAB, DELTAD, REL0,
-     +   REL1, S0, S0NORM, S1, S1NORM, SJ, TEMP, V0, V1, VALUE, VJ,
-     +   XXABS, XXREL, Y0, Y0NORM, Y1, Y1NORM, ZERO
+     +   ABS0, ABS1, DELTAB, DELTAD, REL0,
+     +   REL1, S0NORM, S1NORM, SJ, TEMP, VALUE, VJ,
+     +   Y1NORM
       EXTERNAL
      +   TWCOPY, TWLOGR, TWNORM, TWSQEZ
-      INTEGER
-     +   AGE, COMPS, COUNT, ENTRY, EXPONE, GROUPA, GROUPB, I, J, K,
-     +   LEN1, LEN2, LENGTH, LEVELD, LEVELM, LINES, NAMES, NUMBER,
-     +   POINTS, QBNDS, QDVRG, QNULL, REPORT, ROUTE, STEPS, TEXT, XXAGE
+      INTEGER, save :: 
+     +     COUNT, ENTRY, EXPONE, I, J,
+     +   LEN1, LEN2, LENGTH, NUMBER, ROUTE
       INTRINSIC
      +   ABS, INT, LOG10, MAX, MIN, MOD
-      LOGICAL
-     +   ERROR, EXIST, FORCE, MESS, SUCCES
+      LOGICAL, save :: FORCE, MESS
 
       PARAMETER (ID = 'SEARCH:  ')
       PARAMETER (LINES = 20)
@@ -698,7 +732,11 @@ C     REPORT CODES
 
 C///  SAVE LOCAL VALUES DURING RETURNS FOR REVERSE COMMUNCIATION.
 
-      SAVE
+!$omp threadprivate(COLUMN,CTEMP1,CTEMP2,HEADER,STRING)
+!$omp threadprivate(ABS0,ABS1, DELTAB, DELTAD, REL0)
+!$omp threadprivate(REL1,S0NORM,S1NORM,SJ,TEMP,VALUE,VJ,Y1NORM)
+!$omp threadprivate(COUNT,ENTRY,EXPONE,I,J,LEN1,LEN2,LENGTH)
+!$omp threadprivate(NUMBER,ROUTE,FORCE,MESS)
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -787,12 +825,12 @@ C         WRITE (TEXT, 10002) ID
                CALL TWSQEZ (LEN1, CTEMP1)
 
                IF (J .LE. GROUPA) THEN
-                  WRITE (CTEMP2, 80001) 'A', I
+c                  WRITE (CTEMP2, 80001) 'A', I
                ELSE IF (J .LE. GROUPA + COMPS * POINTS) THEN
-                  WRITE (CTEMP2, 80002) 'C', I,
-     +               'P', INT ((J - GROUPA - 1) / COMPS) + 1
+c                  WRITE (CTEMP2, 80002) 'C', I,
+c     +               'P', INT ((J - GROUPA - 1) / COMPS) + 1
                ELSE
-                  WRITE (CTEMP2, 80001) 'B', I
+c                  WRITE (CTEMP2, 80001) 'B', I
                END IF
                CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -989,12 +1027,12 @@ C            WRITE (TEXT, 10002) ID
                      CALL TWSQEZ (LEN1, CTEMP1)
 
                      IF (J .LE. GROUPA) THEN
-                        WRITE (CTEMP2, 80001) 'A', I
+c                        WRITE (CTEMP2, 80001) 'A', I
                      ELSE IF (J .LE. GROUPA + COMPS * POINTS) THEN
-                        WRITE (CTEMP2, 80002) 'C', I,
-     +                     'P', INT ((J - GROUPA - 1) / COMPS) + 1
+c                        WRITE (CTEMP2, 80002) 'C', I,
+c     +                     'P', INT ((J - GROUPA - 1) / COMPS) + 1
                      ELSE
-                        WRITE (CTEMP2, 80001) 'B', I
+c                        WRITE (CTEMP2, 80001) 'B', I
                      END IF
                      CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -1183,49 +1221,49 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-10001 FORMAT
-     +  (/1X, A9, 'SOLVE NONLINEAR, NONDIFFERENTIAL EQUATIONS.'
-     +  /4(/10X, A44, A23)/)
-
-10002 FORMAT
-     + (/1X, A9, 'FAILURE.  THE SEARCH FOR THE FOLLOWING UNKNOWNS GOES'
-     +  /10X, 'OUT OF BOUNDS.'
-C              12345  123456789_
-     + //10X, 'BOUND       VALUE   UNKNOWN'
-     +  /)
-
-10003 FORMAT
-     +  (/1X, A9, 'FAILURE.  THE SEARCH DIVERGES.')
-
-10004 FORMAT
-     +  (10X, I6, 3(3X, A6), 2(3X, A6, 2X, A6))
-
-10005 FORMAT
-     +  (/1X, A9, 'SUCCESS.  THE SOLUTION:')
-
-10006 FORMAT
-     +  (/1X, A9, 'SUCCESS.')
-
-80001 FORMAT
-     +   ('(', A, ' ', I10, ')')
-
-80002 FORMAT
-     +  ('(', A, ' ', I10, ' ', A, ' ', I10, ')')
-
-80003 FORMAT
-     +  (10X, A5, 2X, 1P, E10.2, 3X, A)
-
-80004 FORMAT
-     +  (30X, '... MORE')
-
-80005 FORMAT
-     +  (10X, '  ... MORE')
-
-80006 FORMAT
-     +  (10X, 1P, E10.2, 2X, E10.2, 3X, A)
-
-80007 FORMAT
-     +  (10X, 1P, E10.2, 2X, E10.2, 2X, E10.2, 3X, A)
+c$$$10001 FORMAT
+c$$$     +  (/1X, A9, 'SOLVE NONLINEAR, NONDIFFERENTIAL EQUATIONS.'
+c$$$     +  /4(/10X, A44, A23)/)
+c$$$
+c$$$10002 FORMAT
+c$$$     + (/1X, A9, 'FAILURE.  THE SEARCH FOR THE FOLLOWING UNKNOWNS GOES'
+c$$$     +  /10X, 'OUT OF BOUNDS.'
+c$$$C              12345  123456789_
+c$$$     + //10X, 'BOUND       VALUE   UNKNOWN'
+c$$$     +  /)
+c$$$
+c$$$10003 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  THE SEARCH DIVERGES.')
+c$$$
+c$$$10004 FORMAT
+c$$$     +  (10X, I6, 3(3X, A6), 2(3X, A6, 2X, A6))
+c$$$
+c$$$10005 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.  THE SOLUTION:')
+c$$$
+c$$$10006 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.')
+c$$$
+c$$$80001 FORMAT
+c$$$     +   ('(', A, ' ', I10, ')')
+c$$$
+c$$$80002 FORMAT
+c$$$     +  ('(', A, ' ', I10, ' ', A, ' ', I10, ')')
+c$$$
+c$$$80003 FORMAT
+c$$$     +  (10X, A5, 2X, 1P, E10.2, 3X, A)
+c$$$
+c$$$80004 FORMAT
+c$$$     +  (30X, '... MORE')
+c$$$
+c$$$80005 FORMAT
+c$$$     +  (10X, '  ... MORE')
+c$$$
+c$$$80006 FORMAT
+c$$$     +  (10X, 1P, E10.2, 2X, E10.2, 3X, A)
+c$$$
+c$$$80007 FORMAT
+c$$$     +  (10X, 1P, E10.2, 2X, E10.2, 2X, E10.2, 3X, A)
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -1235,15 +1273,18 @@ C///////////////////////////////////////////////////////////////////////
 
       GO TO 99999
 
-9001  IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
+ 9001 CONTINUE
+c      IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, ROUTE
       IF (.NOT. MESS) GO TO 99999
 
-9002  IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
-     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
+ 9002 CONTINUE
+c      IF (0 .LT. TEXT) WRITE (TEXT, 99002) ID,
+c     +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-9003  IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID,
-     +   NAMES, COMPS, GROUPA, GROUPB, GROUPA + COMPS + GROUPB
+ 9003 CONTINUE
+c      IF (0 .LT. TEXT) WRITE (TEXT, 99003) ID,
+c     +   NAMES, COMPS, GROUPA, GROUPB, GROUPA + COMPS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
 9004  IF (0 .LT. TEXT) THEN
@@ -1262,11 +1303,11 @@ C     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
                   CALL TWSQEZ (LEN1, CTEMP1)
 
                   IF (J .LE. GROUPA) THEN
-                     WRITE (CTEMP2, 80001) 'A', J
+c                     WRITE (CTEMP2, 80001) 'A', J
                   ELSE IF (J .LE. GROUPA + COMPS) THEN
-                     WRITE (CTEMP2, 80001) 'C', J - GROUPA
+c                     WRITE (CTEMP2, 80001) 'C', J - GROUPA
                   ELSE
-                     WRITE (CTEMP2, 80001) 'B', J - GROUPA - COMPS
+c                     WRITE (CTEMP2, 80001) 'B', J - GROUPA - COMPS
                   END IF
                   CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -1319,12 +1360,12 @@ C     +      GROUPA + COMPS * POINTS + GROUPB, COUNT
                   CALL TWSQEZ (LEN1, CTEMP1)
 
                   IF (J .LE. GROUPA) THEN
-                     WRITE (CTEMP2, 80001) 'A', I
+c                     WRITE (CTEMP2, 80001) 'A', I
                   ELSE IF (J .LE. GROUPA + COMPS * POINTS) THEN
-                     WRITE (CTEMP2, 80002) 'C', I,
-     +                  'P', INT ((J - GROUPA - 1) / COMPS) + 1
+c                     WRITE (CTEMP2, 80002) 'C', I,
+c     +                  'P', INT ((J - GROUPA - 1) / COMPS) + 1
                   ELSE
-                     WRITE (CTEMP2, 80001) 'B', I
+c                     WRITE (CTEMP2, 80001) 'B', I
                   END IF
                   CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -1364,71 +1405,71 @@ C     IF (0 .LT. TEXT) WRITE (TEXT, 99007) ID, XXAGE
 C     IF (0 .LT. TEXT) WRITE (TEXT, 99008) ID, DELTAB
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  ROUTE')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
-     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL UNKNOWNS')
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF NAMES IS WRONG.'
-     + //10X, I10, '  NAMES'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL NUMBER')
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE LOWER AND UPPER BOUNDS ON SOME UNKNOWNS'
-     +  /10X, 'ARE OUT OF ORDER.'
-     + //10X, I10, '  GROUP A UNKNOWNS (A)'
-     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
-     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
-     +  /10X, I10, '  TOTAL TYPES OF UNKNOWNS'
-     +  /10X, I10, '  NUMBER OF BOUNDS OUT OF ORDER'
-C              123456789_  123456789_
-     + //10X, '     LOWER       UPPER'
-     +  /10X, '     BOUND       BOUND   UNKNOWN'
-     +  /)
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE GUESSES FOR SOME UNKNOWNS ARE OUT OF'
-     +  /10X, 'BOUNDS.'
-     + //10X, I10, '  GROUP A UNKNOWNS (A)'
-     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
-     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
-     +  /10X, I10, '  POINTS (P)'
-     +  /10X, I10, '  TOTAL UNKNOWNS'
-     +  /10X, I10, '  NUMBER OUT OF BOUNDS'
-C              123456789_  123456789_  123456789_
-     + //10X, '     LOWER                   UPPER'
-     +  /10X, '     BOUND       VALUE       BOUND   UNKNOWN'
-     +  /)
-
-99006 FORMAT
-     +  (/1X, A9, 'ERROR.  THE BOUNDS FOR THE ABSOLUTE AND RELATIVE'
-     +  /10X, 'CONVERGENCE TESTS MUST BE ZERO OR POSITIVE.'
-     + //10X, 1P, E10.2, '  SSABS OR TDABS, ABSOLUTE ERROR'
-     +  /10X, 1P, E10.2, '  SSREL OR TDREL, RELATIVE ERROR')
-
-99007 FORMAT
-     +  (/1X, A9, 'ERROR.  THE RETIREMENT AGE OF THE JACOBIAN MATRIX'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  SSAGE OR TDAGE, MATRIX RETIREMENT AGE')
-
-99008 FORMAT
-     +  (/1X, A9, 'ERROR.  THE DAMPING COEFFICIENT FOR STAYING'
-     +  /10X, 'IN BOUNDS IS NEGATIVE.'
-     + //10X, 1P, E10.2, '  DELTA B')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  ROUTE')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
+c$$$     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS')
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF NAMES IS WRONG.'
+c$$$     + //10X, I10, '  NAMES'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL NUMBER')
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE LOWER AND UPPER BOUNDS ON SOME UNKNOWNS'
+c$$$     +  /10X, 'ARE OUT OF ORDER.'
+c$$$     + //10X, I10, '  GROUP A UNKNOWNS (A)'
+c$$$     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
+c$$$     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
+c$$$     +  /10X, I10, '  TOTAL TYPES OF UNKNOWNS'
+c$$$     +  /10X, I10, '  NUMBER OF BOUNDS OUT OF ORDER'
+c$$$C              123456789_  123456789_
+c$$$     + //10X, '     LOWER       UPPER'
+c$$$     +  /10X, '     BOUND       BOUND   UNKNOWN'
+c$$$     +  /)
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE GUESSES FOR SOME UNKNOWNS ARE OUT OF'
+c$$$     +  /10X, 'BOUNDS.'
+c$$$     + //10X, I10, '  GROUP A UNKNOWNS (A)'
+c$$$     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
+c$$$     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
+c$$$     +  /10X, I10, '  POINTS (P)'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS'
+c$$$     +  /10X, I10, '  NUMBER OUT OF BOUNDS'
+c$$$C              123456789_  123456789_  123456789_
+c$$$     + //10X, '     LOWER                   UPPER'
+c$$$     +  /10X, '     BOUND       VALUE       BOUND   UNKNOWN'
+c$$$     +  /)
+c$$$
+c$$$99006 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE BOUNDS FOR THE ABSOLUTE AND RELATIVE'
+c$$$     +  /10X, 'CONVERGENCE TESTS MUST BE ZERO OR POSITIVE.'
+c$$$     + //10X, 1P, E10.2, '  SSABS OR TDABS, ABSOLUTE ERROR'
+c$$$     +  /10X, 1P, E10.2, '  SSREL OR TDREL, RELATIVE ERROR')
+c$$$
+c$$$99007 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE RETIREMENT AGE OF THE JACOBIAN MATRIX'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  SSAGE OR TDAGE, MATRIX RETIREMENT AGE')
+c$$$
+c$$$99008 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE DAMPING COEFFICIENT FOR STAYING'
+c$$$     +  /10X, 'IN BOUNDS IS NEGATIVE.'
+c$$$     + //10X, 1P, E10.2, '  DELTA B')
 
 C///  EXIT.
 
@@ -2002,32 +2043,21 @@ C///////////////////////////////////////////////////////////////////////
       IMPLICIT COMPLEX (A - Z)
       CHARACTER
      +   ID*9
-C*****PRECISION > DOUBLE
-      DOUBLE PRECISION
-C*****END PRECISION > DOUBLE
-C*****PRECISION > SINGLE
-C      REAL
-C*****END PRECISION > SINGLE
-     +   RVALUE
       INTEGER
-     +   CNTRLS, COUNT, IVALUE, TEXT
+     +   COUNT, TEXT
       LOGICAL
-     +   ERROR, FIRST, FORCE, LVALUE, MESS
+     +   ERROR, FORCE, MESS
 
       PARAMETER (ID = 'TWINIT:  ')
-      PARAMETER (CNTRLS = 22)
-
-      DIMENSION IVALUE(CNTRLS), LVALUE(CNTRLS), RVALUE(CNTRLS)
-
-      COMMON / TWCOMI / IVALUE
-      COMMON / TWCOML / LVALUE
-      COMMON / TWCOMR / RVALUE
+      include 'twcom.fh'
 
 C     THE GNU F77 COMPILER REQUIRES THE SAVE TO PRECEED THE DATA
 
-      SAVE FIRST
-
-      DATA FIRST / .TRUE. /
+C      SAVE FIRST
+C
+C      DATA FIRST / .TRUE. /
+      logical, save :: first = .true.
+!$omp threadprivate(first)
 
 C///  WRITE ALL MESSAGES.
 
@@ -2169,10 +2199,10 @@ C///  ERROR MESSAGES.
 C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID, CNTRLS, COUNT
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
 
 C///  EXIT.
 
@@ -2329,41 +2359,52 @@ C     TWOPNT
 C
 C///////////////////////////////////////////////////////////////////////
 
-      IMPLICIT COMPLEX (A - Z)
-      CHARACTER
-     +   COLUMN*80, CTEMP1*80, CTEMP2*80, HEADER*80, ID*9, NAME*(*),
-     +   REPORT*(*), SIGNAL*(*), STRING*80, VERSIO*(*), VNMBR*8
+C      IMPLICIT COMPLEX (A - Z)
+      IMPLICIT NONE
+
+      logical :: error, active, mark, time
+      integer :: text, COMPS, GROUPA, groupb, ISIZE,IWORK,NAMES,POINTS,
+     $     pmax, rsize
+      character :: VERSIO*(*), NAME*(*), REPORT*(*), SIGNAL*(*)
+      double precision :: above, below, buffer, condit,RWORK,U,X,STRIDE
+
+C local
+      character :: id*9
+      integer :: gmax, lines, vnmbrs, qnull, qbnds, qdvrg
+
+      CHARACTER, save :: 
+     +   COLUMN*80, CTEMP1*80, CTEMP2*80, HEADER*80, 
+     +   STRING*80, VNMBR*8
 C*****PRECISION > DOUBLE
-      DOUBLE PRECISION
+      DOUBLE PRECISION, save ::
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   ABOVE, BELOW, BUFFER, CONDIT, DETAIL, MAXCON, RATIO, RVALUE,
-     +   RWORK, SSABS, SSREL, STRID0, STRIDE, TDABS, TDEC, TDREL, TEMP,
-     +   TIMER, TINC, TMAX, TMIN, TOLER0, TOLER1, TOLER2, TOTAL, U, X,
+     +   DETAIL, MAXCON, RATIO,
+     +   SSABS, SSREL, STRID0, TDABS, TDEC, TDREL, TEMP,
+     +   TIMER, TINC, TMAX, TMIN, TOLER0, TOLER1, TOLER2, TOTAL,
      +   YNORM
       EXTERNAL
      +   EVOLVE, REFINE, SEARCH, TWCOPY, TWGRAB, TWLAPS, TWLAST, TWLOGR,
      +   TWNORM, TWSQEZ, TWTIME, TWINIT
-      INTEGER
-     +   AGE, CNTRLS, COMPS, COUNT, DESIRE, EVENT, GMAX, GRID, GROUPA,
-     +   GROUPB, ILAST, ISIZE, IVALUE, IWORK, J, JACOBS, K, LABEL, LEN1,
-     +   LEN2, LENGTH, LEVELD, LEVELM, LINES, NAMES, NSTEPS, PADD, PMAX,
-     +   POINTS, PSAVE, QABOVE, QBELOW, QBNDS, QDVRG, QENTRY, QEXIT,
-     +   QFUNCT, QGRID, QJACOB, QNULL, QOTHER, QRAT1, QRAT2, QREFIN,
-     +   QS0, QS1, QSEARC, QSOLVE, QTASK, QTIMST, QTOTAL, QTYPE, QUSAVE,
+      INTEGER, save ::
+     +   AGE, COUNT, DESIRE, EVENT, GRID, 
+     +   ILAST, J, JACOBS, K, LABEL, LEN1,
+     +   LEN2, LENGTH, LEVELD, LEVELM, NSTEPS, PADD, 
+     +   PSAVE, QABOVE, QBELOW,
+     +   QRAT1, QRAT2,
+     +   QS0, QS1, QTASK, QTYPE, QUSAVE,
      +   QV1, QVARY, QVARY1, QVARY2, QVSAVE, QXSAVE, QY0, QY1, RETURN,
-     +   RLAST, ROUTE, RSIZE, SIZE, SSAGE, STEP, STEPS, STEPS0, STEPS1,
-     +   STEPS2, TDAGE, TEXT, VNMBRS, XREPOR
+     +   RLAST, ROUTE, SIZE, SSAGE, STEP, STEPS, STEPS0, STEPS1,
+     +   STEPS2, TDAGE, XREPOR
       INTRINSIC
      +   MAX
-      LOGICAL
-     +   ACTIVE, ADAPT, ALLOW, ERROR, EXIST, FIRST, FLAG, FOUND, LVALUE,
-     +   MARK, MESS, SATISF, STEADY, TIME
+      LOGICAL, save ::
+     +   ADAPT, ALLOW, EXIST, FIRST, FLAG, FOUND,
+     +   MESS, SATISF, STEADY
 
       PARAMETER (ID = 'TWOPNT:  ')
-      PARAMETER (CNTRLS = 22)
       PARAMETER (GMAX = 100)
       PARAMETER (LINES = 20)
       PARAMETER (VNMBRS = 12)
@@ -2376,8 +2417,8 @@ C     LOCATIONS ARE CHOSEN TO SIMPLIFY WRITE STATEMENTS.  DETAIL USES
 C     ONLY 1 : 8, EVENT USES ONLY 5 : 8, TIMER USES 1 : 9, AND TOTAL
 C     USES ONLY 2 : 9.  IN ADDITION, 2, 3, 4, 10, AND 11 ARE USED AS
 C     MNEMONIC VALUES FOR QTASK.
-      PARAMETER
-     +  (QGRID  =  1,
+      integer, PARAMETER ::
+     +   QGRID  =  1,
      +   QTIMST =  2,
      +   QSEARC =  3,
      +   QREFIN =  4,
@@ -2387,24 +2428,37 @@ C     MNEMONIC VALUES FOR QTASK.
      +   QOTHER =  8,
      +   QTOTAL =  9,
      +   QENTRY = 10,
-     +   QEXIT  = 11)
+     +   QEXIT  = 11
 
       DIMENSION
      +   ABOVE(GROUPA + COMPS + GROUPB), ACTIVE(*), BELOW(GROUPA + COMPS
      +   + GROUPB), BUFFER(GROUPA + COMPS * PMAX + GROUPB), COLUMN(3),
      +   DETAIL(GMAX, QTOTAL), EVENT(GMAX, QTOTAL), HEADER(6),
-     +   IVALUE(CNTRLS), IWORK(ISIZE), LVALUE(CNTRLS), MARK(*),
-     +   NAME(NAMES), RATIO(2), RVALUE(CNTRLS), RWORK(RSIZE),
+     +   IWORK(ISIZE), MARK(*),
+     +   NAME(NAMES), RATIO(2), RWORK(RSIZE),
      +   SIZE(GMAX), TIMER(QTOTAL), TOTAL(QTOTAL), U(GROUPA + COMPS *
      +   PMAX + GROUPB), VNMBR(VNMBRS), X(*)
 
-      COMMON / TWCOMI / IVALUE
-      COMMON / TWCOML / LVALUE
-      COMMON / TWCOMR / RVALUE
-
+      include 'twcom.fh'
+      
 C///  SAVE LOCAL VALUES DURING RETURNS FOR REVERSE COMMUNCIATION.
 
-      SAVE
+!$omp threadprivate(COLUMN,CTEMP1,CTEMP2,HEADER,STRING,VNMBR)
+!$omp threadprivate(DETAIL, MAXCON, RATIO, SSABS, SSREL, STRID0)
+!$omp threadprivate(TDABS, TDEC, TDREL, TEMP, TIMER, TINC)
+!$omp threadprivate(TMAX, TMIN, TOLER0, TOLER1, TOLER2, TOTAL,YNORM)
+!$omp threadprivate(AGE, COUNT, DESIRE, EVENT, GRID)
+!$omp threadprivate(ILAST, J, JACOBS, K, LABEL, LEN1)
+!$omp threadprivate(LEN2,LENGTH,LEVELD,LEVELM,NSTEPS,PADD)
+!$omp threadprivate(PSAVE,QABOVE,QBELOW)
+!$omp threadprivate(QRAT1,QRAT2)
+!$omp threadprivate(QS0,QS1,QTASK,QTYPE)
+!$omp threadprivate(QV1,QVARY,QVARY1,QVARY2,QVSAVE,QXSAVE,QY0,QY1,RETURN)
+!$omp threadprivate(RLAST,ROUTE,SIZE,SSAGE,STEP,STEPS,STEPS0)
+!$omp threadprivate(STEPS2,TDAGE,XREPOR,QUSAVE,STEPS1)
+!$omp threadprivate(ADAPT, ALLOW, EXIST, FIRST, FLAG, FOUND)
+!$omp threadprivate(MESS, SATISF, STEADY)
+
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -3579,104 +3633,104 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-10001 FORMAT
-     +   (/1X, A9, A, ' (TWO POINT BOUNDARY VALUE PROBLEM) SOLVER,'
-     +   /10X, 'VERSION ', A,
-     +   ' OF APRIL 1998 BY DR. JOSEPH F. GRCAR.')
-
-10002 FORMAT
-     +   (/1X, A9, A)
-
-10003 FORMAT
-     +   (3(/10X, A35)/)
-
-10004 FORMAT
-     +  (/1X, A9, A, ' TOTAL COMPUTER TIME (SEE BREAKDOWN BELOW).')
-
-10005 FORMAT
-     +  (/10X, 'PERCENT OF TOTAL COMPUTER TIME FOR VARIOUS TASKS:'
-     +   /3(/10X, A38, A27)
-     +  //(10X, I6, 2X, F6.1, 1X, 3(1X, F6.1), 1X, 4(1X, F6.1)))
-
-10006 FORMAT
-     +  (/12X, 'TASK TOTALS:', 1X, 3(1X, F6.1), 1X, 4(1X, F6.1))
-
-10007 FORMAT
-     +  (/10X, 'SOME GRIDS ARE OMITTED, BUT THE TOTALS ARE FOR ALL.')
-
-10008 FORMAT
-     +  (3(/24X, A51)
-     +  //10X, A12, F8.1, 5F9.1
-     +   /10X, A12, F8.3, 2F9.3
-     +   /10X, A12, I8, 2I9)
-
-10009 FORMAT
-     +  (/10X, 'AVERAGE COMPUTER TIMES FOR, AND NUMBERS OF, SUBTASKS:'
-     +   /3(/10X, A37, A25)
-     +  //(10X, I6, 3X, F7.3, 2X, F7.3, 2X, F7.3, 1X, 3(2X, I7)))
-
-10010 FORMAT
-     +  (/1X, A9, 'SUCCESS.  PROBLEM SOLVED.')
-
-10011 FORMAT
-     +  (/1X, A9, 'FAILURE.  A SOLUTION WAS FOUND FOR A GRID WITH ', A
-     +  /10X, 'POINTS, BUT ONE OR BOTH RATIOS ARE TOO LARGE.'
-C               123456789_  123456789_
-     +  //22X, '   RATIO 1     RATIO 2'
-     +  //10X, '     FOUND', 2F12.2
-     +   /10X, '   DESIRED', 2F12.2
-     +  //10X, 'A LARGER GRID COULD NOT BE FORMED.')
-
-10012 FORMAT
-     +  (/1X, A9, 'FAILURE.  NO SOLUTION WAS FOUND.')
-
-10013 FORMAT
-     +  (/1X, A9, 'FAILURE.  A SOLUTION WAS FOUND FOR A GRID WITH ', A
-     +  /10X, 'POINTS, BUT ONE OR BOTH RATIOS ARE TOO LARGE.'
-C               123456789_  123456789_
-     +  //22X, '   RATIO 1     RATIO 2'
-     +  //10X, '     FOUND', 2F12.2
-     +   /10X, '   DESIRED', 2F12.2
-     +  //10X, 'A SOLUTION COULD NOT BE FOUND FOR A LARGER GRID.')
-
-10014 FORMAT
-     +  (/1X, A9, 'CALLING SEARCH TO SOLVE THE STEADY STATE PROBLEM.')
-
-10015 FORMAT
-     +  (/1X, A9, 'SEARCH FOUND THE STEADY STATE.')
-
-10016 FORMAT
-     +  (/1X, A9, 'SEARCH DID NOT FIND THE STEADY STATE.')
-
-10017 FORMAT
-     +  (/1X, A9, 'CALLING REFINE TO PRODUCE A NEW GRID.')
-
-10018 FORMAT
-     +  (/1X, A9, 'REFINE SELECTED A NEW GRID.')
-
-10019 FORMAT
-     +  (/1X, A9, 'REFINE DID NOT SELECT A NEW GRID.')
-
-10020 FORMAT
-     +  (/1X, A9, 'CALLING EVOLVE TO PERFORM TIME EVOLUTION.')
-
-10021 FORMAT
-     +  (/1X, A9, 'EVOLVE PERFORMED A TIME EVOLUTION.')
-
-10022 FORMAT
-     +  (/1X, A9, 'EVOLVE DID NOT PERFORM A TIME EVOLUTION.')
-
-10023 FORMAT
-     +   (10X, A8, 3X, A6, 2X, A6, 3X, A)
-
-80001 FORMAT
-     +   ('(', A, ' ', I10, ')')
-
-80002 FORMAT
-     +   (10X, 1P, E10.2, 2X, E10.2, 3X, A)
-
-80003 FORMAT
-     +   (10X, '  ... MORE')
+c$$$10001 FORMAT
+c$$$     +   (/1X, A9, A, ' (TWO POINT BOUNDARY VALUE PROBLEM) SOLVER,'
+c$$$     +   /10X, 'VERSION ', A,
+c$$$     +   ' OF APRIL 1998 BY DR. JOSEPH F. GRCAR.')
+c$$$
+c$$$10002 FORMAT
+c$$$     +   (/1X, A9, A)
+c$$$
+c$$$10003 FORMAT
+c$$$     +   (3(/10X, A35)/)
+c$$$
+c$$$10004 FORMAT
+c$$$     +  (/1X, A9, A, ' TOTAL COMPUTER TIME (SEE BREAKDOWN BELOW).')
+c$$$
+c$$$10005 FORMAT
+c$$$     +  (/10X, 'PERCENT OF TOTAL COMPUTER TIME FOR VARIOUS TASKS:'
+c$$$     +   /3(/10X, A38, A27)
+c$$$     +  //(10X, I6, 2X, F6.1, 1X, 3(1X, F6.1), 1X, 4(1X, F6.1)))
+c$$$
+c$$$10006 FORMAT
+c$$$     +  (/12X, 'TASK TOTALS:', 1X, 3(1X, F6.1), 1X, 4(1X, F6.1))
+c$$$
+c$$$10007 FORMAT
+c$$$     +  (/10X, 'SOME GRIDS ARE OMITTED, BUT THE TOTALS ARE FOR ALL.')
+c$$$
+c$$$10008 FORMAT
+c$$$     +  (3(/24X, A51)
+c$$$     +  //10X, A12, F8.1, 5F9.1
+c$$$     +   /10X, A12, F8.3, 2F9.3
+c$$$     +   /10X, A12, I8, 2I9)
+c$$$
+c$$$10009 FORMAT
+c$$$     +  (/10X, 'AVERAGE COMPUTER TIMES FOR, AND NUMBERS OF, SUBTASKS:'
+c$$$     +   /3(/10X, A37, A25)
+c$$$     +  //(10X, I6, 3X, F7.3, 2X, F7.3, 2X, F7.3, 1X, 3(2X, I7)))
+c$$$
+c$$$10010 FORMAT
+c$$$     +  (/1X, A9, 'SUCCESS.  PROBLEM SOLVED.')
+c$$$
+c$$$10011 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  A SOLUTION WAS FOUND FOR A GRID WITH ', A
+c$$$     +  /10X, 'POINTS, BUT ONE OR BOTH RATIOS ARE TOO LARGE.'
+c$$$C               123456789_  123456789_
+c$$$     +  //22X, '   RATIO 1     RATIO 2'
+c$$$     +  //10X, '     FOUND', 2F12.2
+c$$$     +   /10X, '   DESIRED', 2F12.2
+c$$$     +  //10X, 'A LARGER GRID COULD NOT BE FORMED.')
+c$$$
+c$$$10012 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  NO SOLUTION WAS FOUND.')
+c$$$
+c$$$10013 FORMAT
+c$$$     +  (/1X, A9, 'FAILURE.  A SOLUTION WAS FOUND FOR A GRID WITH ', A
+c$$$     +  /10X, 'POINTS, BUT ONE OR BOTH RATIOS ARE TOO LARGE.'
+c$$$C               123456789_  123456789_
+c$$$     +  //22X, '   RATIO 1     RATIO 2'
+c$$$     +  //10X, '     FOUND', 2F12.2
+c$$$     +   /10X, '   DESIRED', 2F12.2
+c$$$     +  //10X, 'A SOLUTION COULD NOT BE FOUND FOR A LARGER GRID.')
+c$$$
+c$$$10014 FORMAT
+c$$$     +  (/1X, A9, 'CALLING SEARCH TO SOLVE THE STEADY STATE PROBLEM.')
+c$$$
+c$$$10015 FORMAT
+c$$$     +  (/1X, A9, 'SEARCH FOUND THE STEADY STATE.')
+c$$$
+c$$$10016 FORMAT
+c$$$     +  (/1X, A9, 'SEARCH DID NOT FIND THE STEADY STATE.')
+c$$$
+c$$$10017 FORMAT
+c$$$     +  (/1X, A9, 'CALLING REFINE TO PRODUCE A NEW GRID.')
+c$$$
+c$$$10018 FORMAT
+c$$$     +  (/1X, A9, 'REFINE SELECTED A NEW GRID.')
+c$$$
+c$$$10019 FORMAT
+c$$$     +  (/1X, A9, 'REFINE DID NOT SELECT A NEW GRID.')
+c$$$
+c$$$10020 FORMAT
+c$$$     +  (/1X, A9, 'CALLING EVOLVE TO PERFORM TIME EVOLUTION.')
+c$$$
+c$$$10021 FORMAT
+c$$$     +  (/1X, A9, 'EVOLVE PERFORMED A TIME EVOLUTION.')
+c$$$
+c$$$10022 FORMAT
+c$$$     +  (/1X, A9, 'EVOLVE DID NOT PERFORM A TIME EVOLUTION.')
+c$$$
+c$$$10023 FORMAT
+c$$$     +   (10X, A8, 3X, A6, 2X, A6, 3X, A)
+c$$$
+c$$$80001 FORMAT
+c$$$     +   ('(', A, ' ', I10, ')')
+c$$$
+c$$$80002 FORMAT
+c$$$     +   (10X, 1P, E10.2, 2X, E10.2, 3X, A)
+c$$$
+c$$$80003 FORMAT
+c$$$     +   (10X, '  ... MORE')
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -3701,7 +3755,7 @@ C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C     +         ' CAN REPLACE:  SINGLE PRECISION VERSION ', VNMBR(J)
 C*****END PRECISION > SINGLE
-9901     CONTINUE
+c9901     CONTINUE
       END IF
       IF (.NOT. MESS) GO TO 99999
 
@@ -3756,11 +3810,11 @@ C     +      GROUPA, GROUPB, COMPS, GROUPA + COMPS + GROUPB, COUNT
                   CALL TWSQEZ (LEN1, CTEMP1)
 
                   IF (J .LE. GROUPA) THEN
-                     WRITE (CTEMP2, 80001) 'A', J
+c                     WRITE (CTEMP2, 80001) 'A', J
                   ELSE IF (J .LE. GROUPA + COMPS) THEN
-                     WRITE (CTEMP2, 80001) 'C', J - GROUPA
+c                     WRITE (CTEMP2, 80001) 'C', J - GROUPA
                   ELSE
-                     WRITE (CTEMP2, 80001) 'B', J - GROUPA - COMPS
+c                     WRITE (CTEMP2, 80001) 'B', J - GROUPA - COMPS
                   END IF
                   CALL TWSQEZ (LEN2, CTEMP2)
 
@@ -3829,120 +3883,120 @@ C     IF (0 .LT. TEXT) WRITE (TEXT, 99020) ID, LABEL
 C     IF (0 .LT. TEXT) WRITE (TEXT, 99021) ID, RETURN
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  ROUTE')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CALLING PROGRAM EXPECTS A VERSION OF'
-     +  /10X, 'TWOPNT NOT COMPATIBLE WITH THIS VERSION.'
-     + //10X, '     EXPECTS:  ', A
-C*****PRECISION > DOUBLE
-     + //10X, 'THIS VERSION:  DOUBLE PRECISION VERSION ', A)
-C*****END PRECISION > DOUBLE
-C*****PRECISION > SINGLE
-C     + //10X, 'THIS VERSION:  SINGLE PRECISION VERSION ', A)
-C*****END PRECISION > SINGLE
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE PRINTING LEVELS ARE OUT OF ORDER.'
-     +  /10X, 'LEVELD CANNOT EXCEED LEVELM.'
-     + //10X, I10, '  LEVELD, FOR SOLUTIONS'
-     +  /10X, I10, '  LEVELM, FOR MESSAGES')
-
-99006 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF ALL TYPES OF UNKNOWNS MUST BE AT'
-     +  /10X, 'LEAST ZERO.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS')
-
-99007 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS')
-
-99008 FORMAT
-     +  (/1X, A9, 'ERROR.  TOTAL UNKNOWNS MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL NUMBER')
-
-99009 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF NAMES IS WRONG.'
-     + //10X, I10, '  NAMES'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL NUMBER')
-
-99010 FORMAT
-     +  (/1X, A9, 'ERROR.  THERE ARE TOO MANY POINTS.'
-     + //10X, I10, '  POINTS'
-     +  /10X, I10, '  PMAX, LIMIT ON POINTS')
-
-99011 FORMAT
-     +  (/1X, A9, 'ERROR.  THE LOWER AND UPPER BOUNDS ON SOME UNKNOWNS'
-     +  /10X, 'ARE OUT OF ORDER.'
-     + //10X, I10, '  GROUP A UNKNOWNS (A)'
-     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
-     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
-     +  /10X, I10, '  TOTAL TYPES OF UNKNOWNS'
-     +  /10X, I10, '  NUMBER OF BOUNDS OUT OF ORDER'
-C              123456789_  123456789_
-     + //10X, '     LOWER       UPPER'
-     +  /10X, '     BOUND       BOUND   UNKNOWN'
-     +  /)
-
-99012 FORMAT
-     +  (/1X, A9, 'ERROR.  TWGRAB FAILS.')
-
-99013 FORMAT
-     +  (/1X, A9, 'ERROR.  ONE OR BOTH WORK SPACES ARE TOO SMALL.'
-C              123456789_  123456789_
-     + //25X, '   INTEGER        REAL'
-C              123456789_123
-     + //10X, ' PRESENT SIZE', 2I12
-     +  /10X, 'REQUIRED SIZE', 2I12)
-
-99014 FORMAT
-     +  (/1X, A9, 'ERROR.  NEITHER THE INITIAL TIME EVOLUTION NOR THE'
-     +  /10X, 'SEARCH FOR THE STEADY STATE IS ALLOWED.')
-
-99015 FORMAT
-     +  (/1X, A9, 'ERROR.  UNKNOWN TASK.')
-
-99016 FORMAT
-     +  (/1X, A9, 'ERROR.  UNKNOWN REPORT CODE.')
-
-99017 FORMAT
-     +  (/1X, A9, 'ERROR.  SEARCH FAILS.')
-
-99018 FORMAT
-     +  (/1X, A9, 'ERROR.  REFINE FAILS.')
-
-99019 FORMAT
-     +  (/1X, A9, 'ERROR.  EVOLVE FAILS.')
-
-99020 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  LABEL')
-
-99021 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  RETURN')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  ROUTE')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CALLING PROGRAM EXPECTS A VERSION OF'
+c$$$     +  /10X, 'TWOPNT NOT COMPATIBLE WITH THIS VERSION.'
+c$$$     + //10X, '     EXPECTS:  ', A
+c$$$C*****PRECISION > DOUBLE
+c$$$     + //10X, 'THIS VERSION:  DOUBLE PRECISION VERSION ', A)
+c$$$C*****END PRECISION > DOUBLE
+c$$$C*****PRECISION > SINGLE
+c$$$C     + //10X, 'THIS VERSION:  SINGLE PRECISION VERSION ', A)
+c$$$C*****END PRECISION > SINGLE
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE PRINTING LEVELS ARE OUT OF ORDER.'
+c$$$     +  /10X, 'LEVELD CANNOT EXCEED LEVELM.'
+c$$$     + //10X, I10, '  LEVELD, FOR SOLUTIONS'
+c$$$     +  /10X, I10, '  LEVELM, FOR MESSAGES')
+c$$$
+c$$$99006 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF ALL TYPES OF UNKNOWNS MUST BE AT'
+c$$$     +  /10X, 'LEAST ZERO.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS')
+c$$$
+c$$$99007 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS')
+c$$$
+c$$$99008 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TOTAL UNKNOWNS MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL NUMBER')
+c$$$
+c$$$99009 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF NAMES IS WRONG.'
+c$$$     + //10X, I10, '  NAMES'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL NUMBER')
+c$$$
+c$$$99010 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THERE ARE TOO MANY POINTS.'
+c$$$     + //10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  PMAX, LIMIT ON POINTS')
+c$$$
+c$$$99011 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE LOWER AND UPPER BOUNDS ON SOME UNKNOWNS'
+c$$$     +  /10X, 'ARE OUT OF ORDER.'
+c$$$     + //10X, I10, '  GROUP A UNKNOWNS (A)'
+c$$$     +  /10X, I10, '  GROUP B UNKNOWNS (B)'
+c$$$     +  /10X, I10, '  COMPONENTS AT POINTS (C)'
+c$$$     +  /10X, I10, '  TOTAL TYPES OF UNKNOWNS'
+c$$$     +  /10X, I10, '  NUMBER OF BOUNDS OUT OF ORDER'
+c$$$C              123456789_  123456789_
+c$$$     + //10X, '     LOWER       UPPER'
+c$$$     +  /10X, '     BOUND       BOUND   UNKNOWN'
+c$$$     +  /)
+c$$$
+c$$$99012 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWGRAB FAILS.')
+c$$$
+c$$$99013 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  ONE OR BOTH WORK SPACES ARE TOO SMALL.'
+c$$$C              123456789_  123456789_
+c$$$     + //25X, '   INTEGER        REAL'
+c$$$C              123456789_123
+c$$$     + //10X, ' PRESENT SIZE', 2I12
+c$$$     +  /10X, 'REQUIRED SIZE', 2I12)
+c$$$
+c$$$99014 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NEITHER THE INITIAL TIME EVOLUTION NOR THE'
+c$$$     +  /10X, 'SEARCH FOR THE STEADY STATE IS ALLOWED.')
+c$$$
+c$$$99015 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  UNKNOWN TASK.')
+c$$$
+c$$$99016 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  UNKNOWN REPORT CODE.')
+c$$$
+c$$$99017 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  SEARCH FAILS.')
+c$$$
+c$$$99018 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  REFINE FAILS.')
+c$$$
+c$$$99019 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  EVOLVE FAILS.')
+c$$$
+c$$$99020 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  LABEL')
+c$$$
+c$$$99021 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  RETURN')
 
 C///  EXIT.
 
@@ -3968,36 +4022,49 @@ C     LINPACK'S SGBCO.
 C
 C///////////////////////////////////////////////////////////////////////
 
-      IMPLICIT COMPLEX (A - Z)
+C      IMPLICIT COMPLEX (A - Z)
+      IMPLICIT NONE
 
-      CHARACTER
-     +   ID*9, STRING*80
+      logical :: ERROR, return
+      integer :: TEXT, asize, COMPS, GROUPA, GROUPB, PIVOT, POINTS
+      double precision :: A, BUFFER, CONDIT
+
+c local
+
+      character :: id*9
+
+      CHARACTER, save :: STRING*80
 C*****PRECISION > DOUBLE
-      DOUBLE PRECISION
+      DOUBLE PRECISION, save ::
 C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   A, ABSOL, BUFFER, CONDIT, DELTA, EPS, RELAT, SUM, TEMP
+     +   ABSOL, DELTA, EPS, RELAT, SUM, TEMP
       EXTERNAL
      +   TWEPS, TWGBCO, TWSQEZ
-      INTEGER
-     +   ASIZE, BLOCK, BLOCKS, CFIRST, CLAST, COL, COMPS, COUNT, DIAG,
-     +   GROUPA, GROUPB, J, LDA, LENGTH, LINES, N, OFFSET, PIVOT,
-     +   POINTS, RFIRST, RLAST, ROUTE, ROW, SKIP, TEXT, WIDTH
+      INTEGER, save ::
+     +   BLOCK, BLOCKS, CFIRST, CLAST, COL, COUNT, DIAG,
+     +   J, LDA, LENGTH, N, OFFSET,
+     +   RFIRST, RLAST, ROUTE, ROW, SKIP, WIDTH
       INTRINSIC
      +   ABS, INT, MAX, MIN, MOD, SQRT
-      LOGICAL
-     +   ERROR, FOUND, MESS, RETURN
+      LOGICAL, save ::
+     +   FOUND, MESS
 
       PARAMETER (ID = 'TWPREP:  ')
-      PARAMETER (LINES = 20)
+      integer, PARAMETER :: LINES = 20
 
       DIMENSION
      +   A(ASIZE), PIVOT(GROUPA + COMPS * POINTS + GROUPB),
      +   BUFFER(GROUPA + COMPS * POINTS + GROUPB)
 
-      SAVE
+!$omp threadprivate(STRING)
+!$omp threadprivate(ABSOL,DELTA,EPS,RELAT,SUM,TEMP)
+!$omp threadprivate(BLOCK,BLOCKS,CFIRST,CLAST,COL,COUNT,DIAG)
+!$omp threadprivate(J,LDA,LENGTH,N,OFFSET)
+!$omp threadprivate(RFIRST,RLAST,ROUTE,ROW,SKIP,WIDTH)
+!$omp threadprivate(FOUND,MESS)
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -4333,11 +4400,11 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-80001 FORMAT
-     +  (10X, A)
-
-80002 FORMAT
-     +  (10X, '... MORE')
+c$$$80001 FORMAT
+c$$$     +  (10X, A)
+c$$$
+c$$$80002 FORMAT
+c$$$     +  (10X, '... MORE')
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -4420,56 +4487,56 @@ C         IF (LINES .LT. COUNT) WRITE (TEXT, 80002)
 C     IF (0 .LT. TEXT) WRITE (TEXT, 99006) ID
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
-     + //10X, I10, '  ROUTE')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
-     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL UNKNOWNS')
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE MATRIX SPACE IS TOO SMALL.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  MATRIX ORDER'
-     +  /10X, I10, '  STRICT HALF BANDWIDTH'
-     + //10X, I10, '  SPACE REQUIRED'
-     +  /10X, I10, '  ASIZE, PROVIDED')
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  SOME COLUMNS ARE ZERO.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL COLUMNS'
-     +  /10X, I10, '  ZERO COLUMNS'
-     + //10X, 'UNKNOWNS WITH ZERO COLUMNS:'
-     +  /)
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  SOME ROWS ARE ZERO.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL ROWS'
-     +  /10X, I10, '  ZERO ROWS'
-     + //10X, 'ZERO ROWS:'
-     +  /)
-
-99006 FORMAT
-     +  (/1X, A9, 'ERROR.  THE JACOBIAN MATRIX IS SINGULAR.')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE COMPUTED GOTO IS OUT OF RANGE.'
+c$$$     + //10X, I10, '  ROUTE')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
+c$$$     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS')
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE MATRIX SPACE IS TOO SMALL.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  MATRIX ORDER'
+c$$$     +  /10X, I10, '  STRICT HALF BANDWIDTH'
+c$$$     + //10X, I10, '  SPACE REQUIRED'
+c$$$     +  /10X, I10, '  ASIZE, PROVIDED')
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  SOME COLUMNS ARE ZERO.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL COLUMNS'
+c$$$     +  /10X, I10, '  ZERO COLUMNS'
+c$$$     + //10X, 'UNKNOWNS WITH ZERO COLUMNS:'
+c$$$     +  /)
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  SOME ROWS ARE ZERO.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL ROWS'
+c$$$     +  /10X, I10, '  ZERO ROWS'
+c$$$     + //10X, 'ZERO ROWS:'
+c$$$     +  /)
+c$$$
+c$$$99006 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE JACOBIAN MATRIX IS SINGULAR.')
 
 C///  EXIT.
 
@@ -4495,17 +4562,13 @@ C///////////////////////////////////////////////////////////////////////
       EXTERNAL
      +   TWINIT, TWLAST
       INTEGER
-     +   CNTRLS, COUNT, IVALUE, LENGTH, TEXT, VALUE
+     +   COUNT, LENGTH, TEXT, VALUE
       LOGICAL
-     +   ERROR, FOUND, MESS, LVALUE
+     +   ERROR, FOUND, MESS
 
       PARAMETER (ID = 'TWSETI:  ')
-      PARAMETER (CNTRLS = 22)
 
-      DIMENSION IVALUE(CNTRLS), LVALUE(CNTRLS)
-
-      COMMON / TWCOMI / IVALUE
-      COMMON / TWCOML / LVALUE
+      include 'twcom.fh'
 
 C///  WRITE ALL MESSAGES.
 
@@ -4755,27 +4818,27 @@ C         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A LOGICAL VALUE WHICH'
-     +  /10X, 'MUST BE SET USING TWSETL.'
-     + //10X, '     CONTROL:  ', A)
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A REAL VALUE WHICH MUST BE'
-     +  /10X, 'SET USING TWSETR.'
-     + //10X, '     CONTROL:  ', A)
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
-     + //10X, '     CONTROL:  ', A)
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A LOGICAL VALUE WHICH'
+c$$$     +  /10X, 'MUST BE SET USING TWSETL.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A REAL VALUE WHICH MUST BE'
+c$$$     +  /10X, 'SET USING TWSETR.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
+c$$$     + //10X, '     CONTROL:  ', A)
 
 C///  EXIT.
 
@@ -4801,16 +4864,13 @@ C///////////////////////////////////////////////////////////////////////
       EXTERNAL
      +   TWINIT, TWLAST
       INTEGER
-     +   CNTRLS, COUNT, LENGTH, TEXT
+     +   COUNT, LENGTH, TEXT
       LOGICAL
-     +   ERROR, FOUND, LVALUE, MESS, VALUE
+     +   ERROR, FOUND, MESS, VALUE
 
       PARAMETER (ID = 'TWSETL:  ')
-      PARAMETER (CNTRLS = 22)
 
-      DIMENSION LVALUE(CNTRLS)
-
-      COMMON / TWCOML / LVALUE
+      include 'twcom.fh'
 
 C///  WRITE ALL MESSAGES.
 
@@ -5059,27 +5119,27 @@ C         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES AN INTEGER VALUE WHICH'
-     +  /10X, 'MUST BE SET USING TWSETI.'
-     + //10X, '     CONTROL:  ', A)
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A REAL VALUE WHICH MUST BE'
-     +  /10X, 'SET USING TWSETR.'
-     + //10X, '     CONTROL:  ', A)
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
-     + //10X, '     CONTROL:  ', A)
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES AN INTEGER VALUE WHICH'
+c$$$     +  /10X, 'MUST BE SET USING TWSETI.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A REAL VALUE WHICH MUST BE'
+c$$$     +  /10X, 'SET USING TWSETR.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
+c$$$     + //10X, '     CONTROL:  ', A)
 
 C///  EXIT.
 
@@ -5108,20 +5168,17 @@ C*****END PRECISION > DOUBLE
 C*****PRECISION > SINGLE
 C      REAL
 C*****END PRECISION > SINGLE
-     +   RVALUE, VALUE
+     +   VALUE
       EXTERNAL
      +   TWINIT, TWLAST
       INTEGER
-     +   CNTRLS, COUNT, LENGTH, TEXT
+     +   COUNT, LENGTH, TEXT
       LOGICAL
      +   ERROR, FOUND, MESS
 
       PARAMETER (ID = 'TWSETR:  ')
-      PARAMETER (CNTRLS = 22)
 
-      DIMENSION RVALUE(CNTRLS)
-
-      COMMON / TWCOMR / RVALUE
+      include 'twcom.fh'
 
 C///  WRITE ALL MESSAGES.
 
@@ -5370,27 +5427,27 @@ C         WRITE (TEXT, 99005) ID, STRING (1 : LENGTH)
       END IF
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A LOGICAL VALUE WHICH'
-     +  /10X, 'MUST BE SET USING TWSETL.'
-     + //10X, '     CONTROL:  ', A)
-
-99003 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES AN INTEGER VALUE WHICH'
-     +  /10X, 'MUST BE SET USING TWSETI.'
-     + //10X, '     CONTROL:  ', A)
-
-99004 FORMAT
-     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
-     + //10X, I10, '  CONTROLS'
-     +  /10X, I10, '  COUNTED')
-
-99005 FORMAT
-     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
-     + //10X, '     CONTROL:  ', A)
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  TWINIT FAILS.')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES A LOGICAL VALUE WHICH'
+c$$$     +  /10X, 'MUST BE SET USING TWSETL.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99003 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL TAKES AN INTEGER VALUE WHICH'
+c$$$     +  /10X, 'MUST BE SET USING TWSETI.'
+c$$$     + //10X, '     CONTROL:  ', A)
+c$$$
+c$$$99004 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE NUMBER OF CONTROLS IS INCONSISTENT.'
+c$$$     + //10X, I10, '  CONTROLS'
+c$$$     +  /10X, I10, '  COUNTED')
+c$$$
+c$$$99005 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE CONTROL IS NOT RECOGNIZED.'
+c$$$     + //10X, '     CONTROL:  ', A)
 
 C///  EXIT.
 
@@ -5424,7 +5481,8 @@ C*****END PRECISION > SINGLE
       EXTERNAL
      +   TWSQEZ
       INTEGER
-     +   COLS, COMP, COMPS, COUNT, FIRST, GROUPA, GROUPB, GROUPS, J,
+     +     COLS, COMP, COMPS, COUNT, FIRST, GROUPA, GROUPB, GROUPS,
+c      J,
      +   LAST, LENGTH, POINT, POINTS, TEXT
       INTRINSIC
      +   MIN
@@ -5551,20 +5609,20 @@ C     INFORMATIVE MESSAGES.
 C
 C///////////////////////////////////////////////////////////////////////
 
-10001 FORMAT
-     +  (/10X, A)
-
-10002 FORMAT
-     + (/(10X, 4(I3, '> ', 1PE10.3)))
-
-10003 FORMAT
-     +  (/14X, 6(1X, A10))
-
-10004 FORMAT
-     +  (10X, 0P, I3, '>', F11.6, 1P, 5E11.3)
-
-10005 FORMAT
-     +  (10X, 0P, I3, '>', 1P, 6E11.3)
+c$$$10001 FORMAT
+c$$$     +  (/10X, A)
+c$$$
+c$$$10002 FORMAT
+c$$$     + (/(10X, 4(I3, '> ', 1PE10.3)))
+c$$$
+c$$$10003 FORMAT
+c$$$     +  (/14X, 6(1X, A10))
+c$$$
+c$$$10004 FORMAT
+c$$$     +  (10X, 0P, I3, '>', F11.6, 1P, 5E11.3)
+c$$$
+c$$$10005 FORMAT
+c$$$     +  (10X, 0P, I3, '>', 1P, 6E11.3)
 
 C///////////////////////////////////////////////////////////////////////
 C
@@ -5579,16 +5637,16 @@ C     IF (0 .LT. TEXT) WRITE (TEXT, 99001) ID,
 C          +   COMPS, POINTS, GROUPA, GROUPB, GROUPA + COMPS * POINTS + GROUPB
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
-     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL UNKNOWNS')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
+c$$$     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS')
       IF (.NOT. MESS) GO TO 99999
 
 C///  EXIT.
@@ -5695,27 +5753,27 @@ C      +   COMPS, POINTS, GROUPA, GROUPB, N, WIDTH,
 C      +   (3 * WIDTH + 2) * N, ASIZE
       IF (.NOT. MESS) GO TO 99999
 
-99001 FORMAT
-     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
-     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
-     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
-     +  /10X, 'MUST BE POSITIVE.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  TOTAL UNKNOWNS')
-
-99002 FORMAT
-     +  (/1X, A9, 'ERROR.  THE MATRIX SPACE IS TOO SMALL.'
-     + //10X, I10, '  COMPS, COMPONENTS'
-     +  /10X, I10, '  POINTS'
-     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
-     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
-     +  /10X, I10, '  MATRIX ORDER'
-     +  /10X, I10, '  STRICT HALF BANDWIDTH'
-     + //10X, I10, '  SPACE EXPECTED'
-     +  /10X, I10, '  ASIZE, PROVIDED')
+c$$$99001 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  NUMBERS OF COMPONENTS AND POINTS MUST BE'
+c$$$     +  /10X, 'EITHER BOTH ZERO OR BOTH POSITIVE, NUMBERS OF ALL TYPES'
+c$$$     +  /10X, 'OF UNKNOWNS MUST BE AT LEAST ZERO, AND TOTAL UNKNOWNS'
+c$$$     +  /10X, 'MUST BE POSITIVE.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  TOTAL UNKNOWNS')
+c$$$
+c$$$99002 FORMAT
+c$$$     +  (/1X, A9, 'ERROR.  THE MATRIX SPACE IS TOO SMALL.'
+c$$$     + //10X, I10, '  COMPS, COMPONENTS'
+c$$$     +  /10X, I10, '  POINTS'
+c$$$     +  /10X, I10, '  GROUPA, GROUP A UNKNOWNS'
+c$$$     +  /10X, I10, '  GROUPB, GROUP B UNKNOWNS'
+c$$$     +  /10X, I10, '  MATRIX ORDER'
+c$$$     +  /10X, I10, '  STRICT HALF BANDWIDTH'
+c$$$     + //10X, I10, '  SPACE EXPECTED'
+c$$$     +  /10X, I10, '  ASIZE, PROVIDED')
 
 C///  EXIT.
 

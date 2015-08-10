@@ -19,17 +19,17 @@ subroutine open_premix_files( lin, lout, linmc, lrin, lrout, lrcvr, inputfile, &
 
     !write(*,*) 'inputfile name: ', trim(path)//trim(infile)
     !path = '../extras/premix_chemh/'
-    OPEN(LIN,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//trim(infile))
+    OPEN(LIN,FORM='FORMATTED',STATUS='OLD',FILE=trim(path)//trim(infile))
     !OPEN(LOUT,FORM='FORMATTED',STATUS='UNKNOWN',FILE='./premix_log.out')
-    OPEN(LINMC,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./tran.asc')
-    OPEN(LRIN,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./rest.bin')
-    OPEN(LROUT,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./save.bin')
-    OPEN(LRCVR,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./recov.bin')
+    !OPEN(LINMC,FORM='FORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./tran.asc')
+    !OPEN(LRIN,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./rest.bin')
+    !OPEN(LROUT,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./save.bin')
+    !OPEN(LRCVR,FORM='UNFORMATTED',STATUS='UNKNOWN',FILE=trim(path)//'./recov.bin')
 
     ! In case previous fail, perhaps these files already open.  Rewind (most of these not actually used, but...)
     rewind(lin)
-    rewind(linmc)
-    rewind(lrin)
-    rewind(lrout)
-    rewind(lrcvr)
+    !rewind(linmc)
+    !rewind(lrin)
+    !rewind(lrout)
+    !rewind(lrcvr)
 end

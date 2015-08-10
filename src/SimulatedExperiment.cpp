@@ -5,6 +5,7 @@
 
 #include <SimulatedExperiment.H>
 #include <ParmParse.H>
+#include <Utility.H>
 
 #include <sys/time.h>
 
@@ -22,7 +23,8 @@ static Real dOH_thresh_DEF = 1.0e-4; // Arbitrary default
 static std::string log_file_DEF = "NULL"; // if this, no log
 static int verbosity_DEF = 0;
 
-static int max_premix_iters_DEF = 10000;
+static int max_premix_iters_DEF = 100000;
+static int min_reasonable_regrid_DEF = 24;
 
 SimulatedExperiment::ErrMap
 SimulatedExperiment::build_err_map()
@@ -82,7 +84,7 @@ ZeroDReactor::GetMeasurementTimes() const
 }
 
 ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const REACTOR_TYPE& _type)
-  : SimulatedExperiment(), cd(_cd), reactor_type(_type),num_measured_values(0),
+  : SimulatedExperiment(), name(pp_prefix), cd(_cd), reactor_type(_type),num_measured_values(0),
     sCompY(-1), sCompT(-1), sCompR(-1), sCompRH(-1)
 {
   ParmParse pp(pp_prefix.c_str());
@@ -534,9 +536,6 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
         numer_stop = -1;
         i++;
     }
-    Real dt = 0;
-
-
 
     finished = false;
     bool first = true;
@@ -840,21 +839,31 @@ ZeroDReactor::InitializeExperiment()
   is_initialized = true;
 }
 
+static
+void parseLMC(const std::vector<std::string>& tokens, Array<Real>& lmc_data, int nY)
+{
+  BL_ASSERT(tokens.size() == 2*nY + 8);
+  for (int i=0; i<nY; ++i) {
+    lmc_data[i] = atof(tokens[1+i].c_str()); // mass fractions
+  }
+  lmc_data[nY]   = atof(tokens[nY+1].c_str()); // Density
+  lmc_data[nY+1] = atof(tokens[nY+2].c_str()); // Temperature
+  lmc_data[nY+2] = atof(tokens[nY+4].c_str()); // Velocity
+  lmc_data[nY+3] = atof(tokens[0].c_str()); // location
+}
 
 PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
-  : SimulatedExperiment(), cd(_cd), max_premix_iters(max_premix_iters_DEF)
+  : SimulatedExperiment(), name(pp_prefix), cd(_cd), max_premix_iters(max_premix_iters_DEF)
 {
   ParmParse pp(pp_prefix.c_str());
-
-  ncomp = cd.numSpecies() + 3;
-
   pp.query("verbosity",verbosity);
 
   measurement_error = PREMIXReactorErr_DEF;
   pp.query("measurement_error",measurement_error);
 
   int num_sol_pts = 1000; pp.query("num_sol_pts",num_sol_pts);
-  premix_sol = new PremixSol(ncomp,num_sol_pts);
+  int nComp = cd.numSpecies() + 3;
+  premix_sol = new PremixSol(nComp,num_sol_pts);
   lrstrtflag=0;
 
   pp.get("premix_input_path",premix_input_path);
@@ -886,21 +895,68 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
         std::cerr << "Experiment " <<  pp_prefix  << " registering " << nprereq << " prerequisites " << std::endl;
       }
   }
-  pp.query("max_premix_iters",max_premix_iters);
+  else {
+    lmc_soln_file = ""; pp.query("lmc_soln",lmc_soln_file);
+    if (lmc_soln_file != "") {
+      std::ifstream ifs(lmc_soln_file.c_str());
+      if (!ifs.is_open()) {
+	BoxLib::Abort("error while opening lmc file");
+      }
+      int lmc_step; ifs >> lmc_step;
+      int lmc_npts; ifs >> lmc_npts;
+      nmax = premix_sol->maxgp;
+      if (lmc_npts > nmax) {
+	BoxLib::Abort("lmc file has more points than max allowed");
+      }
+      Real lmc_time; ifs >> lmc_time;
 
+      int nY = -1;
+      std::string line;
+      bool ok = std::getline(ifs, line);
+      while (ok && line.size() == 0) {ok = std::getline(ifs, line);}
+
+      std::vector<std::string> tokens = BoxLib::Tokenize(line, " ");
+      nY = (tokens.size() - 8) / 2;
+      BL_ASSERT(2*nY+8 == tokens.size());
+
+      Array<Array<Real> > lmc_data(lmc_npts, Array<Real>(nY+4));
+      int j = 0;
+      parseLMC(tokens,lmc_data[j++],nY);
+
+      while(std::getline(ifs, line)) {
+	BL_ASSERT(j<lmc_npts);
+	tokens = BoxLib::Tokenize(line, " ");
+	parseLMC(tokens,lmc_data[j++],nY);
+      }
+
+      Real Pcgs = atof(tokens[nY+6].c_str());
+
+      if (ifs.bad()) {
+	BoxLib::Abort("error while reading lmc file");
+      }
+      ifs.close();
+
+      double * solvec = premix_sol->solvec;
+      premix_sol->ngp = lmc_npts;
+      for (int j=0; j<lmc_npts; ++j) {
+	solvec[ j + 0 * nmax ] = lmc_data[j][nY+3]; // position
+	solvec[ j + 1 * nmax ] = lmc_data[j][nY+1]; // temperature
+	for (int n=0; n<nY; ++n) {
+	  solvec[ j + (n+2) * nmax ] = lmc_data[j][n]; // mass fractions
+	}
+	solvec[ j + (nY+2) * nmax ] = lmc_data[j][nY] * lmc_data[j][nY+2]; // flow rate
+      }
+      solvec[lmc_npts + (nY+2)*nmax    ] = Pcgs;
+      solvec[lmc_npts + (nY+2)*nmax + 1] = lmc_data[0][nY] * lmc_data[0][nY+2];
+
+    }
+  }
+  pp.query("max_premix_iters",max_premix_iters);
 }
 
 PREMIXReactor::~PREMIXReactor()
 {
   delete premix_sol;
-  // Clean up the mess of prereq_reactors if there are any
-//  if( prereq_reactors.size() > 0 ){
-//      for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.end();
-//              pr!=prereq_reactors.begin(); --pr ){                                                                                
-//          delete *pr;
-//          prereq_reactors.erase(pr);
-//      }
-//  }
 }
 
 void
@@ -918,21 +974,16 @@ PREMIXReactor::ValidMeasurement(Real data) const
   return ( data > 0 && data < 1.e5 );
 }
 
-
 std::pair<bool,int>
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
   BL_PROFILE("PREMIXReactor::GetMeasurements()");
-
-  BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX", myname);
-  BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX-a", myname1);
 
   // This set to return a single value - the flame speed
   simulated_observations.resize(1);
 
   int lregrid;
   int lrstrt = 0;
-
   int v = Verbosity();
 
 #ifndef PREMIX_RESTART
@@ -944,153 +995,146 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
    */
   lrstrtflag = 0; 
 #endif
-  // When doing a fresh start, 
-  // run through prereqs. First starts fresh, subsequent start from
-  // solution from the previous.
-  // Once the prereqs are done, set restart flag so that solution
+
+  // When doing a fresh start, run through prereqs. First starts fresh, subsequent start from
+  // solution from the previous. Once the prereqs are done, set restart flag so that solution
   // will pick up from where  prereqs finished. 
-  if( lrstrtflag == 0 ){
-      //std::cerr << "No restart info... " <<std::endl;
-      //std::cout << " makepr: " << makepr << " prereq_reactors.size() " << 
-      //    prereq_reactors.size() << std::endl;
-      if( prereq_reactors.size() > 0 ){
-        if (v > 0 && ParallelDescriptor::IOProcessor()) {
-          std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
-        }
-
-        for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr )
-        {
-              if( lrstrt == 1  ){
-                  (*pr)->solCopyIn(premix_sol);
-                  (*pr)->lrstrtflag = 1;
-                  //std::cerr <<  "restart this time" << std::endl;
-              }
-              else{
-                  (*pr)->lrstrtflag = 0;
-                  lrstrt = 1; // restart on the next time through
-  //                std::cerr <<  "restart next time" << std::endl;
-              }
-              std::vector<Real> pr_obs;
-              if (v > 0 && ParallelDescriptor::IOProcessor()) {
-                std::cerr << " Running " << (*pr)->premix_input_file
-                          << " with restart = " << (*pr)->lrstrtflag << std::endl;
-              }
-              std::pair<bool,int> retVal = (*pr)->GetMeasurements(pr_obs);
-              if (!retVal.first) {
-                return std::pair<bool,int>(false,ErrorID("PREREQ_FAILED"));
-              }
-
-              if (v > 0 && ParallelDescriptor::IOProcessor()) {
-                std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
-              }
-              (*pr)->solCopyOut(premix_sol);
-          }
-          lrstrtflag = 1;
-          // If restarting from a prereq, don't regrid, but otherwise
-          // regrid the solution
+  if( lrstrtflag == 0 )
+  {
+    if( prereq_reactors.size() > 0 )
+    {
+      if (v > 0 && ParallelDescriptor::IOProcessor())
+      {
+	std::cerr << " experiment has " << prereq_reactors.size() << " prereqs " << std::endl;
       }
-      lregrid = -1;
+
+      for( Array<PREMIXReactor*>::iterator pr=prereq_reactors.begin(); pr!=prereq_reactors.end(); ++pr )
+      {
+	if( lrstrt == 1  ){
+	  (*pr)->solCopyIn(premix_sol);
+	  (*pr)->lrstrtflag = 1;
+	}
+	else {
+	  (*pr)->lrstrtflag = 0;
+	  lrstrt = 1; // restart on the next time through
+	}
+
+	std::vector<Real> pr_obs;
+	if (v > 0 && ParallelDescriptor::IOProcessor()) {
+	  std::cerr << " Running " << (*pr)->premix_input_file
+		    << " with restart = " << (*pr)->lrstrtflag << std::endl;
+	}
+
+	std::pair<bool,int> retVal = (*pr)->GetMeasurements(pr_obs);
+	if (!retVal.first) {
+	  return std::pair<bool,int>(false,ErrorID("PREREQ_FAILED"));
+	}
+
+	if (v > 0 && ParallelDescriptor::IOProcessor()) {
+	  std::cerr << " Obtained intermediate observable " << pr_obs[0] << std::endl;
+	}
+
+	(*pr)->solCopyOut(premix_sol);
+      }
+
+      // If restarting from a prereq, don't regrid, but otherwise regrid the solution
+      lrstrtflag = 1;
+    }
+    lregrid = -1;
   }
   else{
-      std::cerr << "Restarting from previous solution... " 
-          << std::endl;
-      // Regrid when restarting from a previous solution of 
-      // this experiment
-      lregrid = 1;
+
+    if (v > 0 && ParallelDescriptor::IOProcessor()) {
+      std::cerr << "Restarting from previous solution... " << std::endl;
+    }
+
+    // Regrid when restarting from a previous solution of this experiment
+    lregrid = 1;
   }
+
   BL_ASSERT(premix_sol != 0);
   double * savesol = premix_sol->solvec; 
   int * solsz = &(premix_sol->ngp);
 
   // Regrid to some size less than the restart solution size
-  if( lregrid > 0 ){
-      const int min_reasonable_regrid = 24;
-      int regrid_sz = *solsz/4;
+  if( lregrid > 0 )
+  {
+    const int min_reasonable_regrid = min_reasonable_regrid_DEF;
+    int regrid_sz = *solsz/4;
 
-      // Regrid to larger of regrid_sz estimate from previous
-      // solution or some reasonable minimum, but don't regrid
-      // if that would be bigger than previous solution
-      lregrid = std::max(min_reasonable_regrid, regrid_sz); 
-      if( lregrid > *solsz ) lregrid = -1;
+    // Regrid to larger of regrid_sz estimate from previous
+    // solution or some reasonable minimum, but don't regrid
+    // if that would be bigger than previous solution
+    lregrid = std::max(min_reasonable_regrid, regrid_sz); 
+    if( lregrid > *solsz ) lregrid = -1;
 
-      if( lregrid > 0 ) {
-          std::cout << "----- Setting up premix to regrid to " 
-              << lregrid <<  " from " <<  *solsz  << std::endl;
+    if( lregrid > 0) {
+      if (ParallelDescriptor::IOProcessor()) {
+	std::cout << "----- Setting up premix to regrid to " 
+		  << lregrid <<  " from " <<  *solsz  << std::endl;
       }
-      else{
-//          std::cout << "----- Skipping regrid to " 
-//              << lregrid <<  " (maybe because it would be too big) " 
-//              << *solsz << std::endl;
-      }
+    }
   }
 
   BL_ASSERT(savesol != NULL );
   BL_ASSERT(solsz != NULL );
 
-  //std::cerr << "Restart solution size: " << *solsz << std::endl;
-  // Pass input dir + file names to fortran
-  int charlen = premix_input_file.size();
-  int pathcharlen = premix_input_path.size();
+  if (lmc_soln_file != "") {
+    lrstrtflag = 1; 
+  }
 
+  int charlen = premix_input_file.size();
   int infilecoded[charlen];
   for(int i=0; i<charlen; i++){
     infilecoded[i] = premix_input_file[i];
   }
+
+  int pathcharlen = premix_input_path.size();
   int pathcoded[pathcharlen];
   for(int i=0; i<pathcharlen; i++){
     pathcoded[i] = premix_input_path[i];
   }
+
+  // Build unit numbers, unique to each thread
+  int increment = 1;
+  int threadid = 0;
+#ifdef _OPENMP
+  increment = omp_get_num_threads();
+  threadid = omp_get_thread_num();
+#endif
+
+  lout  = 6     + threadid;
+  lin   = lout  + increment;
+  lrin  = lin   + increment;
+  lrout = lrin  + increment;
+  lrcvr = lrout + increment;
+  linck = lrcvr + increment;
+  linmc = linck + increment;
+
+  // TODO: Remove all unused units
   open_premix_files_( &lin, &lout, &linmc, &lrin,
                       &lrout, &lrcvr, infilecoded,
                       &charlen, pathcoded, &pathcharlen );
 
-  BL_PROFILE_VAR_STOP(myname1);
-  BL_PROFILE_VAR_STOP(myname);
-  // Call the simulation
-  //timeval tp;
-  //timezone tz;
-  //gettimeofday(&tp, NULL);
-  //int startPMtime = tp.tv_sec;
-
-  //std::cout << "Calling PREMIX" << std::endl;
   int is_good = 0;
-  int num_steps;
+  int num_steps = 0;
   premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
           &lenlwk, &leniwk, &lenrwk, &lencwk, 
           savesol, solsz, &lrstrtflag, &lregrid, &is_good, &max_premix_iters, &num_steps);
-
-  //gettimeofday(&tp, NULL);
-  //int stopPMtime = tp.tv_sec;
-  //std::cout << "PREMIX call took approximately " << (stopPMtime - startPMtime) << " seconds (gettimeofday) " << std::endl;
-
-  //std::cerr << "solsz=" << *solsz << std::endl;
-  //// DEBUG Check if something reasonable was saved for solution
-  //printf("Grid for saved solution: (%d points)\n", *solsz);
-  //FILE * FP = fopen("sol.txt","w");
-  //for (int i=0; i<*solsz; i++) {
-  //    fprintf(FP,"%d\t", i);
-  //    for( int j=0; j<ncomp; j++){
-  //        fprintf(FP,"%10.3g\t", savesol[i + j*nmax]);
-  //    }
-  //    fprintf(FP,"\n");
-  //}
-  //fclose(FP);
-  BL_PROFILE_VAR_START(myname);
-  BL_PROFILE_VAR("PREMIXReactor::GetMeasurements()-NoPREMIX-b", myname2);
   
-  // Extract the measurements - should probably put into an 'ExtractMeasurements'
-  // for consistency with ZeroDReactor
+  // Extract the measurements
+  // TODO: put into an 'ExtractMeasurements' for consistency with ZeroDReactor
 
-  if( is_good > 0 && *solsz > 0 ) {
-    //std::cout << "Premix generated a viable solution " << std::endl;
-    simulated_observations[0]  = savesol[*solsz + nmax*(ncomp-1)-1+3];
+  if( is_good > 0 && *solsz > 0 )
+  {
+    int nComp = cd.numSpecies() + 3;
+    simulated_observations[0]  = savesol[*solsz + nmax*(nComp-1)-1+3];
     if (! ValidMeasurement(simulated_observations[0])) {
       return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_7"));
     }
     lrstrtflag = 1;
   }
-  else{
-    //std::cout << "Premix failed to find a viable solution " << std::endl;
+  else {
     simulated_observations[0]  = -1;
     lrstrtflag = 0;
     if (num_steps == max_premix_iters) {
@@ -1102,26 +1146,6 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   // Cleanup fortran remains
   close_premix_files_( &lin, &linck, &lrin, &lrout, &lrcvr );
 
-
-  // NEXT STEPS:
-  // General cleanup
-  //     - Take out unused file handles
-  //     - Split out ckinit / mcinit calls
-  // Try with Davis mechanism
-  //     - General code compile with Davis mechanism
-  //     - See if I can get a solution
-  // Make sure it is robust to changing chemical parameters
-  // Put in context of sampling framework
-  // Generate 'pseudo-experimental' data
-  //      - Need separate object to sample from distribution?
-  // Infrastructure to manage set of experiments
-  //      - think Marc largely has this done, check that it 
-  //        is ok wrt to flame speed measurements
-  // Try sampling to get distribution of 1 reaction rate
-  //       consistent with observation distribution
-  BL_PROFILE_VAR_STOP(myname2);
-  BL_PROFILE_VAR_STOP(myname);
-
   return std::pair<bool,int>(true,ErrorID("SUCCESS"));
 }
 
@@ -1131,8 +1155,9 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
  * restart (or anything not present after InitializeExperiment call )
  * so that experiment can be moved
  */
-void PREMIXReactor::CopyData(int src, int dest, int tag) {
-
+void
+PREMIXReactor::CopyData(int src, int dest, int tag)
+{
   // things to copy:
   // 1. Solution vector
   // 2. Number of gridpoints
@@ -1157,25 +1182,12 @@ PREMIXReactor::InitializeExperiment()
     nmax=premix_sol->maxgp;
 
     // Sizes for work arrays
-    lenlwk=4055;
+    lenlwk=4270;
     leniwk=241933;
     lenrwk=90460799;
     lencwk=202;
     lensym=16;
     
-    // Unit numbers for input/output files
-    lin=10;
-    lout=6;
-    lrin=14;
-    lrout=15;
-    lrcvr=16;
-    linck=25;
-    linmc=35;
-
-    // Sizes of data stored in object
-    maxsolsz = nmax;
-    //ncomp = 12;
-
     // Check input file
     if( premix_input_file.empty() ){
         std::cerr << "No input file specified for premixed reactor \n";
@@ -1196,12 +1208,6 @@ const PremixSol&
 PREMIXReactor::getPremixSol() const
 {
   return *premix_sol;
-}
-
-int
-PREMIXReactor::numComp() const
-{
-  return ncomp;
 }
 
 void 

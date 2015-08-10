@@ -70,6 +70,7 @@ protected:
   bool ValidMeasurement(Real data) const;
   void Reset();
 
+  std::string name;
   ChemDriver& cd;
   REACTOR_TYPE reactor_type;
 
@@ -112,7 +113,6 @@ struct PREMIXReactor
   virtual void CopyData(int src, int dest, int tag);
 
   virtual void InitializeExperiment();
-  int numComp() const;
   const PremixSol& getPremixSol() const;
 
   void solCopyIn( PremixSol * );
@@ -122,6 +122,9 @@ struct PREMIXReactor
   virtual ~PREMIXReactor();
 
   bool ValidMeasurement(Real data) const;
+
+  std::string name;
+
   // Array of PREMIXReactors that are prereqs to get this solution
   Array<PREMIXReactor*> prereq_reactors;
 
@@ -152,12 +155,9 @@ struct PREMIXReactor
   // premix.inp file to read
   std::string premix_input_file;
   std::string premix_input_path;
+  std::string lmc_soln_file;
 
   int lrstrtflag;
-  //
-  // Sizes of data stored in object
-  int maxsolsz; 
-  int ncomp;
 
   ChemDriver& cd;
   PremixSol* premix_sol;

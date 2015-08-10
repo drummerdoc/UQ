@@ -1,0 +1,180 @@
+\documentclass{article}
+\usepackage{amsfonts, amsmath}
+
+\begin{document}
+
+{\noindent \large Tuning the parameters in a Gaussian proposal distribution to improve its quality for
+sampling a different distribution.\\
+
+\normalsize July, 2015\\}
+
+You want samples from a target PDF $\frac{1}{Z}f(x)$.
+You don't know the normalization constant, $Z$.
+You are going to use samples from a normalized proposal density $g(x)$.
+You will take samples $X_k \sim g$ and weight them with 
+\begin{align*}
+   W_k &= w(X_k)  \\
+   w(x) &= \frac{f(x)}{g(x)} \; .
+\end{align*}
+The quality measure is
+\[
+   R = \frac{E_g \!\left[ w^2(X) \right] }{E_g \!\left[ w(X) \right]^2}
+\]
+The denominator is
+\[
+    \int \frac{f(x)}{g(x)}\,g(x) \,dx = \int f(x) \,dx= Z \; ,
+\]
+which is independent of $g$.
+The goal is to find $g$ to minimize $R$.
+This is equivalent to minimizing the numerator.
+Therefore, I pretend that
+\[
+         R = E_g \!\left[ w^2(X) \right]  = \int \frac{f^2(x)}{g^2(x)}\,g(x) \,dx
+            = \int \frac{f^2(x)}{g(x)} \,dx
+\]
+
+Suppose $g$ depends on parameters $\theta = (\theta_1,\ldots,\theta_m)$.
+We want the gradient $\nabla_{\theta} R$ and the second derivative matrix $D^2_{\theta} R$.
+For the first derivatives,
+\begin{align*}
+   \nabla_{\theta} R &= \nabla_{\theta} \int \frac{f^2(x)}{g(x)}\,dx \\
+     &= - \int \frac{f^2(x)}{g^2(x)} \nabla_{\theta} g(x) \,dx \\
+     &= - \int \frac{f^2(x)}{g^2(x)} \,\frac{1}{g(x))} \left[ \nabla_{\theta} g(x)\right] \,g(x)\,dx \\
+     &= - \int \frac{f^2(x)}{g^2(x)} \, \left[ \nabla_{\theta} \log(g(x))\right] \,g(x) \,dx \\
+  \nabla_{\theta} R 
+     &= - E_g \!\left[ w^2(X) \nabla_{\theta} \log(g(X)) \right]
+\end{align*}
+For the second derivatives, start with
+\[
+      \partial_{\theta_j} R = - \int \frac{f^2(x)}{g^2(x)} \,\partial_{\theta_j} g(x) \,dx 
+\]
+Then
+\begin{align*}
+     \partial_{\theta_k} \partial_{\theta_j}R 
+           &= 2  \int \frac{f^2(x)}{g^3(x)} \,\left[\partial_{\theta_k}g(x)\right]  
+                                              \left[\partial_{\theta_j} g(x)\right] \,dx 
+             - \int \frac{f^2(x)}{g^2(x)} \,\left[\partial_{\theta_k}\partial_{\theta_j} g(x)\right] \,dx
+\end{align*}
+The first term on the right may be written as
+\[
+2\int \frac{f^2(x)}{g^2(x)} \,\left[\frac{1}{g(x)}\partial_{\theta_k} g(x)\right]  
+                             \left[\frac{1}{g(x)}\partial_{\theta_j} g(x)\right]\, g(x) \,dx 
+      =
+  2 E_g\!\left[ \,\left(\partial_{\theta_k} \log( g(X)\right)
+                 \left(\partial_{\theta_j}\log( g(X)\right) \right]
+\]
+The following algebra is relevant to the second term:
+\begin{align*}
+    \partial_{\theta_k}\partial_{\theta_j} g(x) 
+ &= \left( \frac{1}{g(x)}\partial_{\theta_k}\partial_{\theta_j}g(x)\right)g(x) \\
+ &= \left(\partial_{\theta_k}\left[ \frac{1}{g(x)}\partial_{\theta_j}g(x)\right]
+         +\frac{1}{g^2(x)} \left[ \partial_{\theta_k} g(x)\right]
+                           \left[ \partial_{\theta_j} g(x)\right]\right)g(x) \\
+ &= \left(\partial_{\theta_k}\!\left[\, \partial_{\theta_j}\log(g(x))\right]
+         +\left[\, \partial_{\theta_k}\log(g(x))\right]
+          \left[\, \partial_{\theta_j}\log(g(x))\right]\right)g(x) \\
+\end{align*}
+Therefore, the second term is
+\begin{align*}
+    - \int \frac{f^2(x)}{g^2(x)} \,\left[\partial_{\theta_k}\partial_{\theta_j} g(x)\right] dx
+  \;&=\;   E_g\!\left[ w^2(X)\, \partial_{\theta_k} \partial_{\theta_j}\log(g(X))\right]
+   \; + \; E_g\!\left[ w^2(X)\left[ \partial_{\theta_k} g(x)\right]
+                \left[ \partial_{\theta_j} g(x)\right]\right]
+\end{align*}
+Altogether,
+\[
+   \partial_{\theta_k} \partial_{\theta_j}R 
+           =  E_g\!\left[ \,\left(\partial_{\theta_k} \log( g(X)\right)
+                            \left(\partial_{\theta_j} \log( g(X)\right) \right]
+            - E_g\!\left[ w^2(X)\left[ \partial_{\theta_k} \partial_{\theta_j}\log(g(x))\right]\right] \; .
+\]
+This can be written in vector notation.
+Let $\nabla \phi$ be the column vector whose entries are $\partial_{\theta_j} \phi$.
+Then $\left( \nabla \phi\right) \left( \nabla \phi\right)^t$ is the matrix whose $(j,k)$ entry is
+$\left[\partial_{\theta_j}\phi\right] \left[\partial_{\theta_k} \phi\right] $.
+Let $D^2 \phi$ be the Hessian matrix of $\phi$.
+The scalar formula above may be written
+\begin{equation}
+D^2 R = E_g\!\left[  w(X)^2\left(\nabla \phi\right)\left( \nabla \phi\right)^t\right]
+      - E_g\!\left[  w(X)^2 D^2 \log(g(X)) \right] \; .
+\label{Dth2} \end{equation}
+
+We take $g$ to be Gaussian with mean $\mu$ and covariance $C$:
+\[
+      g(x) = \left( 2\pi\right)^{-n/2}\mbox{det}(C)^{-1/2}e^{-(x-\mu)^tC^{-1}(x-\mu)/2} \; .
+\]
+The parameters $\theta$ are the components of $\mu$ and the entries of $C$.
+To take derivatives of $\log(g)$ with respect to $\mu$, we may write
+\[
+   \log(g(x)) = \frac{-1}{2} (x-\mu)^tC^{-1}(x-\mu) 
+              =  \frac{-1}{2} (x-\mu)^tH(x-\mu) \; .
+\]
+The terms that are missing are independent of $\mu$ and don't enter into derivatives with 
+respect to $\mu$.
+We write $\nabla_{\mu}$ and $D^2_{\mu}$ to make clear which parameters we differentiate with
+respect to.
+The results are
+\[
+      \nabla_{\mu}\log(g(x)) = H(x-\mu) \; ,
+\]
+and
+\[
+      D^2_{\mu} \log(g(x)) = H \; .
+\]
+The first derivative is
+\begin{equation}
+   \nabla_{\mu}R = - E_g \!\left[ w^2(X) H(X-\mu)\right]
+                 = - H E_g \!\left[ w^2(X) (X-\mu)\right] \; .
+\label{Dmu} \end{equation}
+Use (\ref{Dth2}) for the second derivative, and you get
+\begin{align}
+     D^2_{\mu} R &=  E_g\!\left[  w(X)^2\left( H(X-\mu)\right)\left( H(X-\mu\right)^t\right]
+      - E_g\!\left[  w(X)^2 H \right] \nonumber\\
+     D^2_{\mu} R &=  HE_g\!\left[  w(X)^2(X-\mu)(X-\mu)^t\right]H
+      - RH \; .
+\label{Dmu2} \end{align}
+As a check, note that if $f=g$ then $w$ is constant and $E\!\left[(X-\mu)(X-\mu)^t\right] = C = H^{-1}$.
+This makes $D^2_{\mu} R=0$ in this case.
+
+Since $R$ varies over orders of magnitude, it might be better to optimize $\log(R)$.
+The derivatives are
+\[
+    \nabla_{\mu} \log(R) = \frac{1}{R} \nabla_{\mu} R
+\]
+and
+\[
+      D^2_{\mu} \log(R) = - \left[\nabla_{\mu}\log(R) \right]\left[\nabla_{\mu}\log(R) \right]^t
+                          + \frac{1}{R} D^2_{\mu} R \; .
+\]
+This simplifies by thinking of dividing by $R$ as normalization.
+Define the normalized weight as
+\[
+       \widetilde{w}(x) = \frac{w(x)}{\sqrt{R}} \; .
+\]
+Then 
+\[
+   E_g\!\left[ \widetilde{w}^2(X)\right] = \frac{1}{R}  E_g\!\left[w^2(X)\right] = 1
+\]
+The log derivatives are
+\[
+      \nabla_{\mu} \log(R) =H  E_g\!\left[ \widetilde{w}^2(X)(X-\mu)\right] 
+\]
+and (see (\ref{Dmu2}))
+\[
+      D^2_{\mu} \log(R) = - \left[\nabla_{\mu}\log(R) \right]\left[\nabla_{\mu}\log(R) \right]^t
+                        + HE_g\!\left[  \widetilde{w}(X)^2(X-\mu)(X-\mu)^t\right]H - H \; .
+\]
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

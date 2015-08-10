@@ -1,0 +1,5 @@
+      COMMON /CKCONS/ PREC, FILVER, PRVERS, KERR, LENI, LENR, LENC
+      save /CKCONS/
+      COMMON /CMIN/ CKMIN
+      save /CMIN/
+!$omp threadprivate(/CKCONS/,/CMIN/)
