@@ -12,10 +12,11 @@ def read_expts(f, ra, rb, sheet):
     #        'flrt','npts','xend','xcen','tfix','wmix',\
     #        'atol', 'rtol', 'atim', 'rtim',
     #        'ntime', 'dt_time', 'ntim2', 'dt_tim2']
-    hdr = s.row_slice(1)[1:32]
+    hdr = s.row_slice(1)[1:35]
+    print hdr
     flmdata = []
     for row in range(ra,rb):
-        rdata = s.row_slice(row)[1:32]
+        rdata = s.row_slice(row)[1:35]
         thisflm = {}
         for h, cell in zip(hdr,rdata):
             thisflm[str(h.value)] = cell.value
@@ -38,7 +39,10 @@ def write_premix_files(flmdat):
         pmfile.write('ENRG\n')
         pmfile.write('MULT\n')
         pmfile.write('FLRT ' + "{}".format(fd['flrt']) + "\n")
-        pmfile.write('PRES ' + "{}".format(fd['P']) + "\n")
+        if int(fd['psteps']) > 0:
+            pmfile.write('PRES ' + "{}".format(fd['pstart']) + "\n")
+        else:
+            pmfile.write('PRES ' + "{}".format(fd['P']) + "\n")
         pmfile.write('NPTS ' + "{0:0d}".format(int(fd['npts'])) + "\n")
         pmfile.write('XEND ' + "{}".format(fd['xend']) + "\n")
         pmfile.write('XCEN ' + "{}".format(fd['xcen']) + "\n")
@@ -100,7 +104,23 @@ def write_premix_files(flmdat):
         pmfile.write('END\n')
         pmfile.write('GRAD  0.9\n')
         pmfile.write('CURV  0.9\n')
-        pmfile.write('END\n')
+        if fd['psteps'] > 0:
+            ps = np.linspace(fd['pstart'], fd['P'],int(fd['psteps']))
+            for pp in ps[1:]:
+                pmfile.write('CNTN\n')
+                pmfile.write('END\n')
+                pmfile.write("PRES {}\n".format(pp))
+                pmfile.write('CNTN\n')
+                pmfile.write('END\n')
+                pmfile.write('GRAD  0.9\n')
+                pmfile.write('CURV  0.9\n')
+                pmfile.write('CNTN\n')
+                pmfile.write('END\n')
+                pmfile.write('GRAD  0.7\n')
+                pmfile.write('CURV  0.5\n')
+            pmfile.write('END\n')
+        else:
+            pmfile.write('END\n')
     
         pmfile.close()
         
@@ -115,7 +135,7 @@ def write_premix_files(flmdat):
 
 
 flmdat1 = read_expts('Burke_data.xlsx',3,48,0)
-flmdat2= read_expts('Burke_data.xlsx',3,34,1)
+flmdat2= read_expts('Burke_data.xlsx',3,35,1)
 
 write_premix_files(flmdat1)
 write_premix_files(flmdat2)
