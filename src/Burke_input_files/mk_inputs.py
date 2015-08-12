@@ -47,6 +47,7 @@ def write_premix_files(flmdat):
         pmfile.write('XEND ' + "{}".format(fd['xend']) + "\n")
         pmfile.write('XCEN ' + "{}".format(fd['xcen']) + "\n")
         pmfile.write('TFIX ' + "{}".format(fd['tfix']) + "\n")
+        pmfile.write('WMIX ' + "{}".format(fd['wmix']) + "\n")
         pmfile.write('MOLE\n')
         pmfile.write('REAC H2 ' + "{}".format(fd['H2']) + "\n")
         pmfile.write('REAC O2 ' + "{}".format(fd['O2']) + "\n")
