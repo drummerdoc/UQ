@@ -106,7 +106,7 @@ def write_premix_files(flmdat):
         pmfile.write('GRAD  0.9\n')
         pmfile.write('CURV  0.9\n')
         if fd['psteps'] > 0:
-            ps = np.linspace(fd['pstart'], fd['P'],int(fd['psteps']))
+            ps = np.linspace(fd['pstart'], fd['P'],int(fd['psteps'])+1)
             for pp in ps[1:]:
                 pmfile.write('CNTN\n')
                 pmfile.write('END\n')
