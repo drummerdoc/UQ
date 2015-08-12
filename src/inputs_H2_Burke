@@ -10,7 +10,11 @@ ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12
 
 # Davis
-parameters = p14 p14l p14h2 p14h2o p14o2 p14arhe p15 p16 p17 p18 p19 p20 p21 p21l p21h2o p21h2o2 p21o2 p21n2 p21h2 p21arhe p22 p23 p24 p25 p26 p27 p28 p28h2 p28h20 p29arhe
+#parameters = p14 p14l p14h2 p14h2o p14o2 p14arhe p15 p16 p17 p18 p19 p20 p21 p21l p21h2o p21h2o2 p21o2 p21n2 p21h2 p21arhe p22 p23 p24 p25 p26 p27 p28 p28h2 p28h20 p29arhe
+
+parameters = p14
+
+stateL = 4.65084e12
 
 p14.type = FWD_A
 p14.reaction_id = 14
@@ -279,7 +283,9 @@ p28arhe.dependent_parameters.tb_HE.reaction_id = 28
 
 # Targets from S.G. Davis et al, PCI 30, 2005. First group is premixed
 # laminar flames, second group is ignition delay calculations
-experiments = fls3a fls3b fls1a fls1b fls2a fls2b flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a 
+# experiments = fls3a fls3b fls1a fls1b fls2a fls2b flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a Burkef1 Burkef2 Burkef3 Burkef4 Burkef5 Burkef6 Burkef7 Burkef8 Burkef9 Burkef10 Burkef11 Burkef12 Burkef13 Burkef14 Burkef15 Burkef16 Burkef17 Burkef18 Burkef19 Burkef20 Burkef21 Burkef22 Burkef23 Burkef24 Burkef25 Burkef26 Burkef27 Burkef28 Burkef29 Burkef30 Burkef31 Burkef32 Burkef33 Burkef34 Burkef35 Burkef36 Burkef37 Burkef38 Burkef39 Burkef40 Burkef41 Burkef42 Burkef43 Burkef44 Burkef45 Burkef46 Burkef47 Burkef48 Burkef49 Burkef50 Burkef51 Burkef52 Burkef53 Burkef54 Burkef55 Burkef56 Burkef57 Burkef58 Burkef59 Burkef60 Burkef61 Burkef62 Burkef63 Burkef64 Burkef65 Burkef66 Burkef67 Burkef68 Burkef69 Burkef70 Burkef71 Burkef72 Burkef73 Burkef74 Burkef75 Burkef76 Burkef77
+
+experiments = Burkef2
 
 #use_synthetic_data = t
 
@@ -780,3 +786,677 @@ ign6d.data_tend = 50e-6
 ign6d.diagnostic_name = thresh_O
 ign6d.measurement_error = 6.
 ign6d.O_thresh = 4.15e-4
+
+Burkef1.type = PREMIXReactor
+Burkef1.data = 95.3
+Burkef1.premix_input_path = ./Burke_input_files/
+Burkef1.premix_input_file = premix.Burkef1
+Burkef1.measurement_error = 10.3586956522
+Burkef1.num_sol_pts = 1000
+
+
+
+Burkef2.type = PREMIXReactor
+Burkef2.data = 77.4
+Burkef2.premix_input_path = ./Burke_input_files/
+Burkef2.premix_input_file = premix.Burkef2
+Burkef2.measurement_error = 12.787826087
+Burkef2.num_sol_pts = 1000
+
+
+
+Burkef3.type = PREMIXReactor
+Burkef3.data = 45.9
+Burkef3.premix_input_path = ./Burke_input_files/
+Burkef3.premix_input_file = premix.Burkef3
+Burkef3.measurement_error = 4.92688073394
+Burkef3.num_sol_pts = 1000
+
+
+
+Burkef4.type = PREMIXReactor
+Burkef4.data = 28.3
+Burkef4.premix_input_path = ./Burke_input_files/
+Burkef4.premix_input_file = premix.Burkef4
+Burkef4.measurement_error = 2.5498019802
+Burkef4.num_sol_pts = 1000
+
+
+
+Burkef5.type = PREMIXReactor
+Burkef5.data = 20.0
+Burkef5.premix_input_path = ./Burke_input_files/
+Burkef5.premix_input_file = premix.Burkef5
+Burkef5.measurement_error = 1.64210526316
+Burkef5.num_sol_pts = 1000
+
+
+
+Burkef6.type = PREMIXReactor
+Burkef6.data = 15.2
+Burkef6.premix_input_path = ./Burke_input_files/
+Burkef6.premix_input_file = premix.Burkef6
+Burkef6.measurement_error = 1.16533333333
+Burkef6.num_sol_pts = 1000
+
+Burkef7.type = PREMIXReactor
+Burkef7.data = 83.0
+Burkef7.premix_input_path = ./Burke_input_files/
+Burkef7.premix_input_file = premix.Burkef7
+Burkef7.measurement_error = 13.8333333333
+Burkef7.num_sol_pts = 1000
+
+
+
+Burkef8.type = PREMIXReactor
+Burkef8.data = 48.7
+Burkef8.premix_input_path = ./Burke_input_files/
+Burkef8.premix_input_file = premix.Burkef8
+Burkef8.measurement_error = 9.18867924528
+Burkef8.num_sol_pts = 1000
+
+
+
+Burkef9.type = PREMIXReactor
+Burkef9.data = 27.3
+Burkef9.premix_input_path = ./Burke_input_files/
+Burkef9.premix_input_file = premix.Burkef9
+Burkef9.measurement_error = 3.64
+Burkef9.num_sol_pts = 1000
+
+
+
+Burkef10.type = PREMIXReactor
+Burkef10.data = 87.0
+Burkef10.premix_input_path = ./Burke_input_files/
+Burkef10.premix_input_file = premix.Burkef10
+Burkef10.measurement_error = 9.15789473684
+Burkef10.num_sol_pts = 1000
+
+
+
+Burkef11.type = PREMIXReactor
+Burkef11.data = 61.9
+Burkef11.premix_input_path = ./Burke_input_files/
+Burkef11.premix_input_file = premix.Burkef11
+Burkef11.measurement_error = 10.7652173913
+Burkef11.num_sol_pts = 1000
+
+
+
+Burkef12.type = PREMIXReactor
+Burkef12.data = 40.7
+Burkef12.premix_input_path = ./Burke_input_files/
+Burkef12.premix_input_file = premix.Burkef12
+Burkef12.measurement_error = 4.47252747253
+Burkef12.num_sol_pts = 1000
+
+
+
+Burkef13.type = PREMIXReactor
+Burkef13.data = 28.7
+Burkef13.premix_input_path = ./Burke_input_files/
+Burkef13.premix_input_file = premix.Burkef13
+Burkef13.measurement_error = 2.690625
+Burkef13.num_sol_pts = 1000
+
+Burkef14.type = PREMIXReactor
+Burkef14.data = 21.4
+Burkef14.premix_input_path = ./Burke_input_files/
+Burkef14.premix_input_file = premix.Burkef14
+Burkef14.measurement_error = 1.78333333333
+Burkef14.num_sol_pts = 1000
+
+
+
+Burkef15.type = PREMIXReactor
+Burkef15.data = 14.5
+Burkef15.premix_input_path = ./Burke_input_files/
+Burkef15.premix_input_file = premix.Burkef15
+Burkef15.measurement_error = 1.07407407407
+Burkef15.num_sol_pts = 1000
+
+
+
+Burkef16.type = PREMIXReactor
+Burkef16.data = 105.1
+Burkef16.premix_input_path = ./Burke_input_files/
+Burkef16.premix_input_file = premix.Burkef16
+Burkef16.measurement_error = 8.75833333333
+Burkef16.num_sol_pts = 1000
+
+
+
+Burkef17.type = PREMIXReactor
+Burkef17.data = 82.8
+Burkef17.premix_input_path = ./Burke_input_files/
+Burkef17.premix_input_file = premix.Burkef17
+Burkef17.measurement_error = 12.2021052632
+Burkef17.num_sol_pts = 1000
+
+
+
+Burkef18.type = PREMIXReactor
+Burkef18.data = 64.0
+Burkef18.premix_input_path = ./Burke_input_files/
+Burkef18.premix_input_file = premix.Burkef18
+Burkef18.measurement_error = 5.69863013699
+Burkef18.num_sol_pts = 1000
+
+
+
+Burkef19.type = PREMIXReactor
+Burkef19.data = 49.1
+Burkef19.premix_input_path = ./Burke_input_files/
+Burkef19.premix_input_file = premix.Burkef19
+Burkef19.measurement_error = 3.48639053254
+Burkef19.num_sol_pts = 1000
+
+
+
+Burkef20.type = PREMIXReactor
+Burkef20.data = 38.3
+Burkef20.premix_input_path = ./Burke_input_files/
+Burkef20.premix_input_file = premix.Burkef20
+Burkef20.measurement_error = 2.40742857143
+Burkef20.num_sol_pts = 1000
+
+
+
+Burkef21.type = PREMIXReactor
+Burkef21.data = 31.1
+Burkef21.premix_input_path = ./Burke_input_files/
+Burkef21.premix_input_file = premix.Burkef21
+Burkef21.measurement_error = 1.92191011236
+Burkef21.num_sol_pts = 1000
+
+Burkef22.type = PREMIXReactor
+Burkef22.data = 118.0
+Burkef22.premix_input_path = ./Burke_input_files/
+Burkef22.premix_input_file = premix.Burkef22
+Burkef22.measurement_error = 12.6428571429
+Burkef22.num_sol_pts = 1000
+
+
+
+Burkef23.type = PREMIXReactor
+Burkef23.data = 104.1
+Burkef23.premix_input_path = ./Burke_input_files/
+Burkef23.premix_input_file = premix.Burkef23
+Burkef23.measurement_error = 13.6524590164
+Burkef23.num_sol_pts = 1000
+
+
+
+Burkef24.type = PREMIXReactor
+Burkef24.data = 78.6
+Burkef24.premix_input_path = ./Burke_input_files/
+Burkef24.premix_input_file = premix.Burkef24
+Burkef24.measurement_error = 5.98043478261
+Burkef24.num_sol_pts = 1000
+
+
+
+Burkef25.type = PREMIXReactor
+Burkef25.data = 62.4
+Burkef25.premix_input_path = ./Burke_input_files/
+Burkef25.premix_input_file = premix.Burkef25
+Burkef25.measurement_error = 3.98904109589
+Burkef25.num_sol_pts = 1000
+
+
+
+Burkef26.type = PREMIXReactor
+Burkef26.data = 53.3
+Burkef26.premix_input_path = ./Burke_input_files/
+Burkef26.premix_input_file = premix.Burkef26
+Burkef26.measurement_error = 2.99678714859
+Burkef26.num_sol_pts = 1000
+
+
+
+Burkef27.type = PREMIXReactor
+Burkef27.data = 99.5
+Burkef27.premix_input_path = ./Burke_input_files/
+Burkef27.premix_input_file = premix.Burkef27
+Burkef27.measurement_error = 24.0172413793
+Burkef27.num_sol_pts = 1000
+
+
+
+Burkef28.type = PREMIXReactor
+Burkef28.data = 71.3
+Burkef28.premix_input_path = ./Burke_input_files/
+Burkef28.premix_input_file = premix.Burkef28
+Burkef28.measurement_error = 25.8184652278
+Burkef28.num_sol_pts = 1000
+
+
+
+Burkef29.type = PREMIXReactor
+Burkef29.data = 46.0
+Burkef29.premix_input_path = ./Burke_input_files/
+Burkef29.premix_input_file = premix.Burkef29
+Burkef29.measurement_error = 10.6022304833
+Burkef29.num_sol_pts = 1000
+
+Burkef30.type = PREMIXReactor
+Burkef30.data = 28.7
+Burkef30.premix_input_path = ./Burke_input_files/
+Burkef30.premix_input_file = premix.Burkef30
+Burkef30.measurement_error = 4.73578528827
+Burkef30.num_sol_pts = 1000
+
+
+
+Burkef31.type = PREMIXReactor
+Burkef31.data = 19.6
+Burkef31.premix_input_path = ./Burke_input_files/
+Burkef31.premix_input_file = premix.Burkef31
+Burkef31.measurement_error = 2.696069869
+Burkef31.num_sol_pts = 1000
+
+
+
+Burkef32.type = PREMIXReactor
+Burkef32.data = 123.6
+Burkef32.premix_input_path = ./Burke_input_files/
+Burkef32.premix_input_file = premix.Burkef32
+Burkef32.measurement_error = 36.4575539568
+Burkef32.num_sol_pts = 1000
+
+
+
+Burkef33.type = PREMIXReactor
+Burkef33.data = 103.9
+Burkef33.premix_input_path = ./Burke_input_files/
+Burkef33.premix_input_file = premix.Burkef33
+Burkef33.measurement_error = 30.4227739726
+Burkef33.num_sol_pts = 1000
+
+
+
+Burkef34.type = PREMIXReactor
+Burkef34.data = 75.2
+Burkef34.premix_input_path = ./Burke_input_files/
+Burkef34.premix_input_file = premix.Burkef34
+Burkef34.measurement_error = 12.9931360947
+Burkef34.num_sol_pts = 1000
+
+
+
+Burkef35.type = PREMIXReactor
+Burkef35.data = 54.1
+Burkef35.premix_input_path = ./Burke_input_files/
+Burkef35.premix_input_file = premix.Burkef35
+Burkef35.measurement_error = 6.99978070175
+Burkef35.num_sol_pts = 1000
+
+
+
+Burkef36.type = PREMIXReactor
+Burkef36.data = 39.1
+Burkef36.premix_input_path = ./Burke_input_files/
+Burkef36.premix_input_file = premix.Burkef36
+Burkef36.measurement_error = 4.22582480091
+Burkef36.num_sol_pts = 1000
+
+
+
+Burkef37.type = PREMIXReactor
+Burkef37.data = 27.7
+Burkef37.premix_input_path = ./Burke_input_files/
+Burkef37.premix_input_file = premix.Burkef37
+Burkef37.measurement_error = 2.63132220796
+Burkef37.num_sol_pts = 1000
+
+Burkef38.type = PREMIXReactor
+Burkef38.data = 147.9
+Burkef38.premix_input_path = ./Burke_input_files/
+Burkef38.premix_input_file = premix.Burkef38
+Burkef38.measurement_error = 25.1150943396
+Burkef38.num_sol_pts = 1000
+
+
+
+Burkef39.type = PREMIXReactor
+Burkef39.data = 121.8
+Burkef39.premix_input_path = ./Burke_input_files/
+Burkef39.premix_input_file = premix.Burkef39
+Burkef39.measurement_error = 29.0088549618
+Burkef39.num_sol_pts = 1000
+
+
+
+Burkef40.type = PREMIXReactor
+Burkef40.data = 100.9
+Burkef40.premix_input_path = ./Burke_input_files/
+Burkef40.premix_input_file = premix.Burkef40
+Burkef40.measurement_error = 14.2414206642
+Burkef40.num_sol_pts = 1000
+
+
+
+Burkef41.type = PREMIXReactor
+Burkef41.data = 80.5
+Burkef41.premix_input_path = ./Burke_input_files/
+Burkef41.premix_input_file = premix.Burkef41
+Burkef41.measurement_error = 8.44101773323
+Burkef41.num_sol_pts = 1000
+
+
+
+Burkef42.type = PREMIXReactor
+Burkef42.data = 63.1
+Burkef42.premix_input_path = ./Burke_input_files/
+Burkef42.premix_input_file = premix.Burkef42
+Burkef42.measurement_error = 5.39395725866
+Burkef42.num_sol_pts = 1000
+
+
+
+Burkef43.type = PREMIXReactor
+Burkef43.data = 51.4
+Burkef43.premix_input_path = ./Burke_input_files/
+Burkef43.premix_input_file = premix.Burkef43
+Burkef43.measurement_error = 3.83637681159
+Burkef43.num_sol_pts = 1000
+
+
+
+Burkef44.type = PREMIXReactor
+Burkef44.data = 177.9
+Burkef44.premix_input_path = ./Burke_input_files/
+Burkef44.premix_input_file = premix.Burkef44
+Burkef44.measurement_error = 26.3917582418
+Burkef44.num_sol_pts = 1000
+
+
+
+Burkef45.type = PREMIXReactor
+Burkef45.data = 164.6
+Burkef45.premix_input_path = ./Burke_input_files/
+Burkef45.premix_input_file = premix.Burkef45
+Burkef45.measurement_error = 32.685136742
+Burkef45.num_sol_pts = 1000
+
+Burkef46.type = PREMIXReactor
+Burkef46.data = 55.4
+Burkef46.premix_input_path = ./Burke_input_files/
+Burkef46.premix_input_file = premix.Burkef46
+Burkef46.measurement_error = 2.77
+Burkef46.num_sol_pts = 1000
+
+
+
+Burkef47.type = PREMIXReactor
+Burkef47.data = 34.0
+Burkef47.premix_input_path = ./Burke_input_files/
+Burkef47.premix_input_file = premix.Burkef47
+Burkef47.measurement_error = 3.29032258065
+Burkef47.num_sol_pts = 1000
+
+
+
+Burkef48.type = PREMIXReactor
+Burkef48.data = 17.3
+Burkef48.premix_input_path = ./Burke_input_files/
+Burkef48.premix_input_file = premix.Burkef48
+Burkef48.measurement_error = 1.67419354839
+Burkef48.num_sol_pts = 1000
+
+
+
+Burkef49.type = PREMIXReactor
+Burkef49.data = 5.9
+Burkef49.premix_input_path = ./Burke_input_files/
+Burkef49.premix_input_file = premix.Burkef49
+Burkef49.measurement_error = 0.561904761905
+Burkef49.num_sol_pts = 1000
+
+
+
+Burkef50.type = PREMIXReactor
+Burkef50.data = 58.2
+Burkef50.premix_input_path = ./Burke_input_files/
+Burkef50.premix_input_file = premix.Burkef50
+Burkef50.measurement_error = 1.97288135593
+Burkef50.num_sol_pts = 1000
+
+
+
+Burkef51.type = PREMIXReactor
+Burkef51.data = 61.0
+Burkef51.premix_input_path = ./Burke_input_files/
+Burkef51.premix_input_file = premix.Burkef51
+Burkef51.measurement_error = 3.58823529412
+Burkef51.num_sol_pts = 1000
+
+
+
+Burkef52.type = PREMIXReactor
+Burkef52.data = 37.9
+Burkef52.premix_input_path = ./Burke_input_files/
+Burkef52.premix_input_file = premix.Burkef52
+Burkef52.measurement_error = 4.37307692308
+Burkef52.num_sol_pts = 1000
+
+
+
+Burkef53.type = PREMIXReactor
+Burkef53.data = 23.1
+Burkef53.premix_input_path = ./Burke_input_files/
+Burkef53.premix_input_file = premix.Burkef53
+Burkef53.measurement_error = 2.165625
+Burkef53.num_sol_pts = 1000
+
+Burkef54.type = PREMIXReactor
+Burkef54.data = 15.0
+Burkef54.premix_input_path = ./Burke_input_files/
+Burkef54.premix_input_file = premix.Burkef54
+Burkef54.measurement_error = 1.45161290323
+Burkef54.num_sol_pts = 1000
+
+
+
+Burkef55.type = PREMIXReactor
+Burkef55.data = 8.2
+Burkef55.premix_input_path = ./Burke_input_files/
+Burkef55.premix_input_file = premix.Burkef55
+Burkef55.measurement_error = 0.713043478261
+Burkef55.num_sol_pts = 1000
+
+
+
+Burkef56.type = PREMIXReactor
+Burkef56.data = 105.1
+Burkef56.premix_input_path = ./Burke_input_files/
+Burkef56.premix_input_file = premix.Burkef56
+Burkef56.measurement_error = 3.39032258065
+Burkef56.num_sol_pts = 1000
+
+
+
+Burkef57.type = PREMIXReactor
+Burkef57.data = 64.3
+Burkef57.premix_input_path = ./Burke_input_files/
+Burkef57.premix_input_file = premix.Burkef57
+Burkef57.measurement_error = 2.67916666667
+Burkef57.num_sol_pts = 1000
+
+
+
+Burkef58.type = PREMIXReactor
+Burkef58.data = 40.1
+Burkef58.premix_input_path = ./Burke_input_files/
+Burkef58.premix_input_file = premix.Burkef58
+Burkef58.measurement_error = 1.67083333333
+Burkef58.num_sol_pts = 1000
+
+
+
+Burkef59.type = PREMIXReactor
+Burkef59.data = 59.7
+Burkef59.premix_input_path = ./Burke_input_files/
+Burkef59.premix_input_file = premix.Burkef59
+Burkef59.measurement_error = 4.26428571429
+Burkef59.num_sol_pts = 1000
+
+
+
+Burkef60.type = PREMIXReactor
+Burkef60.data = 42.3
+Burkef60.premix_input_path = ./Burke_input_files/
+Burkef60.premix_input_file = premix.Burkef60
+Burkef60.measurement_error = 3.384
+Burkef60.num_sol_pts = 1000
+
+
+
+Burkef61.type = PREMIXReactor
+Burkef61.data = 27.6
+Burkef61.premix_input_path = ./Burke_input_files/
+Burkef61.premix_input_file = premix.Burkef61
+Burkef61.measurement_error = 1.67272727273
+Burkef61.num_sol_pts = 1000
+
+Burkef62.type = PREMIXReactor
+Burkef62.data = 17.7
+Burkef62.premix_input_path = ./Burke_input_files/
+Burkef62.premix_input_file = premix.Burkef62
+Burkef62.measurement_error = 1.10625
+Burkef62.num_sol_pts = 1000
+
+
+
+Burkef63.type = PREMIXReactor
+Burkef63.data = 10.3
+Burkef63.premix_input_path = ./Burke_input_files/
+Burkef63.premix_input_file = premix.Burkef63
+Burkef63.measurement_error = 0.824
+Burkef63.num_sol_pts = 1000
+
+
+
+Burkef64.type = PREMIXReactor
+Burkef64.data = 97.7
+Burkef64.premix_input_path = ./Burke_input_files/
+Burkef64.premix_input_file = premix.Burkef64
+Burkef64.measurement_error = 3.908
+Burkef64.num_sol_pts = 1000
+
+
+
+Burkef65.type = PREMIXReactor
+Burkef65.data = 67.0
+Burkef65.premix_input_path = ./Burke_input_files/
+Burkef65.premix_input_file = premix.Burkef65
+Burkef65.measurement_error = 3.15294117647
+Burkef65.num_sol_pts = 1000
+
+
+
+Burkef66.type = PREMIXReactor
+Burkef66.data = 44.3
+Burkef66.premix_input_path = ./Burke_input_files/
+Burkef66.premix_input_file = premix.Burkef66
+Burkef66.measurement_error = 1.96017699115
+Burkef66.num_sol_pts = 1000
+
+
+
+Burkef67.type = PREMIXReactor
+Burkef67.data = 31.4
+Burkef67.premix_input_path = ./Burke_input_files/
+Burkef67.premix_input_file = premix.Burkef67
+Burkef67.measurement_error = 2.09333333333
+Burkef67.num_sol_pts = 1000
+
+
+
+Burkef68.type = PREMIXReactor
+Burkef68.data = 22.4
+Burkef68.premix_input_path = ./Burke_input_files/
+Burkef68.premix_input_file = premix.Burkef68
+Burkef68.measurement_error = 1.37543859649
+Burkef68.num_sol_pts = 1000
+
+Burkef69.type = PREMIXReactor
+Burkef69.data = 16.3
+Burkef69.premix_input_path = ./Burke_input_files/
+Burkef69.premix_input_file = premix.Burkef69
+Burkef69.measurement_error = 1.88076923077
+Burkef69.num_sol_pts = 1000
+
+
+
+Burkef70.type = PREMIXReactor
+Burkef70.data = 139.3
+Burkef70.premix_input_path = ./Burke_input_files/
+Burkef70.premix_input_file = premix.Burkef70
+Burkef70.measurement_error = 3.66578947368
+Burkef70.num_sol_pts = 1000
+
+
+
+Burkef71.type = PREMIXReactor
+Burkef71.data = 114.6
+Burkef71.premix_input_path = ./Burke_input_files/
+Burkef71.premix_input_file = premix.Burkef71
+Burkef71.measurement_error = 4.43612903226
+Burkef71.num_sol_pts = 1000
+
+
+
+Burkef72.type = PREMIXReactor
+Burkef72.data = 96.0
+Burkef72.premix_input_path = ./Burke_input_files/
+Burkef72.premix_input_file = premix.Burkef72
+Burkef72.measurement_error = 3.33590733591
+Burkef72.num_sol_pts = 1000
+
+
+
+Burkef73.type = PREMIXReactor
+Burkef73.data = 95.3
+Burkef73.premix_input_path = ./Burke_input_files/
+Burkef73.premix_input_file = premix.Burkef73
+Burkef73.measurement_error = 12.4304347826
+Burkef73.num_sol_pts = 1000
+
+
+
+Burkef74.type = PREMIXReactor
+Burkef74.data = 66.2
+Burkef74.premix_input_path = ./Burke_input_files/
+Burkef74.premix_input_file = premix.Burkef74
+Burkef74.measurement_error = 3.39487179487
+Burkef74.num_sol_pts = 1000
+
+
+Burkef75.type = PREMIXReactor
+Burkef75.data = 87.0
+Burkef75.premix_input_path = ./Burke_input_files/
+Burkef75.premix_input_file = premix.Burkef75
+Burkef75.measurement_error = 9.15789473684
+Burkef75.num_sol_pts = 1000
+
+
+
+Burkef76.type = PREMIXReactor
+Burkef76.data = 61.9
+Burkef76.premix_input_path = ./Burke_input_files/
+Burkef76.premix_input_file = premix.Burkef76
+Burkef76.measurement_error = 10.7652173913
+Burkef76.num_sol_pts = 1000
+
+
+
+Burkef77.type = PREMIXReactor
+Burkef77.data = 40.7
+Burkef77.premix_input_path = ./Burke_input_files/
+Burkef77.premix_input_file = premix.Burkef77
+Burkef77.measurement_error = 4.47252747253
+Burkef77.num_sol_pts = 1000
+
+

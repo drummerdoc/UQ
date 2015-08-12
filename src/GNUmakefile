@@ -1,5 +1,6 @@
 # Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
-TOP = ../..
+#TOP = ../..
+TOP = /scratch1/jbb/
 
 # Put these here until all of them get propagated into the BoxLib make system
 
@@ -46,8 +47,8 @@ DIM             = 2
 #FCOMP           = ftn
 COMP            = g++
 FCOMP           = gfortran
-USE_MPI         = TRUE
-#USE_MPI         = FALSE
+#USE_MPI         = TRUE
+USE_MPI         = FALSE
 USE_OMP         = TRUE
 #USE_OMP         = FALSE
 USE_SDC         = FALSE
@@ -60,7 +61,8 @@ DO_REGTEST      = FALSE
 # Choose model (from list below), and pmf file
 #CHEMISTRY_MODEL = DRM19
 #CHEMISTRY_MODEL = CHEMH
-CHEMISTRY_MODEL = DAVIS
+#CHEMISTRY_MODEL = DAVIS
+CHEMISTRY_MODEL = BURKE
 #NB to us DAVIS chemistry need to hack c. l147 in ChemDriver_F.F
 #mcr = Nspec*(19+2*NO+NO*NLITEMAX)+(NO+15)*Nspec**2 * 2                          
 #mci = 4*Nspec + NLITEMAX * 2   
@@ -76,9 +78,9 @@ endif
 CFLAGS += -std=c99
 
 #EBASE = main
-EBASE = minimizeEnsemble
+#EBASE = minimizeEnsemble
 #EBASE = evalLocalModel
-#EBASE = interpSample
+EBASE = interpSample
 #EBASE = EvalExpt
 #EBASE = EvalParams
 
@@ -156,6 +158,14 @@ ifeq (${CHEMISTRY_MODEL}, LUDME)
   CHEM_MECHFILE = LuDME.c
   VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/Lu/PMFs
   VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/Lu
+endif
+ifeq (${CHEMISTRY_MODEL}, BURKEMOD)
+  CHEM_MECHFILE = BurkeDryer_mod.c
+  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer_mod
+endif
+ifeq (${CHEMISTRY_MODEL}, BURKE)
+  CHEM_MECHFILE = BurkeDryer.c
+  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer
 endif
 cEXE_sources += ${CHEM_MECHFILE}
 
