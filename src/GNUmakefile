@@ -62,7 +62,8 @@ DO_REGTEST      = FALSE
 #CHEMISTRY_MODEL = DRM19
 #CHEMISTRY_MODEL = CHEMH
 #CHEMISTRY_MODEL = DAVIS
-CHEMISTRY_MODEL = BURKE
+#CHEMISTRY_MODEL = BURKE
+CHEMISTRY_MODEL = BURKEMOD
 #NB to us DAVIS chemistry need to hack c. l147 in ChemDriver_F.F
 #mcr = Nspec*(19+2*NO+NO*NLITEMAX)+(NO+15)*Nspec**2 * 2                          
 #mci = 4*Nspec + NLITEMAX * 2   

@@ -130,9 +130,9 @@ p21.lower_bound = 1.e12
 
 p21L.type = LOW_A
 p21L.reaction_id = 21
-p21L.prior_mean =  2.29e24
-p21L.prior_std =   2.29e24
-p21L.ensemble_std = 2.29e23
+p21L.prior_mean =  2.49e24
+p21L.prior_std =   2.49e24
+p21L.ensemble_std = 2.49e23
 p21L.upper_bound = 8e24
 p21L.lower_bound = 5.e23
 
@@ -283,9 +283,13 @@ p28arhe.dependent_parameters.tb_HE.reaction_id = 28
 
 # Targets from S.G. Davis et al, PCI 30, 2005. First group is premixed
 # laminar flames, second group is ignition delay calculations
-# experiments = fls3a fls3b fls1a fls1b fls2a fls2b flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a Burkef1 Burkef2 Burkef3 Burkef4 Burkef5 Burkef6 Burkef7 Burkef8 Burkef9 Burkef10 Burkef11 Burkef12 Burkef13 Burkef14 Burkef15 Burkef16 Burkef17 Burkef18 Burkef19 Burkef20 Burkef21 Burkef22 Burkef23 Burkef24 Burkef25 Burkef26 Burkef27 Burkef28 Burkef29 Burkef30 Burkef31 Burkef32 Burkef33 Burkef34 Burkef35 Burkef36 Burkef37 Burkef38 Burkef39 Burkef40 Burkef41 Burkef42 Burkef43 Burkef44 Burkef45 Burkef46 Burkef47 Burkef48 Burkef49 Burkef50 Burkef51 Burkef52 Burkef53 Burkef54 Burkef55 Burkef56 Burkef57 Burkef58 Burkef59 Burkef60 Burkef61 Burkef62 Burkef63 Burkef64 Burkef65 Burkef66 Burkef67 Burkef68 Burkef69 Burkef70 Burkef71 Burkef72 Burkef73 Burkef74 Burkef75 Burkef76 Burkef77
+#Note . . . Burke flame 73-77 are duplicates
 
-experiments = Burkef2
+# experiments = fls3a fls3b fls1a fls1b fls2a fls2b flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a Burkef1 Burkef2 Burkef3 Burkef4 Burkef5 Burkef6 Burkef7 Burkef8 Burkef9 Burkef10 Burkef11 Burkef12 Burkef13 Burkef14 Burkef15 Burkef16 Burkef17 Burkef18 Burkef19 Burkef20 Burkef21 Burkef22 Burkef23 Burkef24 Burkef25 Burkef26 Burkef27 Burkef28 Burkef29 Burkef30 Burkef31 Burkef32 Burkef33 Burkef34 Burkef35 Burkef36 Burkef37 Burkef38 Burkef39 Burkef40 Burkef41 Burkef42 Burkef43 Burkef44 Burkef45 Burkef46 Burkef47 Burkef48 Burkef49 Burkef50 Burkef51 Burkef52 Burkef53 Burkef54 Burkef55 Burkef56 Burkef57 Burkef58 Burkef59 Burkef60 Burkef61 Burkef62 Burkef63 Burkef64 Burkef65 Burkef66 Burkef67 Burkef68 Burkef69 Burkef70 Burkef71 Burkef72
+
+#experiments = fls3a fls3b fls1a fls1b fls2a fls2b flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a
+
+experiments = Burkef46 Burkef47 Burkef48
 
 #use_synthetic_data = t
 
