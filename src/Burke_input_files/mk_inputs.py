@@ -7,21 +7,33 @@ import matplotlib.pyplot as plt
 def read_expts(f, ra, rb, sheet):
     wb = open_workbook(f)
     s = wb.sheets()[sheet]
-    #hdr = ['name','phi','T','P','H2','x','O2','He','Ar','xx','Rl',\
-    #        'Ru','su','f','sigma_f','sigma_s','xxx',\
-    #        'flrt','npts','xend','xcen','tfix','wmix',\
-    #        'atol', 'rtol', 'atim', 'rtim',
-    #        'ntime', 'dt_time', 'ntim2', 'dt_tim2']
-    hdr = s.row_slice(1)[1:35]
+    hdr = s.row_slice(1)[1:39]
     print hdr
     flmdata = []
     for row in range(ra,rb):
-        rdata = s.row_slice(row)[1:35]
+        rdata = s.row_slice(row)[1:39]
         thisflm = {}
         for h, cell in zip(hdr,rdata):
             thisflm[str(h.value)] = cell.value
         flmdata.append(thisflm)
     return flmdata
+
+def annealing_schedule_exp_up(p0, p1, n, k3):
+    k2 = (p1 - p0)/(1.0 - np.exp(-k3*n*1.0))
+    k1 = k2 + p0
+    p = np.zeros([n+1])
+    print k1, k2, p0, p1, k3
+    for nn in range(0,n+1):
+        p[nn] = k1 - k2*np.exp(-k3*nn*1.0)
+    return p[1:]
+
+def annealing_schedule_lin(p0, p1, n):
+    b = p0
+    m = (p1-p0)/n
+    p = np.zeros([n+1])
+    for nn in range(0,n+1):
+        p[nn] = b + m*nn
+    return p[1:]
 
 def temp_profile(x1, x2, xcen, w, T1, T2):
     xgrid = np.linspace(x1,x2,20)
@@ -106,7 +118,8 @@ def write_premix_files(flmdat):
         pmfile.write('GRAD  0.9\n')
         pmfile.write('CURV  0.9\n')
         if fd['psteps'] > 0:
-            ps = np.linspace(fd['pstart'], fd['P'],int(fd['psteps'])+1)
+            ps = annealing_schedule_exp_up(fd['pstart'], fd['P'], int(fd['psteps'])+1, fd['k3'])
+            #ps = np.linspace(fd['pstart'], fd['P'],int(fd['psteps'])+1)
             for pp in ps[1:]:
                 pmfile.write('CNTN\n')
                 pmfile.write('END\n')
@@ -115,13 +128,24 @@ def write_premix_files(flmdat):
                 pmfile.write('END\n')
                 pmfile.write('GRAD  0.9\n')
                 pmfile.write('CURV  0.9\n')
+        else:
+            pmfile.write('END\n')
+
+        if fd['refinesteps'] > 0:
+            gs = annealing_schedule_lin(0.9,fd['finalGRAD'],int(fd['refinesteps']))
+            cs = annealing_schedule_lin(0.9,fd['finalCURV'],int(fd['refinesteps']))
+            for g,c in zip(gs,cs):
                 pmfile.write('CNTN\n')
                 pmfile.write('END\n')
-                pmfile.write('GRAD  0.7\n')
-                pmfile.write('CURV  0.5\n')
+                pmfile.write('GRAD  {}\n'.format(g))
+                pmfile.write('CURV  {}\n'.format(c))
             pmfile.write('END\n')
         else:
             pmfile.write('END\n')
+
+
+                
+            
     
         pmfile.close()
         
@@ -140,3 +164,5 @@ flmdat2= read_expts('Burke_data.xlsx',3,35,1)
 
 write_premix_files(flmdat1)
 write_premix_files(flmdat2)
+
+

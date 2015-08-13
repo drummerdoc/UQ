@@ -31,6 +31,7 @@ ifeq ($(MACHINE), Linux)
   endif
   ifeq ($(findstring peregrine, ${HOSTNAME}), peregrine)
     WHICHLINUX := PEREGRINE
+    TOP = ../..
   endif
 endif
 ifeq (${MACHINE}, Darwin) 
@@ -62,8 +63,11 @@ DO_REGTEST      = FALSE
 #CHEMISTRY_MODEL = DRM19
 #CHEMISTRY_MODEL = CHEMH
 #CHEMISTRY_MODEL = DAVIS
+<<<<<<< HEAD
 #CHEMISTRY_MODEL = BURKE
 CHEMISTRY_MODEL = BURKEMOD
+=======
+>>>>>>> 44341aa316d79617cb0c7a5ab1a39193e9779c64
 #NB to us DAVIS chemistry need to hack c. l147 in ChemDriver_F.F
 #mcr = Nspec*(19+2*NO+NO*NLITEMAX)+(NO+15)*Nspec**2 * 2                          
 #mci = 4*Nspec + NLITEMAX * 2   
@@ -71,6 +75,8 @@ CHEMISTRY_MODEL = BURKEMOD
 #
 #CHEMISTRY_MODEL = LUDME
 #CHEMISTRY_MODEL = GRI30
+#CHEMISTRY_MODEL = BURKEMOD
+CHEMISTRY_MODEL = BURKE
 
 ifeq (${USE_SDC}, TRUE)
   DEFINES += -DLMC_SDC
@@ -119,6 +125,18 @@ VPATH_LOCATIONS   += $(Blocs)
 
 CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H Minimizer.H Sampler.H UqPlotfile.H
 CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp Minimizer.cpp Sampler.cpp UqPlotfile.cpp
+
+ifeq (${CHEMISTRY_MODEL}, BURKE)
+  CHEM_MECHFILE = BurkeDryer.c
+  #VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer/PMFs
+  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer/
+endif
+
+ifeq (${CHEMISTRY_MODEL}, BURKEMOD)
+  CHEM_MECHFILE = BurkeDryer_mod.c
+  #VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer/PMFs
+  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer_mod/
+endif
 
 ifeq (${CHEMISTRY_MODEL}, DAVIS)
   CHEM_MECHFILE = davis.c
