@@ -1,6 +1,5 @@
 # Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
-#TOP = ../..
-TOP = /scratch1/jbb/
+TOP = ../..
 
 # Put these here until all of them get propagated into the BoxLib make system
 
@@ -25,12 +24,14 @@ ifeq ($(MACHINE), Linux)
   endif
   ifeq ($(findstring mothra, $(UNAMEN)), mothra)
     WHICHLINUX := MOTHRA
+    TOP = /scratch1/jbb/
   endif
   ifeq ($(findstring gimantis, $(UNAMEN)), gimantis)
     WHICHLINUX := GIMANTIS
   endif
   ifeq ($(findstring peregrine, ${HOSTNAME}), peregrine)
     WHICHLINUX := PEREGRINE
+    TOP = ../..
   endif
 endif
 ifeq (${MACHINE}, Darwin) 
@@ -71,6 +72,8 @@ CHEMISTRY_MODEL = BURKEMOD
 #
 #CHEMISTRY_MODEL = LUDME
 #CHEMISTRY_MODEL = GRI30
+#CHEMISTRY_MODEL = BURKEMOD
+CHEMISTRY_MODEL = BURKE
 
 ifeq (${USE_SDC}, TRUE)
   DEFINES += -DLMC_SDC
@@ -119,6 +122,18 @@ VPATH_LOCATIONS   += $(Blocs)
 
 CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H Minimizer.H Sampler.H UqPlotfile.H
 CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp Minimizer.cpp Sampler.cpp UqPlotfile.cpp
+
+ifeq (${CHEMISTRY_MODEL}, BURKE)
+  CHEM_MECHFILE = BurkeDryer.c
+  #VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer/PMFs
+  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer/
+endif
+
+ifeq (${CHEMISTRY_MODEL}, BURKEMOD)
+  CHEM_MECHFILE = BurkeDryer_mod.c
+  #VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer/PMFs
+  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer_mod/
+endif
 
 ifeq (${CHEMISTRY_MODEL}, DAVIS)
   CHEM_MECHFILE = davis.c
@@ -272,7 +287,8 @@ endif
 VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 FEXE_sources += premix_2.F
-fEXE_sources += twopnt.f mach.f refine.f cktime.f misc_math.f 
+fEXE_sources += twopnt.f refine.f cktime.f misc_math.f
+cEXE_sources += mach_c.c
 f90EXE_sources += premix_2_util.f90 
 
 PACKAGES=./packages

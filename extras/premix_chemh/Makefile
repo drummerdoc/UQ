@@ -25,11 +25,12 @@ PREMIX=premix.exe
 all: premix premix_new
 
 premix:
-	gfortran premix_stock.f prdriv.f twopnt.f refine.f cktime.f tranlib_d.f math.f mach.f cklib_d.f -o premix_stock
+	gfortran premix.f prdriv.f twopnt.f refine.f cktime.f tranlib_d.f math.f mach.f cklib_d.f -o premix_repo
 
 premix_new:
-	gcc-mp-4.5 -std=c99 -c chem-H.c
-	gfortran-mp-4.5  premix_new.f prdriv.f twopnt.f refine.f cktime.f tranlib_d.f math.f mach.f misc_math.f chem-H.o -o premix_new 
+	gcc -I. -std=c99 -c BurkeDryer.c
+	#gfortran  premix_new.f prdriv.f twopnt.f refine.f cktime.f tranlib_d.f math.f mach.f misc_math.f chem-H.o -o premix_new 
+	gfortran  premix_new.f prdriv.f twopnt.f refine.f cktime.f tranlib_d.f math.f mach.f  BurkeDryer.o cklib_d.f -o premix_new 
 
 clean:
 	rm -f *.asc *.bak *.bin *.dat *.out *.o premix_stock premix_new
