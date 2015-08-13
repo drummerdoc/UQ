@@ -239,7 +239,7 @@ Driver::init(int argc, char *argv[])
     expt_manager.InitializeTrueData(parameter_manager.TrueParameters());
     expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
 
-#if 0
+#if 1
         std::cout << "Running 1 set of experiments" << std::endl;
         std::vector<Real> test_measurements, test_params;
         expt_manager.GenerateTestMeasurements(test_params,test_measurements);

@@ -23,6 +23,15 @@ def read_expts(f, ra, rb, sheet):
         flmdata.append(thisflm)
     return flmdata
 
+def annealing_schedule(p0, p1, n, k3):
+    k2 = (p1 - p0)/(1.0 - np.exp(-k3*n*1.0))
+    k1 = k2 + p0
+    p = np.zeros([n+1])
+    print k1, k2, p0, p1, k3
+    for nn in range(0,n+1):
+        p[nn] = k1 - k2*np.exp(-k3*nn*1.0)
+    return p
+
 def temp_profile(x1, x2, xcen, w, T1, T2):
     xgrid = np.linspace(x1,x2,20)
     xu_cen = (xcen - x1)*2.0/(x2-x1) - 1.0
@@ -106,7 +115,8 @@ def write_premix_files(flmdat):
         pmfile.write('GRAD  0.9\n')
         pmfile.write('CURV  0.9\n')
         if fd['psteps'] > 0:
-            ps = np.linspace(fd['pstart'], fd['P'],int(fd['psteps'])+1)
+            ps = annealing_schedule(fd['pstart'], fd['P'], int(fd['psteps'])+1, 1.0)
+            #ps = np.linspace(fd['pstart'], fd['P'],int(fd['psteps'])+1)
             for pp in ps[1:]:
                 pmfile.write('CNTN\n')
                 pmfile.write('END\n')
@@ -140,3 +150,5 @@ flmdat2= read_expts('Burke_data.xlsx',3,35,1)
 
 write_premix_files(flmdat1)
 write_premix_files(flmdat2)
+
+
