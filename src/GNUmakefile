@@ -287,7 +287,7 @@ endif
 VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 FEXE_sources += premix_2.F
-fEXE_sources += twopnt.f refine.f cktime.f misc_math.f
+fEXE_sources += twopnt.f refine.f cktime.f misc_math.f mach.f
 cEXE_sources += mach_c.c
 f90EXE_sources += premix_2_util.f90 
 
