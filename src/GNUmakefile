@@ -1,6 +1,5 @@
 # Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
 TOP = ../..
-TOP = /scratch1/jbb/
 
 # Put these here until all of them get propagated into the BoxLib make system
 
@@ -25,6 +24,7 @@ ifeq ($(MACHINE), Linux)
   endif
   ifeq ($(findstring mothra, $(UNAMEN)), mothra)
     WHICHLINUX := MOTHRA
+    TOP = /scratch1/jbb/
   endif
   ifeq ($(findstring gimantis, $(UNAMEN)), gimantis)
     WHICHLINUX := GIMANTIS
@@ -63,6 +63,8 @@ DO_REGTEST      = FALSE
 #CHEMISTRY_MODEL = DRM19
 #CHEMISTRY_MODEL = CHEMH
 #CHEMISTRY_MODEL = DAVIS
+#CHEMISTRY_MODEL = BURKE
+CHEMISTRY_MODEL = BURKEMOD
 #NB to us DAVIS chemistry need to hack c. l147 in ChemDriver_F.F
 #mcr = Nspec*(19+2*NO+NO*NLITEMAX)+(NO+15)*Nspec**2 * 2                          
 #mci = 4*Nspec + NLITEMAX * 2   
@@ -285,7 +287,8 @@ endif
 VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 FEXE_sources += premix_2.F
-fEXE_sources += twopnt.f mach.f refine.f cktime.f misc_math.f 
+fEXE_sources += twopnt.f refine.f cktime.f misc_math.f
+cEXE_sources += mach_c.c
 f90EXE_sources += premix_2_util.f90 
 
 PACKAGES=./packages
