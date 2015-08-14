@@ -811,10 +811,12 @@ Burkef1.num_sol_pts = 1000
 
 
 Burkef2.type = PREMIXReactor
-Burkef2.data = 77.4
+#Burkef2.data = 77.4
+Burkef2.data = 66.2
 Burkef2.premix_input_path = ./Burke_input_files/
 Burkef2.premix_input_file = premix.Burkef2
-Burkef2.measurement_error = 12.787826087
+#Burkef2.measurement_error = 12.787826087
+Burkef2.measurement_error = 3.39
 Burkef2.num_sol_pts = 1000
 
 
