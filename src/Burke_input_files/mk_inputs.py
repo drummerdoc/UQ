@@ -22,7 +22,7 @@ def annealing_schedule_exp_up(p0, p1, n, k3):
     k2 = (p1 - p0)/(1.0 - np.exp(-k3*n*1.0))
     k1 = k2 + p0
     p = np.zeros([n+1])
-    print k1, k2, p0, p1, k3
+    #print k1, k2, p0, p1, k3
     for nn in range(0,n+1):
         p[nn] = k1 - k2*np.exp(-k3*nn*1.0)
     return p[1:]
