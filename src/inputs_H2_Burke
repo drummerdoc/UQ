@@ -9,10 +9,12 @@ seed          = 17        # seed, used if no restart file provided
 ht.vode_rtol = 1.e-12
 ht.vode_atol = 1.e-12
 
-# Davis
-#parameters = p14 p14l p14h2 p14h2o p14o2 p14arhe p15 p16 p17 p18 p19 p20 p21 p21l p21h2o p21h2o2 p21o2 p21n2 p21h2 p21arhe p22 p23 p24 p25 p26 p27 p28 p28h2 p28h20 p29arhe
+# Modified Burker Dryer
+parameters = p14 p14l p14h2 p14h2o p14o2 p14ar p14he p15 p16 p17 p18 p19 p20 p21 p21l p21h2o p21h2o2 p21o2 p21n2 p21h2 p21he p22 p23 p24 p25 p26 p27 p28 p28h2 p28h2o p28arhe
 
-parameters = p14
+#parameters = p14 p14l p14h2 p14h2o p14o2 p15 p16 p17 p18 p19 p20 p21 p21l p21h2o p21h2o2 p21o2 p21n2 p21h2 p21he p22 p23 p24 p25 p26 p27 p28 p28h2 p28h2o p28arhe
+
+#parameters = p14
 
 stateL = 4.65084e12
 
@@ -24,13 +26,13 @@ p14.ensemble_std =   2.e11
 p14.upper_bound = 7.e12
 p14.lower_bound = 2.e12
 
-p14L.type = LOW_A
-p14L.reaction_id = 14
-p14L.prior_mean =  6.366e20
-p14L.prior_std =   6.366e20
-p14L.ensemble_std = 6.328e19
-p14L.upper_bound = 8e20
-p14L.lower_bound = 0
+p14l.type = LOW_A
+p14l.reaction_id = 14
+p14l.prior_mean =  6.366e20
+p14l.prior_std =   6.366e20
+p14l.ensemble_std = 6.328e19
+p14l.upper_bound = 8e20
+p14l.lower_bound = 0
 
 p14h2.type = THIRD_BODY
 p14h2.tb_name = H2
@@ -59,18 +61,28 @@ p14o2.ensemble_std = 0.078
 p14o2.upper_bound = 3
 p14o2.lower_bound = 0
 
-p14arhe.type = THIRD_BODY
-p14arhe.tb_name = AR
-p14arhe.reaction_id = 14
-p14arhe.prior_mean =  0.67
-p14arhe.prior_std =   0.67
-p14arhe.ensemble_std = 0.067
-p14arhe.upper_bound = 3
-p14arhe.lower_bound = 0
-p14arhe.dependent_parameters = tb_HE
-p14arhe.dependent_parameters.tb_HE.type = THIRD_BODY
-p14arhe.dependent_parameters.tb_HE.tb_name = HE
-p14arhe.dependent_parameters.tb_HE.reaction_id = 14
+p14ar.type = THIRD_BODY
+p14ar.tb_name = AR
+p14ar.reaction_id = 14
+p14ar.prior_mean =  0.67
+p14ar.prior_std =   0.67
+p14ar.ensemble_std = 0.067
+p14ar.upper_bound = 3
+p14ar.lower_bound = 0
+
+p14he.type = THIRD_BODY
+p14he.tb_name = AR
+p14he.reaction_id = 14
+p14he.prior_mean =  0.8
+p14he.prior_std =   0.8
+p14he.ensemble_std = 0.08
+p14he.upper_bound = 3
+p14he.lower_bound = 0
+
+#p14arhe.dependent_parameters = tb_HE
+#p14arhe.dependent_parameters.tb_HE.type = THIRD_BODY
+#p14arhe.dependent_parameters.tb_HE.tb_name = HE
+#p14arhe.dependent_parameters.tb_HE.reaction_id = 14
 
 p15.type = FWD_A
 p15.reaction_id = 15
@@ -128,13 +140,13 @@ p21.ensemble_std =   2.e11
 p21.upper_bound = 5.e12
 p21.lower_bound = 1.e12
 
-p21L.type = LOW_A
-p21L.reaction_id = 21
-p21L.prior_mean =  2.49e24
-p21L.prior_std =   2.49e24
-p21L.ensemble_std = 2.49e23
-p21L.upper_bound = 8e24
-p21L.lower_bound = 5.e23
+p21l.type = LOW_A
+p21l.reaction_id = 21
+p21l.prior_mean =  2.49e24
+p21l.prior_std =   2.49e24
+p21l.ensemble_std = 2.49e23
+p21l.upper_bound = 8e24
+p21l.lower_bound = 5.e23
 
 p21h2.type = THIRD_BODY
 p21h2.tb_name = H2
@@ -181,18 +193,14 @@ p21n2.ensemble_std = .15
 p21n2.upper_bound = 5
 p21n2.lower_bound = 0
 
-p21arhe.type = THIRD_BODY
-p21arhe.tb_name = AR
-p21arhe.reaction_id = 21
-p21arhe.prior_mean =  0.65
-p21arhe.prior_std =   0.65
-p21arhe.ensemble_std = 0.065
-p21arhe.upper_bound = 4
-p21arhe.lower_bound = 0
-p21arhe.dependent_parameters = tb_HE
-p21arhe.dependent_parameters.tb_HE.type = THIRD_BODY
-p21arhe.dependent_parameters.tb_HE.tb_name = HE
-p21arhe.dependent_parameters.tb_HE.reaction_id = 21
+p21he.type = THIRD_BODY
+p21he.tb_name = HE
+p21he.reaction_id = 21
+p21he.prior_mean =  0.65
+p21he.prior_std =   0.65
+p21he.ensemble_std = 0.065
+p21he.upper_bound = 4
+p21he.lower_bound = 0
 
 p22.type = FWD_A
 p22.reaction_id = 22
@@ -272,10 +280,10 @@ p28arhe.type = THIRD_BODY
 p28arhe.tb_name = AR
 p28arhe.reaction_id = 28
 p28arhe.prior_mean =  0.7
-p28h2.prior_std =   0.7
-p28h2.ensemble_std = 0.07
-p28h2.upper_bound = 3
-p28h2.lower_bound = 0
+p28arhe.prior_std =   0.7
+p28arhe.ensemble_std = 0.07
+p28arhe.upper_bound = 3
+p28arhe.lower_bound = 0
 p28arhe.dependent_parameters = tb_HE
 p28arhe.dependent_parameters.tb_HE.type = THIRD_BODY
 p28arhe.dependent_parameters.tb_HE.tb_name = HE
@@ -285,11 +293,13 @@ p28arhe.dependent_parameters.tb_HE.reaction_id = 28
 # laminar flames, second group is ignition delay calculations
 #Note . . . Burke flame 73-77 are duplicates
 
-# experiments = fls3a fls3b fls1a fls1b fls2a fls2b flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a Burkef1 Burkef2 Burkef3 Burkef4 Burkef5 Burkef6 Burkef7 Burkef8 Burkef9 Burkef10 Burkef11 Burkef12 Burkef13 Burkef14 Burkef15 Burkef16 Burkef17 Burkef18 Burkef19 Burkef20 Burkef21 Burkef22 Burkef23 Burkef24 Burkef25 Burkef26 Burkef27 Burkef28 Burkef29 Burkef30 Burkef31 Burkef32 Burkef33 Burkef34 Burkef35 Burkef36 Burkef37 Burkef38 Burkef39 Burkef40 Burkef41 Burkef42 Burkef43 Burkef44 Burkef45 Burkef46 Burkef47 Burkef48 Burkef49 Burkef50 Burkef51 Burkef52 Burkef53 Burkef54 Burkef55 Burkef56 Burkef57 Burkef58 Burkef59 Burkef60 Burkef61 Burkef62 Burkef63 Burkef64 Burkef65 Burkef66 Burkef67 Burkef68 Burkef69 Burkef70 Burkef71 Burkef72
+ experiments = fls3a fls3b fls1a fls1b fls2a fls2b flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a Burkef1 Burkef2 Burkef3 Burkef4 Burkef5 Burkef6 Burkef7 Burkef8 Burkef9 Burkef10 Burkef11 Burkef12 Burkef13 Burkef14 Burkef15 Burkef16 Burkef17 Burkef18 Burkef19 Burkef20 Burkef21 Burkef22 Burkef23 Burkef24 Burkef25 Burkef26 Burkef27 Burkef28 Burkef29 Burkef30 Burkef31 Burkef32 Burkef33 Burkef34 Burkef35 Burkef36 Burkef37 Burkef38 Burkef39 Burkef40 Burkef41 Burkef42 Burkef43 Burkef44 Burkef45 Burkef46 Burkef47 Burkef48 Burkef49 Burkef50 Burkef51 Burkef52 Burkef53 Burkef54 Burkef55 Burkef56 Burkef57 Burkef58 Burkef59 Burkef60 Burkef61 Burkef62 Burkef63 Burkef64 Burkef65 Burkef66 Burkef67 Burkef68 Burkef69 Burkef70 Burkef71 Burkef72
 
 #experiments = fls3a fls3b fls1a fls1b fls2a fls2b flw1a flw2a flw3a flw4a flw8a flw8b ign1a ign1b ign2a ign2b  ign3a ign4a ign4b ign5a
 
-experiments = Burkef46 Burkef47 Burkef48
+#experiments = Burkef43 Burkef63
+
+#experiments =  Burkef1 Burkef2 Burkef3 Burkef4 Burkef5 Burkef6 Burkef7 Burkef8 Burkef9 Burkef10 Burkef11 Burkef12 Burkef13 Burkef14 Burkef15 Burkef16 Burkef17 Burkef18 Burkef19 Burkef20 Burkef21 Burkef22 Burkef23 Burkef24 Burkef25 Burkef26 Burkef27 Burkef28 Burkef29 Burkef30 Burkef31 Burkef32 Burkef33 Burkef34 Burkef35 Burkef36 Burkef37 Burkef38 Burkef39 Burkef40 Burkef41 Burkef42 Burkef43 Burkef44 Burkef45 Burkef46 Burkef47 Burkef48 Burkef49 Burkef50 Burkef51 Burkef52 Burkef53 Burkef54 Burkef55 Burkef56 Burkef57 Burkef58 Burkef59 Burkef60 Burkef61 Burkef62 Burkef63 Burkef64 Burkef65 Burkef66 Burkef67 Burkef68 Burkef69 Burkef70 Burkef71 Burkef72
 
 #use_synthetic_data = t
 
