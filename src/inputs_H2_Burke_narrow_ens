@@ -21,8 +21,8 @@ stateL = 4.65084e12
 p14.type = FWD_A
 p14.reaction_id = 14
 p14.prior_mean =  4.65084e12
-p14.prior_std =   4.65084e11
-p14.ensemble_std =   2.e11
+p14.prior_std =   4.65084e12
+p14.ensemble_std =   2.e10
 p14.upper_bound = 7.e12
 p14.lower_bound = 2.e12
 
@@ -30,7 +30,7 @@ p14l.type = LOW_A
 p14l.reaction_id = 14
 p14l.prior_mean =  6.366e20
 p14l.prior_std =   6.366e20
-p14l.ensemble_std = 6.328e19
+p14l.ensemble_std = 6.328e18
 p14l.upper_bound = 8e20
 p14l.lower_bound = 0
 
@@ -39,7 +39,7 @@ p14h2.tb_name = H2
 p14h2.reaction_id = 14
 p14h2.prior_mean =  2.
 p14h2.prior_std =   2.
-p14h2.ensemble_std = 0.2
+p14h2.ensemble_std = 0.02
 p14h2.upper_bound = 4
 p14h2.lower_bound = 0
 
@@ -48,7 +48,7 @@ p14h2o.tb_name = H2O
 p14h2o.reaction_id = 14
 p14h2o.prior_mean =  14.
 p14h2o.prior_std =   14.
-p14h2o.ensemble_std = 1.4
+p14h2o.ensemble_std = .14
 p14h2o.upper_bound = 28.
 p14h2o.lower_bound = 0
 
@@ -57,7 +57,7 @@ p14o2.tb_name = O2
 p14o2.reaction_id = 14
 p14o2.prior_mean =  0.78
 p14o2.prior_std =   0.78
-p14o2.ensemble_std = 0.078
+p14o2.ensemble_std = 0.0078
 p14o2.upper_bound = 3
 p14o2.lower_bound = 0
 
@@ -66,7 +66,7 @@ p14ar.tb_name = AR
 p14ar.reaction_id = 14
 p14ar.prior_mean =  0.67
 p14ar.prior_std =   0.67
-p14ar.ensemble_std = 0.067
+p14ar.ensemble_std = 0.0067
 p14ar.upper_bound = 3
 p14ar.lower_bound = 0
 
@@ -75,7 +75,7 @@ p14he.tb_name = AR
 p14he.reaction_id = 14
 p14he.prior_mean =  0.8
 p14he.prior_std =   0.8
-p14he.ensemble_std = 0.08
+p14he.ensemble_std = 0.008
 p14he.upper_bound = 3
 p14he.lower_bound = 0
 
@@ -96,7 +96,7 @@ p16.type = FWD_A
 p16.reaction_id = 16
 p16.prior_mean =  7.079e13
 p16.prior_std =   7.079e13
-p16.ensemble_std =   7.079e12
+p16.ensemble_std =   7.079e11
 p16.upper_bound = 1.e14
 p16.lower_bound = 2.e13
 
@@ -104,7 +104,7 @@ p17.type = FWD_A
 p17.reaction_id = 17
 p17.prior_mean =  2.85e10
 p17.prior_std =   2.85e10
-p17.ensemble_std =   2.85e9
+p17.ensemble_std =   2.85e8
 p17.upper_bound = 5.e10
 p17.lower_bound = 1.e10
 
@@ -112,7 +112,7 @@ p18.type = FWD_A
 p18.reaction_id = 18
 p18.prior_mean =  2.89e13
 p18.prior_std =   2.89e13
-p18.ensemble_std =   2.89e12
+p18.ensemble_std =   2.89e11
 p18.upper_bound = 6.e13
 p18.lower_bound = 1.e13
 
@@ -120,7 +120,7 @@ p19.type = FWD_A
 p19.reaction_id = 19
 p19.prior_mean =  4.2e14
 p19.prior_std =   4.2e14
-p19.ensemble_std =   4.2e13
+p19.ensemble_std =   4.2e12
 p19.upper_bound = 7.e14
 p19.lower_bound = 1.e14
 
@@ -128,7 +128,7 @@ p20.type = FWD_A
 p20.reaction_id = 20
 p20.prior_mean =  1.3e11
 p20.prior_std =   1.3e11
-p20.ensemble_std =   1.3e10
+p20.ensemble_std =   1.3e9
 p20.upper_bound = 4.e11
 p20.lower_bound = 5.e10
 
@@ -136,7 +136,7 @@ p21.type = FWD_A
 p21.reaction_id = 21
 p21.prior_mean =  2.e12
 p21.prior_std =   2.e12
-p21.ensemble_std =   2.e11
+p21.ensemble_std =   2.e10
 p21.upper_bound = 5.e12
 p21.lower_bound = 1.e12
 
@@ -144,7 +144,7 @@ p21l.type = LOW_A
 p21l.reaction_id = 21
 p21l.prior_mean =  2.49e24
 p21l.prior_std =   2.49e24
-p21l.ensemble_std = 2.49e23
+p21l.ensemble_std = 2.49e22
 p21l.upper_bound = 8e24
 p21l.lower_bound = 5.e23
 
@@ -153,7 +153,7 @@ p21h2.tb_name = H2
 p21h2.reaction_id = 21
 p21h2.prior_mean =  3.7
 p21h2.prior_std =   3.7
-p21h2.ensemble_std = 0.37
+p21h2.ensemble_std = 0.037
 p21h2.upper_bound = 8
 p21h2.lower_bound = 0
 
@@ -162,7 +162,7 @@ p21h2o.tb_name = H2O
 p21h2o.reaction_id = 21
 p21h2o.prior_mean =  7.5
 p21h2o.prior_std =   7.5
-p21h2o.ensemble_std = .75
+p21h2o.ensemble_std = .075
 p21h2o.upper_bound = 15
 p21h2o.lower_bound = 0
 
@@ -171,7 +171,7 @@ p21h2o2.tb_name = H2O2
 p21h2o2.reaction_id = 21
 p21h2o2.prior_mean =  7.7
 p21h2o2.prior_std =   7.7
-p21h2o2.ensemble_std = 0.77
+p21h2o2.ensemble_std = 0.077
 p21h2o2.upper_bound = 15
 p21h2o2.lower_bound = 0
 
@@ -180,7 +180,7 @@ p21o2.tb_name = O2
 p21o2.reaction_id = 21
 p21o2.prior_mean =  1.2
 p21o2.prior_std =   1.2
-p21o2.ensemble_std = 0.12
+p21o2.ensemble_std = 0.012
 p21o2.upper_bound = 5
 p21o2.lower_bound = 0
 
@@ -189,7 +189,7 @@ p21n2.tb_name = N2
 p21n2.reaction_id = 21
 p21n2.prior_mean =  1.5
 p21n2.prior_std =   1.5
-p21n2.ensemble_std = .15
+p21n2.ensemble_std = .015
 p21n2.upper_bound = 5
 p21n2.lower_bound = 0
 
@@ -198,7 +198,7 @@ p21he.tb_name = HE
 p21he.reaction_id = 21
 p21he.prior_mean =  0.65
 p21he.prior_std =   0.65
-p21he.ensemble_std = 0.065
+p21he.ensemble_std = 0.0065
 p21he.upper_bound = 4
 p21he.lower_bound = 0
 
@@ -206,7 +206,7 @@ p22.type = FWD_A
 p22.reaction_id = 22
 p22.prior_mean =  2.41e13
 p22.prior_std =   2.41e13
-p22.ensemble_std =   2.41e12
+p22.ensemble_std =   2.41e11
 p22.upper_bound = 5.e13
 p22.lower_bound = 1.e13
 
@@ -214,7 +214,7 @@ p23.type = FWD_A
 p23.reaction_id = 23
 p23.prior_mean =  4.82e13
 p23.prior_std =   4.82e13
-p23.ensemble_std =   4.82e12
+p23.ensemble_std =   4.82e11
 p23.upper_bound = 9.e13
 p23.lower_bound = 1.e13
 
@@ -222,7 +222,7 @@ p24.type = FWD_A
 p24.reaction_id = 24
 p24.prior_mean =  9.55e6
 p24.prior_std =   9.55e6
-p24.ensemble_std =   9.55e5
+p24.ensemble_std =   9.55e4
 p24.upper_bound = 3.e7
 p24.lower_bound = 3.e6
 
@@ -230,7 +230,7 @@ p25.type = FWD_A
 p25.reaction_id = 25
 p25.prior_mean =  1.74e12
 p25.prior_std =   1.74e12
-p25.ensemble_std =   1.74e11
+p25.ensemble_std =   1.74e10
 p25.upper_bound = 5.e12
 p25.lower_bound = 5.e11
 
@@ -238,7 +238,7 @@ p26.type = FWD_A
 p26.reaction_id = 26
 p26.prior_mean =  7.59e13
 p26.prior_std =   7.59e13
-p26.ensemble_std =   7.59e12
+p26.ensemble_std =   7.59e11
 p26.upper_bound = 2.e14
 p26.lower_bound = 2.e13
 
@@ -246,7 +246,7 @@ p27.type = FWD_A
 p27.reaction_id = 27
 p27.prior_mean =  3.97e12
 p27.prior_std =   3.97e12
-p27.ensemble_std =   3.97e11
+p27.ensemble_std =   3.97e10
 p27.upper_bound = 9.e12
 p27.lower_bound = 1.e12
 
@@ -254,7 +254,7 @@ p28.type = FWD_A
 p28.reaction_id = 28
 p28.prior_mean =  8.e15
 p28.prior_std =   8.e15
-p28.ensemble_std =   8.e14
+p28.ensemble_std =   8.e13
 p28.upper_bound = 2.e16
 p28.lower_bound = 2.e15
 
@@ -263,7 +263,7 @@ p28h2.tb_name = H2
 p28h2.reaction_id = 28
 p28h2.prior_mean =  2.0
 p28h2.prior_std =   2.0
-p28h2.ensemble_std = .20
+p28h2.ensemble_std = .020
 p28h2.upper_bound = 6
 p28h2.lower_bound = 0
 
@@ -272,7 +272,7 @@ p28h2o.tb_name = H2O
 p28h2o.reaction_id = 28
 p28h2o.prior_mean =  12.0
 p28h2o.prior_std =   12.0
-p28h2o.ensemble_std = 1.20
+p28h2o.ensemble_std = .120
 p28h2o.upper_bound = 25
 p28h2o.lower_bound = 0
 
@@ -281,7 +281,7 @@ p28arhe.tb_name = AR
 p28arhe.reaction_id = 28
 p28arhe.prior_mean =  0.7
 p28arhe.prior_std =   0.7
-p28arhe.ensemble_std = 0.07
+p28arhe.ensemble_std = 0.007
 p28arhe.upper_bound = 3
 p28arhe.lower_bound = 0
 p28arhe.dependent_parameters = tb_HE
