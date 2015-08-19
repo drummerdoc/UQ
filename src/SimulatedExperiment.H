@@ -20,6 +20,7 @@ struct SimulatedExperiment
 
   virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations) = 0;
   virtual void GetMeasurementError(std::vector<Real>& observation_error) = 0;
+  virtual void SaveBaselineSolution(){return;}
   virtual int NumMeasuredValues() const = 0;
   virtual void InitializeExperiment() = 0;
   bool Initialized() const {return is_initialized;}
@@ -113,6 +114,7 @@ struct PREMIXReactor
   virtual void CopyData(int src, int dest, int tag);
 
   virtual void InitializeExperiment();
+  virtual void SaveBaselineSolution();
   const PremixSol& getPremixSol() const;
 
   void solCopyIn( PremixSol * );
@@ -161,6 +163,8 @@ struct PREMIXReactor
 
   ChemDriver& cd;
   PremixSol* premix_sol;
+  PremixSol* baseline_premix_sol;
+  bool have_baseline_sol;
   Real measurement_error;
 
   int max_premix_iters;
