@@ -189,7 +189,7 @@ Driver::Driver(int argc, char*argv[], int init_later)
 {
     // If this is set, expect to do initialization later after mpi world is setup
     if (init_later == 1) {
-        _mpi_comm = -1;
+        _mpi_comm = MPI_COMM_NULL;
         return;
     }
     else {
@@ -208,7 +208,7 @@ Driver::init(int argc, char *argv[])
 {
 
 #ifdef BL_USE_MPI
-    if (_mpi_comm == -1) {
+    if (_mpi_comm == MPI_COMM_NULL) {
       MPI_Init (&argc, &argv);
       mpi_initialized = true;
       BoxLib::Initialize(argc, argv, MPI_COMM_WORLD);
@@ -239,9 +239,27 @@ Driver::init(int argc, char *argv[])
     expt_manager.InitializeTrueData(parameter_manager.TrueParameters());
     expt_manager.GenerateExptData(); // Create perturbed experimental data (stored internally)
 
-#if 1
+#if 0
         std::cout << "Running 1 set of experiments" << std::endl;
+
         std::vector<Real> test_measurements, test_params;
+
+        const std::vector<Real>& prior_std = parameter_manager.PriorSTD();
+        int num_params = prior_std.size();
+        std::vector<Real> stateL(num_params);
+        int nsL = pp.countval("stateL");
+        BL_ASSERT(nsL == num_params);
+        pp.getarr("stateL",stateL,0,num_params);
+
+        test_params.resize(num_params);
+        test_params = stateL;
+
+        const std::vector<Real>& true_params = parameter_manager.TrueParameters();
+
+        for (int i=0; i<test_params.size(); ++i) {
+            std::cout << "Parameter[" << i << "] = " << test_params[i] << "; True = " << true_params[i] << std::endl;
+        }
+
         expt_manager.GenerateTestMeasurements(test_params,test_measurements);
         for (int i=0; i<test_measurements.size(); ++i) {
             std::cout << "Experiment[" << i << "] = " << test_measurements[i] << std::endl;
