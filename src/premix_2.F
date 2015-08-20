@@ -1480,9 +1480,16 @@ C*****END precision > single
 C
       include 'prcom.fh'
 C
-      DIMENSION I(LENIWK), R(LENRWK)
-      CHARACTER C(LENCWK)*(16), PRVERS*16, PRDATE*16, PREC*16, REPORT*16
-      LOGICAL L(LENLWK)
+c      DIMENSION I(LENIWK), R(LENRWK)
+c      CHARACTER C(LENCWK)*(16)
+c      LOGICAL L(LENLWK)
+
+      double precision, allocatable :: R(:)
+      integer, allocatable :: I(:)
+      logical, allocatable :: L(:)
+      character (len=16), allocatable :: C(:)
+
+      CHARACTER PRVERS*16, PRDATE*16, PREC*16, REPORT*16
       INTEGER CKLSCH
       EXTERNAL CKLSCH
       DOUBLE PRECISION SAVESOL(*)
@@ -1490,6 +1497,7 @@ C
 C
       DATA PRVERS/'3.15'/, PRDATE/'98/03/03'/
       INTEGER LRSTRTORIDE, ISGOOD
+
 C
 C*****precision > double
       PREC = 'DOUBLE'
@@ -1507,8 +1515,15 @@ C     5' Copyright 1995, Sandia Corporation.',
 C     6' The U.S. Government retains a limited license in this software.'
 C
 C     Set up internal work pointers
+
+      allocate(R(LENRWK))
+      allocate(I(LENIWK))
+      allocate(L(LENIWK))
+      allocate(C(LENCWK))
+
       CALL POINTR (LINKMC, LENIWK, LENRWK, LENCWK, JMAX, LOUT,
      1             LSAVE, LTOT, ITOT, NTOT, ICTOT, I, R, C, NIWK, NRWK)
+
 C
 C     Check for enough space
 C      WRITE (LOUT, 7000) LENLWK, LTOT, LENIWK, ITOT, LENRWK, NTOT,
@@ -1539,6 +1554,8 @@ C
      9             LREGRIDORIDE, REPORT, ISGOOD, MAXST, NTPSTEPS)
 C
 C     end of SUBROUTINE PREMIX
+
+      deallocate(R, I, L, C)
       RETURN
       END
 C

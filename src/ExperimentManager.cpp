@@ -144,11 +144,13 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
 
   true_std.resize(NumExptData());
   for (int i=0; i<expts.size(); ++i) {
+    expts[i].SaveBaselineSolution();
 
     BL_ASSERT(expts.defined(i));
     const SimulatedExperiment& expt = expts[i];
     int n = expt.NumMeasuredValues();
     BL_ASSERT(n <= raw_data[i].size());
+
 
     if (use_synthetic_data) {
       std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
@@ -176,6 +178,7 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
     }
   }    
   perturbed_data.resize(0);
+
 }
 
 void

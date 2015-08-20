@@ -864,6 +864,8 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
   int num_sol_pts = 1000; pp.query("num_sol_pts",num_sol_pts);
   int nComp = cd.numSpecies() + 3;
   premix_sol = new PremixSol(nComp,num_sol_pts);
+  baseline_premix_sol = new PremixSol(nComp,num_sol_pts);
+  have_baseline_sol = false;
   lrstrtflag=0;
 
   pp.get("premix_input_path",premix_input_path);
@@ -957,6 +959,7 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
 PREMIXReactor::~PREMIXReactor()
 {
   delete premix_sol;
+  delete baseline_premix_sol;
 }
 
 void
@@ -974,6 +977,32 @@ PREMIXReactor::ValidMeasurement(Real data) const
   return ( data > 0 && data < 1.e5 );
 }
 
+/*
+ *
+ * Run a premix case with whatever chemistry is set up and store the
+ * solution in baseline_premix_sol
+ *
+ */
+void
+PREMIXReactor::SaveBaselineSolution()
+{
+
+  std::cerr << "*************************" << std::endl;
+    std::vector<Real> simulated_obs;
+    std::pair<bool,int> status;
+    status = GetMeasurements(simulated_obs);
+    if(status.first){
+        solCopyOut(baseline_premix_sol);
+        have_baseline_sol = true;
+        std::cerr << "Observation from " << premix_input_file << " is: " << simulated_obs[0] << std::endl;
+    }
+    else{
+        std::string err = "Baseline calculation failed for input file: " + premix_input_file;
+        BoxLib::Abort(err.c_str());
+    }
+    
+
+}
 std::pair<bool,int>
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
@@ -995,6 +1024,16 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
    */
   lrstrtflag = 0; 
 #endif
+  if(have_baseline_sol)
+  {
+      solCopyIn(baseline_premix_sol);
+      lrstrtflag = 1; 
+      // std::cerr << "Have baseline solution, " <<  baseline_premix_sol->ngp <<"/" << (premix_sol->ngp) << " gridpoints\n";
+  } else
+  {
+      std::cerr << "No baseline solution!" << std::endl;
+// BoxLib::Abort();
+  }
 
   // When doing a fresh start, run through prereqs. First starts fresh, subsequent start from
   // solution from the previous. Once the prereqs are done, set restart flag so that solution
@@ -1049,7 +1088,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     }
 
     // Regrid when restarting from a previous solution of this experiment
-    lregrid = 1;
+    // Don't regrid, because now using the baseline mechanism as prev sol
+    lregrid = -1;
   }
 
   BL_ASSERT(premix_sol != 0);
@@ -1059,6 +1099,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   // Regrid to some size less than the restart solution size
   if( lregrid > 0 )
   {
+#if 0
     const int min_reasonable_regrid = min_reasonable_regrid_DEF;
     int regrid_sz = *solsz/4;
 
@@ -1066,6 +1107,8 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     // solution or some reasonable minimum, but don't regrid
     // if that would be bigger than previous solution
     lregrid = std::max(min_reasonable_regrid, regrid_sz); 
+#endif
+    lregrid = 50;
     if( lregrid > *solsz ) lregrid = -1;
 
     if( lregrid > 0) {
@@ -1145,6 +1188,28 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
   // Cleanup fortran remains
   close_premix_files_( &lin, &linck, &lrin, &lrout, &lrcvr );
+
+  //If this is the first pass, regrid and don't take any steps
+#if 0
+  if(!have_baseline_sol){
+      open_premix_files_( &lin, &lout, &linmc, &lrin,
+              &lrout, &lrcvr, infilecoded,
+              &charlen, pathcoded, &pathcharlen );
+
+      int is_good = 0;
+      int num_steps = 0;
+      int premix_iters = 1;
+      lrstrtflag = 1; 
+      lregrid = 50;
+      premix_(&nmax, &lin, &lout, &linmc, &lrin, &lrout, &lrcvr,
+              &lenlwk, &leniwk, &lenrwk, &lencwk, 
+              savesol, solsz, &lrstrtflag, &lregrid, &is_good, &premix_iters, &num_steps);
+      std::cerr << "After regrid pass, solsz = " << *solsz << std::endl;
+      // Cleanup fortran remains
+      close_premix_files_( &lin, &linck, &lrin, &lrout, &lrcvr );
+  
+  }
+#endif
 
   return std::pair<bool,int>(true,ErrorID("SUCCESS"));
 }
