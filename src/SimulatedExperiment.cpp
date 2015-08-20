@@ -1180,6 +1180,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   else {
     simulated_observations[0]  = -1;
     lrstrtflag = 0;
+    close_premix_files_( &lin, &linck, &lrin, &lrout, &lrcvr );
     if (num_steps == max_premix_iters) {
       return std::pair<bool,int>(false,ErrorID("PREMIX_TOO_MANY_ITERS"));
     }
