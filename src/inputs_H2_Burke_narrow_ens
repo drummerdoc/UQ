@@ -71,7 +71,7 @@ p14ar.upper_bound = 3
 p14ar.lower_bound = 0
 
 p14he.type = THIRD_BODY
-p14he.tb_name = AR
+p14he.tb_name = HE
 p14he.reaction_id = 14
 p14he.prior_mean =  0.8
 p14he.prior_std =   0.8
