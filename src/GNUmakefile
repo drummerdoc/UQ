@@ -118,8 +118,8 @@ include $(Bpack)
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
-CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H Minimizer.H Sampler.H UqPlotfile.H
-CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp Minimizer.cpp Sampler.cpp UqPlotfile.cpp
+CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H Minimizer.H Sampler.H UqPlotfile.H PremixSol.H
+CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp Minimizer.cpp Sampler.cpp UqPlotfile.cpp PremixSol.cpp
 
 ifeq (${CHEMISTRY_MODEL}, BURKE)
   CHEM_MECHFILE = BurkeDryer.c

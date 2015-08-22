@@ -124,11 +124,13 @@ struct PREMIXReactor
   virtual ~PREMIXReactor();
 
   bool ValidMeasurement(Real data) const;
+  bool ReadBaselineSoln(const std::string& filename);
 
   std::string name;
 
   // Array of PREMIXReactors that are prereqs to get this solution
   Array<PREMIXReactor*> prereq_reactors;
+  std::string baseline_soln_file;
 
   // Sizes for work arrays
   int lenlwk;

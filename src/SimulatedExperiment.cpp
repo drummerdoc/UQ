@@ -852,6 +852,18 @@ void parseLMC(const std::vector<std::string>& tokens, Array<Real>& lmc_data, int
   lmc_data[nY+3] = atof(tokens[0].c_str()); // location
 }
 
+bool
+PREMIXReactor::ReadBaselineSoln(const std::string& filename)
+{
+  if (!BoxLib::FileExists(filename)) {
+    return false;
+  }
+
+  // Read solution
+  std::cerr << "Reading baseline solution for " << name << " from: " << filename << std::endl;
+  return baseline_premix_sol->ReadSoln(filename);
+}
+
 PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
   : SimulatedExperiment(), name(pp_prefix), cd(_cd), max_premix_iters(max_premix_iters_DEF)
 {
@@ -867,6 +879,11 @@ PREMIXReactor::PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix)
   baseline_premix_sol = new PremixSol(nComp,num_sol_pts);
   have_baseline_sol = false;
   lrstrtflag=0;
+
+  if (pp.countval("baseline_soln_file")) {
+    pp.get("baseline_soln_file",baseline_soln_file);
+    have_baseline_sol = ReadBaselineSoln(baseline_soln_file);
+  }
 
   pp.get("premix_input_path",premix_input_path);
   pp.get("premix_input_file",premix_input_file);
@@ -986,23 +1003,26 @@ PREMIXReactor::ValidMeasurement(Real data) const
 void
 PREMIXReactor::SaveBaselineSolution()
 {
-
-  std::cerr << "*************************" << std::endl;
     std::vector<Real> simulated_obs;
     std::pair<bool,int> status;
-    status = GetMeasurements(simulated_obs);
-    if(status.first){
-        solCopyOut(baseline_premix_sol);
-        have_baseline_sol = true;
-        std::cerr << "Observation from " << premix_input_file << " is: " << simulated_obs[0] << std::endl;
-    }
-    else{
+
+    if (!have_baseline_sol) {
+      status = GetMeasurements(simulated_obs);
+      if(status.first){
+        if (baseline_soln_file != "") {
+	  std::cerr << "Writing baseline solution for " << name << " to: " << baseline_soln_file << std::endl;
+	  premix_sol->WriteSoln(baseline_soln_file);
+        }
+	have_baseline_sol = true;
+	solCopyOut(baseline_premix_sol);
+      }
+      else{
         std::string err = "Baseline calculation failed for input file: " + premix_input_file;
         BoxLib::Abort(err.c_str());
+      }
     }
-    
-
 }
+
 std::pair<bool,int>
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 {
@@ -1028,10 +1048,10 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   {
       solCopyIn(baseline_premix_sol);
       lrstrtflag = 1; 
-      // std::cerr << "Have baseline solution, " <<  baseline_premix_sol->ngp <<"/" << (premix_sol->ngp) << " gridpoints\n";
+      //std::cerr << "Have baseline solution, " <<  baseline_premix_sol->ngp <<"/" << (premix_sol->ngp) << " gridpoints\n";
   } else
   {
-      std::cerr << "No baseline solution!" << std::endl;
+    std::cerr << "No baseline solution for " << name << std::endl;
 // BoxLib::Abort();
   }
 

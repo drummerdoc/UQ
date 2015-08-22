@@ -1,6 +1,8 @@
 #ifndef PREMIXSOL_H
 #define PREMIXSOL_H
 
+#include <string>
+
 // This is basic container to store a full solution from premix
 // that can be used for restarts (e.g., more data than strictly
 // necessary to extract an 'observation').
@@ -59,7 +61,8 @@ struct PremixSol
         return *this;
     }
 
-
+    bool WriteSoln(const std::string& filename) const;
+    bool ReadSoln(const std::string& filename);
 };
 
 #endif

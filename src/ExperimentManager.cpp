@@ -225,7 +225,7 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 #ifdef _OPENMP
 #pragma omp critical (exp_failed)
 #endif
-	std::cout << "Experiment " << i << " failed.  Err msg: \""
+	std::cout << "Experiment " << i << " (" << expt_name[i] << ") failed.  Err msg: \""
 		  << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
       }
 
