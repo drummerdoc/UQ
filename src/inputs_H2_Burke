@@ -16,12 +16,12 @@ parameters = p14 p14l p14h2 p14h2o p14o2 p14ar p14he p15 p16 p17 p18 p19 p20 p21
 
 #parameters = p14
 
-stateL = 4.65084e12
+stateL = 4.6563653178e+12 6.24863913517e+20 2.01247802223 14.1603435805 0.788090085652 0.68264048083 0.799106413679 2740042.21319 7.08952470644e+13 28375231801.5 2.95274932723e+13 4.24839703053e+14 127635543959.0 1.99723901318e+12 2.50344200639e+24 7.36685382847 7.80124549326 1.19431862344 1.48361655149 3.69074898466 0.643615087027 2.43485358513e+13 4.84368228798e+13 9507345.2493 1.72596933457e+12 7.59996322286e+13 3.92186135854e+12 8.01279926828e+15 1.98489553929 12.0419875191 0.70684279235
 
 p14.type = FWD_A
 p14.reaction_id = 14
 p14.prior_mean =  4.65084e12
-p14.prior_std =   4.65084e11
+p14.prior_std =   4.65084e12
 p14.ensemble_std =   2.e11
 p14.upper_bound = 7.e12
 p14.lower_bound = 2.e12
@@ -40,7 +40,8 @@ p14h2.reaction_id = 14
 p14h2.prior_mean =  2.
 p14h2.prior_std =   2.
 p14h2.ensemble_std = 0.2
-p14h2.upper_bound = 4
+#p14h2.upper_bound = 4
+p14h2.upper_bound = 6
 p14h2.lower_bound = 0
 
 p14h2o.type = THIRD_BODY
@@ -61,6 +62,8 @@ p14o2.ensemble_std = 0.078
 p14o2.upper_bound = 3
 p14o2.lower_bound = 0
 
+###############   5
+
 p14ar.type = THIRD_BODY
 p14ar.tb_name = AR
 p14ar.reaction_id = 14
@@ -71,7 +74,7 @@ p14ar.upper_bound = 3
 p14ar.lower_bound = 0
 
 p14he.type = THIRD_BODY
-p14he.tb_name = AR
+p14he.tb_name = HE
 p14he.reaction_id = 14
 p14he.prior_mean =  0.8
 p14he.prior_std =   0.8
@@ -88,7 +91,7 @@ p15.type = FWD_A
 p15.reaction_id = 15
 p15.prior_mean =  2.75e6
 p15.prior_std =   2.75e6
-p15.ensemble_std =   2.75e4
+p15.ensemble_std =   2.75e5
 p15.upper_bound = 5.e16
 p15.lower_bound = 1.e6
 
@@ -106,7 +109,10 @@ p17.prior_mean =  2.85e10
 p17.prior_std =   2.85e10
 p17.ensemble_std =   2.85e9
 p17.upper_bound = 5.e10
-p17.lower_bound = 1.e10
+#p17.lower_bound = 1.e10
+p17.lower_bound = 1.e9
+
+###############   10
 
 p18.type = FWD_A
 p18.reaction_id = 18
@@ -121,7 +127,8 @@ p19.reaction_id = 19
 p19.prior_mean =  4.2e14
 p19.prior_std =   4.2e14
 p19.ensemble_std =   4.2e13
-p19.upper_bound = 7.e14
+#p19.upper_bound = 7.e14
+p19.upper_bound = 1.e15
 p19.lower_bound = 1.e14
 
 p20.type = FWD_A
@@ -145,8 +152,12 @@ p21l.reaction_id = 21
 p21l.prior_mean =  2.49e24
 p21l.prior_std =   2.49e24
 p21l.ensemble_std = 2.49e23
-p21l.upper_bound = 8e24
-p21l.lower_bound = 5.e23
+#p21l.upper_bound = 8e24
+#p21l.lower_bound = 5.e23
+p21l.upper_bound = 1.e25
+p21l.lower_bound = 1.e23
+
+###############   15
 
 p21h2.type = THIRD_BODY
 p21h2.tb_name = H2
@@ -193,6 +204,8 @@ p21n2.ensemble_std = .15
 p21n2.upper_bound = 5
 p21n2.lower_bound = 0
 
+###############   20
+
 p21he.type = THIRD_BODY
 p21he.tb_name = HE
 p21he.reaction_id = 21
@@ -208,7 +221,8 @@ p22.prior_mean =  2.41e13
 p22.prior_std =   2.41e13
 p22.ensemble_std =   2.41e12
 p22.upper_bound = 5.e13
-p22.lower_bound = 1.e13
+#p22.lower_bound = 1.e13
+p22.lower_bound = 1.e12
 
 p23.type = FWD_A
 p23.reaction_id = 23
@@ -216,7 +230,8 @@ p23.prior_mean =  4.82e13
 p23.prior_std =   4.82e13
 p23.ensemble_std =   4.82e12
 p23.upper_bound = 9.e13
-p23.lower_bound = 1.e13
+#p23.lower_bound = 1.e13
+p23.lower_bound = 1.e12
 
 p24.type = FWD_A
 p24.reaction_id = 24
@@ -224,7 +239,8 @@ p24.prior_mean =  9.55e6
 p24.prior_std =   9.55e6
 p24.ensemble_std =   9.55e5
 p24.upper_bound = 3.e7
-p24.lower_bound = 3.e6
+#p24.lower_bound = 3.e6
+p24.lower_bound = 1.e5
 
 p25.type = FWD_A
 p25.reaction_id = 25
@@ -232,14 +248,18 @@ p25.prior_mean =  1.74e12
 p25.prior_std =   1.74e12
 p25.ensemble_std =   1.74e11
 p25.upper_bound = 5.e12
-p25.lower_bound = 5.e11
+#p25.lower_bound = 5.e11
+p25.lower_bound = 5.e10
+
+###############   25
 
 p26.type = FWD_A
 p26.reaction_id = 26
 p26.prior_mean =  7.59e13
 p26.prior_std =   7.59e13
 p26.ensemble_std =   7.59e12
-p26.upper_bound = 2.e14
+#p26.upper_bound = 2.e14
+p26.upper_bound = 4.e14
 p26.lower_bound = 2.e13
 
 p27.type = FWD_A
@@ -276,6 +296,9 @@ p28h2o.ensemble_std = 1.20
 p28h2o.upper_bound = 25
 p28h2o.lower_bound = 0
 
+###############   30
+
+
 p28arhe.type = THIRD_BODY
 p28arhe.tb_name = AR
 p28arhe.reaction_id = 28
@@ -309,6 +332,7 @@ fls1a.premix_input_path = ../extras/Davis05_h2co/premix/
 fls1a.premix_input_file = premix.fls1a_NEW
 fls1a.measurement_error = 20
 fls1a.num_sol_pts = 1000
+fls1a.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls1a
 
 # fls1a_coarse.type = PREMIXReactor
 # fls1a_coarse.premix_input_path = ../extras/Davis05_h2co/premix/
@@ -322,6 +346,7 @@ fls1b.premix_input_path = ../extras/Davis05_h2co/premix/
 fls1b.premix_input_file = premix.fls1b
 fls1b.measurement_error = 20
 fls1b.num_sol_pts = 1000
+fls1b.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls1b
 
 fls2a.type = PREMIXReactor
 fls2a.data = 206
@@ -329,6 +354,7 @@ fls2a.premix_input_path = ../extras/Davis05_h2co/premix/
 fls2a.premix_input_file = premix.fls2a_NEW
 fls2a.measurement_error = 20
 fls2a.num_sol_pts = 1000
+fls2a.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls2a
 
 fls2b.type = PREMIXReactor
 fls2b.data = 249
@@ -336,6 +362,7 @@ fls2b.premix_input_path = ../extras/Davis05_h2co/premix/
 fls2b.premix_input_file = premix.fls2b
 fls2b.measurement_error = 25
 fls2b.num_sol_pts = 1000
+fls2b.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls2b
 
 fls3a.type = PREMIXReactor
 fls3a.data = 58
@@ -345,6 +372,7 @@ fls3a.measurement_error = 6
 fls3a.num_sol_pts = 1000
 fls3a.max_premix_iters = 20000
 #fls3a.prereqs = fls3ap1 fls3ap2
+fls3a.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls3a
 
 #fls3ap1.type = PREMIXReactor
 #fls3ap1.premix_input_path = ../../extras/Davis05_h2co/premix/
@@ -364,6 +392,7 @@ fls3b.premix_input_path = ../extras/Davis05_h2co/premix/
 fls3b.premix_input_file = premix.fls3b_NEW
 fls3b.measurement_error = 9
 fls3b.num_sol_pts = 1000
+fls3b.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls3b
 
 fls4a.type = PREMIXReactor
 fls4a.data = 40
@@ -371,6 +400,7 @@ fls4a.premix_input_path = ../extras/Davis05_h2co/premix/
 fls4a.premix_input_file = premix.fls4a
 fls4a.measurement_error = 4
 fls4a.num_sol_pts = 1000
+fls4a.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls4a
 
 fls4b.type = PREMIXReactor
 fls4b.data = 52.5
@@ -378,6 +408,7 @@ fls4b.premix_input_path = ../extras/Davis05_h2co/premix/
 fls4b.premix_input_file = premix.fls4b_NEW
 fls4b.measurement_error = 5
 fls4b.num_sol_pts = 1000
+fls4b.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls4b
 
 fls5a.type = PREMIXReactor
 fls5a.data = 111.5
@@ -385,6 +416,7 @@ fls5a.premix_input_path = ../extras/Davis05_h2co/premix/
 fls5a.premix_input_file = premix.fls5a_NEW
 fls5a.measurement_error = 11
 fls5a.num_sol_pts = 1000
+fls5a.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls5a
 
 fls5b.type = PREMIXReactor
 fls5b.data = 154.5
@@ -392,6 +424,7 @@ fls5b.premix_input_path = ../extras/Davis05_h2co/premix/
 fls5b.premix_input_file = premix.fls5b_NEW
 fls5b.measurement_error = 15
 fls5b.num_sol_pts = 1000
+fls5b.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls5b
 
 fls6a.type = PREMIXReactor
 fls6a.data = 10.3
@@ -399,6 +432,7 @@ fls6a.premix_input_path = ../extras/Davis05_h2co/premix/
 fls6a.premix_input_file = premix.fls6a
 fls6a.measurement_error = 2
 fls6a.num_sol_pts = 1000
+fls6a.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls6a
 
 fls6b.type = PREMIXReactor
 fls6b.data = 18.5
@@ -406,6 +440,7 @@ fls6b.premix_input_path = ../extras/Davis05_h2co/premix/
 fls6b.premix_input_file = premix.fls6b_NEW
 fls6b.measurement_error = 2
 fls6b.num_sol_pts = 1000
+fls6b.baseline_soln_file = ../extras/Davis05_h2co/premix/SOLN_premix.fls6b
 
 # These are the Flow reactor targets
 
@@ -807,6 +842,7 @@ Burkef1.premix_input_path = ./Burke_input_files/
 Burkef1.premix_input_file = premix.Burkef1
 Burkef1.measurement_error = 10.3586956522
 Burkef1.num_sol_pts = 1000
+Burkef1.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef1
 
 
 
@@ -818,6 +854,7 @@ Burkef2.premix_input_file = premix.Burkef2
 #Burkef2.measurement_error = 12.787826087
 Burkef2.measurement_error = 3.39
 Burkef2.num_sol_pts = 1000
+Burkef2.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef2
 
 
 
@@ -827,6 +864,7 @@ Burkef3.premix_input_path = ./Burke_input_files/
 Burkef3.premix_input_file = premix.Burkef3
 Burkef3.measurement_error = 4.92688073394
 Burkef3.num_sol_pts = 1000
+Burkef3.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef3
 
 
 
@@ -836,6 +874,7 @@ Burkef4.premix_input_path = ./Burke_input_files/
 Burkef4.premix_input_file = premix.Burkef4
 Burkef4.measurement_error = 2.5498019802
 Burkef4.num_sol_pts = 1000
+Burkef4.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef4
 
 
 
@@ -845,6 +884,7 @@ Burkef5.premix_input_path = ./Burke_input_files/
 Burkef5.premix_input_file = premix.Burkef5
 Burkef5.measurement_error = 1.64210526316
 Burkef5.num_sol_pts = 1000
+Burkef5.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef5
 
 
 
@@ -854,6 +894,7 @@ Burkef6.premix_input_path = ./Burke_input_files/
 Burkef6.premix_input_file = premix.Burkef6
 Burkef6.measurement_error = 1.16533333333
 Burkef6.num_sol_pts = 1000
+Burkef6.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef6
 
 Burkef7.type = PREMIXReactor
 Burkef7.data = 83.0
@@ -861,6 +902,7 @@ Burkef7.premix_input_path = ./Burke_input_files/
 Burkef7.premix_input_file = premix.Burkef7
 Burkef7.measurement_error = 13.8333333333
 Burkef7.num_sol_pts = 1000
+Burkef7.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef7
 
 
 
@@ -870,6 +912,7 @@ Burkef8.premix_input_path = ./Burke_input_files/
 Burkef8.premix_input_file = premix.Burkef8
 Burkef8.measurement_error = 9.18867924528
 Burkef8.num_sol_pts = 1000
+Burkef8.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef8
 
 
 
@@ -879,6 +922,7 @@ Burkef9.premix_input_path = ./Burke_input_files/
 Burkef9.premix_input_file = premix.Burkef9
 Burkef9.measurement_error = 3.64
 Burkef9.num_sol_pts = 1000
+Burkef9.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef9
 
 
 
@@ -888,6 +932,7 @@ Burkef10.premix_input_path = ./Burke_input_files/
 Burkef10.premix_input_file = premix.Burkef10
 Burkef10.measurement_error = 9.15789473684
 Burkef10.num_sol_pts = 1000
+Burkef10.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef10
 
 
 
@@ -897,6 +942,7 @@ Burkef11.premix_input_path = ./Burke_input_files/
 Burkef11.premix_input_file = premix.Burkef11
 Burkef11.measurement_error = 10.7652173913
 Burkef11.num_sol_pts = 1000
+Burkef11.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef11
 
 
 
@@ -906,6 +952,7 @@ Burkef12.premix_input_path = ./Burke_input_files/
 Burkef12.premix_input_file = premix.Burkef12
 Burkef12.measurement_error = 4.47252747253
 Burkef12.num_sol_pts = 1000
+Burkef12.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef12
 
 
 
@@ -915,6 +962,7 @@ Burkef13.premix_input_path = ./Burke_input_files/
 Burkef13.premix_input_file = premix.Burkef13
 Burkef13.measurement_error = 2.690625
 Burkef13.num_sol_pts = 1000
+Burkef13.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef13
 
 Burkef14.type = PREMIXReactor
 Burkef14.data = 21.4
@@ -922,6 +970,7 @@ Burkef14.premix_input_path = ./Burke_input_files/
 Burkef14.premix_input_file = premix.Burkef14
 Burkef14.measurement_error = 1.78333333333
 Burkef14.num_sol_pts = 1000
+Burkef14.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef14
 
 
 
@@ -931,6 +980,7 @@ Burkef15.premix_input_path = ./Burke_input_files/
 Burkef15.premix_input_file = premix.Burkef15
 Burkef15.measurement_error = 1.07407407407
 Burkef15.num_sol_pts = 1000
+Burkef15.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef15
 
 
 
@@ -940,6 +990,7 @@ Burkef16.premix_input_path = ./Burke_input_files/
 Burkef16.premix_input_file = premix.Burkef16
 Burkef16.measurement_error = 8.75833333333
 Burkef16.num_sol_pts = 1000
+Burkef16.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef16
 
 
 
@@ -949,6 +1000,7 @@ Burkef17.premix_input_path = ./Burke_input_files/
 Burkef17.premix_input_file = premix.Burkef17
 Burkef17.measurement_error = 12.2021052632
 Burkef17.num_sol_pts = 1000
+Burkef17.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef17
 
 
 
@@ -958,6 +1010,7 @@ Burkef18.premix_input_path = ./Burke_input_files/
 Burkef18.premix_input_file = premix.Burkef18
 Burkef18.measurement_error = 5.69863013699
 Burkef18.num_sol_pts = 1000
+Burkef18.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef18
 
 
 
@@ -967,6 +1020,7 @@ Burkef19.premix_input_path = ./Burke_input_files/
 Burkef19.premix_input_file = premix.Burkef19
 Burkef19.measurement_error = 3.48639053254
 Burkef19.num_sol_pts = 1000
+Burkef19.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef19
 
 
 
@@ -976,6 +1030,7 @@ Burkef20.premix_input_path = ./Burke_input_files/
 Burkef20.premix_input_file = premix.Burkef20
 Burkef20.measurement_error = 2.40742857143
 Burkef20.num_sol_pts = 1000
+Burkef20.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef20
 
 
 
@@ -985,6 +1040,7 @@ Burkef21.premix_input_path = ./Burke_input_files/
 Burkef21.premix_input_file = premix.Burkef21
 Burkef21.measurement_error = 1.92191011236
 Burkef21.num_sol_pts = 1000
+Burkef21.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef21
 
 Burkef22.type = PREMIXReactor
 Burkef22.data = 118.0
@@ -992,7 +1048,7 @@ Burkef22.premix_input_path = ./Burke_input_files/
 Burkef22.premix_input_file = premix.Burkef22
 Burkef22.measurement_error = 12.6428571429
 Burkef22.num_sol_pts = 1000
-
+Burkef22.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef22
 
 
 Burkef23.type = PREMIXReactor
@@ -1001,6 +1057,8 @@ Burkef23.premix_input_path = ./Burke_input_files/
 Burkef23.premix_input_file = premix.Burkef23
 Burkef23.measurement_error = 13.6524590164
 Burkef23.num_sol_pts = 1000
+Burkef23.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef23
+
 
 
 
@@ -1010,6 +1068,8 @@ Burkef24.premix_input_path = ./Burke_input_files/
 Burkef24.premix_input_file = premix.Burkef24
 Burkef24.measurement_error = 5.98043478261
 Burkef24.num_sol_pts = 1000
+Burkef24.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef24
+
 
 
 
@@ -1019,6 +1079,8 @@ Burkef25.premix_input_path = ./Burke_input_files/
 Burkef25.premix_input_file = premix.Burkef25
 Burkef25.measurement_error = 3.98904109589
 Burkef25.num_sol_pts = 1000
+Burkef25.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef25
+
 
 
 
@@ -1028,8 +1090,7 @@ Burkef26.premix_input_path = ./Burke_input_files/
 Burkef26.premix_input_file = premix.Burkef26
 Burkef26.measurement_error = 2.99678714859
 Burkef26.num_sol_pts = 1000
-
-
+Burkef26.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef26
 
 Burkef27.type = PREMIXReactor
 Burkef27.data = 99.5
@@ -1037,6 +1098,8 @@ Burkef27.premix_input_path = ./Burke_input_files/
 Burkef27.premix_input_file = premix.Burkef27
 Burkef27.measurement_error = 24.0172413793
 Burkef27.num_sol_pts = 1000
+Burkef27.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef27
+
 
 
 
@@ -1046,6 +1109,7 @@ Burkef28.premix_input_path = ./Burke_input_files/
 Burkef28.premix_input_file = premix.Burkef28
 Burkef28.measurement_error = 25.8184652278
 Burkef28.num_sol_pts = 1000
+Burkef28.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef28
 
 
 
@@ -1055,6 +1119,7 @@ Burkef29.premix_input_path = ./Burke_input_files/
 Burkef29.premix_input_file = premix.Burkef29
 Burkef29.measurement_error = 10.6022304833
 Burkef29.num_sol_pts = 1000
+Burkef29.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef29
 
 Burkef30.type = PREMIXReactor
 Burkef30.data = 28.7
@@ -1062,6 +1127,7 @@ Burkef30.premix_input_path = ./Burke_input_files/
 Burkef30.premix_input_file = premix.Burkef30
 Burkef30.measurement_error = 4.73578528827
 Burkef30.num_sol_pts = 1000
+Burkef30.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef30
 
 
 
@@ -1071,6 +1137,7 @@ Burkef31.premix_input_path = ./Burke_input_files/
 Burkef31.premix_input_file = premix.Burkef31
 Burkef31.measurement_error = 2.696069869
 Burkef31.num_sol_pts = 1000
+Burkef31.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef31
 
 
 
@@ -1080,6 +1147,7 @@ Burkef32.premix_input_path = ./Burke_input_files/
 Burkef32.premix_input_file = premix.Burkef32
 Burkef32.measurement_error = 36.4575539568
 Burkef32.num_sol_pts = 1000
+Burkef32.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef32
 
 
 
@@ -1089,6 +1157,7 @@ Burkef33.premix_input_path = ./Burke_input_files/
 Burkef33.premix_input_file = premix.Burkef33
 Burkef33.measurement_error = 30.4227739726
 Burkef33.num_sol_pts = 1000
+Burkef33.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef33
 
 
 
@@ -1098,6 +1167,7 @@ Burkef34.premix_input_path = ./Burke_input_files/
 Burkef34.premix_input_file = premix.Burkef34
 Burkef34.measurement_error = 12.9931360947
 Burkef34.num_sol_pts = 1000
+Burkef34.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef34
 
 
 
@@ -1107,6 +1177,7 @@ Burkef35.premix_input_path = ./Burke_input_files/
 Burkef35.premix_input_file = premix.Burkef35
 Burkef35.measurement_error = 6.99978070175
 Burkef35.num_sol_pts = 1000
+Burkef35.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef35
 
 
 
@@ -1116,6 +1187,7 @@ Burkef36.premix_input_path = ./Burke_input_files/
 Burkef36.premix_input_file = premix.Burkef36
 Burkef36.measurement_error = 4.22582480091
 Burkef36.num_sol_pts = 1000
+Burkef36.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef36
 
 
 
@@ -1125,6 +1197,7 @@ Burkef37.premix_input_path = ./Burke_input_files/
 Burkef37.premix_input_file = premix.Burkef37
 Burkef37.measurement_error = 2.63132220796
 Burkef37.num_sol_pts = 1000
+Burkef37.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef37
 
 Burkef38.type = PREMIXReactor
 Burkef38.data = 147.9
@@ -1132,6 +1205,7 @@ Burkef38.premix_input_path = ./Burke_input_files/
 Burkef38.premix_input_file = premix.Burkef38
 Burkef38.measurement_error = 25.1150943396
 Burkef38.num_sol_pts = 1000
+Burkef38.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef38
 
 
 
@@ -1141,6 +1215,7 @@ Burkef39.premix_input_path = ./Burke_input_files/
 Burkef39.premix_input_file = premix.Burkef39
 Burkef39.measurement_error = 29.0088549618
 Burkef39.num_sol_pts = 1000
+Burkef39.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef39
 
 
 
@@ -1150,6 +1225,7 @@ Burkef40.premix_input_path = ./Burke_input_files/
 Burkef40.premix_input_file = premix.Burkef40
 Burkef40.measurement_error = 14.2414206642
 Burkef40.num_sol_pts = 1000
+Burkef40.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef40
 
 
 
@@ -1159,6 +1235,7 @@ Burkef41.premix_input_path = ./Burke_input_files/
 Burkef41.premix_input_file = premix.Burkef41
 Burkef41.measurement_error = 8.44101773323
 Burkef41.num_sol_pts = 1000
+Burkef41.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef41
 
 
 
@@ -1168,6 +1245,7 @@ Burkef42.premix_input_path = ./Burke_input_files/
 Burkef42.premix_input_file = premix.Burkef42
 Burkef42.measurement_error = 5.39395725866
 Burkef42.num_sol_pts = 1000
+Burkef42.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef42
 
 
 
@@ -1177,6 +1255,7 @@ Burkef43.premix_input_path = ./Burke_input_files/
 Burkef43.premix_input_file = premix.Burkef43
 Burkef43.measurement_error = 3.83637681159
 Burkef43.num_sol_pts = 1000
+Burkef43.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef43
 
 
 
@@ -1186,6 +1265,7 @@ Burkef44.premix_input_path = ./Burke_input_files/
 Burkef44.premix_input_file = premix.Burkef44
 Burkef44.measurement_error = 26.3917582418
 Burkef44.num_sol_pts = 1000
+Burkef44.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef44
 
 
 
@@ -1195,6 +1275,7 @@ Burkef45.premix_input_path = ./Burke_input_files/
 Burkef45.premix_input_file = premix.Burkef45
 Burkef45.measurement_error = 32.685136742
 Burkef45.num_sol_pts = 1000
+Burkef45.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef45
 
 Burkef46.type = PREMIXReactor
 Burkef46.data = 55.4
@@ -1202,6 +1283,7 @@ Burkef46.premix_input_path = ./Burke_input_files/
 Burkef46.premix_input_file = premix.Burkef46
 Burkef46.measurement_error = 2.77
 Burkef46.num_sol_pts = 1000
+Burkef46.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef46
 
 
 
@@ -1211,6 +1293,7 @@ Burkef47.premix_input_path = ./Burke_input_files/
 Burkef47.premix_input_file = premix.Burkef47
 Burkef47.measurement_error = 3.29032258065
 Burkef47.num_sol_pts = 1000
+Burkef47.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef47
 
 
 
@@ -1220,6 +1303,7 @@ Burkef48.premix_input_path = ./Burke_input_files/
 Burkef48.premix_input_file = premix.Burkef48
 Burkef48.measurement_error = 1.67419354839
 Burkef48.num_sol_pts = 1000
+Burkef48.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef48
 
 
 
@@ -1229,6 +1313,7 @@ Burkef49.premix_input_path = ./Burke_input_files/
 Burkef49.premix_input_file = premix.Burkef49
 Burkef49.measurement_error = 0.561904761905
 Burkef49.num_sol_pts = 1000
+Burkef49.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef49
 
 
 
@@ -1238,6 +1323,7 @@ Burkef50.premix_input_path = ./Burke_input_files/
 Burkef50.premix_input_file = premix.Burkef50
 Burkef50.measurement_error = 1.97288135593
 Burkef50.num_sol_pts = 1000
+Burkef50.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef50
 
 
 
@@ -1247,6 +1333,7 @@ Burkef51.premix_input_path = ./Burke_input_files/
 Burkef51.premix_input_file = premix.Burkef51
 Burkef51.measurement_error = 3.58823529412
 Burkef51.num_sol_pts = 1000
+Burkef51.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef51
 
 
 
@@ -1256,6 +1343,7 @@ Burkef52.premix_input_path = ./Burke_input_files/
 Burkef52.premix_input_file = premix.Burkef52
 Burkef52.measurement_error = 4.37307692308
 Burkef52.num_sol_pts = 1000
+Burkef52.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef52
 
 
 
@@ -1265,6 +1353,7 @@ Burkef53.premix_input_path = ./Burke_input_files/
 Burkef53.premix_input_file = premix.Burkef53
 Burkef53.measurement_error = 2.165625
 Burkef53.num_sol_pts = 1000
+Burkef53.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef53
 
 Burkef54.type = PREMIXReactor
 Burkef54.data = 15.0
@@ -1272,6 +1361,7 @@ Burkef54.premix_input_path = ./Burke_input_files/
 Burkef54.premix_input_file = premix.Burkef54
 Burkef54.measurement_error = 1.45161290323
 Burkef54.num_sol_pts = 1000
+Burkef54.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef54
 
 
 
@@ -1281,6 +1371,7 @@ Burkef55.premix_input_path = ./Burke_input_files/
 Burkef55.premix_input_file = premix.Burkef55
 Burkef55.measurement_error = 0.713043478261
 Burkef55.num_sol_pts = 1000
+Burkef55.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef55
 
 
 
@@ -1290,6 +1381,7 @@ Burkef56.premix_input_path = ./Burke_input_files/
 Burkef56.premix_input_file = premix.Burkef56
 Burkef56.measurement_error = 3.39032258065
 Burkef56.num_sol_pts = 1000
+Burkef56.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef56
 
 
 
@@ -1299,6 +1391,7 @@ Burkef57.premix_input_path = ./Burke_input_files/
 Burkef57.premix_input_file = premix.Burkef57
 Burkef57.measurement_error = 2.67916666667
 Burkef57.num_sol_pts = 1000
+Burkef57.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef57
 
 
 
@@ -1308,6 +1401,7 @@ Burkef58.premix_input_path = ./Burke_input_files/
 Burkef58.premix_input_file = premix.Burkef58
 Burkef58.measurement_error = 1.67083333333
 Burkef58.num_sol_pts = 1000
+Burkef58.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef58
 
 
 
@@ -1317,6 +1411,7 @@ Burkef59.premix_input_path = ./Burke_input_files/
 Burkef59.premix_input_file = premix.Burkef59
 Burkef59.measurement_error = 4.26428571429
 Burkef59.num_sol_pts = 1000
+Burkef59.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef59
 
 
 
@@ -1326,6 +1421,7 @@ Burkef60.premix_input_path = ./Burke_input_files/
 Burkef60.premix_input_file = premix.Burkef60
 Burkef60.measurement_error = 3.384
 Burkef60.num_sol_pts = 1000
+Burkef60.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef60
 
 
 
@@ -1335,6 +1431,7 @@ Burkef61.premix_input_path = ./Burke_input_files/
 Burkef61.premix_input_file = premix.Burkef61
 Burkef61.measurement_error = 1.67272727273
 Burkef61.num_sol_pts = 1000
+Burkef61.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef61
 
 Burkef62.type = PREMIXReactor
 Burkef62.data = 17.7
@@ -1342,6 +1439,7 @@ Burkef62.premix_input_path = ./Burke_input_files/
 Burkef62.premix_input_file = premix.Burkef62
 Burkef62.measurement_error = 1.10625
 Burkef62.num_sol_pts = 1000
+Burkef62.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef62
 
 
 
@@ -1351,6 +1449,7 @@ Burkef63.premix_input_path = ./Burke_input_files/
 Burkef63.premix_input_file = premix.Burkef63
 Burkef63.measurement_error = 0.824
 Burkef63.num_sol_pts = 1000
+Burkef63.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef63
 
 
 
@@ -1360,6 +1459,7 @@ Burkef64.premix_input_path = ./Burke_input_files/
 Burkef64.premix_input_file = premix.Burkef64
 Burkef64.measurement_error = 3.908
 Burkef64.num_sol_pts = 1000
+Burkef64.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef64
 
 
 
@@ -1369,6 +1469,7 @@ Burkef65.premix_input_path = ./Burke_input_files/
 Burkef65.premix_input_file = premix.Burkef65
 Burkef65.measurement_error = 3.15294117647
 Burkef65.num_sol_pts = 1000
+Burkef65.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef65
 
 
 
@@ -1378,6 +1479,7 @@ Burkef66.premix_input_path = ./Burke_input_files/
 Burkef66.premix_input_file = premix.Burkef66
 Burkef66.measurement_error = 1.96017699115
 Burkef66.num_sol_pts = 1000
+Burkef66.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef66
 
 
 
@@ -1387,6 +1489,7 @@ Burkef67.premix_input_path = ./Burke_input_files/
 Burkef67.premix_input_file = premix.Burkef67
 Burkef67.measurement_error = 2.09333333333
 Burkef67.num_sol_pts = 1000
+Burkef67.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef67
 
 
 
@@ -1396,6 +1499,7 @@ Burkef68.premix_input_path = ./Burke_input_files/
 Burkef68.premix_input_file = premix.Burkef68
 Burkef68.measurement_error = 1.37543859649
 Burkef68.num_sol_pts = 1000
+Burkef68.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef68
 
 Burkef69.type = PREMIXReactor
 Burkef69.data = 16.3
@@ -1403,6 +1507,7 @@ Burkef69.premix_input_path = ./Burke_input_files/
 Burkef69.premix_input_file = premix.Burkef69
 Burkef69.measurement_error = 1.88076923077
 Burkef69.num_sol_pts = 1000
+Burkef69.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef69
 
 
 
@@ -1412,6 +1517,7 @@ Burkef70.premix_input_path = ./Burke_input_files/
 Burkef70.premix_input_file = premix.Burkef70
 Burkef70.measurement_error = 3.66578947368
 Burkef70.num_sol_pts = 1000
+Burkef70.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef70
 
 
 
@@ -1421,6 +1527,7 @@ Burkef71.premix_input_path = ./Burke_input_files/
 Burkef71.premix_input_file = premix.Burkef71
 Burkef71.measurement_error = 4.43612903226
 Burkef71.num_sol_pts = 1000
+Burkef71.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef71
 
 
 
@@ -1430,6 +1537,7 @@ Burkef72.premix_input_path = ./Burke_input_files/
 Burkef72.premix_input_file = premix.Burkef72
 Burkef72.measurement_error = 3.33590733591
 Burkef72.num_sol_pts = 1000
+Burkef72.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef72
 
 
 
@@ -1439,6 +1547,7 @@ Burkef73.premix_input_path = ./Burke_input_files/
 Burkef73.premix_input_file = premix.Burkef73
 Burkef73.measurement_error = 12.4304347826
 Burkef73.num_sol_pts = 1000
+Burkef73.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef73
 
 
 
@@ -1448,6 +1557,7 @@ Burkef74.premix_input_path = ./Burke_input_files/
 Burkef74.premix_input_file = premix.Burkef74
 Burkef74.measurement_error = 3.39487179487
 Burkef74.num_sol_pts = 1000
+Burkef74.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef74
 
 
 Burkef75.type = PREMIXReactor
@@ -1456,6 +1566,7 @@ Burkef75.premix_input_path = ./Burke_input_files/
 Burkef75.premix_input_file = premix.Burkef75
 Burkef75.measurement_error = 9.15789473684
 Burkef75.num_sol_pts = 1000
+Burkef75.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef75
 
 
 
@@ -1465,6 +1576,7 @@ Burkef76.premix_input_path = ./Burke_input_files/
 Burkef76.premix_input_file = premix.Burkef76
 Burkef76.measurement_error = 10.7652173913
 Burkef76.num_sol_pts = 1000
+Burkef76.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef76
 
 
 
@@ -1474,5 +1586,6 @@ Burkef77.premix_input_path = ./Burke_input_files/
 Burkef77.premix_input_file = premix.Burkef77
 Burkef77.measurement_error = 4.47252747253
 Burkef77.num_sol_pts = 1000
+Burkef77.baseline_soln_file = ./Burke_input_files/SOLN_premix.Burkef77
 
 
