@@ -240,8 +240,8 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 #pragma omp critical (pvtokok)
 #endif
       {
-//	ok &= retVal.first;
-        ok = true;
+	ok &= retVal.first;
+//        ok = true;
 	pvtok = ok;
       }
 
