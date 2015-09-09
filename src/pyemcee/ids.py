@@ -218,7 +218,7 @@ def Resampling(w,samples):
 
 # Evals and evecs of Covariance
 def ComputeHessEvals(Cov,neff):
-    print 'Covariance:', Cov
+    #print 'Covariance:', Cov
     evals,evecs = np.linalg.eigh(Cov)
     evecs = np.matrix(evecs)
     
@@ -280,11 +280,12 @@ if use_plt == 1:
     print 'Using plotfiles to read data'
     Samples1 = LoadPlotfile(initialSamples)#'GMM_It5_RS')
     N = Samples1[0].shape[0]
-    M = len(Samples1)
-    print "using ",M,"samples"
-    data = np.array(np.zeros(shape=(len(Samples1),Samples1[0].shape[0]+1)))
-    Samples1.reverse() # reversed to agree with original data
-    for i,v in enumerate(Samples1):
+    M = min(len(Samples1),numInitialSamples)
+    Samples2 = Samples1[:M]
+    print "using ",len(Samples2),"samples"
+    data = np.array(np.zeros(shape=(M,Samples2[0].shape[0]+1)))
+    Samples2.reverse() # reversed to agree with original data
+    for i,v in enumerate(Samples2):
         data[i,:-1] = v
 else:
     data = np.loadtxt(initialSamples)
@@ -298,6 +299,10 @@ scales = prior_mean             # Scale values for independent data
 lower_bounds = np.array(driver.LowerBound())/scales
 upper_bounds = np.array(driver.UpperBound())/scales
 
+print 'lower bounds'
+print lower_bounds
+print 'upper bounds'
+print upper_bounds
 
 x = data[-M:,:N].copy() 
 scaled_x = np.copy(x)
@@ -306,7 +311,7 @@ for i in range(M):
 mu = np.matrix(np.mean(scaled_x,axis=0))
 print 'mean = ', mu
 print 'infl =',infl
-print type(infl)
+#print type(infl)
 Cov = infl*np.cov(scaled_x.T)
 
 if whichSampler == 1: # use Gaussian
@@ -323,7 +328,7 @@ for i in range(NOS):
     if rank == 0:
         Samples[:,i] =  np.multiply(Samples1[:,i].T,np.matrix(scales)).T
 
-print np.shape(Samples)
+#print np.shape(Samples)
 if rank == 0:
     nwalkers = 1
     nDigits = 0
