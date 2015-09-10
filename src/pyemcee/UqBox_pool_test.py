@@ -36,8 +36,8 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, argfcn, pool=pool)
 nSteps = 400
 sampler.run_mcmc(p0, nSteps)
 
-plt.plot(sampler.chain[:,:,0])
-plt.show()
+#plt.plot(sampler.chain[:,:,0])
+#plt.show()
 
 pool.close()
 

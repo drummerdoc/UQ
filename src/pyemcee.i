@@ -61,6 +61,7 @@ struct Driver
 #ifdef BL_USE_MPI
   void SetComm(MPI_Comm comm);
 #endif
+  void SetParallelModeThreaded();
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
   static int NumData();

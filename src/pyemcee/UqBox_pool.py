@@ -1,6 +1,6 @@
 import numpy as np
 
-from emcee.utils import MPIPool, _close_pool_message, _function_wrapper, _error_function
+from emcee.mpi_pool import MPIPool, _close_pool_message, _function_wrapper, _error_function
 
 class UqBoxPool(MPIPool):
     def __init__(self, MPI=None, debug=False):
