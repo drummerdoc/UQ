@@ -24,10 +24,20 @@ if [ "${HOST}" == "gimantis" ]; then
   export FC='gfortran'
 fi
 
-cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
-      -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \
-      -DBUILD_SHARED_LIBS:BOOL=TRUE \
-      -DLAPACKE:BOOL=TRUE
+
+# edison needs flag for dynamic libraries
+if [[ "${HOST}" == "edison"* ]]; then
+  cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
+        -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \
+        -DBUILD_SHARED_LIBS:BOOL=TRUE \
+        -DLAPACKE:BOOL=TRUE \
+        -DCMAKE_SHARED_LINKER_FLAGS="-dynamic"
+else
+  cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
+        -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \
+        -DBUILD_SHARED_LIBS:BOOL=TRUE \
+        -DLAPACKE:BOOL=TRUE
+fi
 
 make -j4
 

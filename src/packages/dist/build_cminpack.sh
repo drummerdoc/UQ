@@ -20,9 +20,17 @@ tar -C "${builddir}" -xzf "${tardir}"/${fullname}.tar.gz
 
 cd "${builddir}/${fullname}"
 
-cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
-      -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \
-      -DSHARED_LIBS:BOOL=TRUE
+if [[ "${HOST}" == "edison"* ]]; then
+  cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
+        -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \
+        -DSHARED_LIBS:BOOL=TRUE \
+        -DCMAKE_SHARED_LINKER_FLAGS="-dynamic"\
+        -DCMAKE_EXE_LINKER_FLAGS="-dynamic"
+else
+  cmake -DCMAKE_INSTALL_PREFIX:STRING="${destdir}" \
+        -DCMAKE_BUILD_TYPE:STRING=${BUILD_TYPE} \
+        -DSHARED_LIBS:BOOL=TRUE 
+fi
 
 make -j4
 

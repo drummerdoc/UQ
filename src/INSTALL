@@ -103,3 +103,11 @@ aprun -n 8 -N 4 -d 6 -S 2 -ss ./minimizeEnsemble2d.Linux.g++.gfortran.MPI.OMP.ex
 
 ....this will run 8 MPI tasks with 6 threads each, using 4 MPI tasks per NUMA domain.
 
+Update 10Sep15:
+I needed to do:
+module unload darshan
+to get some of the extra packages to build - errors about needing fPIC on the darshan libraries linked in by the
+default wrappers
+
+A liberal sprinkling of -dynamic around link lines also may be necessary; I updated the cminpack and lapacke
+build scripts to add this
