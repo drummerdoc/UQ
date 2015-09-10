@@ -269,6 +269,13 @@ Driver::init(int argc, char *argv[])
 #endif
 }
 
+void
+Driver::SetParallelModeThreaded()
+{
+    mystruct->expt_manager.SetVerbose(false);
+    mystruct->expt_manager.SetParallelMode(ExperimentManager::PARALLELIZE_OVER_THREAD);
+}
+
 Driver::~Driver()
 {
   delete mystruct;

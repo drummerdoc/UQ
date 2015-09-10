@@ -14,6 +14,8 @@ struct Driver
   void SetComm(MPI_Comm mpi_comm);
 #endif
   ~Driver();
+  void SetParallelModeThreaded();
+
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
   static int NumData();
