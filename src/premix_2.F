@@ -1518,7 +1518,7 @@ C     Set up internal work pointers
 
       allocate(R(LENRWK))
       allocate(I(LENIWK))
-      allocate(L(LENIWK))
+      allocate(L(LENLWK))
       allocate(C(LENCWK))
 
       CALL POINTR (LINKMC, LENIWK, LENRWK, LENCWK, JMAX, LOUT,
