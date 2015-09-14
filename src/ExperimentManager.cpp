@@ -5,6 +5,7 @@
 #include <ParmParse.H>
 #include <ParallelDescriptor.H>
 #include <Utility.H>
+#include <omp.h>
 
 static bool log_failed_cases_DEF = true;
 static std::string log_folder_name_DEF = "FAILED";
@@ -222,7 +223,12 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 #endif
   for (int i=0; i<N; ++i) {
     if (pvtok) {
-      std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
+       // int nthreads = omp_get_num_threads();
+      //std::cout << "Evaluating experiment " << i << " of " << N 
+      //          << " on thread id " << omp_get_thread_num() 
+      //          << " of " << nthreads << std::endl;
+      std::pair<bool,int> retVal;
+       retVal = expts[i].GetMeasurements(raw_data[i]);
       if (!retVal.first) {
 
 	msgID[i] = retVal.second;
