@@ -144,9 +144,9 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
 
   true_std.resize(NumExptData());
   for (int i=0; i<expts.size(); ++i) {
-          std::cerr << 
-              "Saving baseline solution only on IO proc " << std::endl <<
-              " ******* probably not what we want for every case" << std::endl;
+          // std::cerr << 
+          //     "Saving baseline solution only on IO proc " << std::endl <<
+          //     " ******* probably not what we want for every case" << std::endl;
 	  if (ParallelDescriptor::IOProcessor()) {
 		  expts[i].SaveBaselineSolution();
 	  }
