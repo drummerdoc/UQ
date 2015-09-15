@@ -17,10 +17,23 @@ main (int   argc,
   ChemDriver::SetTransport(ChemDriver::CD_TRANLIB);
 
 #ifdef BL_USE_MPI
+#ifdef BL_USE_OMP
+  int thdsafe_init;
+  MPI_Init_thread (&argc, &argv, 2, &thdsafe_init);
+#else
   MPI_Init (&argc, &argv);
+#endif
   Driver driver(argc,argv,MPI_COMM_WORLD);
 #else
   Driver driver(argc,argv, 0);
+#endif
+
+#ifdef BL_USE_OMP
+#ifdef BL_USE_MPI
+  int thdsafe;
+  MPI_Query_thread(&thdsafe);
+  std::cout << "Got thread safety level: " << thdsafe << std::endl;
+#endif
 #endif
 
   ParmParse pp;
@@ -104,5 +117,9 @@ main (int   argc,
       Real F = NegativeLogLikelihood(sample);
     }
   }
+  return(0);
+#ifdef BL_USE_MPI
+MPI_Finalize();
+#endif
 }
 

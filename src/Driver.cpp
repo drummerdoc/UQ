@@ -230,6 +230,11 @@ Driver::init(int argc, char *argv[])
 #else
     BoxLib::Initialize(argc, argv);
 #endif
+// TODO(rgrout) : Fix this to use a variable that can be set from 
+// python driver
+#ifdef BL_USE_OMP
+omp_set_num_threads(24);
+#endif
     if (cd == 0) {
         cd = new ChemDriver;
         made_cd = true;
@@ -290,5 +295,7 @@ Driver::~Driver()
 {
   delete mystruct;
   if (made_cd) delete cd;
-  BoxLib::Finalize(mpi_initialized);
+  if( mpi_initialized ){
+	  BoxLib::Finalize(mpi_initialized);
+  }
 }

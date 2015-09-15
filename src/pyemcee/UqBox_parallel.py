@@ -8,16 +8,17 @@
 # lost reindeer:           Ray Grout (ray.grout@nrel.gov)
 
 from __future__ import print_function
+print("Welcome to UqBox parallel. Be brave")
 import numpy as np
 import emcee
 import sys
 import StringIO
-
 import pyemcee as pymc
 import cPickle
 
 parallel_mode = 'BOXLIB' # serial UqBox, Boxlib parallizes experiments (over MPI)
 parallel_mode = 'HYBRID' # MPI parallel UqBox, boxlib threads experiments with OMP 
+print("Parallel mode is: " + parallel_mode)
 
 if parallel_mode:
     from mpi4py import MPI
@@ -135,10 +136,12 @@ def lnprob(x, driver):
 def argfcn(x):
     return x
 
+print('Setting up evaluator')
 # Build the persistent class containing the driver object
 driver = DriverWrap()
 driver.d = pymc.Driver(len(sys.argv), sys.argv, 1)
 driver.d.SetComm(MPI.COMM_WORLD)
+print('Calling evaluator init')
 driver.d.init(len(sys.argv),sys.argv)
 
 if parallel_mode == 'HYBRID':
@@ -155,6 +158,7 @@ prior_std = driver.PriorStd()
 ensemble_std = driver.EnsembleStd()
 
 pp = pymc.ParmParse()
+print('Setting up sampler')
 
 nwalkers      = int(pp['nwalkers'])
 maxStep       = int(pp['maxStep'])
@@ -178,68 +182,75 @@ if rank == 0:
     print('prior std: '+ str(prior_std))
     print('ensemble std: '+ str(ensemble_std))
 
+# Function to run sampler
+def do_sampler():
+    if restartFile == "":
+    
+        # Choose an initial set of positions for the walkers.
+        driver.sampler._random =  np.random.mtrand.RandomState(seed=seed) # overwrite state of rand with seeded one
+        p0 = [prior_mean + driver.sampler._random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
+    
+        step = 0
+        
+        have_state = False
+    
+    else:
+    
+        if rank == 0:
+            print ('Rstarting from '+restartFile)
+            
+        pos, step, state = LoadPlotfile(driver, restartFile)
+        step = step + 1
+    
+        have_state = True
+    
+    
+    # Main sampling loop
+    if rank == 0:
+        print ('Sampling...')
+    
+    if rank == 0:
+        g=open('accept', 'w')
+        
+    while step < maxStep:
+    
+        nSteps = min(outFilePeriod, maxStep-step+1)
+        
+        driver.sampler.reset()
+    
+        if have_state:
+            pos, prob, state = driver.sampler.run_mcmc(pos, nSteps, rstate0=state)
+        else:
+            pos, prob, state = driver.sampler.run_mcmc(p0, nSteps)
+            have_state = True
+    
+        if rank == 0:
+            print("Mean acceptance fraction:", np.mean(driver.sampler.acceptance_fraction))
+            g.write('Mean acceptance fraction:'+str(np.mean(driver.sampler.acceptance_fraction))+'\n')
+            g.flush()
+    
+        nDigits = int(np.log10(maxStep)) + 1
+        WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,state)
+    
+        step = step + nSteps
 
 # Build a sampler object
 
 if parallel_mode == 'HYBRID':
     from UqBox_pool import UqBoxPool
-    pool = UqBoxPool(MPI=MPI)
+    pool = UqBoxPool(MPI=MPI, debug=False)
     pool.set_function(lnprob)
     pool.set_function_arg(driver)
     if not pool.is_master():
        pool.wait()
-       sys.exit(0)
+    else:
+       print('parallel mode: '+ parallel_mode)
+       driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, argfcn, pool=pool)
+       do_sampler()
+    pool.close()
+    print("Done everything and pool closed up for rank " + str(rank))
 
-    driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, argfcn, pool=pool)
 else:
     driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
 
-if restartFile == "":
 
-    # Choose an initial set of positions for the walkers.
-    driver.sampler._random =  np.random.mtrand.RandomState(seed=seed) # overwrite state of rand with seeded one
-    p0 = [prior_mean + driver.sampler._random.randn(ndim) * ensemble_std for i in xrange(nwalkers)]
-
-    step = 0
-    
-    have_state = False
-
-else:
-
-    if rank == 0:
-        print ('Rstarting from '+restartFile)
-        
-    pos, step, state = LoadPlotfile(driver, restartFile)
-    step = step + 1
-
-    have_state = True
-
-
-# Main sampling loop
-if rank == 0:
-    print ('Sampling...')
-
-if rank == 0:
-    g=open('accept', 'w')
-    
-while step < maxStep:
-
-    nSteps = min(outFilePeriod, maxStep-step+1)
-    
-    driver.sampler.reset()
-
-    if have_state:
-        pos, prob, state = driver.sampler.run_mcmc(pos, nSteps, rstate0=state)
-    else:
-        pos, prob, state = driver.sampler.run_mcmc(p0, nSteps)
-        have_state = True
-
-    if rank == 0:
-        print("Mean acceptance fraction:", np.mean(driver.sampler.acceptance_fraction))
-        g.write('Mean acceptance fraction:'+str(np.mean(driver.sampler.acceptance_fraction))+'\n')
-        g.flush()
-
-    nDigits = int(np.log10(maxStep)) + 1
-    WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,state)
-
-    step = step + nSteps
