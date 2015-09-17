@@ -74,83 +74,163 @@
 \noindent {\em Keywords:} 
 
 \section{Introduction}
-Hydrogen-oxygen kinetics have been the subject of extensive study, both
-because of interest in hydrogen and hydrogen-enriched fuels and because
-the $H_2$-$O_2$ mechanism forms an important submechanism in hydrocarbon
-kinetic mechanisms. Two primary datasources have led to the current
-state-of-the-art hydrogen oxidation mechanisms. Firstly, elementary rate
-measurements, carefully constructed experiments sensitive to one or a
-small number of individual reaction rates are used to infer individual
-rate parameters such as done by \cite{MuellerYD98, AshmanH98}. Secondly,
-macro experiments where the observable depends on the entire reaction
-mechanism have been used to refine mechanisms rates in a `comprehensive'
-sense. Such mechanisms have been developed by Mueller et al.
-\cite{YetterDR91, MuellerKYD99} and subsqeuently refined by Li et al.
-\cite{LiZKD04}, O'Conaire et al., \cite{OConaireCSPW04}. The Li et al.
-mechanism has since been updated by Burke et al. \cite{BurkeCDJ10,
-BurkeCJDK11} while the O'Conaire et al. mechanism has since been updated
-by Keromnes et al. \cite{Keromnes_Many_Curran13}. A similar kinetic
-mechanism has been developed by Konnov \cite{Konnov08}, also by
-assembling elementary reactions from the literature.
+Hydrogen-oxygen kinetics have been the subject of extensive study,
+both because of interest in hydrogen and hydrogen-enriched fuels and
+because the $H_2$-$O_2$ mechanism forms an important submechanism in
+hydrocarbon kinetic mechanisms. Two primary datasources have led to
+the current state-of-the-art hydrogen oxidation mechanisms. Firstly,
+elementary rate measurements, carefully constructed experiments
+sensitive to one or a small number of individual reaction rates are
+used to infer individual rate parameters such as done by
+\cite{MuellerYD98, AshmanH98}. Secondly, macro experiments where the
+observable depends on the entire reaction mechanism have been used to
+refine mechanisms rates in a `comprehensive' sense. Such mechanisms
+have been developed by Mueller et al.  \cite{YetterDR91, MuellerKYD99}
+and subsqeuently refined by Li et al.  \cite{LiZKD04}, O'Conaire et
+al., \cite{OConaireCSPW04}. The Li et al.  mechanism has since been
+updated by Burke et al. \cite{BurkeCDJ10, BurkeCJDK11} while the
+O'Conaire et al. mechanism has since been updated by Keromnes et
+al. \cite{Keromnes_Many_Curran13}. A similar kinetic mechanism has
+been developed by Konnov \cite{Konnov08}, also by assembling
+elementary reactions from the literature.
 
-Closely related developments have been made for kinetic models involving
-hydrogen and carbon dioxide (syngas). Li et al. \cite{LiZKCDS07}
-augmented their earlier $H_2/O_2$ mechanisms with $C_1/O_2$ kinetics and
-then adjusted key rate constants identified by sensitivity analysis to
-improve predictions of the macro experiments. Davis et al.
-\cite{DavisJWE05} placed somewhat heavier emphasis on macro optimization
-and developed a $H_2/CO$ mechanism based on assembling a trial mechanism
-drawing significantly the $H_2/C_1/O_2$ chemistry from GRIMech
-\cite{GRIMech} and then optimizing a significant number of kinetics
-parameters against a library of laminar flame, flow reactor and
-shock-tube experiments. You et al. \cite{YouPF11} produced a viable
-hydrogen mechanism as a byproduct of establishing the `data
-collaboration' method as part of a workflow to automate mechanism
-generation. The mechanism was subsequently the focus of an uncertainty
-analysis study performed by Li et al. \cite{LiYWL15}.  
+Closely related developments have been made for kinetic models
+involving hydrogen and carbon dioxide (syngas). Li et
+al. \cite{LiZKCDS07} augmented their earlier $H_2/O_2$ mechanisms with
+$C_1/O_2$ kinetics and then adjusted key rate constants identified by
+sensitivity analysis to improve predictions of the macro
+experiments. Davis et al.  \cite{DavisJWE05} placed somewhat heavier
+emphasis on macro optimization and developed a $H_2/CO$ mechanism
+based on assembling a trial mechanism drawing significantly the
+$H_2/C_1/O_2$ chemistry from GRIMech \cite{GRIMech} and then
+optimizing a significant number of kinetics parameters against a
+library of laminar flame, flow reactor and shock-tube experiments. You
+et al. \cite{YouPF11} produced a viable hydrogen mechanism as a
+byproduct of establishing the `data collaboration' method as part of a
+workflow to automate mechanism generation. The mechanism was
+subsequently the focus of an uncertainty analysis study performed by
+Li et al. \cite{LiYWL15}.
 
 While such global optimization of kinetic mechanisms is typically done
 within the limits of the uncertainty bounds on coefficients known from
-elementary rate measurements, the technique has come under criticism for
-resulting in mechanisms that are inconsistent with the more fundamental
-measurements \cite{DavisJWE05_comment}. We also find it troubling that, despite extensive
-experimental databases, a typical end-use of such comprehensive oxidation mechanisms
-is in situations such as turbulent flame calculations that may exercise parts of the 
-state space not well covered by 0D and 1D experiments. 
+elementary rate measurements, the technique has come under criticism
+for resulting in mechanisms that are inconsistent with the more
+fundamental measurements \cite{DavisJWE05_comment}. We also find it
+troubling that, despite extensive experimental databases, a typical
+end-use of such comprehensive oxidation mechanisms is in situations
+such as turbulent flame calculations that may exercise parts of the
+state space not well covered by 0D and 1D experiments.
 
 Braman et al. \cite{BramanOR13} used Bayesian methods to quantify the
-distribution of parameters in several syngas mechanisms consistent with
-a database of premixed laminar flames. The challenge with Bayesian
-methods is that typical sampling methods, such as used by Braman et al.,
-are expensive. Using informative priors to use presupposed knowledge
-about the posterior distribution reduces the state space that must be
-explored at the cost of results that depend on the prior distribution used. 
+distribution of parameters in several syngas mechanisms consistent
+with a database of premixed laminar flames. The challenge with
+Bayesian methods is that typical sampling methods, such as used by
+Braman et al., are expensive. Using informative priors to use
+presupposed knowledge about the posterior distribution reduces the
+state space that must be explored at the cost of results that depend
+on the prior distribution used.
 
 Here, we focus on Bayesian analysis of the kinetics parameters in a
-hydrogen oxidation mechanism that are not well constrained by elementary
-measurements. We employ a sophisticated sampling methodology that,
-combined with high performance computing, makes it tractable to use
-broad, `uniformative' priors to determine the distribution of parameters
-consistent with a large database of macro experimental measurements. Our
-contributions are several. Firstly, we provide a joint distribution of
-the kinetics parameters that are consistent with the macro experiments.
-This distribution is useful for forward-sampling in combustion
-calculations to facilitate uncertainty quantification. Secondly, we
-identify areas of degeneracy where the suite of macro experiments is
-insufficient to distinguish between alternative combinations of
-parameters, suggesting opportunities where the effort to conduct
-elementary rate measurements would be most valuable. Thirdly, and
-somewhat incidentally, we have produced a suite of candidate mechanisms
-well suited for lean, high pressure flames, some of which exhibit
-significantly improved agreement with the available experimental data
-than the starting point for our sampling procedure. Finally, this effort
-demonstrates a procedure for using Bayesian analysis as a framework for
-combining simulation and experimental data in a systematic way to
-identify the underlying physical characteristics of the system being
-investigated. 
+hydrogen oxidation mechanism that are not well constrained by
+elementary measurements. We employ a sophisticated sampling
+methodology that, combined with high performance computing, makes it
+tractable to use broad, `uniformative' priors to determine the
+distribution of parameters consistent with a large database of macro
+experimental measurements. Our contributions are several. Firstly, we
+provide a joint distribution of the kinetics parameters that are
+consistent with the macro experiments.  This distribution is useful
+for forward-sampling in combustion calculations to facilitate
+uncertainty quantification. Secondly, we identify areas of degeneracy
+where the suite of macro experiments is insufficient to distinguish
+between alternative combinations of parameters, suggesting
+opportunities where the effort to conduct elementary rate measurements
+would be most valuable. Thirdly, and somewhat incidentally, we have
+produced a suite of candidate mechanisms well suited for lean, high
+pressure flames, some of which exhibit significantly improved
+agreement with the available experimental data than the starting point
+for our sampling procedure. Finally, this effort demonstrates a
+procedure for using Bayesian analysis as a framework for combining
+simulation and experimental data in a systematic way to identify the
+underlying physical characteristics of the system being investigated.
 
+\section{Methodology}
+In a Bayesian framework, the posterior distribution is \ldots
 
-\section{Experimental Targets}
+\begin{itemize}
+    \item emcee sampler. Note key features: affine invariant (good for sampling a banana), 
+    multiple walkers facilitate parallel over samples. Reduces autocorrelation time. 
+    \item Start from MLE? We didn't... we started from best guess from literature. 
+    \item How did we choose ensemble std?
+    \item Assign $\sigma$ for each experiment based on experimental uncertainty
+    \item Parallelize over experiments and red-black over walkers
+    \item use chemkin III + boxlib to build up evaluator that can vary
+      parameters efficiently and run in parallel.
+    \item set up reasonably robust solution procedure; restart from
+      common baseline solution, refine, ramp pressure. Failure to
+      converge returned as zero likelyhood.
+    \item uninformative, broad priors. uniform within bounds; bounds
+      wided and restarted until sampler not running into bounds
+    \item Don't specifically include separate elementary rate studies
+        \begin{itemize}
+        \item Encapsulate `what parameter set is consistent with macro
+          data'
+        \item Leave parameters well understood (or at well studied)
+          fixed
+        \item Elementary rate data could be use dot eliminate
+          ambiguity in strongly correlated dimensions; if not
+          existing, suggests what coudl be done. Method allows
+          discovery of parameter combinations that the set of macro
+          experiments does not distinguish between.
+ \end{itemize}
+\end{itemize}
+\subsection{Mechanism}
+\begin{itemize}
+\item Start with Burke et al. mechanism. Comes from Li et al.,
+  assembly of elementary rates, minor targeted optimization.
+\item Augmented with some extra reactions identified by Burke (X1,
+  X6). Put in a table.
+\item Vary those parameters deemed relevant for high pressure, lean,
+  not well understood: HO2, H2O2 + associated third body efficiencies
+\item Need to note and be upfront that we are varying the parameters
+  for rxns that form half of a delicate balance; other half determined
+  by elementary rate expressions
+\item Need a (compact) table showing the mechanism and parameters
+  varied. Maybe model after the one in the Davis paper.
+
+\end{itemize}
+\subsection{Experimental Targets}
+\begin{itemize}
+\item Combination of those from Davis (flw, flw, ign) and Burke
+  (flames)
+\item Probably need a table with original source.
+\end{itemize}
+\section{Results}
+Figures:
+\begin{enumerate}
+\item Triangle plot (1pg)
+\item Flamespeed vs. equivalence ratio, p= 1, 5, 10 atm for starting
+  mechanism, literature mechanisms (Li, Saxena, Konnov, O'Conaire,
+  Burke), and distribution by sampling from our posterior
+\item Same but vs P, $\phi=0.3,0.5$; $T_f=1400$
+    \item Interesting conditional, marginal pdfs
+    \item Choose several points with equivalent goodness of fit, show
+      experimental agreement. Possibly show detailed radical profiles
+      for 1d flame, esp. if they differ significantly. Note that if
+      such profiles could be measured, could discriminate between
+      otherwise confounded mechanisms. Alternatively, show plot
+      experimental data points and equivalent mechanism a, b, c,
+      \ldots
+ \end{enumerate}
+ 
+ Notes --- see if supported by data:
+ \begin{itemize}
+    \item Parameter 2 dominates all others, except maybe 8,9, 10, 22
+    \item Correlation between P8, P9
+    \item Positive correlation between P8, P12
+    \item Negative correlation between P4, P7  
+    \item etc... check for correlations on converged sampling
+    \item Marginal distributions - Normal or not? Cf. to Braman et al.
+ \end{itemize}
 %{\scriptsize
 %\input{expts.tex}
 %}
