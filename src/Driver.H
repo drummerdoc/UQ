@@ -15,6 +15,7 @@ struct Driver
 #endif
   ~Driver();
   void SetParallelModeThreaded();
+  void SetNumThreads(int num_threads);
 
   static double LogLikelihood(const std::vector<double>& parameters);
   static int NumParams();
@@ -30,6 +31,7 @@ struct Driver
   static MINPACKstruct *mystruct;
   static Real param_eps;
   bool mpi_initialized;
+  int omp_threads_override;
 
   MPI_Comm _mpi_comm;
 

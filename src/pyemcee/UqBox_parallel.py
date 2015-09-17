@@ -58,7 +58,9 @@ def LoadPlotfile(driver,filename):
         print('Loading plotfile: '+filename)
         
     pf = pymc.UqPlotfile()
-    pf.Read(filename)
+    pf.Read_serial(filename)
+    if rank == 0:
+        print('Done Loading plotfile: '+filename)
     t_nwalkers = pf.NWALKERS()
     t_ndim = pf.NDIM()
     t_iters = 1
@@ -120,14 +122,14 @@ def lnprob(x, driver):
 
     """
     result = driver.Eval(x)
-    if rank == 0:
-       f=open('hist_likelyhood', 'a')
-       for d in x:
-          f.write(str(d))
-          f.write(' ')
 
-       f.write(str(result))
-       f.write('\n')
+    f=open('hist_likelyhood_'+str(rank), 'a')
+    for d in x:
+       f.write(str(d))
+       f.write(' ')
+
+    f.write(str(result))
+    f.write('\n')
 
     if result > 0:
         return -np.inf
@@ -141,6 +143,7 @@ print('Setting up evaluator')
 driver = DriverWrap()
 driver.d = pymc.Driver(len(sys.argv), sys.argv, 1)
 driver.d.SetComm(MPI.COMM_WORLD)
+driver.d.SetNumThreads(24) # MUST be called before driver init
 print('Calling evaluator init')
 driver.d.init(len(sys.argv),sys.argv)
 
@@ -166,6 +169,7 @@ outFilePrefix =     pp['outFilePrefix']
 outFilePeriod = int(pp['outFilePeriod'])
 seed          = int(pp['seed'])
 restartFile   =     pp['restartFile']
+emcee_stepsize   =  float(pp['emcee_stepsize'])
 
 if rank == 0:
     print('     nwalkers: ',nwalkers)
@@ -181,6 +185,7 @@ if rank == 0:
     print('prior means:  '+ str(prior_mean))
     print('prior std: '+ str(prior_std))
     print('ensemble std: '+ str(ensemble_std))
+    print('emcee stepsize: '+ str(emcee_stepsize))
 
 # Function to run sampler
 def do_sampler():
@@ -245,12 +250,12 @@ if parallel_mode == 'HYBRID':
        pool.wait()
     else:
        print('parallel mode: '+ parallel_mode)
-       driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, argfcn, pool=pool)
+       driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, argfcn, a=emcee_stepsize, pool=pool)
        do_sampler()
     pool.close()
     print("Done everything and pool closed up for rank " + str(rank))
 
 else:
-    driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
+    driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver], a=emcee_stepsize)
 
 

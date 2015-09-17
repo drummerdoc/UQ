@@ -205,6 +205,7 @@ Driver::Driver(int argc, char*argv[], int init_later)
     else {
         init(argc, argv);
     }
+    omp_threads_override = -1;
 }
 
 
@@ -230,10 +231,11 @@ Driver::init(int argc, char *argv[])
 #else
     BoxLib::Initialize(argc, argv);
 #endif
-// TODO(rgrout) : Fix this to use a variable that can be set from 
-// python driver
 #ifdef BL_USE_OMP
-omp_set_num_threads(24);
+   if(omp_threads_override > 0){
+      omp_set_num_threads(omp_threads_override);
+      std::cout << "Setting thread count to " << omp_threads_override << std::endl;
+   }
 #endif
     if (cd == 0) {
         cd = new ChemDriver;
@@ -290,6 +292,13 @@ Driver::SetParallelModeThreaded()
     mystruct->expt_manager.SetVerbose(false);
     mystruct->expt_manager.SetParallelMode(ExperimentManager::PARALLELIZE_OVER_THREAD);
 }
+
+void
+Driver::SetNumThreads(int num_threads)
+{
+    omp_threads_override = num_threads;
+}
+
 
 Driver::~Driver()
 {

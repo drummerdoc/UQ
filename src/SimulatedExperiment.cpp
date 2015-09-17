@@ -11,6 +11,11 @@
 
 #include <ParallelDescriptor.H>
 
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
+
 static Real Patm_DEF = 1;
 static Real dt_DEF   = 0.1;
 static Real Tfile_DEF = -1;

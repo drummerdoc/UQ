@@ -18,6 +18,7 @@ struct UqPlotfile
 
   void Write(const std::string& filename) const;
   void Read(const std::string& filename);
+  void Read_serial(const std::string& filename);
 
   std::vector<double> LoadEnsemble(int iter, int iters) const;
 
@@ -31,6 +32,7 @@ private:
 
   void WriteSamples(const std::string& filename) const;
   void ReadSamples(const std::string& filename);
+  void ReadSamples_serial(const std::string& filename);
   void WriteHeader(const std::string& filename) const;
   void ReadHeader(const std::string& filename);
   void WriteRState(const std::string& filename) const;

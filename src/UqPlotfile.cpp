@@ -83,6 +83,15 @@ UqPlotfile::Read(const std::string& filename)
 }
 
 void
+UqPlotfile::Read_serial(const std::string& filename)
+{
+  SetIOProc();
+  ReadHeader(filename);
+  ReadSamples_serial(filename);
+  ReadRState(filename);
+}
+
+void
 UqPlotfile::WriteSamples(const std::string& filename) const
 {
   if (ioproc) {
@@ -121,6 +130,34 @@ UqPlotfile::ReadSamples(const std::string& filename)
     ParallelDescriptor::Bcast(m_fab.dataPtr(),m_fab.box().numPts()*m_ndim);
   }
 }
+
+/*
+* 
+* ReadSamples_serial
+* only participation from root required, and only root gets data
+*
+*/
+void
+UqPlotfile::ReadSamples_serial(const std::string& filename)
+{
+  if (ioproc) {
+    std::ifstream ifs;
+    ifs.open(DataName(filename).c_str());
+    if (!ifs.good())
+      BoxLib::FileOpenFailed(filename);
+    m_fab.clear();
+    m_fab.readFrom(ifs);
+    ifs.close();
+
+    const Box& box = m_fab.box();
+    if (box.length(0) != m_nwalkers
+        || box.length(1) != m_iters
+        || m_fab.nComp() != m_ndim) {
+      BoxLib::Abort("Bad UqPlofile");
+    }
+  }
+}
+
 
 void
 UqPlotfile::WriteHeader(const std::string& filename) const
