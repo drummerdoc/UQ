@@ -1,5 +1,5 @@
-% \documentclass[preprint,12pt]{elsarticle}
- \documentclass[review,1p,times]{elsarticle} % For submission
+ \documentclass[preprint,3p,times,twocolumn]{elsarticle}
+% \documentclass[review,1p,times]{elsarticle} % For submission
 
 %\documentclass{CRPITStyle} 
 %%\usepackage{epsfig}   % Packages to use if you wish
@@ -50,7 +50,8 @@
 %% \fntext[label3]{}
 
 
-\title{}
+\title{Determining the joint distribution of hydrogen kinetic
+  mechanism parameters consistent with macroscopic experiments}
 \author{}
 
 
@@ -60,7 +61,8 @@
 \end{abstract}
 
 \begin{keyword}
-  TRI, particle laden flow, DNS, turbulence
+  MCMC, hydrogen kinetics, parameter estimation, uncertainty
+  quantification
 \end{keyword}
 
 \end{frontmatter}
@@ -72,6 +74,93 @@
 \noindent {\em Keywords:} 
 
 \section{Introduction}
+Hydrogen-oxygen kinetics have been the subject of extensive study, both
+because of interest in hydrogen and hydrogen-enriched fuels and because
+the $H_2$-$O_2$ mechanism forms an important submechanism in hydrocarbon
+kinetic mechanisms. Two primary datasources have led to the current
+state-of-the-art hydrogen oxidation mechanisms. Firstly, elementary rate
+measurements, carefully constructed experiments sensitive to one or a
+small number of individual reaction rates are used to infer individual
+rate parameters such as done by \cite{MuellerYD98, AshmanH98}. Secondly,
+macro experiments where the observable depends on the entire reaction
+mechanism have been used to refine mechanisms rates in a `comprehensive'
+sense. Such mechanisms have been developed by Mueller et al.
+\cite{YetterDR91, MuellerKYD99} and subsqeuently refined by Li et al.
+\cite{LiZKD04}, O'Conaire et al., \cite{OConaireCSPW04}. The Li et al.
+mechanism has since been updated by Burke et al. \cite{BurkeCDJ10,
+BurkeCJDK11} while the O'Conaire et al. mechanism has since been updated
+by Keromnes et al. \cite{Keromnes_Many_Curran13}. A similar kinetic
+mechanism has been developed by Konnov \cite{Konnov08}, also by
+assembling elementary reactions from the literature.
+
+Closely related developments have been made for kinetic models involving
+hydrogen and carbon dioxide (syngas). Li et al. \cite{LiZKCDS07}
+augmented their earlier $H_2/O_2$ mechanisms with $C_1/O_2$ kinetics and
+then adjusted key rate constants identified by sensitivity analysis to
+improve predictions of the macro experiments. Davis et al.
+\cite{DavisJWE05} placed somewhat heavier emphasis on macro optimization
+and developed a $H_2/CO$ mechanism based on assembling a trial mechanism
+drawing significantly the $H_2/C_1/O_2$ chemistry from GRIMech
+\cite{GRIMech} and then optimizing a significant number of kinetics
+parameters against a library of laminar flame, flow reactor and
+shock-tube experiments. You et al. \cite{YouPF11} produced a viable
+hydrogen mechanism as a byproduct of establishing the `data
+collaboration' method as part of a workflow to automate mechanism
+generation. The mechanism was subsequently the focus of an uncertainty
+analysis study performed by Li et al. \cite{LiYWL15}.  
+
+While such global optimization of kinetic mechanisms is typically done
+within the limits of the uncertainty bounds on coefficients known from
+elementary rate measurements, the technique has come under criticism for
+resulting in mechanisms that are inconsistent with the more fundamental
+measurements \cite{DavisJWE05_comment}. We also find it troubling that, despite extensive
+experimental databases, a typical end-use of such comprehensive oxidation mechanisms
+is in situations such as turbulent flame calculations that may exercise parts of the 
+state space not well covered by 0D and 1D experiments. 
+
+Braman et al. \cite{BramanOR13} used Bayesian methods to quantify the
+distribution of parameters in several syngas mechanisms consistent with
+a database of premixed laminar flames. The challenge with Bayesian
+methods is that typical sampling methods, such as used by Braman et al.,
+are expensive. Using informative priors to use presupposed knowledge
+about the posterior distribution reduces the state space that must be
+explored at the cost of results that depend on the prior distribution used. 
+
+Here, we focus on Bayesian analysis of the kinetics parameters in a
+hydrogen oxidation mechanism that are not well constrained by elementary
+measurements. We employ a sophisticated sampling methodology that,
+combined with high performance computing, makes it tractable to use
+broad, `uniformative' priors to determine the distribution of parameters
+consistent with a large database of macro experimental measurements. Our
+contributions are several. Firstly, we provide a joint distribution of
+the kinetics parameters that are consistent with the macro experiments.
+This distribution is useful for forward-sampling in combustion
+calculations to facilitate uncertainty quantification. Secondly, we
+identify areas of degeneracy where the suite of macro experiments is
+insufficient to distinguish between alternative combinations of
+parameters, suggesting opportunities where the effort to conduct
+elementary rate measurements would be most valuable. Thirdly, and
+somewhat incidentally, we have produced a suite of candidate mechanisms
+well suited for lean, high pressure flames, some of which exhibit
+significantly improved agreement with the available experimental data
+than the starting point for our sampling procedure. Finally, this effort
+demonstrates a procedure for using Bayesian analysis as a framework for
+combining simulation and experimental data in a systematic way to
+identify the underlying physical characteristics of the system being
+investigated. 
+
+
+\section{Experimental Targets}
+%{\scriptsize
+%\input{expts.tex}
+%}
+
+\section{Conclusion}
+
+
+\section{References}
+\bibliographystyle{elsarticle-num-names}    
+\bibliography{refs/hydrogen_oxidation,refs/chemistry_uq}
 
 Evolution of hydrogen oxidation mechanisms:
         \begin{description}
@@ -328,17 +417,6 @@ Evolution of hydrogen oxidation mechanisms:
 
         \end{description}
 
-\section{Experimental Targets}
-{\scriptsize
-\input{expts.tex}
-}
-
-\section{Conclusion}
-
-
-\section{References}
-\bibliographystyle{elsarticle-num-names}    
-\bibliography{refs/hydrogen_oxidation,refs/chemistry_uq}
 
 
 \end{document}
