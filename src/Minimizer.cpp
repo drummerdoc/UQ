@@ -1,5 +1,6 @@
 #include <Minimizer.H>
 #include <Driver.H>
+#include <Utility.H>
 
 #include <iomanip>
 #include <iostream>
@@ -420,13 +421,15 @@ int FCN(void       *p,
 // // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
-static int eval_nlls_data(void *p, const std::vector<Real>& pvals, Real *fvec)
+static int eval_nlls_data(void *p, const std::vector<Real>& pvals, std::vector<Real>& fvals)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
   ExperimentManager& em = s->expt_manager;
   const std::vector<Real>& observation_std = em.ObservationSTD();
   const std::vector<Real>& perturbed_data = em.TrueDataWithObservationNoise();
-  std::vector<Real> dvals(em.NumExptData());
+  int nd = em.NumExptData();
+  std::vector<Real> dvals(nd);
+
   bool expts_ok = s->expt_manager.GenerateTestMeasurements(pvals,dvals);
 
   if (!expts_ok) { // Bad experiment
@@ -434,7 +437,7 @@ static int eval_nlls_data(void *p, const std::vector<Real>& pvals, Real *fvec)
   }
 
   for (int i=0; i<em.NumExptData(); ++i) {
-    fvec[i] = sqrt2Inv * (perturbed_data[i] - dvals[i]) / observation_std[i];
+    fvals[i] = sqrt2Inv * (perturbed_data[i] - dvals[i]) / observation_std[i];
   }
 
   return GOOD_EVAL_FLAG;
@@ -448,6 +451,44 @@ static int eval_nlls_data(void *p, const std::vector<Real>& pvals, Real *fvec)
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
+
+static std::string info(void*                    p,
+			const std::vector<Real>& pvals,
+			int                      m,
+			const Real*              fvals,
+			int                      expt_ok)
+{
+  std::ostringstream os;
+  os << std::setprecision(15);
+  int n = pvals.size();
+  os << "X = { ";
+  for(int i=0; i<pvals.size(); i++){
+    os << pvals[i] << " ";
+  }
+  os << "} ";
+
+  Real sum = 0;
+  for (int i=0; i<m; ++i) {
+    sum += fvals[i]*fvals[i];
+  }
+  os << " F = " << sum;
+
+  std::string msg;
+  if (expt_ok = BAD_EXPT_FLAG) {
+    msg = " (Bad expt)";
+  }
+  else if (!parameters_in_bounds(p,n,&(pvals[0]),false)) {
+    msg = " (Bad params)";
+  }
+  else {
+    msg = " (Good)";
+  }
+  os << msg;
+  return os.str();
+}
+
+
+
 static int eval_nlls_funcs(void *p, int m, int n, const Real *x, Real *fvec)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
@@ -474,7 +515,29 @@ static int eval_nlls_funcs(void *p, int m, int n, const Real *x, Real *fvec)
     return BAD_DATA_FLAG;
   }
 
-  return eval_nlls_data(p,pvals,&(fvec[n]));
+  std::vector<Real> fvals(nd);
+  bool expt_ok = eval_nlls_data(p,pvals,fvals);
+  for (int i=0; i<nd; ++i) {
+    fvec[n+i] = fvals[n];
+  }
+
+  std::string msg = info(p,pvals,m,fvec,expt_ok);
+  if (ParallelDescriptor::NProcs() == 1) {
+    std::cout << msg << std::endl;
+  }
+  else {
+    int nDigits = std::log10(ParallelDescriptor::NProcs()) + 1;
+    std::string ofile=BoxLib::Concatenate("RUNLOG_",ParallelDescriptor::MyProc(),nDigits);
+    std::ofstream ofs(ofile.c_str(),std::ios::app);
+    ofs << msg << std::endl;
+    ofs.close();
+  }
+
+  if (expt_ok == BAD_EXPT_FLAG) {
+    return expt_ok;
+  }
+
+  return GOOD_EVAL_FLAG;
 }
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
@@ -489,40 +552,34 @@ static int eval_nlls_funcs(void *p, int m, int n, const Real *x, Real *fvec)
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
 // /////////////////////////////////////////////////////////
-#include <Utility.H>
 static
 int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac, 
             int ldfjac, int iflag)
 {
   if (iflag == 0) {
-#if 1
-    std::cout << "NLLSFCN status X: { ";
-    for (int i=0; i<n; ++i) {
-      std::cout << x[i] << " ";
-    }
-    std::cout << "} ";
-#endif
-      
-    Real sum = 0;
-    for (int i=0; i<m; ++i) {
-      sum += fvec[i]*fvec[i];
-    }
-#if 1
-    std::cout << " F = " << sum << std::endl;
-#endif
 
-    std::string ofile=BoxLib::Concatenate("RUNLOG_",ParallelDescriptor::MyProc(),2);
-    std::ofstream ofs(ofile.c_str(),std::ios::app);
-    ofs << "NLLSFCN status X: { ";
+    std::vector<Real> pvals(n);
     for (int i=0; i<n; ++i) {
-      ofs << x[i] << " ";
+      pvals[i] = x[i];
     }
-    ofs << "} ";
-    ofs << " F = " << sum << std::endl;
-    ofs.close();
+    int expt_ok = GOOD_EVAL_FLAG; // Actually don't know since fvec simply passed in
+    std::string msg = info(p,pvals,m,fvec,expt_ok);
+    if (ParallelDescriptor::NProcs() == 1) {
+      std::cout << msg << std::endl;
+    }
+    else {
+      int nDigits = std::log10(ParallelDescriptor::NProcs()) + 1;
+      std::string ofile=BoxLib::Concatenate("RUNLOG_",ParallelDescriptor::MyProc(),nDigits);
+      std::ofstream ofs(ofile.c_str(),std::ios::app);
+      ofs << "MINPACK status::" << std::endl;
+      ofs << msg << std::endl;
+      ofs.close();
+    }
   }
   else if (iflag == 1) { // Evaluate functions only, do not touch FJAC
+
     int eflag = eval_nlls_funcs(p,m,n,x,fvec);
+
     if (eflag != GOOD_EVAL_FLAG) {
       if (eflag == BAD_DATA_FLAG) {
 	bool ok = parameters_in_bounds(p,n,x,true);
@@ -633,7 +690,7 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
     }
 #elif 0
     std::vector<Real> f0tmp(em.NumExptData());
-    int ret0 = eval_nlls_data(p,pvals,&(f0tmp[0]));
+    int ret0 = eval_nlls_data(p,pvals,f0tmp);
     BL_ASSERT(ret0 == GOOD_EVAL_FLAG);
 
     for (int i=0; i<n; ++i) {
@@ -642,7 +699,7 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
       Real h = typ * s->param_eps;
       pvals[i] += h;
         
-      int ret = eval_nlls_data(p,pvals,&(fptmp[0]));
+      int ret = eval_nlls_data(p,pvals,fptmp);
       BL_ASSERT(ret == GOOD_EVAL_FLAG);
         
       Real hInv = 1/h;
@@ -661,14 +718,14 @@ int NLLSFCN(void *p, int m, int n, const Real *x, Real *fvec, Real *fjac,
       Real h = typ * s->param_eps;
 
       pvals[i] = x[i] + h;
-      int ret = eval_nlls_data(p,pvals,&(fptmp[0]));
+      int ret = eval_nlls_data(p,pvals,fptmp);
       if (ret != GOOD_EVAL_FLAG) {
 	return -1;
       }
       //BL_ASSERT(ret == GOOD_EVAL_FLAG);
         
       pvals[i] = x[i] - h;
-      ret = eval_nlls_data(p,pvals,&(fmtmp[0]));
+      ret = eval_nlls_data(p,pvals,fmtmp);
       if (ret != GOOD_EVAL_FLAG) {
 	return -1;
       }

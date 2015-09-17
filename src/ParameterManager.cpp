@@ -113,6 +113,7 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
       SetParameter(i,GetParameterDefault(i));
     }
 
+#if 0
     for (int i=0; i<active_parameters.size(); ++i) {
       for (int j=0; j<dependent_parameters[i].size(); ++j) {
 	if (j==0) {
@@ -121,6 +122,7 @@ ParameterManager::ParameterManager(ChemDriver& _cd)
 	std::cout << "    added dependent parameter: " << dependent_parameters[i][j] << std::endl;
       }
     }
+#endif
   }
 }
 

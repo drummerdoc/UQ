@@ -21,28 +21,38 @@ MINPACKstruct *Driver::mystruct = 0;
 Real Driver::param_eps = 1.e-4;
 Real BAD_SAMPLE_FLAG = -1;
 Real BAD_DATA_FLAG = -2;
+Real F_UNSET_FLAG = -100;
 
 Real 
 funcF(void* p, const std::vector<Real>& pvals)
 {
   MINPACKstruct *s = (MINPACKstruct*)(p);
   s->ResizeWork();
+  std::vector<Real> dvals(s->expt_manager.NumExptData());
 
   // Get prior component of likelihood
   std::pair<bool,Real> Fa = s->parameter_manager.ComputePrior(pvals);
 
+  Real F = F_UNSET_FLAG;
   if (!Fa.first) {
-    return BAD_SAMPLE_FLAG; // Parameter OOB
-  }
 
-  // Get data component of likelihood
-  std::vector<Real> dvals(s->expt_manager.NumExptData());
-  bool ok = s->expt_manager.GenerateTestMeasurements(pvals,dvals);
-  if (!ok) {
-    return BAD_DATA_FLAG; // Experiment evaluator failed
+    F = BAD_SAMPLE_FLAG; // Parameter OOB
+
+  } else {
+
+    // Get data component of likelihood
+    bool ok = s->expt_manager.GenerateTestMeasurements(pvals,dvals);
+    if (!ok) {
+
+      F = BAD_DATA_FLAG; // Experiment evaluator failed
+
+    } else {
+
+      Real Fb = s->expt_manager.ComputeLikelihood(dvals);
+      F = Fa.second + Fb;
+
+    }
   }
-  Real Fb = s->expt_manager.ComputeLikelihood(dvals);
-  Real F = Fa.second + Fb;
 
 #if 0
   std::cout << "X = { ";
