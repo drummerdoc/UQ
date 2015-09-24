@@ -149,6 +149,7 @@ outFilePrefix =     pp['outFilePrefix']
 outFilePeriod = int(pp['outFilePeriod'])
 seed          = int(pp['seed'])
 restartFile   =     pp['restartFile']
+emcee_stepsize   =  float(pp['emcee_stepsize'])
 
 if rank == 0:
     print('     nwalkers: ',nwalkers)
@@ -167,7 +168,7 @@ if rank == 0:
 
 
 # Build a sampler object
-driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver])
+driver.sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=[driver], a=emcee_stepsize)
 
 if restartFile == "":
 
