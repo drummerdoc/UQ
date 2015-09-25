@@ -157,28 +157,28 @@ underlying physical characteristics of the system being investigated.
 In a Bayesian framework, the posterior distribution is \ldots
 
 \begin{itemize}
-    \item emcee sampler. Note key features: affine invariant (good for sampling a banana), 
-    multiple walkers facilitate parallel over samples. Reduces autocorrelation time. 
+    \item emcee sampler. Note key features: affine invariant (good for sampling a long-skinny valleys), 
+    multiple walkers facilitate parallelizing over samples. Reduces autocorrelation time. 
     \item Start from MLE? We didn't... we started from best guess from literature. 
     \item How did we choose ensemble std?
     \item Assign $\sigma$ for each experiment based on experimental uncertainty
-    \item Parallelize over experiments and red-black over walkers
-    \item use chemkin III + boxlib to build up evaluator that can vary
+    \item Parallelize over experiments (cores) and red-black over walkers (MPI)
+    \item use CHEMKIN + BoxLib to build up evaluator that can vary
       parameters efficiently and run in parallel.
     \item set up reasonably robust solution procedure; restart from
-      common baseline solution, refine, ramp pressure. Failure to
-      converge returned as zero likelyhood.
+      common baseline solution at prior mean parameter values, refine,
+      ramp pressure. Failure to converge returned as zero likelyhood.
     \item uninformative, broad priors. uniform within bounds; bounds
       wided and restarted until sampler not running into bounds
     \item Don't specifically include separate elementary rate studies
         \begin{itemize}
         \item Encapsulate `what parameter set is consistent with macro
           data'
-        \item Leave parameters well understood (or at well studied)
+        \item Leave parameters well understood (or at least well studied)
           fixed
-        \item Elementary rate data could be use dot eliminate
+        \item Elementary rate data could be used to eliminate
           ambiguity in strongly correlated dimensions; if not
-          existing, suggests what coudl be done. Method allows
+          existing, suggests what could be done. Method allows
           discovery of parameter combinations that the set of macro
           experiments does not distinguish between.
  \end{itemize}
