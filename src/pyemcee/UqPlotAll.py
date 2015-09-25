@@ -5,15 +5,48 @@
 # helper elf programmers:  Jonathan Goodman (goodman@cims.nyu.edu)
 #                          John Bell
 #                          Matthias Morzfeld
+# lost reindeer:           Ray Grout (ray.grout@nrel.gov)
 
 #  Read a datafile and make plots
 
 import numpy             as np
 import matplotlib.pyplot as pl
 import sys
+import os
 
 import pyemcee as pymc
 import cPickle
+
+# Control what analysis gets done
+do_write_combined_plotfile = False
+do_sample_history_plots = True
+do_triangle_plot = False
+do_acor = False
+
+
+def WritePlotfile(x, ndim, outFilePrefix,nwalkers,step,nSteps,nDigits,rstate):
+    
+    fmt = "%0"+str(nDigits)+"d"
+    lastStep = step + nSteps - 1
+    filename = outFilePrefix + '_' + (fmt % step) + '_' + (fmt % lastStep)
+
+    C_array_size = nSteps*ndim*nwalkers
+    x_for_c = pymc.DoubleVec(C_array_size)
+
+    for walker in range(0,nwalkers):
+        for it in range(0,nSteps):
+            for dim in range(0,ndim):
+                index = walker + nwalkers*it + nwalkers*nSteps*dim
+                x_for_c[index] = x[walker,it,dim]
+
+    if rstate == None:
+        rstateString = ''
+    else:
+        rstateString = cPickle.dumps(rstate)
+
+    pf = pymc.UqPlotfile(x_for_c, ndim, nwalkers, step, nSteps, rstateString)
+    pf.Write(filename)
+
 
 def LoadPlotfile(filenames):
     
@@ -71,12 +104,39 @@ def LoadPlotfile(filenames):
 infiles = sys.argv[1:]
 x, nwalkers, ndim, iters, iter = LoadPlotfile(infiles)
 infile = infiles[-1]
+output_directory = "plots_" + infile + "/"
+
+if os.path.exists(output_directory):
+    print ("Output directory already exists... move it aside...")
+    sys.exit(-1)
+else:
+    os.makedirs(output_directory)
+
+if do_sample_history_plots:
+  print "Making sample history plots", ndim, nwalkers
+  for k in range(0,ndim):
+    pl.close()
+    titleString = "Variable " + str(k)
+    pl.plot(x[:,:iters,k].T)
+    fname = output_directory + infile + "_samples_"+str(k)+".png"
+    pl.grid('on')
+    pl.title(titleString)
+    pl.savefig(fname)
+    pl.close()
+
+
+if do_write_combined_plotfile:
+    print("Writing combined plotfile")
+    print("CAUTION: Combined plotfile does not contain rstate")
+    print("DO NOT USE FOR RESTART")
+    WritePlotfile(x,ndim, output_directory + "CombinedResults",nwalkers, 0,iters,4,None)
+
+
 
 # Compute and plot auto-correlation functions for each variable
 maxLag = iters / 2   # Length of the auto-correlation series to calculate and plot
 hAxis  = np.arange(0, maxLag)  # horizontal axis values
 import acor as ac
-do_acor = False
 if do_acor:
   pl.figure()
   for k in range(0,ndim):
@@ -91,7 +151,7 @@ if do_acor:
   pl.title(titleString)
   pl.legend()
   pl.grid('on')
-  pl.savefig(infile + '_AcorVars.pdf')
+  pl.savefig(output_directory + infile + '_AcorVars.pdf')
 
   #  Compute and plot auto-correlation functions,
 
@@ -122,32 +182,33 @@ if do_acor:
   pl.title(titleString)
   pl.legend()
   pl.grid('on')
-  pl.savefig(infile + '_AcorWalkers.pdf')
+  pl.savefig(output_directory +infile + '_AcorWalkers.pdf')
 
   pl.figure()
 
-import triangle
-
-v = []
-s = x.shape
-for i in range(s[2]):
-  v.append(np.reshape(x[:,0:iters,i], [nwalkers*iters]))
-data = np.vstack(v)
-
-# Plot it.
-import time
-t0 = time.clock()
-print 'Starting triangle'
-figure = triangle.corner(data.transpose())
-t1 = time.clock()
-print 'Triangle plot took',t1-t0
-print 'End triangle'
-
-t0 = time.clock()
-print 'Starting save'
-figure.savefig(infile+"_Triangle.png")
-t1 = time.clock()
-print 'save took',t1-t0
+if(do_triangle_plot):
+  import triangle
+  
+  v = []
+  s = x.shape
+  for i in range(s[2]):
+    v.append(np.reshape(x[:,0:iters,i], [nwalkers*iters]))
+  data = np.vstack(v)
+  
+  # Plot it.
+  import time
+  t0 = time.clock()
+  print 'Starting triangle'
+  figure = triangle.corner(data.transpose())
+  t1 = time.clock()
+  print 'Triangle plot took',t1-t0
+  print 'End triangle'
+  
+  t0 = time.clock()
+  print 'Starting save'
+  figure.savefig(output_directory +infile+"_Triangle.png")
+  t1 = time.clock()
+  print 'save took',t1-t0
 
 
 # def doScatter(i,j,Nscatter,pl):
@@ -162,7 +223,7 @@ print 'save took',t1-t0
 #   pl.xlabel('var '+str(j))
 #   pl.title('scatterplot, var %d vs. var %d' % (i,j))
 #   pl.grid('on')
-#   pl.savefig(infile + '_%d_v_%d_Scatterplot.pdf' % (i,j))
+#   pl.savefig(output_directory +infile + '_%d_v_%d_Scatterplot.pdf' % (i,j))
 
 
 # pl.figure()
@@ -183,7 +244,7 @@ print 'save took',t1-t0
 # pl.xlabel('var 0')
 # pl.ylabel('var 1')
 # pl.title('scatterplot, var 0 vs. var 1')
-# pl.savefig(infile + '_Histogram2d.pdf')
+# pl.savefig(output_directory +infile + '_Histogram2d.pdf')
 
 
 
