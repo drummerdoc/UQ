@@ -245,3 +245,26 @@ void ParameterManager::setParamLowerBound( Real val, int idx ){
 void ParameterManager::setParamUpperBound( Real val, int idx ){
     upper_bound[idx] = val;
 }
+
+void ParameterManager::PrintActiveParams(){
+    int num_p = NumParams();
+    //std::cout << "Active parameter set has " << num_p << " parameters. " << std::endl;
+    Array<std::string> spcnames;
+    spcnames = cd.speciesNames();
+    cd.printReactions();
+    std::cout << "--------------------------------------------------" << std::endl;
+    for (int i=0; i<active_parameters.size(); ++i) {
+        std::cout << "(P" << i << ") ";
+        std::cout << "(R" << (active_parameters[i].RxnID()) << "): ";
+        std::cout << cd.reactionStringBuild(active_parameters[i].RxnID());
+        std::string param_name = active_parameters[i].GetParamString();
+        std::cout << "    " << param_name;
+        if( param_name == "THIRD_BODY"){
+            //std::string spcstring;
+            //int sid = active_parameters[i].SpeciesID();
+            std::cout << " " << spcnames[active_parameters[i].SpeciesID()];
+        }
+        std::cout << std::endl;
+    }
+
+}

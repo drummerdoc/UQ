@@ -157,33 +157,71 @@ underlying physical characteristics of the system being investigated.
 In a Bayesian framework, the posterior distribution is \ldots
 
 \begin{itemize}
-    \item emcee sampler. Note key features: affine invariant (good for sampling a banana), 
-    multiple walkers facilitate parallel over samples. Reduces autocorrelation time. 
+    \item emcee sampler. Note key features: affine invariant (good for sampling a long-skinny valleys), 
+    multiple walkers facilitate parallelizing over samples. Reduces autocorrelation time. 
     \item Start from MLE? We didn't... we started from best guess from literature. 
     \item How did we choose ensemble std?
     \item Assign $\sigma$ for each experiment based on experimental uncertainty
-    \item Parallelize over experiments and red-black over walkers
-    \item use chemkin III + boxlib to build up evaluator that can vary
+    \item Parallelize over experiments (cores) and red-black over walkers (MPI)
+    \item use CHEMKIN + BoxLib to build up evaluator that can vary
       parameters efficiently and run in parallel.
     \item set up reasonably robust solution procedure; restart from
-      common baseline solution, refine, ramp pressure. Failure to
-      converge returned as zero likelyhood.
+      common baseline solution at prior mean parameter values, refine,
+      ramp pressure. Failure to converge returned as zero likelyhood.
     \item uninformative, broad priors. uniform within bounds; bounds
       wided and restarted until sampler not running into bounds
     \item Don't specifically include separate elementary rate studies
         \begin{itemize}
         \item Encapsulate `what parameter set is consistent with macro
           data'
-        \item Leave parameters well understood (or at well studied)
+        \item Leave parameters well understood (or at least well studied)
           fixed
-        \item Elementary rate data could be use dot eliminate
+        \item Elementary rate data could be used to eliminate
           ambiguity in strongly correlated dimensions; if not
-          existing, suggests what coudl be done. Method allows
+          existing, suggests what could be done. Method allows
           discovery of parameter combinations that the set of macro
           experiments does not distinguish between.
  \end{itemize}
 \end{itemize}
 \subsection{Mechanism}
+\begin{table}[htp]
+  \centering
+  \begin{tabular}{l l l l}
+\hline
+(R0)&$ \mathrm{H} + \mathrm{O}_2 = \mathrm{O} + \mathrm{OH}$\\
+(R1)&$ \mathrm{H}_2 + \mathrm{O} = \mathrm{H} + \mathrm{OH}$\\
+(R2)&$ \mathrm{H}_2 + \mathrm{O} = \mathrm{H} + \mathrm{OH}$\\
+(R3)&$ \mathrm{H}_2 + \mathrm{OH} = \mathrm{H} + \mathrm{H}_2\mathrm{O}$\\
+(R4)&$ 2\mathrm{OH} = \mathrm{O} + \mathrm{H}_2\mathrm{O}$\\
+(R5)&$ \mathrm{H}_2 = 2\mathrm{H}$\\
+(R6)&$ \mathrm{H}_2 = 2\mathrm{H}$\\
+(R7)&$ \mathrm{H}_2 = 2\mathrm{H}$\\
+(R8)&$ 2\mathrm{O} = \mathrm{O}_2$\\
+(R9)&$ 2\mathrm{O} = \mathrm{O}_2$\\
+(R10)&$ 2\mathrm{O} = \mathrm{O}_2$\\
+(R11)&$ \mathrm{H} + \mathrm{O} = \mathrm{OH}$\\
+(R12)&$ \mathrm{H}_2\mathrm{O} = \mathrm{H} + \mathrm{OH}$\\
+(R13)&$ \mathrm{H}_2\mathrm{O} = \mathrm{H} + \mathrm{OH}$\\
+(R14)&$ \mathrm{H} + \mathrm{O}_2 = \mathrm{HO}_2$\\
+(R15)&$ \mathrm{H} + \mathrm{HO}_2 = \mathrm{H}_2 + \mathrm{O}_2$\\
+(R16)&$ \mathrm{H} + \mathrm{HO}_2 = 2\mathrm{OH}$\\
+(R17)&$ \mathrm{O} + \mathrm{HO}_2 = \mathrm{OH} + \mathrm{O}_2$\\
+(R18)&$ \mathrm{OH} + \mathrm{HO}_2 = \mathrm{H}_2\mathrm{O} + \mathrm{O}_2$\\
+(R19)&$ 2\mathrm{HO}_2 = \mathrm{O}_2 + \mathrm{H}_2\mathrm{O}_2$\\
+(R20)&$ 2\mathrm{HO}_2 = \mathrm{O}_2 + \mathrm{H}_2\mathrm{O}_2$\\
+(R21)&$ \mathrm{H}_2\mathrm{O}_2 = 2\mathrm{OH}$\\
+(R22)&$ \mathrm{H} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{OH} + \mathrm{H}_2\mathrm{O}$\\
+(R23)&$ \mathrm{H} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{H}_2 + \mathrm{HO}_2$\\
+(R24)&$ \mathrm{O} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{OH} + \mathrm{HO}_2$\\
+(R25)&$ \mathrm{OH} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{H}_2\mathrm{O} + \mathrm{HO}_2$\\
+(R26)&$ \mathrm{OH} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{H}_2\mathrm{O} + \mathrm{HO}_2$\\
+(R27)&$ \mathrm{H} + \mathrm{HO}_2 = \mathrm{O} + \mathrm{H}_2\mathrm{O}$\\
+(R28)&$ \mathrm{O} + \mathrm{OH} = \mathrm{HO}_2$\\
+\hline
+  \end{tabular}
+  \caption{Starting Mechanism}
+  \label{tab:srcmech}
+\end{table}
 \begin{itemize}
 \item Start with Burke et al. mechanism. Comes from Li et al.,
   assembly of elementary rates, minor targeted optimization.
@@ -196,7 +234,46 @@ In a Bayesian framework, the posterior distribution is \ldots
   by elementary rate expressions
 \item Need a (compact) table showing the mechanism and parameters
   varied. Maybe model after the one in the Davis paper.
-
+  \begin{table}[htp]
+    \centering
+    \begin{tabular}{l r l l}
+      \hline
+ (P0)& (R14): & $ \mathrm{H} + \mathrm{O}_2 = \mathrm{HO}_2     $&$ \mathrm{A}$\\
+ (P1)& (R14): & $ \mathrm{H} + \mathrm{O}_2 = \mathrm{HO}_2     $&$ \mathrm{A}_\mathrm{low}$\\
+ (P2)& (R14): & $ \mathrm{H} + \mathrm{O}_2 = \mathrm{HO}_2     $&$ \mathrm{M}_{\mathrm{H}_2}$\\
+ (P3)& (R14): & $ \mathrm{H} + \mathrm{O}_2 = \mathrm{HO}_2     $&$ \mathrm{M}_{\mathrm{H}_2\mathrm{O}}$\\
+ (P4)& (R14): & $ \mathrm{H} + \mathrm{O}_2 = \mathrm{HO}_2     $&$ \mathrm{M}_{\mathrm{O}_2}$\\
+ (P5)& (R14): & $ \mathrm{H} + \mathrm{O}_2 = \mathrm{HO}_2     $&$ \mathrm{M}_{\mathrm{Ar}}$\\
+ (P6)& (R14): & $ \mathrm{H} + \mathrm{O}_2 = \mathrm{HO}_2     $&$ \mathrm{M}_{\mathrm{He}}$\\
+ (P7)& (R15): & $ \mathrm{H} + \mathrm{HO}_2 = \mathrm{H}_2 + \mathrm{O}_2     $&$ \mathrm{A}$\\
+ (P8)& (R16): & $ \mathrm{H} + \mathrm{HO}_2 = 2\mathrm{OH}     $&$ \mathrm{A}$\\
+ (P9)& (R17): & $ \mathrm{O} + \mathrm{HO}_2 = \mathrm{OH} + \mathrm{O}_2     $&$ \mathrm{A}$\\
+(P10)& (R18): & $ \mathrm{OH} + \mathrm{HO}_2 = \mathrm{H}_2\mathrm{O} + \mathrm{O}_2     $&$ \mathrm{A}$\\
+(P11)& (R19): & $ 2\mathrm{HO}_2 = \mathrm{O}_2 + \mathrm{H}_2\mathrm{O}_2     $&$ \mathrm{A}$\\
+(P12)& (R20): & $ 2\mathrm{HO}_2 = \mathrm{O}_2 + \mathrm{H}_2\mathrm{O}_2     $&$ \mathrm{A}$\\
+(P13)& (R21): & $ \mathrm{H}_2\mathrm{O}_2 = 2\mathrm{OH}     $&$ \mathrm{A}$\\
+(P14)& (R21): & $ \mathrm{H}_2\mathrm{O}_2 = 2\mathrm{OH}     $&$ \mathrm{A}_\mathrm{low}$\\
+(P15)& (R21): & $ \mathrm{H}_2\mathrm{O}_2 = 2\mathrm{OH}     $&$ \mathrm{M}_{\mathrm{H}_2\mathrm{O}}$\\
+(P16)& (R21): & $ \mathrm{H}_2\mathrm{O}_2 = 2\mathrm{OH}     $&$ \mathrm{M}_{\mathrm{H}_2\mathrm{O}_2}$\\
+(P17)& (R21): & $ \mathrm{H}_2\mathrm{O}_2 = 2\mathrm{OH}     $&$ \mathrm{M}_{\mathrm{O}_2}$\\
+(P18)& (R21): & $ \mathrm{H}_2\mathrm{O}_2 = 2\mathrm{OH}     $&$ \mathrm{M}_{\mathrm{N}_2}$\\
+(P19)& (R21): & $ \mathrm{H}_2\mathrm{O}_2 = 2\mathrm{OH}     $&$ \mathrm{M}_{\mathrm{H}_2}$\\
+(P20)& (R21): & $ \mathrm{H}_2\mathrm{O}_2 = 2\mathrm{OH}     $&$ \mathrm{M}_{\mathrm{He}}$\\
+(P21)& (R22): & $ \mathrm{H} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{OH} + \mathrm{H}_2\mathrm{O}     $&$ \mathrm{A}$\\
+(P22)& (R23): & $ \mathrm{H} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{H}_2 + \mathrm{HO}_2     $&$ \mathrm{A}$\\
+(P23)& (R24): & $ \mathrm{O} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{OH} + \mathrm{HO}_2     $&$ \mathrm{A}$\\
+(P24)& (R25): & $ \mathrm{OH} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{H}_2\mathrm{O} + \mathrm{HO}_2     $&$ \mathrm{A}$\\
+(P25)& (R26): & $ \mathrm{OH} + \mathrm{H}_2\mathrm{O}_2 = \mathrm{H}_2\mathrm{O} + \mathrm{HO}_2     $&$ \mathrm{A}$\\
+(P26)& (R27): & $ \mathrm{H} + \mathrm{HO}_2 = \mathrm{O} + \mathrm{H}_2\mathrm{O}     $&$ \mathrm{A}$\\
+(P27)& (R28): & $ \mathrm{O} + \mathrm{OH} = \mathrm{HO}_2     $&$ \mathrm{A}$\\
+(P28)& (R28): & $ \mathrm{O} + \mathrm{OH} = \mathrm{HO}_2     $&$ \mathrm{M}_{\mathrm{H}_2}$\\
+(P29)& (R28): & $ \mathrm{O} + \mathrm{OH} = \mathrm{HO}_2     $&$ \mathrm{M}_{\mathrm{H}_2\mathrm{O}}$\\
+(P30)& (R28): & $ \mathrm{O} + \mathrm{OH} = \mathrm{HO}_2     $&$ \mathrm{M}_{\mathrm{Ar}}$\\
+\hline
+\end{tabular}
+    \caption{Active parameters}
+    \label{tab:parameters}
+  \end{table}
 \end{itemize}
 \subsection{Experimental Targets}
 \begin{itemize}

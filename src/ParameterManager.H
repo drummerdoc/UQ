@@ -46,6 +46,8 @@ struct ParameterManager
   void setParamLowerBound( Real val, int idx );
   void setParamUpperBound( Real val, int idx );
 
+  void PrintActiveParams();
+
   std::vector<Real> true_parameters;
   std::vector<Real> prior_mean;
   std::vector<Real> prior_std;

@@ -251,6 +251,12 @@ Driver::init(int argc, char *argv[])
     mystruct = new MINPACKstruct(*cd,param_eps,use_synthetic_data);
 
     ParameterManager& parameter_manager = mystruct->parameter_manager;
+    if (ParallelDescriptor::IOProcessor() ) {
+      std::cout << "=================== REACTION MECHANISM =================" << std::endl;
+      parameter_manager.PrintActiveParams();
+      std::cout << "========================================================" << std::endl;
+      
+    }
     ExperimentManager& expt_manager = mystruct->expt_manager;  
     expt_manager.InitializeExperiments();
     expt_manager.InitializeTrueData(parameter_manager.TrueParameters());

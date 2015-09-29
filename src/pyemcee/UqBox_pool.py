@@ -1,6 +1,15 @@
-import numpy as np
+# Replacement for MPI pool to work with UqBox
+# Parallel strategy where every MPI rank has it's own version
+# of driver function that knows how to evaluate a likelyhood
+# given a set of parameters, but function isn't pickleable
+# Only parameters pickled, those get extracted and evaluated
 
-from emcee.mpi_pool import MPIPool, _close_pool_message, _function_wrapper, _error_function
+# Ray Grout (ray.grout@nrel.gov)
+# September 2015
+
+from emcee.mpi_pool import MPIPool, _close_pool_message,\
+                           _function_wrapper
+
 
 class UqBoxPool(MPIPool):
     def __init__(self, MPI=None, debug=False):
@@ -31,10 +40,11 @@ class UqBoxPool(MPIPool):
                 print("Worker {0} waiting for task.".format(self.rank))
 
             # Blocking receive to wait for instructions.
-            task = self.comm.recv(source=0, tag=self.MPI.ANY_TAG, status=status)
+            task = self.comm.recv(source=0,
+                                  tag=self.MPI.ANY_TAG, status=status)
             if self.debug:
                 print("Worker {0} got task {1} with tag {2}."
-                                 .format(self.rank, task, status.tag))
+                      .format(self.rank, task, status.tag))
 
             # Check if message is special sentinel signaling end.
             # If so, stop.
@@ -49,18 +59,18 @@ class UqBoxPool(MPIPool):
                 self.function = task.function
                 if self.debug:
                     print("Worker {0} replaced its task function: {1}."
-                            .format(self.rank, self.function))
+                          .format(self.rank, self.function))
                 continue
 
             # If not a special message, just run the known function on
             # the input and return it asynchronously.
-            #result = self.function(task)
+            # result = self.function(task)
             if self.function_arg:
-                result = self.eval_function(self.function(task), self.function_arg)
+                result = self.eval_function(self.function(task),
+                                            self.function_arg)
             else:
                 result = self.eval_function(self.function(task))
             if self.debug:
                 print("Worker {0} sending answer {1} with tag {2}."
-                        .format(self.rank, result, status.tag))
+                      .format(self.rank, result, status.tag))
             self.comm.isend(result, dest=0, tag=status.tag)
-
