@@ -15,6 +15,7 @@ import sys
 import StringIO
 import pyemcee as pymc
 import cPickle
+import git_info as gi
 
 parallel_mode = 'BOXLIB' # serial UqBox, Boxlib parallizes experiments (over MPI)
 parallel_mode = 'HYBRID' # MPI parallel UqBox, boxlib threads experiments with OMP 
@@ -23,7 +24,7 @@ print("Parallel mode is: " + parallel_mode)
 if parallel_mode:
     from mpi4py import MPI
 
-def WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,rstate):
+def WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,rstate, id, rl):
     
     fmt = "%0"+str(nDigits)+"d"
     lastStep = step + nSteps - 1
@@ -51,6 +52,11 @@ def WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,rstate):
 
     pf = pymc.UqPlotfile(x_for_c, ndim, nwalkers, step, nSteps, rstateString)
     pf.Write(filename)
+
+    if rank == 0:
+        flog=open('plotfiles.log', 'a')
+        flog.write(id + "  " + rl + " " + filename)
+        flog.close()
 
 def LoadPlotfile(driver,filename):
     
@@ -216,6 +222,15 @@ def do_sampler():
     
     if rank == 0:
         g=open('accept', 'w')
+    pbsid = 0
+    gitrl = 0
+    if rank == 0:
+        pbsid = gi.get_pbsid()
+        gitrl = gi.get_reflog()
+        patch = gi.get_patch()
+        patchf = open(id + ".src", 'w')
+        patchf.write(patch)
+        patchf.close()
         
     while step < maxStep:
     
@@ -235,7 +250,7 @@ def do_sampler():
             g.flush()
     
         nDigits = int(np.log10(maxStep)) + 1
-        WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,state)
+        WritePlotfile(driver,outFilePrefix,nwalkers,step,nSteps,nDigits,state,pbsid,gitrl)
     
         step = step + nSteps
 
