@@ -9,7 +9,16 @@
 
 static bool log_failed_cases_DEF = true;
 static std::string log_folder_name_DEF = "FAILED";
-  
+static int override_expt_verbosity_DEF = -1; // -1=inactive, 0=not verbose, 1+=verbose
+
+void
+ExperimentManager::SetDiagnosticPrefix(const std::string& prefix)
+{
+  for (int i=0; i<expts.size(); ++i) {
+    expts[i].SetDiagnosticFilePrefix(prefix);
+  }
+}
+
 ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, bool _use_synthetic_data)
   : use_synthetic_data(_use_synthetic_data), verbose(true),
     parameter_manager(pmgr), expts(PArrayManage), perturbed_data(0),
@@ -25,6 +34,8 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, boo
   Array<std::string> experiments;
   pp.getarr("experiments",experiments,0,nExpts);
   pp.query("verbose",verbose);
+  override_expt_verbosity = override_expt_verbosity_DEF;
+  pp.query("override_expt_verbosity",override_expt_verbosity);
 
   for (int i=0; i<nExpts; ++i) {
     std::string prefix = experiments[i];
@@ -44,6 +55,10 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, boo
     }
     else {
       BoxLib::Abort("Unknown experiment type");
+    }
+
+    if (override_expt_verbosity >= 0) {
+      expts[i].SetVerbosity(override_expt_verbosity);
     }
 
     // Get experiment data, if not using synthetic data
@@ -68,6 +83,12 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, boo
         true_data[offset+j] = tarr[j];
       }
     }
+  }
+
+  if (pp.countval("diagnostic_prefix")>0) {
+    std::string diagnostic_prefix;
+    pp.get("diagnostic_prefix",diagnostic_prefix);
+    SetDiagnosticPrefix(diagnostic_prefix);
   }
 }
 

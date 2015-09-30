@@ -53,6 +53,8 @@ struct ExperimentManager
   SimulatedExperiment& Experiment(int i) {return expts[i];} // Careful with this one!
   const std::vector<std::string>& ExperimentNames() {return expt_name;}
 
+  void SetDiagnosticPrefix(const std::string& prefix);
+
 protected:
   void LogFailedCases(const std::vector<Real>& test_params,
                       const std::vector<Real>& test_measurements,
@@ -68,6 +70,7 @@ protected:
 				     std::vector<Real>&       test_measurements);
 
   bool initialized, use_synthetic_data, verbose;
+  int override_expt_verbosity;
   ParameterManager& parameter_manager;
   PArray<SimulatedExperiment> expts;
   std::vector<std::vector<Real> > raw_data;
@@ -86,7 +89,6 @@ protected:
 
 private:
   ExperimentManager(const ExperimentManager& rhs);
-
 };
 
 #endif // _ExperimentManager_

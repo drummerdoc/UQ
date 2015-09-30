@@ -203,9 +203,9 @@ Driver::Driver(int argc, char*argv[], int init_later)
         return;
     }
     else {
-        init(argc, argv);
+      omp_threads_override = -1;
+      init(argc, argv);
     }
-    omp_threads_override = -1;
 }
 
 

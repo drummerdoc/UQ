@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 
+#include <Utility.H>
 #include <ParmParse.H>
 #include <UqPlotfile.H>
 
@@ -34,6 +35,8 @@ main (int   argc,
   std::string sampleFile = "samples"; pp.query("sampleFile",sampleFile);
 
   bool verbose = false; pp.query("verbose",verbose);
+  std::string diagnostic_prefix = "./";
+  pp.query("diagnostic_prefix",diagnostic_prefix);
 
   UqPlotfile pf;
   pf.Read(sampleFile);
@@ -56,6 +59,8 @@ main (int   argc,
   std::cout << std::scientific;
   std::vector<Real> mySamples(ndim);
   std::vector<Real> F(nwalkers*iters);
+  int nDigits = (int)(std::log10(nwalkers*iters)) + 1;
+
   for (int k=0; k<nwalkers; ++k) {
     for (int t=iter; t<iter+iters; ++t) {
 
@@ -67,8 +72,11 @@ main (int   argc,
 	  long index = k + nwalkers*(t-iter) + nwalkers*iters*j;
 	  mySamples[j] = samples[index];
 	}
-	
+
+	std::string my_prefix = BoxLib::Concatenate(diagnostic_prefix,sampleID,nDigits) + "/";
+	expt_manager.SetDiagnosticPrefix(my_prefix);
 	F[sampleID] = driver.LogLikelihood(mySamples);
+
 	if (verbose) {
 	  std::cout << sampleID << " [";
 	  for (int j=0; j<ndim; ++j) {

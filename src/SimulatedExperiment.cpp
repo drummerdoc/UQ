@@ -30,6 +30,48 @@ static int verbosity_DEF = 0;
 
 static int max_premix_iters_DEF = 100000;
 static int min_reasonable_regrid_DEF = 24;
+static std::string diagnostic_prefix_DEF = "VERBOSE_";
+
+static std::string getFilePart(const std::string& path)
+{
+  std::vector<std::string> parts = BoxLib::Tokenize(path,"/");
+  return parts[parts.size()-1];
+}
+
+static std::string getDirPart(const std::string& path)
+{
+  std::vector<std::string> parts = BoxLib::Tokenize(path,"/");
+
+  std::string ret;
+  if (path.at(0) == '/') {
+    ret = "/";
+  }
+  else if (parts.size() == 1) {
+    ret = "./";
+  }
+
+  for (int i=0; i<parts.size()-1; ++i) {
+    ret += parts[i];
+    if (i!=parts.size()-2) ret += '/';
+  }
+  return ret;
+}
+
+static void EnsureFolderExists(const std::string& fullPath)
+{
+  if (ParallelDescriptor::IOProcessor()) {
+#ifdef _OPENMP
+#pragma omp critical (mk_diag_folder)
+#endif
+    {
+      std::string dirPart = getDirPart(fullPath);
+      if( ! BoxLib::UtilCreateDirectory(dirPart, 0755)) {
+	BoxLib::CreateDirectoryFailed(dirPart);
+      }
+    }
+  }
+  ParallelDescriptor::Barrier();
+}
 
 SimulatedExperiment::ErrMap
 SimulatedExperiment::build_err_map()
@@ -69,13 +111,20 @@ SimulatedExperiment::ErrorID(const std::string& errStr) {
 }
 
 SimulatedExperiment::SimulatedExperiment()
-  :  is_initialized(false), log_file(log_file_DEF), verbosity(verbosity_DEF)
+  :  is_initialized(false), log_file(log_file_DEF),
+     verbosity(verbosity_DEF),
+     diagnostic_prefix(diagnostic_prefix_DEF)
 {
 }
 
 SimulatedExperiment::~SimulatedExperiment() {}
 
 void SimulatedExperiment::CopyData(int src, int dest, int tag){}
+
+void SimulatedExperiment::SetDiagnosticFilePrefix(const std::string& prefix)
+{
+  diagnostic_prefix = prefix;
+}
 
 int
 ZeroDReactor::NumMeasuredValues() const {return num_measured_values;}
@@ -356,10 +405,19 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   std::ofstream ofs;
   bool log_this = (log_file != log_file_DEF);
   if (log_this) {
+    EnsureFolderExists(log_file);
     ofs.open(log_file.c_str());
   }
   bool finished;
   int finished_count; // Used only for onset_CO2 when added
+
+  if (verbosity > 1 && ParallelDescriptor::IOProcessor()) {
+    std::string filename = diagnostic_prefix + name + ".dat";
+    //std::cout << "Writing solution for " << name << " to " << filename << std::endl;
+    EnsureFolderExists(filename);
+    std::ofstream osf; osf.open(filename.c_str());
+    osf.close();
+  }
 
   if (reactor_type == CONSTANT_VOLUME) {
     FArrayBox& rYold = s_init;
@@ -772,6 +830,22 @@ ZeroDReactor::ExtractMeasurement() const
     pressure.setVal(Patm * 101325,0);
   }
 
+  if (verbosity > 1)
+  {
+    std::string filename = diagnostic_prefix + name + ".dat";
+    std::ofstream ofs; ofs.open(filename.c_str(),std::ios::app);
+    IntVect se = box.smallEnd();
+    for (int i=box.smallEnd()[0]; i<=box.bigEnd()[0]; ++i) {
+      IntVect iv(se); iv[0] = i;
+      ofs << density(iv,0) << " " << s_final(iv,sCompT) << " ";
+      for (int n=0; n<Nspec; ++n) {
+	ofs << Y(iv,n) << " ";
+      }
+      ofs << pressure(iv,0) << std::endl;
+    }
+    ofs.close();
+  }
+
   if (measured_comps[0] < 0) { // Return pressure
     return pressure(box.smallEnd(),0) / 101325;
   }
@@ -1108,7 +1182,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   }
   else{
 
-    if (v > 0 && ParallelDescriptor::IOProcessor()) {
+    if (v == 1 && ParallelDescriptor::IOProcessor()) {
       std::cerr << "Restarting from previous solution... " << std::endl;
     }
 
@@ -1201,6 +1275,24 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_7"));
     }
     lrstrtflag = 1;
+
+    if (Verbosity() > 1 && ParallelDescriptor::IOProcessor()) {
+      std::string filename = diagnostic_prefix + name + ".dat";
+      //std::cout << "Writing solution for " << name << " to " << filename << std::endl;
+      EnsureFolderExists(filename);
+      std::ofstream ofs; ofs.open(filename.c_str());
+      for (int i=0; i<*solsz; ++i) {
+	ofs << savesol[i + nmax*0]; // X
+	ofs << " " << savesol[i + nmax*1]; // T
+	for (int n=0; n<cd.numSpecies(); ++n) {
+	  ofs << " " << savesol[i + nmax*(2+n)]; // Y
+	}
+	ofs << '\n';
+	// p not currently written, as it would break the matrix format
+      }
+      ofs.close();
+    }
+
   }
   else {
     simulated_observations[0]  = -1;

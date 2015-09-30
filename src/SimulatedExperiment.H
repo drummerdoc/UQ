@@ -29,7 +29,7 @@ struct SimulatedExperiment
   virtual void CopyData(int src, int dest, int tag);
   int Verbosity() const {return verbosity;}
   void SetVerbosity(int verb) {verbosity = verb;}
-
+  void SetDiagnosticFilePrefix(const std::string& prefix);
 
 protected:
   static ErrMap build_err_map();
@@ -38,6 +38,7 @@ protected:
   bool is_initialized;
   std::string diagnostic_name;
   std::string log_file;
+  std::string diagnostic_prefix;
   int verbosity;
 };
 
