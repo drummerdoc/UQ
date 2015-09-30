@@ -14,6 +14,7 @@ import emcee
 import sys
 import pyemcee as pymc
 import cPickle
+import git_info as gi
 
 # serial UqBox, Boxlib parallizes experiments (over MPI)
 parallel_mode = 'BOXLIB'
@@ -28,7 +29,7 @@ if parallel_mode:
 
 
 def WritePlotfile(driver, outFilePrefix, nwalkers,
-                  step, nSteps, nDigits, rstate):
+                  step, nSteps, nDigits, rstate, id, rl):
 
     fmt = "%0"+str(nDigits)+"d"
     lastStep = step + nSteps - 1
@@ -57,9 +58,13 @@ def WritePlotfile(driver, outFilePrefix, nwalkers,
     pf = pymc.UqPlotfile(x_for_c, ndim, nwalkers, step, nSteps, rstateString)
     pf.Write(filename)
 
+    if rank == 0:
+        flog=open('plotfiles.log', 'a')
+        flog.write(id + "  " + rl + " " + filename)
+        flog.close()
 
-def LoadPlotfile(driver, filename):
-
+def LoadPlotfile(driver,filename):
+    
     if rank == 0:
         print('Loading plotfile: '+filename)
 
@@ -232,6 +237,16 @@ def do_sampler():
     if rank == 0:
         g = open('accept', 'w')
 
+    pbsid = 0
+    gitrl = 0
+    if rank == 0:
+        pbsid = gi.get_pbsid()
+        gitrl = gi.get_reflog()
+        patch = gi.get_patch()
+        patchf = open(id + ".src", 'w')
+        patchf.write(patch)
+        patchf.close()
+        
     while step < maxStep:
         nSteps = min(outFilePeriod, maxStep - step + 1)
 
@@ -253,8 +268,8 @@ def do_sampler():
 
         nDigits = int(np.log10(maxStep)) + 1
         WritePlotfile(driver, outFilePrefix, nwalkers,
-                      step, nSteps, nDigits, state)
-
+                      step, nSteps, nDigits, state, pbsid, gitrl)
+    
         step = step + nSteps
 
 # Build a sampler object
