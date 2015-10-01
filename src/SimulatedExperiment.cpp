@@ -557,7 +557,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       ddval_old = ddval;
       
       rYold.copy(rYnew,sCompY,sCompY,Nspec);
-      rHold.copy(rHnew,sCompRH,sCompRH,Nspec);
+      rHold.copy(rHnew,sCompRH,sCompRH,1);
       Told.copy(Tnew,sCompT,sCompT,1);
 
       t_startlast = t_start;
