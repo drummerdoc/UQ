@@ -474,7 +474,7 @@ static std::string info(void*                    p,
   os << " F = " << sum;
 
   std::string msg;
-  if (expt_ok = BAD_EXPT_FLAG) {
+  if (expt_ok == BAD_EXPT_FLAG) {
     msg = " (Bad expt)";
   }
   else if (!parameters_in_bounds(p,n,&(pvals[0]),false)) {
