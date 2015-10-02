@@ -113,7 +113,7 @@ def lnprob(x, driver):
 # Build the persistent class containing the driver object
 driver = DriverWrap()
 driver.d = pymc.Driver(len(sys.argv), sys.argv, 1)
-driver.d.SetComm(MPI.COMM_WORLD)
+#driver.d.SetComm(MPI.COMM_WORLD)
 driver.d.init(len(sys.argv),sys.argv)
 
 # Hang on to this for later - only do output on rank 0
@@ -322,20 +322,26 @@ elif whichSampler == 2: # use t-distribution
          Samples1, Fo = tDist(nu,NOS,N,neff,mu,Cov,lower_bounds,upper_bounds)
 else: 
     print "What sampler would you like to use?"
- 
+
+print 'Building Samples matrix'
 Samples = np.matrix(np.zeros(shape=(N,NOS)))
-for i in range(NOS):
-    if rank == 0:
-        Samples[:,i] =  np.multiply(Samples1[:,i].T,np.matrix(scales)).T
+print 'done building Samples matrix'
+#for i in range(NOS):
+#    if rank == 0:
+#        Samples[:,i] =  np.multiply(Samples1[:,i].T,np.matrix(scales)).T
+
+Samples1 = 1 # Clear this array?
 
 #print np.shape(Samples)
 if rank == 0:
     nwalkers = 1
     nDigits = 0
     istart = 0
-    inum = NOS
-    filename =  outFilePrefix + "_initSamples"
-    WritePlotfile(Samples,N,filename,nwalkers,istart,inum,nDigits,None)
-    WritePlotfile(Fo.T,1,filename + "/F0",nwalkers,istart,inum,nDigits,None)
-
-
+    chunkSize = 500000
+    while istart < NOS:
+        inum = min(NOS-istart,chunkSize)
+        numStr = ('%08d_%08d') % (istart,istart+inum)
+        filename =  outFilePrefix + "_initSamples_" + numStr
+        WritePlotfile(Samples,N,filename,nwalkers,istart,inum,nDigits,None)
+        WritePlotfile(Fo.T,1,filename + "/F0",nwalkers,istart,inum,nDigits,None)
+        istart += inum
