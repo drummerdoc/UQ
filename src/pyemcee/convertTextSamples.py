@@ -39,7 +39,7 @@ f = open(sampleFile)
 ll = f.readlines()
 N = 0
 x = []
-for L in reversed(ll):
+for L in ll:
     t = string.split(string.strip(L))
     if N == 0:
         N = len(t)
@@ -55,6 +55,6 @@ for i in range(len(x)):
         xd[idx] = float(x[i][j])
     
 outfile = sys.argv[2]
-WritePlotfile(xd,N-1,outfile)
+WritePlotfile(xd,N,outfile)
 
 
