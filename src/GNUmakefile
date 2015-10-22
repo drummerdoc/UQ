@@ -118,6 +118,10 @@ include $(Bpack)
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
+ifeq ($(findstring angilas, ${UNAMEN}), angilas)
+    WHICHLINUX := ANGILAS
+endif
+
 CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H Minimizer.H Sampler.H UqPlotfile.H PremixSol.H
 CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp Minimizer.cpp Sampler.cpp UqPlotfile.cpp PremixSol.cpp
 
@@ -210,6 +214,14 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
 #      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.6
 #      SHARED_LIBRARY_SUFFIX:=so
 #      LIBRARIES+=-lpython2.6
+    endif
+    ifeq (${WHICHLINUX}, ANGILAS)
+      PYTHON_DIR := /usr
+      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
+      SHARED_LIBRARY_SUFFIX:=so
+      SHARED_LIBRARIES+=-lpython2.7 -lmpi
+      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
+      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
     endif
     ifeq (${WHICHLINUX}, GIMANTIS)
       PYTHON_DIR := /home/marc/anaconda/pkgs/python-2.7.7-0
