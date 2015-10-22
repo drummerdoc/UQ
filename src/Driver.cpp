@@ -198,12 +198,12 @@ Driver::SetComm(MPI_Comm mpi_comm) {
 Driver::Driver(int argc, char*argv[], int init_later)
 {
     // If this is set, expect to do initialization later after mpi world is setup
+    omp_threads_override = -1;
     if (init_later == 1) {
         _mpi_comm = MPI_COMM_NULL;
         return;
     }
     else {
-      omp_threads_override = -1;
       init(argc, argv);
     }
 }

@@ -196,6 +196,9 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
       SHARED_LIBRARY_SUFFIX:=so
       SHARED_LIBRARIES+=-lpython2.7 -lmpi
+      ifeq (${USE_OMP}, TRUE)
+        SHARED_LIBRARIES += -lgomp
+      endif
       PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
       PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
     endif

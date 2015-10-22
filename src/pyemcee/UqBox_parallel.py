@@ -17,14 +17,15 @@ import cPickle
 import git_info as gi
 
 # serial UqBox, Boxlib parallizes experiments (over MPI)
-parallel_mode = 'BOXLIB'
+#parallel_mode = 'BOXLIB'
 
 # MPI parallel UqBox, boxlib threads experiments with OMP
-parallel_mode = 'HYBRID'
+#parallel_mode = 'HYBRID'
 
-print("Parallel mode is: " + parallel_mode)
+# serial UqBox, boxlib threads experiments with OMP
+parallel_mode = "OMPONLY"
 
-if parallel_mode:
+if parallel_mode == 'BOXLIB' or parallel_mode == 'HYBRID':
     from mpi4py import MPI
 
 
@@ -161,8 +162,9 @@ print('Setting up evaluator')
 # Build the persistent class containing the driver object
 driver = DriverWrap()
 driver.d = pymc.Driver(len(sys.argv), sys.argv, 1)
-driver.d.SetComm(MPI.COMM_WORLD)
-driver.d.SetNumThreads(24)  # MUST be called before driver init
+if parallel_mode == 'BOXLIB' or parallel_mode == 'HYBRID':
+    driver.d.SetComm(MPI.COMM_WORLD)
+driver.d.SetNumThreads(8)  # MUST be called before driver init
 print('Calling evaluator init')
 driver.d.init(len(sys.argv), sys.argv)
 
@@ -171,7 +173,9 @@ if parallel_mode == 'HYBRID':
 
 
 # Hang on to this for later - only do output on rank 0
-rank = MPI.COMM_WORLD.Get_rank()
+rank = 0
+if parallel_mode == 'BOXLIB' or parallel_mode == 'HYBRID':
+    rank = MPI.COMM_WORLD.Get_rank()
 
 ndim = driver.NumParams()
 ndata = driver.NumData()
@@ -243,7 +247,7 @@ def do_sampler():
         pbsid = gi.get_pbsid()
         gitrl = gi.get_reflog()
         patch = gi.get_patch()
-        patchf = open(id + ".src", 'w')
+        patchf = open(pbsid + ".src", 'w')
         patchf.write(patch)
         patchf.close()
         
@@ -294,3 +298,4 @@ else:
     driver.sampler = emcee.EnsembleSampler(nwalkers, ndim,
                                            lnprob, args=[driver],
                                            a=emcee_stepsize)
+    do_sampler()

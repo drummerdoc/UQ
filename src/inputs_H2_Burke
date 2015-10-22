@@ -4,7 +4,7 @@ outFilePrefix = "Results" # Prefix to output file names, to be appended with ste
 outFilePeriod = 100         # Number of samples between calls to write data
 seed          = 111397        # seed, used if no restart file provided
 #restartFile = Results_0050_0059
-restartFile = Results_3490_3499
+#restartFile = Results_3490_3499
 #verbose = 0
 emcee_stepsize = 1.3
 
