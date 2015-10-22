@@ -64,18 +64,31 @@ def LoadPlotfile(filenames):
 
   ret = np.zeros((nwalkers,iters,ndim))
 
+  iterFirst = iter
+  itersPrev = 0
+  print 'iterFirst:',iterFirst
+  print 'nwalkers',nwalkers
+  print 'iters',iters
+  print 'ndim',ndim
   for filename in filenames:
     print('Loading plotfile: '+filename)
     pf = pymc.UqPlotfile()
     pf.Read(filename)
-    iters1 = pf.NITERS()
     iter1 = pf.ITER()
+    iters1 = pf.NITERS()
     p0 = pf.LoadEnsemble(iter1,iters1)
     for walker in range(0,nwalkers):
       for it in range(0,iters1):
         for dim in range(0,ndim):
+          #index = walker + nwalkers*(it-iter1) + nwalkers*iters1*dim
           index = walker + nwalkers*it + nwalkers*iters1*dim
-          ret[walker,iter1+it,dim] = p0[index]
+
+          if ((it == 0 and walker==0 and dim==0) or ( it == iters1-1 and walker==nwalkers-1 and dim==ndim-1 ) ):
+            print 'record, index',index,'len(p0)',len(p0)
+            print '  ret  w,i,d:',walker,iter1+it+itersPrev,dim
+            
+          ret[walker,iter1+it+itersPrev,dim] = p0[index]
+      #itersPrev = iters1  # uncomment if we are combining a bunch of pltfiles starting from 0, rather than a sequence
 
   return ret, nwalkers, ndim, iters, iter
 
