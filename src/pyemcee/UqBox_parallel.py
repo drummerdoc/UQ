@@ -190,7 +190,6 @@ prior_std = driver.PriorStd()
 ensemble_std = driver.EnsembleStd()
 measured_data = driver.MeasuredData();
 measured_data_std = driver.MeasuredDataSTD();
-print(measured_data_std)
 
 pp = pymc.ParmParse()
 print('Setting up sampler')
