@@ -121,6 +121,12 @@ class DriverWrap:
     def GenerateTestMeasurements(self, data):
         return self.d.GenerateTestMeasurements(data)
 
+    def MeasuredData(self):
+        return self.d.MeasuredData()
+
+    def MeasuredDataSTD(self):
+        return self.d.MeasuredDataSTD()
+
 
 #
 # The function called by emcee to sample the posterior
@@ -182,6 +188,9 @@ ndata = driver.NumData()
 prior_mean = driver.PriorMean()
 prior_std = driver.PriorStd()
 ensemble_std = driver.EnsembleStd()
+measured_data = driver.MeasuredData();
+measured_data_std = driver.MeasuredDataSTD();
+print(measured_data_std)
 
 pp = pymc.ParmParse()
 print('Setting up sampler')

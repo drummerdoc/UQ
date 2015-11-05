@@ -27,6 +27,9 @@ struct Driver
   static std::vector<double> EnsembleStd();
   static std::vector<double> GenerateTestMeasurements(const std::vector<Real>& test_params);
 
+  static const std::vector<Real>& MeasuredDataSTD();
+  static const std::vector<Real>& MeasuredData();
+
   static ChemDriver *cd;
   static MINPACKstruct *mystruct;
   static Real param_eps;

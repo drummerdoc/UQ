@@ -23,6 +23,18 @@ Real BAD_SAMPLE_FLAG = -1;
 Real BAD_DATA_FLAG = -2;
 Real F_UNSET_FLAG = -100;
 
+const std::vector<Real>&
+Driver::MeasuredDataSTD()
+{
+  return Driver::mystruct->expt_manager.ObservationSTD();
+}
+
+const std::vector<Real>&
+Driver::MeasuredData()
+{
+  return Driver::mystruct->expt_manager.TrueDataWithObservationNoise();
+}
+
 Real 
 funcF(void* p, const std::vector<Real>& pvals)
 {
