@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <map>
 
 #include <ParameterManager.H>
@@ -266,5 +267,19 @@ void ParameterManager::PrintActiveParams(){
         }
         std::cout << std::endl;
     }
+
+#ifdef CAN_SPEW_MECH
+    // Print new input file reactions to file 
+    std::ofstream newchmfile;
+    newchmfile.open("mech.out");
+    int nr = cd.numReactions();
+    for (int j = 0; j < nr; ++j) {
+        newchmfile << "!Reaction " << j << std::endl;
+        newchmfile << cd.printReactionParameters(j);
+        newchmfile << std::endl;
+        newchmfile << std::endl;
+    }
+    newchmfile.close();
+#endif
 
 }
