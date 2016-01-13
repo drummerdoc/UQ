@@ -36,8 +36,10 @@ protected:
   static ErrMap err_map;
 
   bool is_initialized;
+  bool save_this;
   std::string diagnostic_name;
   std::string log_file;
+  std::string solution_savefile;
   std::string diagnostic_prefix;
   int verbosity;
 };
@@ -68,6 +70,7 @@ struct ZeroDReactor
 protected:
   // Compute observation from evolution
   Real ExtractMeasurement() const;
+  void ExtractXTSolution(std::vector<Real>& XT);
   void ExtractMeasurements(std::vector<Real>&, Real sample_time ) const;
   bool ValidMeasurement(Real data) const;
   void Reset();

@@ -60,8 +60,25 @@ funcF(void* p, const std::vector<Real>& pvals)
 
     } else {
 
-      Real Fb = s->expt_manager.ComputeLikelihood(dvals);
-      F = Fa.second + Fb;
+      
+#undef RESULTSFILE
+#if RESULTSFILE
+        std::ofstream resultsFile;
+        resultsFile.open("results.out");
+
+        for (int i=0; i<dvals.size(); ++i){
+            resultsFile << "Exp" << i << "  " << dvals[i] << std::endl;
+        }
+
+#endif
+        Real Fb = s->expt_manager.ComputeLikelihood(dvals);
+        F = Fa.second + Fb;
+#if RESULTSFILE
+        resultsFile << "Fb  " << Fb << std::endl;
+        resultsFile << "Fa  " << Fa.second << std::endl;
+        resultsFile << "F  " << F << std::endl;
+        resultsFile.close();
+#endif
 
     }
   }
