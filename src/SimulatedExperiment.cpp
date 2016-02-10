@@ -345,6 +345,10 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     }
     num_measured_values = 1;
   }
+  else if (diagnostic_name == "record_solution") {
+      measured_comps[0] = sCompT;
+      num_measured_values = measured_comps.size();
+  }
   else {
     int comp = cd.index(diagnostic_name);
     if (comp < 0) {
@@ -362,6 +366,15 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
 
   if (pp.countval("log_file")>0) {
     pp.get("log_file",log_file);
+  }
+  if (pp.countval("solution_savefile")>0) {
+    pp.get("solution_savefile",solution_savefile);
+    save_this = true;
+    std::cout << "Saving solution to file " << solution_savefile.c_str() << std::endl;
+  }
+  else {
+      save_this = false;
+      //std::cout << "Not saving solution to file " << solution_savefile.c_str() << std::endl;
   }
 }
 
@@ -403,10 +416,21 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
     && diagnostic_name != "mean_difference";
 
   std::ofstream ofs;
+  std::ofstream sfs;
   bool log_this = (log_file != log_file_DEF);
   if (log_this) {
     EnsureFolderExists(log_file);
     ofs.open(log_file.c_str());
+  }
+  if (save_this) {
+    EnsureFolderExists(solution_savefile);
+    sfs.open(solution_savefile.c_str());
+    std::cout << "Opened file to save solution to file " << solution_savefile.c_str() << std::endl;
+    sfs << "i time T";
+    for (int is=0; is<Nspec; ++is){
+        sfs << " " << cd.speciesNames()[is].c_str();
+    }
+    sfs << std::endl;
   }
   bool finished;
   int finished_count; // Used only for onset_CO2 when added
@@ -487,6 +511,16 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
         if (! ValidMeasurement(simulated_observations[i])) {
           return std::pair<bool,int>(false,ErrorID("INVALID_OBSERVATION_2"));
         }
+      }
+      if (save_this) {
+          std::vector<Real> thesol;
+          ExtractXTSolution(thesol);
+          int nSpec = cd.numSpecies();
+          sfs << i << " " << 0.5*(t_start+t_end) << " " << thesol[nSpec];
+          for (int is=0; is<nSpec; ++is){
+              sfs << " " << thesol[is];
+          }
+          sfs << std::endl;
       }
 
       if (first) {
@@ -621,6 +655,16 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
         }
       }
 
+      if (save_this) {
+          std::vector<Real> thesol;
+          ExtractXTSolution(thesol);
+          int nSpec = cd.numSpecies();
+          sfs << i << " " << 0.5*(t_start+t_end) << " " << thesol[nSpec];
+          for (int is=0; is<nSpec; ++is){
+              sfs << " " << thesol[is];
+          }
+          sfs << std::endl;
+      }
 
       if (log_this) {
           Real cond = ExtractMeasurement();
@@ -754,6 +798,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   if (log_this) {
     ofs.close();
   }
+  if (save_this) {
+    sfs.close();
+  }
 
   //std::cout << "--> End Computed measurement: " <<  simulated_observations[0]  << " finished: " << finished << std::endl;
   if (diagnostic_name == "mean_difference" && !finished) {
@@ -783,6 +830,37 @@ ZeroDReactor::ComputeMassFraction(FArrayBox& Y) const
   else { // In this case, state holds Y
     Y.copy(s_final,box,sCompY,box,0,Nspec);
   }
+}
+
+void
+ZeroDReactor::ExtractXTSolution(std::vector<Real>& sol) 
+{
+  BL_ASSERT(is_initialized);
+
+  int Nspec = cd.numSpecies();
+  sol.resize(Nspec+1);
+  sol[Nspec] = s_final(s_final.box().smallEnd(),sCompT);
+
+  FArrayBox Y;
+  ComputeMassFraction(Y);
+  const Box& box = Y.box();
+
+
+  // Compute mole fraction
+  FArrayBox X(box,Nspec);
+  cd.massFracToMoleFrac(X,Y,box,0,0);
+
+  int iSpec = measured_comps[0] - sCompY;
+  for( int i = 0; i<Nspec; ++i){
+      sol[i] = X(box.smallEnd(), i);
+  }
+
+  return;
+
+  // Return molar concentration
+  // FArrayBox C(box,Nspec);
+  // cd.massFracToMolarConc(C,Y,s_final,density,box,0,0,sCompT,0);
+  // return C(box.smallEnd(),iSpec);
 }
 
 Real

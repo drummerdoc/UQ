@@ -101,7 +101,19 @@ main (int   argc,
   }
 
   if (Lonly) {
+#if 0
+      std::cout << "computing baseline solution, not loading stateL1!!! ======" << std::endl;
+
+      // const std::vector<Real>& trueparam = parameter_manager.PriorMean();
+      const std::vector<Real>& trueparam = parameter_manager.TrueParameters();
+      Real F = NegativeLogLikelihood(trueparam);
+#else
     Real F = NegativeLogLikelihood(stateL);
+#endif
+      std::cout << "=================== SAMPLE REACTION MECHANISM =================" << " F  = " << F << std::endl;
+      parameter_manager.PrintActiveParams();
+      std::cout << "=================== REACTION MECHANISM =================" << std::endl;
+
   } else {
     int intervals=10; pp.query("intervals",intervals);
     int niters = intervals + 1;

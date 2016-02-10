@@ -682,6 +682,16 @@ ExperimentManager::ComputeLikelihood(const std::vector<Real>& test_data) const
     Real n = perturbed_data[ii] - test_data[ii];
     L += 0.5 * n * n / (true_std[ii] * true_std[ii]);
   }
+#if 0
+  std::ofstream expValsFile;
+  expValsFile.open("exp_data.out");
+  for (int ii=0; ii<num_expt_data; ii++) {
+      expValsFile << "Exp" << ii << "  " << perturbed_data[ii] << "  " << true_std[ii] << std::endl;
+  }
+  expValsFile.close();
+
+#endif
+
   return L;
 }
 
