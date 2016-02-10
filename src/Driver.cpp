@@ -123,6 +123,12 @@ Driver::PriorMean()
 }
 
 std::vector<double>
+Driver::TrueParameters()
+{
+  return Driver::mystruct->parameter_manager.TrueParameters();
+}
+
+std::vector<double>
 Driver::PriorStd()
 {
   return Driver::mystruct->parameter_manager.prior_std;

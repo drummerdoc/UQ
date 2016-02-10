@@ -21,6 +21,7 @@ struct Driver
   static int NumParams();
   static int NumData();
   static std::vector<double> PriorMean();
+  static std::vector<double> TrueParameters();
   static std::vector<double> PriorStd();
   static std::vector<double> LowerBound();
   static std::vector<double> UpperBound();

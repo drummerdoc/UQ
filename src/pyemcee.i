@@ -74,6 +74,7 @@ struct Driver
   static std::vector<double> GenerateTestMeasurements(const std::vector<double>& test_params);
   static std::vector<double> MeasuredDataSTD();
   static std::vector<double> MeasuredData();
+  static std::vector<double> TrueParameters();
 };
 
 /* Here, we expose the BoxLib::ParmParse class, but only for strings, lists of strings
