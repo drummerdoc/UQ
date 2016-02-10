@@ -18,6 +18,12 @@ struct Driver
   void SetNumThreads(int num_threads);
 
   static double LogLikelihood(const std::vector<double>& parameters);
+  static double VerboseLogLikelihood(const std::vector<Real>& pvals,
+				     std::vector<Real>&       dvals,
+				     std::vector<Real>&       svals,
+				     Real&                    Fa,
+				     Real&                    Fb);
+
   static int NumParams();
   static int NumData();
   static std::vector<double> PriorMean();

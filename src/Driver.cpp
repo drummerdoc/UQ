@@ -35,18 +35,19 @@ Driver::MeasuredData()
   return Driver::mystruct->expt_manager.TrueDataWithObservationNoise();
 }
 
-Real 
-funcF(void* p, const std::vector<Real>& pvals)
+void function_wrapper(MINPACKstruct*           s,
+		      const std::vector<Real>& pvals,
+		      std::vector<Real>&       dvals,
+		      std::vector<Real>&       svals,
+		      Real&                    Fa,
+		      Real&                    Fb,
+		      Real&                    F)
 {
-  MINPACKstruct *s = (MINPACKstruct*)(p);
   s->ResizeWork();
-  std::vector<Real> dvals(s->expt_manager.NumExptData());
+  std::pair<bool,Real> Fa_pair = s->parameter_manager.ComputePrior(pvals);
 
-  // Get prior component of likelihood
-  std::pair<bool,Real> Fa = s->parameter_manager.ComputePrior(pvals);
-
-  Real F = F_UNSET_FLAG;
-  if (!Fa.first) {
+  F = F_UNSET_FLAG;
+  if (!Fa_pair.first) {
 
     F = BAD_SAMPLE_FLAG; // Parameter OOB
 
@@ -71,17 +72,53 @@ funcF(void* p, const std::vector<Real>& pvals)
         }
 
 #endif
-        Real Fb = s->expt_manager.ComputeLikelihood(dvals);
-        F = Fa.second + Fb;
+        Fb = s->expt_manager.ComputeLikelihood(dvals);
+        F = Fa_pair.second + Fb;
 #if RESULTSFILE
         resultsFile << "Fb  " << Fb << std::endl;
-        resultsFile << "Fa  " << Fa.second << std::endl;
+        resultsFile << "Fa  " << Fa_pair.second << std::endl;
         resultsFile << "F  " << F << std::endl;
         resultsFile.close();
 #endif
 
     }
   }
+
+  const std::vector<Real>& data = s->expt_manager.TrueDataWithObservationNoise();
+  const std::vector<Real>& obs_std = s->expt_manager.ObservationSTD();
+  BL_ASSERT(svals.size() == s->expt_manager.NumExptData());
+  for(int i=0; i<svals.size(); i++){
+    svals[i] = (data[i] - dvals[i])/obs_std[i];
+  }
+}
+
+Real 
+funcF(void* p, const std::vector<Real>& pvals)
+{
+  MINPACKstruct *s = (MINPACKstruct*)(p);
+  s->ResizeWork();
+  std::vector<Real> dvals(s->expt_manager.NumExptData());
+  std::vector<Real> svals(s->expt_manager.NumExptData());
+
+  Real Fa, Fb, F;
+  function_wrapper(s,pvals,dvals,svals,Fa,Fb,F);
+
+#undef RESULTSFILE
+#if RESULTSFILE
+  if (F != BAD_SAMPLE_FLAG  &&  F != BAD_DATA_FLAG)
+  {
+    std::ofstream resultsFile;
+    resultsFile.open("results.out");
+
+    for (int i=0; i<dvals.size(); ++i){
+      resultsFile << "Exp" << i << "  " << dvals[i] << std::endl;
+    }
+    resultsFile << "Fb  " << Fb << std::endl;
+    resultsFile << "Fa  " << Fa.second << std::endl;
+    resultsFile << "F  " << F << std::endl;
+    resultsFile.close();
+  }
+#endif
 
 #if 0
   std::cout << "X = { ";
@@ -104,13 +141,9 @@ funcF(void* p, const std::vector<Real>& pvals)
   for(int i=0; i<s->expt_manager.NumExptData(); i++){
     std::cout << dvals[i] << " ";
   }
-
-  const std::vector<Real>& data = s->expt_manager.TrueDataWithObservationNoise();
-  const std::vector<Real>& obs_std = s->expt_manager.ObservationSTD();
-
   std::cout << "}, S = { ";
   for(int i=0; i<s->expt_manager.NumExptData(); i++){
-    std::cout << (data[i] - dvals[i])/obs_std[i] << " ";
+    std::cout << sdata[i] << " ";
   }
   std::cout << "}, F = " << F << std::endl;
 #endif
@@ -121,6 +154,19 @@ funcF(void* p, const std::vector<Real>& pvals)
 double Driver::LogLikelihood(const std::vector<double>& parameters)
 {
   return -funcF((void*)(Driver::mystruct),parameters);
+}
+
+double Driver::VerboseLogLikelihood(const std::vector<Real>& pvals,
+				    std::vector<Real>&       dvals,
+				    std::vector<Real>&       svals,
+				    Real&                    Fa,
+				    Real&                    Fb)
+{
+  MINPACKstruct *s = Driver::mystruct;
+  s->ResizeWork();
+  Real F;
+  function_wrapper(s,pvals,dvals,svals,Fa,Fb,F);
+  return -F;
 }
 
 int Driver::NumParams()
