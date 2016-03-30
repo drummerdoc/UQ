@@ -435,7 +435,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
   bool finished;
   int finished_count; // Used only for onset_CO2 when added
 
-  if (verbosity > 1 && ParallelDescriptor::IOProcessor()) {
+  if (verbosity > 2 && ParallelDescriptor::IOProcessor()) {
     std::string filename = diagnostic_prefix + name + ".dat";
     //std::cout << "Writing solution for " << name << " to " << filename << std::endl;
     EnsureFolderExists(filename);
@@ -908,7 +908,7 @@ ZeroDReactor::ExtractMeasurement() const
     pressure.setVal(Patm * 101325,0);
   }
 
-  if (verbosity > 1)
+  if (verbosity > 2)
   {
     std::string filename = diagnostic_prefix + name + ".dat";
     std::ofstream ofs; ofs.open(filename.c_str(),std::ios::app);
@@ -1017,7 +1017,9 @@ PREMIXReactor::ReadBaselineSoln(const std::string& filename)
   }
 
   // Read solution
-  std::cerr << "Reading baseline solution for " << name << " from: " << filename << std::endl;
+  if (ParallelDescriptor::IOProcessor()) {
+    std::cerr << "Reading baseline solution for " << name << " from: " << filename << std::endl;
+  }
   return baseline_premix_sol->ReadSoln(filename);
 }
 

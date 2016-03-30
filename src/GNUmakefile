@@ -22,6 +22,9 @@ ifeq ($(MACHINE), Linux)
   ifeq ($(findstring edison, $(UNAMEN)), edison)
     WHICHLINUX := EDISON
   endif
+  ifeq ($(findstring cori, $(UNAMEN)), cori)
+    WHICHLINUX := CORI
+  endif
   ifeq ($(findstring mothra, $(UNAMEN)), mothra)
     WHICHLINUX := MOTHRA
     TOP = /scratch1/jbb/
@@ -254,6 +257,14 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
       PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
       fFLAGS += -cpp
     endif
+    ifeq (${WHICHLINUX}, CORI)
+      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
+      SHARED_LIBRARY_SUFFIX:=so
+      LIBRARIES+=-lpython2.7 -lmpi
+      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
+      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
+      fFLAGS += -cpp
+    endif
   endif
 
   ifeq (${MACHINE}, Darwin) 
@@ -313,6 +324,9 @@ INCLUDE_LOCATIONS+=${PACKAGES}/include/cminpack-1
 LIBRARY_LOCATIONS+=${PACKAGES}/lib
 ifeq ($(MACHINE), Linux)
   LIBRARY_LOCATIONS+=${PACKAGES}/lib64
+endif
+ifeq ($(WHICHLINUX), CORI)
+  LIBRARIES += -dynamic
 endif
 ifeq ($(WHICHLINUX), EDISON)
   LIBRARIES += -dynamic
