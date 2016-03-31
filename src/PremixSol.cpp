@@ -32,7 +32,7 @@ PremixSol::WriteSoln (const std::string& filename) const
 	     << ngp               << '\n';
 
   Box box(IntVect(D_DECL(0,0,0)),IntVect(D_DECL(ngp,0,0))); // Last point used to hold 2 extra quantities
-  FArrayBox fab(box,ngp);
+  FArrayBox fab(box,ncomp);
   for (int j=0; j<ngp; ++j) {
     IntVect iv(D_DECL(j,0,0));
     for (int n=0; n<ncomp; ++n) {
