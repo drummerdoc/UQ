@@ -21,7 +21,6 @@ main (int   argc,
   Driver driver(argc,argv,0);
 #endif
 
-  ParameterManager& parameter_manager = driver.mystruct->parameter_manager;
   ExperimentManager& expt_manager = driver.mystruct->expt_manager;
   expt_manager.SetVerbose(false);
   expt_manager.SetParallelMode(ExperimentManager::PARALLELIZE_OVER_THREAD);
@@ -57,7 +56,9 @@ main (int   argc,
   int ndim = 4;
 #endif
 
-  BL_ASSERT(ndim == driver.NumParams());
+  if (ndim != driver.NumParams()) {
+    BoxLib::Abort("Number of parameters inconsistent between samples and input file");
+  }
   std::vector<Real> samples;
   if (ioproc) {
 #ifndef TESTDATA
