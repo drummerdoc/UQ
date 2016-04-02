@@ -127,13 +127,14 @@ CEXE_sources += SimulatedExperiment.cpp \
 
 # Chemistry model-specific sources
 include ${CHEMISTRY_DIR}/tools/make/ChemModels.mk
+cEXE_sources   += $(CHEM_MECHFILE)
 
 # CHEMKIN/Chemistry pieces
 VPATH_LOCATIONS   += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
 FEXE_sources   += premix_2.F
 fEXE_sources   += twopnt.f refine.f cktime.f misc_math.f mach.f
-cEXE_sources   += mach_c.c $(CHEM_MECHFILE)
+cEXE_sources   += mach_c.c
 f90EXE_sources += premix_2_util.f90 
 
 ifeq (${USE_SHARED_LIBS}, TRUE)
