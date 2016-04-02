@@ -126,6 +126,9 @@ CEXE_sources += SimulatedExperiment.cpp \
                 UqPlotfile.cpp \
                 PremixSol.cpp
 
+# Chemistry model-specific sources
+include ${CHEMISTRY_DIR}/tools/make/ChemModels.mk
+
 # CHEMKIN/Chemistry pieces
 VPATH_LOCATIONS   += ${CHEMISTRY_DIR}/tools/chemkin/src
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
@@ -133,9 +136,6 @@ FEXE_sources   += premix_2.F
 fEXE_sources   += twopnt.f refine.f cktime.f misc_math.f mach.f
 cEXE_sources   += mach_c.c $(CHEM_MECHFILE)
 f90EXE_sources += premix_2_util.f90 
-
-# Chemistry model-specific sources
-include ${CHEMISTRY_DIR}/tools/make/ChemModels.mk
 
 ifeq (${USE_SHARED_LIBS}, TRUE)
   # build to link to shared libs
