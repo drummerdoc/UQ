@@ -35,7 +35,6 @@ ifeq (${USE_SDC}, TRUE)
   DEFINES += -DLMC_SDC
   #DEFINES += -DDO_AJAC
 endif
-CFLAGS += -std=c99
 
 #EBASE = main
 #EBASE = minimizeEnsemble
