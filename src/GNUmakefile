@@ -1,51 +1,6 @@
-# Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
-TOP = ../..
-
-# Put these here until all of them get propagated into the BoxLib make system
-
-HOST=$(shell hostname)
-MACHINE=$(shell uname)
-
-ifeq (${HOST},stc-23736s)
-  TOP = /Users/rgrout/Code/rev-controlled/LBNL
-  WHICHDARWIN=RAY
-endif
-ifeq ($(findstring Jonathans, $(HOST)), Jonathans)
-  WHICHDARWIN=JG
-endif
-
-UNAMEN := $(shell uname -n)
-ifeq ($(MACHINE), Linux)
-  ifeq ($(findstring hedorah, $(UNAMEN)), hedorah)
-    WHICHLINUX := HEDORAH
-  endif
-  ifeq ($(findstring edison, $(UNAMEN)), edison)
-    WHICHLINUX := EDISON
-  endif
-  ifeq ($(findstring cori, $(UNAMEN)), cori)
-    WHICHLINUX := CORI
-  endif
-  ifeq ($(findstring mothra, $(UNAMEN)), mothra)
-    WHICHLINUX := MOTHRA
-    TOP = /scratch1/jbb/
-  endif
-  ifeq ($(findstring gimantis, $(UNAMEN)), gimantis)
-    WHICHLINUX := GIMANTIS
-  endif
-  ifeq ($(findstring peregrine, ${HOSTNAME}), peregrine)
-    WHICHLINUX := PEREGRINE
-    TOP = ../..
-  endif
-endif
-ifeq (${MACHINE}, Darwin) 
-  ifeq ($(findstring MarcsLaptop, $(UNAMEN)), MarcsLaptop)
-    WHICHDARWIN:=MARC
-  endif
-endif
-
 PRECISION       = DOUBLE
 DEBUG           = FALSE
-#DEBUG           = TRUE
+DEBUG           = TRUE
 DIM             = 2
 #COMP            = CC
 #FCOMP           = ftn
@@ -85,8 +40,8 @@ CFLAGS += -std=c99
 #EBASE = main
 #EBASE = minimizeEnsemble
 #EBASE = evalLocalModel
-EBASE = interpSample
-#EBASE = EvalExpt
+#EBASE = interpSample
+EBASE = EvalExpt
 #EBASE = EvalParams
 
 ifeq (${DO_REGTEST}, TRUE)
@@ -101,14 +56,44 @@ else
   USE_SHARED_LIBS := TRUE
 endif
 
+
+# Note: ${TOP} must point to a folder containing BoxLib and Combustion folders
+TOP = ../..
+
+# Set TOP for a few special machines here...
+HOST=$(shell hostname)
+MACHINE=$(shell uname)
+UNAMEN := $(shell uname -n)
+
+ifeq ($(MACHINE), Linux)
+  ifeq ($(findstring mothra, $(UNAMEN)), mothra)
+    ifeq (${USER}, jbb)
+      TOP = /scratch1/jbb/
+    endif
+  endif
+else ifeq (${MACHINE}, Darwin) 
+  ifeq (${HOST},stc-23736s)
+    TOP = /Users/rgrout/Code/rev-controlled/LBNL
+    WHICHDARWIN=RAY
+  else ifeq ($(findstring Jonathans, $(HOST)), Jonathans)
+    WHICHDARWIN=JG
+  endif
+endif
+
+
 # Set paths to BoxLib and Chemistry
 BOXLIB_HOME = ${TOP}/BoxLib
 CHEMISTRY_DIR = ${TOP}/Combustion/Chemistry
 INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/src_common
 
+ifeq (${BUILD_EXEC}, FALSE)
+  USERSuffix = .SO
+endif
+
 include ${BOXLIB_HOME}/Tools/C_mk/Make.defs 
 fincludes=${includes}
 
+# Remote sources
 Bdirs   += ${CHEMISTRY_DIR}/src
 Bdirs   += ${BOXLIB_HOME}/Src/C_BaseLib
 
@@ -116,79 +101,41 @@ Blocs    = .
 Bpack	+= $(foreach dir, $(Bdirs), $(dir)/Make.package)
 Blocs	+= $(foreach dir, $(Bdirs), $(dir))
 
-
 include $(Bpack)
 INCLUDE_LOCATIONS += $(Blocs)
 VPATH_LOCATIONS   += $(Blocs)
 
-ifeq ($(findstring angilas, ${UNAMEN}), angilas)
-    WHICHLINUX := ANGILAS
-endif
+# Local sources
+CEXE_headers += SimulatedExperiment.H \
+                Rand.H \
+                ParameterManager.H \
+                ExperimentManager.H \
+                Driver.H \
+                MINPACKstruct.H \
+                Minimizer.H \
+                Sampler.H \
+                UqPlotfile.H \
+                PremixSol.H
+CEXE_sources += SimulatedExperiment.cpp \
+                Rand.cpp \
+                ParameterManager.cpp \
+                ExperimentManager.cpp \
+                Driver.cpp \
+                Minimizer.cpp \
+                Sampler.cpp \
+                UqPlotfile.cpp \
+                PremixSol.cpp
 
-CEXE_headers += SimulatedExperiment.H Rand.H ParameterManager.H ExperimentManager.H Driver.H MINPACKstruct.H Minimizer.H Sampler.H UqPlotfile.H PremixSol.H
-CEXE_sources += SimulatedExperiment.cpp Rand.cpp ParameterManager.cpp ExperimentManager.cpp Driver.cpp Minimizer.cpp Sampler.cpp UqPlotfile.cpp PremixSol.cpp
+# CHEMKIN/Chemistry pieces
+VPATH_LOCATIONS   += ${CHEMISTRY_DIR}/tools/chemkin/src
+INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
+FEXE_sources   += premix_2.F
+fEXE_sources   += twopnt.f refine.f cktime.f misc_math.f mach.f
+cEXE_sources   += mach_c.c $(CHEM_MECHFILE)
+f90EXE_sources += premix_2_util.f90 
 
-ifeq (${CHEMISTRY_MODEL}, BURKE)
-  CHEM_MECHFILE = BurkeDryer.c
-  #VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer/PMFs
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer/
-endif
-
-ifeq (${CHEMISTRY_MODEL}, BURKEMOD)
-  CHEM_MECHFILE = BurkeDryer_mod.c
-  #VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer/PMFs
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer_mod/
-endif
-
-ifeq (${CHEMISTRY_MODEL}, DAVIS)
-  CHEM_MECHFILE = davis.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/gri/PMFs
-  VPATH_LOCATIONS += ../extras/Davis05_h2co/chemfiles/
-endif
-ifeq (${CHEMISTRY_MODEL}, DRM19)
-  CHEM_MECHFILE = drm19.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/gri/PMFs
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/gri
-endif
-ifeq (${CHEMISTRY_MODEL}, CHEMH)
-  CHEM_MECHFILE = chem-H.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/chem-H/PMFs
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/chem-H
-endif
-ifeq (${CHEMISTRY_MODEL}, LIDRY)
-  CHEM_MECHFILE = LiDryer.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/LiDryer/PMFs
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/LiDryer
-endif
-ifeq (${CHEMISTRY_MODEL}, LIDRYMOD)
-  CHEM_MECHFILE = LiDryerMOD.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/LiDryer/PMFs
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/LiDryer
-endif
-ifeq (${CHEMISTRY_MODEL}, GRI30_noArN)
-  CHEM_MECHFILE = grimech30-noArN.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/gri/PMFs
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/gri
-endif
-ifeq (${CHEMISTRY_MODEL}, GLARSKEL)
-  CHEM_MECHFILE = glarSkel.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/glar/PMFs
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/glar
-endif
-ifeq (${CHEMISTRY_MODEL}, LUDME)
-  CHEM_MECHFILE = LuDME.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/Lu/PMFs
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/Lu
-endif
-ifeq (${CHEMISTRY_MODEL}, BURKEMOD)
-  CHEM_MECHFILE = BurkeDryer_mod.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer_mod
-endif
-ifeq (${CHEMISTRY_MODEL}, BURKE)
-  CHEM_MECHFILE = BurkeDryer.c
-  VPATH_LOCATIONS += ${CHEMISTRY_DIR}/data/BurkeDryer
-endif
-cEXE_sources += ${CHEM_MECHFILE}
+# Chemistry model-specific sources
+include ${CHEMISTRY_DIR}/tools/make/ChemModels.mk
 
 ifeq (${USE_SHARED_LIBS}, TRUE)
   # build to link to shared libs
@@ -198,97 +145,63 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
   CXXFLAGS += -fPIC
 
   ifeq ($(MACHINE), Linux)
-    ifeq (${WHICHLINUX}, HEDORAH)
-      PYTHON_DIR := /usr
-      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
-      SHARED_LIBRARY_SUFFIX:=so
+
+    # Two types of nonstandard Linux machines:
+    #   1. NERSC machines with PYTHON_DIR defined and no py or mpi to be added to link line
+    #   2. machine that has PYTHON_DIR != /usr
+    NERSCMachines = EDISON CORI
+    MachinesWithPyDirNotAtUsr = GIMANTIS PEREGRINE
+
+    SHARED_LIBRARY_SUFFIX:=so
+
+    ifeq ($(filter $(WHICHLINUX),$(NERSCMachines)),)
+      ifneq ($(filter $(WHICHLINUX),$(MachinesWithPyDirNotAtUsr)),)
+        # Specific machines, with special PYTHON_DIR locations
+        ifeq (${WHICHLINUX}, GIMANTIS)
+          PYTHON_DIR := /home/marc/anaconda/pkgs/python-2.7.7-0
+        else ifeq (${WHICHLINUX}, PEREGRINE)
+          PYTHON_DIR := /home/rgrout/opt/anaconda/pkgs/python-2.7.7-0/
+          MPILIB := /home/rgrout/opt/anaconda/lib/libmpich.${SHARED_LIBRARY_SUFFIX}
+        endif
+      else
+        PYTHON_DIR := /usr
+      endif
+    endif
+
+    ifeq ($(filter $(WHICHLINUX),$(NERSCMachines)),)
       SHARED_LIBRARIES+=-lpython2.7 -lmpi
       ifeq (${USE_OMP}, TRUE)
         SHARED_LIBRARIES += -lgomp
       endif
-      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
-      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
     endif
-    ifeq (${WHICHLINUX}, MOTHRA)
-      PYTHON_DIR := /usr
-      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
-      SHARED_LIBRARY_SUFFIX:=so
-      SHARED_LIBRARIES+=-lpython2.7 -lmpi
-      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
-      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
-#      PYTHON_DIR := /home/marc/src/CCSE/UQ/src/packages/build/pypa-virtualenv-fceb355/pyenv
-#      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.6
-#      SHARED_LIBRARY_SUFFIX:=so
-#      LIBRARIES+=-lpython2.6
-    endif
-    ifeq (${WHICHLINUX}, ANGILAS)
-      PYTHON_DIR := /usr
-      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
-      SHARED_LIBRARY_SUFFIX:=so
-      SHARED_LIBRARIES+=-lpython2.7 -lmpi
-      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
-      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
-    endif
-    ifeq (${WHICHLINUX}, GIMANTIS)
-      PYTHON_DIR := /home/marc/anaconda/pkgs/python-2.7.7-0
-      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
-      SHARED_LIBRARY_SUFFIX:=so
-      LIBRARIES+=-lpython2.7 -lmpi
-      MPILIB := /home/rwgrout/opt/anaconda/lib/libmpich.${SHARED_LIBRARY_SUFFIX}
-      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
-      PYTHON_INCLUDES += /home/rwgrout/opt/anaconda/lib/python2.7/site-packages/mpi4py/include
-      fFLAGS += -cpp
-    endif
-    ifeq (${WHICHLINUX}, PEREGRINE)
-      PYTHON_DIR := /home/rgrout/opt/anaconda/pkgs/python-2.7.7-0/
-      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
-      SHARED_LIBRARY_SUFFIX:=so
-      LIBRARIES+=-lpython2.7 -lmpi
-      MPILIB := /home/rgrout/opt/anaconda/lib/libmpich.${SHARED_LIBRARY_SUFFIX}
-      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
-      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
-      fFLAGS += -cpp
-    endif
-    ifeq (${WHICHLINUX}, EDISON)
-      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
-      SHARED_LIBRARY_SUFFIX:=so
-      LIBRARIES+=-lpython2.7 -lmpi
-      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
-      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
-      fFLAGS += -cpp
-    endif
-    ifeq (${WHICHLINUX}, CORI)
-      PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
-      SHARED_LIBRARY_SUFFIX:=so
-      LIBRARIES+=-lpython2.7 -lmpi
-      PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
-      PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
-      fFLAGS += -cpp
-    endif
+
+    PYTHON_INCLUDES := ${PYTHON_DIR}/include/python2.7
+    PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
+    PYTHON_INCLUDES += $(shell python -c 'import mpi4py; print mpi4py.get_include()')
+    fFLAGS += -cpp
   endif
 
   ifeq (${MACHINE}, Darwin) 
     SHARED_LIBRARY_SUFFIX:=dylib
     ifeq (${WHICHDARWIN}, RAY)
-      #PYTHON_DIR := /opt/local/Library/Frameworks/Python.framework/Versions/Current
-      #PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
       PYTHON_DIR := /Users/rgrout/Library/Enthought/Canopy_64bit/User/
       PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
       PYTHON_INCLUDES := /Applications/Canopy.app/appdata/canopy-1.3.0.1715.macosx-x86_64/Canopy.app/Contents/include/python2.7
-	  PYTHON_INCLUDES += /Users/rgrout/Library/Enthought/Canopy_64bit/User/lib/python2.7/site-packages/mpi4py/include/
+      PYTHON_INCLUDES += /Users/rgrout/Library/Enthought/Canopy_64bit/User/lib/python2.7/site-packages/mpi4py/include/
       GFORTLIB := /opt/local/lib/gcc46/libgfortran.${SHARED_LIBRARY_SUFFIX}
       COMP            = g++-mp-4.6
       FCOMP           = gfortran-mp-4.6
-	  #COMP = mpicxx
-	  #FCOMP = mpif90
       LIBRARIES+=-lpython2.7
       LIBRARIES+= -headerpad_max_install_names
     endif
     ifeq (${WHICHDARWIN}, MARC)
-      PYTHON_DIR := /usr/local/Cellar/python/2.7.6/Frameworks/Python.framework/Versions/Current
+      PYTHON_DIR := /usr/local/Cellar/python/2.7.9/Frameworks/Python.framework/Versions/Current
       PYTHON_INCLUDES := ${PYTHON_DIR}/Headers
       GFORTLIB := /usr/local/lib/libgfortran.${SHARED_LIBRARY_SUFFIX}
       LIBRARIES+=-lpython2.7
+      ifeq (${USE_OMP}, TRUE)
+        SHARED_LIBRARIES+=-lgomp
+      endif
     endif
     ifeq (${WHICHDARWIN}, MATTI)
       PYTHON_DIR := /System/Library/Frameworks/Python.framework/Versions/2.7
@@ -305,15 +218,6 @@ ifeq (${USE_SHARED_LIBS}, TRUE)
     PYTHON_INCLUDES += $(shell python -c 'import numpy; print numpy.get_include()')
   endif
 endif
-
-#
-# Where chemkin/premix bits are
-VPATH_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
-INCLUDE_LOCATIONS += ${CHEMISTRY_DIR}/tools/chemkin/src
-FEXE_sources += premix_2.F
-fEXE_sources += twopnt.f refine.f cktime.f misc_math.f mach.f
-cEXE_sources += mach_c.c
-f90EXE_sources += premix_2_util.f90 
 
 PACKAGES=./packages
 INCLUDE_LOCATIONS += ${PYTHON_INCLUDES}
@@ -373,9 +277,12 @@ endif
 
 all: ${DEFAULT_TARGET}
 
-${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
+${objEXETempDir}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}: $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o
 	mkdir -p ${PACKAGE}
-	$(COMP) -fPIC -shared -o ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
+	$(COMP) -fPIC -shared -o ${objEXETempDir}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX} $(objForExecs) $(objEXETempDir)/${PACKAGE}_wrap.o ${SHARED_LIBRARIES}
+
+${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}: ${objEXETempDir}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}
+	cp ${objEXETempDir}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX} ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}
 	./fixDYLIB.sh ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX}
 	cp ${PACKAGE}.py ${PACKAGE}
 
@@ -392,3 +299,6 @@ realclean::
 	rm -rf dat dat1 dat2 dat3 ${PACKAGE}/_${PACKAGE}.${SHARED_LIBRARY_SUFFIX} ${PACKAGE}_wrap.cpp ${PACKAGE}.py *.pyc d f o
 
 include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
+
+# print out the value.
+print-%: ; @echo $* is $($*)
