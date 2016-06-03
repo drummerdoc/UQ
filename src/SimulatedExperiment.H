@@ -18,9 +18,9 @@ struct SimulatedExperiment
   static const std::string& ErrorString(int errID);
   static int ErrorID(const std::string& errStr);
 
-  virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations) = 0;
+  virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations,int data_num_points, Real data_tstart, Real data_tend) = 0;
   virtual void GetMeasurementError(std::vector<Real>& observation_error) = 0;
-  virtual void SaveBaselineSolution(){return;}
+  virtual void SaveBaselineSolution(const std::string& prefix){return;}
   virtual int NumMeasuredValues() const = 0;
   virtual void InitializeExperiment() = 0;
   bool Initialized() const {return is_initialized;}
@@ -57,7 +57,7 @@ struct ZeroDReactor
   virtual ~ZeroDReactor();
 
   virtual const std::vector<Real>& GetMeasurementTimes() const;
-  virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations);
+  virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations,int data_num_points, Real data_tstart, Real data_tend);
   virtual void GetMeasurementError(std::vector<Real>& observation_error);
 
   virtual void InitializeExperiment();
@@ -95,6 +95,7 @@ protected:
   Real mean_delta_cond_start;
   Real mean_delta_cond_stop;
 
+
 private:
   ZeroDReactor(const ZeroDReactor& rhs);
 };
@@ -112,13 +113,13 @@ struct PREMIXReactor
 {
   PREMIXReactor(ChemDriver& _cd, const std::string& pp_prefix);
 
-  virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations);
+  virtual std::pair<bool,int> GetMeasurements(std::vector<Real>& simulated_observations,int data_num_points, Real data_tstart, Real data_tend);
   virtual void GetMeasurementError(std::vector<Real>& observation_error);
 
   virtual void CopyData(int src, int dest, int tag);
 
   virtual void InitializeExperiment();
-  virtual void SaveBaselineSolution();
+  virtual void SaveBaselineSolution(const std::string& prefix);
   const PremixSol& getPremixSol() const;
 
   void solCopyIn( PremixSol * );

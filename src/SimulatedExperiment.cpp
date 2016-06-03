@@ -87,6 +87,8 @@ SimulatedExperiment::build_err_map()
   my_map.push_back("INVALID_OBSERVATION_7");
   my_map.push_back("PREMIX_TOO_MANY_ITERS");
   my_map.push_back("PREMIX_SOLVER_FAILED");
+  //my_map.push_back("NEEDED_MEAN_BUT_NOT_FINISHED");
+  my_map.push_back("NEEDED_MEAN_REFINE");
   my_map.push_back("NEEDED_MEAN_BUT_NOT_FINISHED");
   my_map.push_back("REACTOR_DID_NOT_COMPLETE");
   my_map.push_back("VODE_FAILED");
@@ -210,7 +212,7 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
     const int nComp = nSpec + 4;
     s_init.resize(bx,nComp);
     s_init(iv,sCompT) = Tinit;
-
+	
     Array<Real> Y = cd.moleFracToMassFrac(volFrac);
 
     for (int i=0; i<nSpec; ++i) {
@@ -376,7 +378,10 @@ ZeroDReactor::ZeroDReactor(ChemDriver& _cd, const std::string& pp_prefix, const 
       save_this = false;
       //std::cout << "Not saving solution to file " << solution_savefile.c_str() << std::endl;
   }
+
 }
+
+
 
 void
 ZeroDReactor::GetMeasurementError(std::vector<Real>& observation_error)
@@ -394,17 +399,60 @@ ZeroDReactor::ValidMeasurement(Real data) const
 }
 
 std::pair<bool,int>
-ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
-{
+ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations,int data_num_points, Real data_tstart, Real data_tend)
+{ 
   BL_ASSERT(is_initialized);
   Reset();
   const Box& box = funcCnt.box();
   int Nspec = cd.numSpecies();
-
   //std::cout << "\n\n Running ZeroDReactor "  << diagnostic_name << std::endl;
+
+  bool inside_range_leen = false;
+  bool outside_range_leen = false;
+	
+  measurement_times.resize(data_num_points);
+  Real dt = data_tend - data_tstart;  BL_ASSERT(dt>=0);
+  for (int i=0; i<data_num_points; ++i) {
+    measurement_times[i] = data_tstart + i*dt/(data_num_points-1);
+  }
+
+  //std::cout << "numpts new = " << data_num_points << std::endl;
+  //std::cout << "tend new = " << data_tend << std::endl;
+
+
+  bool leen_test = diagnostic_name != "pressure_rise"
+    && diagnostic_name != "max_pressure" 
+    && diagnostic_name != "max_OH" 
+    && diagnostic_name != "thresh_O" 
+    && diagnostic_name != "inflect_OH" 
+    && diagnostic_name != "onset_OH" 
+    && diagnostic_name != "onset_CO2" 
+    && diagnostic_name != "onset_pressure_rise"
+    && diagnostic_name != "mean_difference"
+	&& diagnostic_name != "record_solution";
+
+
+  if (diagnostic_name == "temp") {
+    num_measured_values = measurement_times.size() * measured_comps.size();
+  }
+  else if (diagnostic_name == "pressure") {
+    num_measured_values = measurement_times.size() * measured_comps.size();
+  }
+  else if (leen_test) { 
+    int comp = cd.index(diagnostic_name);
+    if (comp < 0) {
+      std::string err = "Invalid species/temp for: ";
+      BoxLib::Abort(err.c_str());
+    }
+    else {
+      num_measured_values = measurement_times.size() * measured_comps.size();
+    }
+  }
+
+
   int num_time_nodes = measurement_times.size();
   simulated_observations.resize(NumMeasuredValues());
-
+ 
   bool sample_evolution = diagnostic_name != "pressure_rise"
     && diagnostic_name != "max_pressure" 
     && diagnostic_name != "max_OH" 
@@ -495,7 +543,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
       Real t_start = t_end;
       t_end = measurement_times[i];
       dt_old = dt;
-      dt = t_end - t_start;
+      dt = t_end - t_start;   
       if( dt_old == 0 ) dt_old = dt;
 
       bool ok = cd.solveTransient_sdc(rYnew,rHnew,Tnew,rYold,rHold,Told,C_0,
@@ -633,19 +681,18 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
         numer_stop = -1;
         i++;
     }
-
+    
     finished = false;
     bool first = true;
     for ( ; i<num_time_nodes; ++i) {
       Real t_start = t_end;
       t_end = measurement_times[i];
       Real dt = t_end - t_start;
-
       bool ok = cd.solveTransient(Ynew,Tnew,Yold,Told,funcCnt,box,
-				  sCompY,sCompT,dt,Patm);
-
+				  sCompY,sCompT,dt,Patm);		
+	
       if (!ok) {
-	return std::pair<bool,int>(false,ErrorID("VODE_FAILED"));	
+	return std::pair<bool,int>(false,ErrorID("VODE_FAILED"));
       }
 
       if (sample_evolution) {
@@ -686,6 +733,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
           // Get solution 
           mean_difference_sol_old = mean_difference_sol;
           ExtractMeasurements(mean_difference_sol, t_end);
+		 
           const int cond_id = 0;
           const int numer_id = 1;
           const int denom_id = 2;
@@ -716,14 +764,16 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
               //    << numer_start << "/" << denom_start <<  " inside: " <<  inside_range << std::endl;
 
               inside_range = true;
-
+			  inside_range_leen = true;
+	          
           }
 
           if( (mean_difference_sol[cond_id] < mean_delta_cond_stop)
-                  && inside_range ) {
+                  && inside_range ) {				
               BL_ASSERT( numer_start > 0 );
               BL_ASSERT( denom_start > 0 );
               inside_range = false;
+			
 
               numer_stop = 
                   (mean_difference_sol[numer_id]
@@ -776,6 +826,7 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
                       / mean_difference_denom;
               }
               inside_range = false;
+			  outside_range_leen = true;
           }
 
           if( finished ){
@@ -804,7 +855,12 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 
   //std::cout << "--> End Computed measurement: " <<  simulated_observations[0]  << " finished: " << finished << std::endl;
   if (diagnostic_name == "mean_difference" && !finished) {
+    if (!inside_range_leen && outside_range_leen){
+      return std::pair<bool,int>(false,ErrorID("NEEDED_MEAN_REFINE"));
+    }
+    else if (inside_range_leen || !outside_range_leen){
     return std::pair<bool,int>(false,ErrorID("NEEDED_MEAN_BUT_NOT_FINISHED"));
+    }
   }
   return std::pair<bool,int>(true,ErrorID("SUCCESS"));
 }
@@ -840,6 +896,7 @@ ZeroDReactor::ExtractXTSolution(std::vector<Real>& sol)
   int Nspec = cd.numSpecies();
   sol.resize(Nspec+1);
   sol[Nspec] = s_final(s_final.box().smallEnd(),sCompT);
+ 
 
   FArrayBox Y;
   ComputeMassFraction(Y);
@@ -850,11 +907,11 @@ ZeroDReactor::ExtractXTSolution(std::vector<Real>& sol)
   FArrayBox X(box,Nspec);
   cd.massFracToMoleFrac(X,Y,box,0,0);
 
+
   int iSpec = measured_comps[0] - sCompY;
   for( int i = 0; i<Nspec; ++i){
       sol[i] = X(box.smallEnd(), i);
   }
-
   return;
 
   // Return molar concentration
@@ -1160,13 +1217,19 @@ PREMIXReactor::ValidMeasurement(Real data) const
  *
  */
 void
-PREMIXReactor::SaveBaselineSolution()
+PREMIXReactor::SaveBaselineSolution(const std::string& prefix)
 {
     std::vector<Real> simulated_obs;
     std::pair<bool,int> status;
 
     if (!have_baseline_sol) {
-      status = GetMeasurements(simulated_obs);
+	  ParmParse ppe(prefix.c_str());
+	  Real data_tstart = 0; ppe.query("data_tstart",data_tstart);
+  	  Real data_tend = 0; ppe.query("data_tend",data_tend); BL_ASSERT(data_tend>0);
+  	  int data_num_points = -1;
+  	  ppe.query("data_num_points",data_num_points); BL_ASSERT(data_num_points>0);
+
+      status = GetMeasurements(simulated_obs,data_num_points, data_tstart, data_tend);
       if(status.first){
         if (baseline_soln_file != "") {
 	  std::cerr << "Writing baseline solution for " << name << " to: " << baseline_soln_file << std::endl;
@@ -1183,7 +1246,7 @@ PREMIXReactor::SaveBaselineSolution()
 }
 
 std::pair<bool,int>
-PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
+PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations,int data_num_points, Real data_tstart, Real data_tend)
 {
   BL_PROFILE("PREMIXReactor::GetMeasurements()");
 
@@ -1243,7 +1306,7 @@ PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations)
 		    << " with restart = " << (*pr)->lrstrtflag << std::endl;
 	}
 
-	std::pair<bool,int> retVal = (*pr)->GetMeasurements(pr_obs);
+	std::pair<bool,int> retVal = (*pr)->GetMeasurements(pr_obs, data_num_points, data_tstart, data_tend);
 	if (!retVal.first) {
 	  return std::pair<bool,int>(false,ErrorID("PREREQ_FAILED"));
 	}

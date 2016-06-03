@@ -83,6 +83,7 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, boo
         true_data[offset+j] = tarr[j];
       }
     }
+
   }
 
   if (pp.countval("diagnostic_prefix")>0) {
@@ -170,7 +171,8 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
           //     "Saving baseline solution only on IO proc " << std::endl <<
           //     " ******* probably not what we want for every case" << std::endl;
 	  if (ParallelDescriptor::IOProcessor()) {
-		  expts[i].SaveBaselineSolution();
+		  std::string prefix = expt_name[i];
+		  expts[i].SaveBaselineSolution(prefix);
 	  }
 
     BL_ASSERT(expts.defined(i));
@@ -180,7 +182,14 @@ ExperimentManager::InitializeTrueData(const std::vector<Real>& true_parameters)
 
 
     if (use_synthetic_data) {
-      std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i]);
+	std::string prefix = expt_name[i];
+    ParmParse ppe(prefix.c_str());
+	Real data_tstart = 0; ppe.query("data_tstart",data_tstart);
+  	Real data_tend = 0; ppe.query("data_tend",data_tend); BL_ASSERT(data_tend>0);
+  	int data_num_points = -1;
+  	ppe.query("data_num_points",data_num_points); BL_ASSERT(data_num_points>0);
+
+      std::pair<bool,int> retVal = expts[i].GetMeasurements(raw_data[i], data_num_points, data_tstart, data_tend);
       if (!retVal.first) {
         std::string msg = SimulatedExperiment::ErrorString(retVal.second);
         std::cout << "Experiment " << i << "(" << expt_name[i]
@@ -242,25 +251,66 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1) firstprivate(pvtok)
 #endif
+
   for (int i=0; i<N; ++i) {
+
+    std::string prefix = expt_name[i];
+    ParmParse ppe(prefix.c_str());
+	Real data_tstart = 0; ppe.query("data_tstart",data_tstart);
+  	Real data_tend = 0; ppe.query("data_tend",data_tend); BL_ASSERT(data_tend>0);
+  	int data_num_points = -1;
+  	ppe.query("data_num_points",data_num_points); BL_ASSERT(data_num_points>0);
+
+
     if (pvtok) {
+//std::cout << "HERE pvtok " << pvtok << " OK " << ok << std::endl;
        // int nthreads = omp_get_num_threads();
       //std::cout << "Evaluating experiment " << i << " of " << N 
       //          << " on thread id " << omp_get_thread_num() 
       //          << " of " << nthreads << std::endl;
+
       std::pair<bool,int> retVal;
-       retVal = expts[i].GetMeasurements(raw_data[i]);
-      if (!retVal.first) {
+      retVal = expts[i].GetMeasurements(raw_data[i], data_num_points, data_tstart, data_tend);	
+		//std::cout << "Experiment " << i << " (" << expt_name[i] << ") failed.  Err msg: \""
+		  //<< SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
+	  //std::cout << "Expt Manager raw data = " << raw_data[i][0] << std::endl;
+	
+	// if (!retVal.first) {
+
+	  int count = 0;
+      double diff = 10;
+      while ((!retVal.first && count++ < 100) || (diff > 1.0)) {		
+	   //std::cout << "count = " << count << std::endl;		
+       double raw_data_old = raw_data[i][0];
+	   if (SimulatedExperiment::ErrorString(retVal.second) == "NEEDED_MEAN_BUT_NOT_FINISHED"){
+          data_tend = data_tend + 2;
+          data_num_points = data_num_points*2;
+	   }
+	   else {
+	   data_num_points = data_num_points*10;
+       }
+       retVal = expts[i].GetMeasurements(raw_data[i], data_num_points, data_tstart, data_tend); 
+       diff = abs(raw_data[i][0] - raw_data_old)*100/raw_data_old; 
+	   //std::cout << "Expt Manager diff = " << diff << " " << raw_data_old << " " << raw_data[i][0] << std::endl;
 
 	msgID[i] = retVal.second;
 
 #ifdef _OPENMP
 #pragma omp critical (exp_failed)
 #endif
-	std::cout << "Experiment " << i << " (" << expt_name[i] << ") failed.  Err msg: \""
+	   std::cout << "Experiment " << i << " (" << expt_name[i] << ") failed.  Err msg: \""
 		  << SimulatedExperiment::ErrorString(retVal.second) << "\""<< std::endl;
-      }
 
+	      //int offset = data_offsets[i];
+      	  //for (int j=0, n=expts[i].NumMeasuredValues(); j<n; ++j) {
+	    	//test_measurements[offset + j] = 0;
+			//LogFailedCases(test_params,test_measurements,msgID);
+      	  //}
+
+      }
+	//}
+
+//else {
 // #ifdef _OPENMP
 // #pragma omp atomic
 // #endif
@@ -279,10 +329,11 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 
       int offset = data_offsets[i];
       for (int j=0, n=expts[i].NumMeasuredValues(); j<n && ok; ++j) {
-	test_measurements[offset + j] = raw_data[i][j];
+	    test_measurements[offset + j] = raw_data[i][j];
       }
     }
   }
+
 
   if (ok) {
     if (verbose) {
@@ -373,7 +424,15 @@ ExperimentManager::EvaluateMeasurements_masterSlave(const std::vector<Real>& tes
 	expts[which_experiment].CopyData(master,ParallelDescriptor::MyProc(),extra_tag);
 
 	// Do the work
-	std::pair<bool,int> retVal = expts[which_experiment].GetMeasurements(raw_data[which_experiment]);
+
+	std::string prefix = expt_name[which_experiment];
+    ParmParse ppe(prefix.c_str());
+	Real data_tstart = 0; ppe.query("data_tstart",data_tstart);
+  	Real data_tend = 0; ppe.query("data_tend",data_tend); BL_ASSERT(data_tend>0);
+  	int data_num_points = -1;
+  	ppe.query("data_num_points",data_num_points); BL_ASSERT(data_num_points>0);	
+
+	std::pair<bool,int> retVal = expts[which_experiment].GetMeasurements(raw_data[which_experiment], data_num_points, data_tstart, data_tend);
 	if (retVal.first) {
 	  intok = 1;
 	}
@@ -599,7 +658,6 @@ ExperimentManager::GenerateTestMeasurements(const std::vector<Real>& test_params
     if (verbose && ParallelDescriptor::IOProcessor() ){
        std::cout <<  "parameter " << i << " value " << test_params[i] << std::endl;
      }
-
   }
   test_measurements.resize(NumExptData());
 
