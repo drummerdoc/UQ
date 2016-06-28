@@ -401,6 +401,8 @@ ZeroDReactor::ValidMeasurement(Real data) const
 std::pair<bool,int>
 ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations,int data_num_points, Real data_tstart, Real data_tend)
 { 
+   
+
   BL_ASSERT(is_initialized);
   Reset();
   const Box& box = funcCnt.box();
@@ -767,6 +769,9 @@ ZeroDReactor::GetMeasurements(std::vector<Real>& simulated_observations,int data
 			  inside_range_leen = true;
 	          
           }
+		
+	      if( (mean_difference_sol[cond_id] < mean_delta_cond_stop) ) {
+            outside_range_leen = true; }
 
           if( (mean_difference_sol[cond_id] < mean_delta_cond_stop)
                   && inside_range ) {				
@@ -1248,7 +1253,7 @@ PREMIXReactor::SaveBaselineSolution(const std::string& prefix)
 std::pair<bool,int>
 PREMIXReactor::GetMeasurements(std::vector<Real>& simulated_observations,int data_num_points, Real data_tstart, Real data_tend)
 {
-  BL_PROFILE("PREMIXReactor::GetMeasurements()");
+  //BL_PROFILE("PREMIXReactor::GetMeasurements()");
 
   // This set to return a single value - the flame speed
   simulated_observations.resize(1);

@@ -25,6 +25,7 @@ ExperimentManager::ExperimentManager(ParameterManager& pmgr, ChemDriver& cd, boo
     log_failed_cases(log_failed_cases_DEF), log_folder_name(log_folder_name_DEF),
     parallel_mode(PARALLELIZE_OVER_RANK)
 {
+
   ParmParse pp;
 
   pp.query("log_failed_cases",log_failed_cases);
@@ -243,6 +244,7 @@ bool
 ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_params,
 						 std::vector<Real>&       test_measurements)
 {
+
   bool ok = true;
   bool pvtok = ok;
   int N = expts.size();
@@ -263,7 +265,7 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 
 
     if (pvtok) {
-//std::cout << "HERE pvtok " << pvtok << " OK " << ok << std::endl;
+
        // int nthreads = omp_get_num_threads();
       //std::cout << "Evaluating experiment " << i << " of " << N 
       //          << " on thread id " << omp_get_thread_num() 
@@ -276,24 +278,27 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 	  //std::cout << "Expt Manager raw data = " << raw_data[i][0] << std::endl;
 	
 	// if (!retVal.first) {
-
-	  int count = 0;
-      double diff = 10;
-      while ((!retVal.first && count++ < 100) || (diff > 1.0)) {		
-	   //std::cout << "count = " << count << std::endl;		
+      
+	  int count = 0, countdiff = 0; 
+      if (retVal.first) countdiff++;
+      double diff = 10;	
+      while ((!retVal.first && count++ < 100) || (diff > 1.0) || (countdiff < 2)) {				
        double raw_data_old = raw_data[i][0];
 	   if (SimulatedExperiment::ErrorString(retVal.second) == "NEEDED_MEAN_BUT_NOT_FINISHED"){
-          data_tend = data_tend + 2;
-          data_num_points = data_num_points*2;
+          data_tend = data_tend*2;
+          //data_num_points = data_num_points*2;
 	   }
 	   else {
 	   data_num_points = data_num_points*10;
        }
        retVal = expts[i].GetMeasurements(raw_data[i], data_num_points, data_tstart, data_tend); 
        diff = abs(raw_data[i][0] - raw_data_old)*100/raw_data_old; 
+	   if (!retVal.first) { diff = 10; }
+       else { countdiff ++; }
+std::cout << "diff = " << diff << " " << data_num_points << " " << data_tend << " " << raw_data[i][0] << std::endl;
 	   //std::cout << "Expt Manager diff = " << diff << " " << raw_data_old << " " << raw_data[i][0] << std::endl;
 
-	msgID[i] = retVal.second;
+	   msgID[i] = retVal.second;
 
 #ifdef _OPENMP
 #pragma omp critical (exp_failed)
