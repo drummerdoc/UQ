@@ -279,10 +279,18 @@ ExperimentManager::EvaluateMeasurements_threaded(const std::vector<Real>& test_p
 	
 	// if (!retVal.first) {
       
+	 bool flag_leen = false;
+	 if (!retVal.first) {
+	   if ( (SimulatedExperiment::ErrorString(retVal.second) != "NEEDED_MEAN_BUT_NOT_FINISHED")
+           && (SimulatedExperiment::ErrorString(retVal.second) != "NEEDED_MEAN_REFINE") ) {
+       	  flag_leen = true;
+		}
+	  }
+
 	  int count = 0, countdiff = 0; 
       if (retVal.first) countdiff++;
       double diff = 10;	
-      while ((!retVal.first && count++ < 100) || (diff > 1.0) || (countdiff < 2)) {				
+      while ((!retVal.first && !flag_leen && count++ < 100) || (diff > 1.0 && !flag_leen && count++ < 100) || (countdiff < 2 && !flag_leen && count++ < 100)) {				
        double raw_data_old = raw_data[i][0];
 	   if (SimulatedExperiment::ErrorString(retVal.second) == "NEEDED_MEAN_BUT_NOT_FINISHED"){
           data_tend = data_tend*2;
